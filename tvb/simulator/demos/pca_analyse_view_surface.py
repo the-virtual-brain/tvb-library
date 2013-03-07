@@ -34,7 +34,7 @@ PCA analysis and visualisation demo.
 
 import numpy
 
-import tvb.core.logger.logger as logger
+import tvb.basic.logger.logger as logger
 LOG = logger.getLogger(__name__)
 
 from tvb.basic.datatypes.time_series import TimeSeriesSurface

@@ -33,7 +33,7 @@ Current modes are re-scaling methods.
 
 # Third party python libraries
 
-import tvb.core.logger.logger as logger
+import tvb.basic.logger.logger as logger
 LOG = logger.getLogger(__name__)
 
 #Import from tvb.basic.datatypes modules:

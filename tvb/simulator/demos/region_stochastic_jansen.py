@@ -41,7 +41,7 @@ import tvb.config
 tvb.config.BaseProfile.TRAITS_CONFIGURATION.use_storage = 0
 
 #Logger
-import tvb.core.logger.logger as logger
+import tvb.basic.logger.logger as logger
 LOG = logger.getLogger(__name__)
 
 #Import from tvb.simulator modules:

@@ -36,7 +36,7 @@ import an usage for MAYAVI based plots should look like::
 
 import numpy
 
-import tvb.core.logger.logger as logger
+import tvb.basic.logger.logger as logger
 LOG = logger.getLogger(__name__)
 
 

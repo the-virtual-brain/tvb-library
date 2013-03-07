@@ -36,7 +36,7 @@ Demonstrate using the simulator for a surface simulation.
 import numpy
 
 """
-import tvb.core.logger.logger as logger
+import tvb.basic.logger.logger as logger
 LOG = logger.getLogger(__name__)
 
 #Import from tvb.simulator modules:

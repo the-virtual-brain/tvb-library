@@ -37,7 +37,7 @@ Generate 8.125 seconds of 2048 Hz data at the surface level, stochastic integrat
 import numpy
 
 """
-import tvb.core.logger.logger as logger
+import tvb.basic.logger.logger as logger
 LOG = logger.getLogger(__name__)
 
 #Import from tvb.simulator modules:

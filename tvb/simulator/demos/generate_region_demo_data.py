@@ -37,7 +37,7 @@ Generate 16 seconds of 2048Hz data at the region level, stochastic integration.
 import numpy
 
 """
-import tvb.core.logger.logger as logger
+import tvb.basic.logger.logger as logger
 LOG = logger.getLogger(__name__)
 
 #Import from tvb.simulator modules:

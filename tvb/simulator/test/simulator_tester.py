@@ -41,12 +41,12 @@ from matplotlib.pyplot import figure, plot, title, show
 
 # From "The Virtual Brain"
 try:
-    import tvb.core.logger.logger as logger
+    import tvb.basic.logger.logger as logger
     LOG = logger.getLogger(parent_module=__name__, config_root='tvb.simulator')
 except ImportError:
     import logging
     LOG = logging.getLogger(__name__)
-    LOG.warning("Failed to import tvb.core.logger.logger, falling back to logging")
+    LOG.warning("Failed to import tvb.basic.logger.logger, falling back to logging")
     
 import tvb.simulator.simulator as simulator
 import tvb.simulator.models as models

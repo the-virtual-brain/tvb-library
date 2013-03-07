@@ -26,7 +26,7 @@ the cumulative input to each region.
 
 """
 
-import tvb.core.logger.logger as logger
+import tvb.basic.logger.logger as logger
 LOG = logger.getLogger(__name__)
 
 
