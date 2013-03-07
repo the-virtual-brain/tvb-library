@@ -1038,6 +1038,17 @@ class Bold(Monitor):
     tau_f = basic.Float(
         label = "Dimensionless? oscillatory parameter",
         default = 0.4)
+        
+    k1 = basic.Float(
+        label = "First Volterra kernel coefficient",
+        default = 5.6,
+        order = -1)
+        
+    V0 = basic.Float(
+        label = "resting blood volume fraction ",
+        default = 0.02,
+        order = -1)
+
 
 
     def __init__(self, **kwargs):
@@ -1174,7 +1185,7 @@ class Bold(Monitor):
             hrf = numpy.roll(self.hemodynamic_response_function,
                              ((step/self._interim_istep % self._stock_steps) - 1),
                              axis=1)
-            bold = numpy.dot(hrf, self._stock.transpose((1, 2, 0, 3)))
+            bold = (numpy.dot(hrf, self._stock.transpose((1, 2, 0, 3))) - 1.0) * (self.k1 * self.V0 / 3.0)
             bold = bold.reshape(self._stock.shape[1:])
             bold = bold.sum(axis=0)[numpy.newaxis,:,:] #state-variables
             bold = bold.sum(axis=2)[:,:,numpy.newaxis] #modes
