@@ -1,0 +1,12 @@
+NumberOfVertices: 4096 
+NumberOfTriangles: 8188 
+TotalSurfaceArea: 81722.443717 
+meanTriangleArea:   9.980758 
+minTriangleArea:   0.658585 
+maxTriangleArea:  28.052918 
+meanEdgeLength:   5.110617 
+minEdgeLength:   1.447083 
+maxEdgeLength:   8.317587 
+medianDegree: 6 
+minDegree: 3 
+maxDegree: 12 
