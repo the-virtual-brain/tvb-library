@@ -22,11 +22,16 @@
 #
 
 """
-Contains functionality which allows a user to set a certain profile for tvb.
+ENUM used for choosing current TVB Profile.
+
+Contains functionality which allows a user to set a certain profile for TVB.
 """
+
 class TvbProfile():
+    
     SUBPARAM_PROFILE = "-profile"
-    #existing profiles
+    
+    # Existing profiles:
     LIBRARY_PROFILE = "LIBRARY_PROFILE"
     DEVELOPMENT_PROFILE = "DEVELOPMENT_PROFILE"
     TEST_POSTGRES_PROFILE = "TEST_POSTGRES_PROFILE"
@@ -34,7 +39,7 @@ class TvbProfile():
     DEPLOYMENT_PROFILE = "DEPLOYMENT_PROFILE"
     CONSOLE_PROFILE = "CONSOLE_PROFILE"
 
-    #Used for setting the current tvb profile
+    # Used for setting the current TVB profile
     CURRENT_SELECTED_PROFILE = None
 
 
@@ -69,3 +74,5 @@ class TvbProfile():
         selected_profile = TvbProfile.get_profile(script_argv)
         if selected_profile is not None:
             TvbProfile.CURRENT_SELECTED_PROFILE = selected_profile
+            
+            

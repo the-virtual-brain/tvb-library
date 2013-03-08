@@ -20,12 +20,13 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 #
 #
-'''
-Created on Oct 24, 2012
 
+"""
 .. moduleauthor:: bogdan.neacsa <bogdan.neacsa@codemart.ro>
-'''
+"""
+
 from tvb.basic.traits.exceptions import TVBException
+
 
 class InvalidFilterChainInput(TVBException):
     """
@@ -38,7 +39,10 @@ class InvalidFilterChainInput(TVBException):
 class InvalidFilterEntity(TVBException):
     """
     Exception raised if a filter entity has contradicting values for operations and values.
-    ex: in None, not in 1 
+    for example: in None, not in 1 
     """
     def __init__(self, message):
         TVBException.__init__(self, message)
+  
+        
+        

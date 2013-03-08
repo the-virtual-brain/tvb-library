@@ -22,46 +22,74 @@
 #
 
 """
-TVB global configurations are predefined/read from here.
+TVB-Simulator-Library global configurations are defined here.
+
+Also the generic TVB-Configuration gets set from this point 
+(dependent on the previously user-specified profile).
 """
+
 import os
 from tvb.basic.config.utils import ClassProperty, EnhancedDictionary
 from tvb.basic.profile import TvbProfile as tvb_profile
 
 
-class LibraryProfile():
 
+class LibraryProfile():
+    """
+    Profile needed at the level of TVB Simulator Library.
+    It needs to respect a minimal pattern, common to all TVB available profiles.
+    """
+    
+    ## Number used for estimation of TVB used storage space
     MAGIC_NUMBER = 9
     
+    ## Maximum number of vertices accepted on a Surface object.
+    ## Used for validation purposes.
     MAX_SURFACE_VERTICES_NUMBER = 300000
     
+    ## Default value of folder where to store logging files.
     TVB_STORAGE = os.path.expanduser(os.path.join("~", "TVB" + os.sep))
     
+    ## Temporary add-on used in DataTypes_Framework.
+    ## When DataType_Framework classes will get moved, this should be removed.
     WEB_VISUALIZERS_URL_PREFIX = ""
+    
+    ## Way of functioning traits is different when using storage or not.
+    ## Storage set to false is valid when using TVB_Simulator_Library stand-alone.
+    TRAITS_CONFIGURATION = EnhancedDictionary()
+    TRAITS_CONFIGURATION.use_storage = False
+    
+    ## Name of file where logging configuration is stored.
+    LOGGER_CONFIG_FILE_NAME = "library_logger.conf"
+    
     
     @ClassProperty
     @staticmethod
     def TVB_LOG_FOLDER():
-        """ 
-        Represents a folder, where all log files are stored.
-        """
+        """ Return a folder, where all log files are to be stored. """
         tmp_path = os.path.join(LibraryProfile.TVB_STORAGE, "logs")
         if not os.path.exists(tmp_path):
             os.makedirs(tmp_path)
         return tmp_path
     
-    LOGGER_CONFIG_FILE_NAME = "library_logger.conf"
-    
-    TRAITS_CONFIGURATION = EnhancedDictionary()
-    TRAITS_CONFIGURATION.use_storage = False
-    
+   
     def initialize_profile(self):
+        """No initialization needed for this particular profile. But usefull in general"""
         pass
     
+    
+###
+###  Dependent of the selected profile. Load the correct configuration.
+###    
 if tvb_profile.CURRENT_SELECTED_PROFILE == tvb_profile.LIBRARY_PROFILE:
+    ## TVB-Simulator-Library is used stand-alone.
     TVBSettings = LibraryProfile
+    
 else:
+    ## Initialization based on profile is further done in Framework.
     import tvb.config as cfg
     TVBSettings = cfg.FrameworkSettings
         
 TVBSettings.initialize_profile()
+
+

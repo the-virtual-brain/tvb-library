@@ -42,7 +42,7 @@ import scipy.sparse as sparse
 from tvb.basic.config.settings import TVBSettings
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
-from tvb.basic.filters.filtering import UIFilter, FilterChain
+from tvb.basic.filters.chain import UIFilter, FilterChain
 
 import tvb.simulator.models as models_module
 import tvb.simulator.integrators as integrators_module

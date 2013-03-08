@@ -21,10 +21,19 @@
 #
 #
 
+"""
+Helper classes, for configuration area only.
+"""
+
+
 class ClassProperty(property):
-    """Subclass property to make class-method properties possible"""
+    """
+    Annotation to make class-level properties possible.
+    """
     def __get__(self, cls, owner):
         return self.fget.__get__(None, owner)()
+    
+    
     
 class EnhancedDictionary(dict):
     """
