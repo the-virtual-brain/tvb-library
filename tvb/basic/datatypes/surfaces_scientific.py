@@ -74,9 +74,12 @@ class SurfaceScientific(surfaces_data.SurfaceData):
     def configure(self):
         """
         Invoke the compute methods for computable attributes that haven't been
-        set during initialisation.
+        set during initialization.
         """
         super(SurfaceScientific, self).configure()
+        
+        self.number_of_vertices = self.vertices.shape[0]
+        self.number_of_triangles = self.triangles.shape[0]
 
         if self.triangle_normals.size == 0:
             LOG.debug("Triangle normals not available. Start to compute them.")

@@ -40,7 +40,7 @@ Important:
 import numpy
 from scipy import sparse
 from tvb.basic.logger.logger import getLogger
-from tvb.basic.traits.util import Self, get
+from tvb.basic.traits.util import get
 from tvb.basic.traits.core import Type, FILE_STORAGE_NONE
 from tvb.basic.traits.core import FILE_STORAGE_DEFAULT
 from tvb.basic.traits.core import TRAITS_CONFIGURATION
@@ -50,8 +50,13 @@ from tvb.core.entities.file.exceptions import MissingDataSetException
 
 
 class MappedTypeLight(Type):
+    """
+    Light base class for all entities which are about to be mapped in storage.
+    Current light implementation is to be used with the library stand-alone mode.
+    """
     
-    METADATA_EXCLUDE_PARAMS = ['id', 'LINKS', 'fk_datatype_group', 'visible', 'disk_size', 'fk_from_operation', 'parent_operation', 'fk_parent_burst']
+    METADATA_EXCLUDE_PARAMS = ['id', 'LINKS', 'fk_datatype_group', 'visible', 'disk_size', 
+                               'fk_from_operation', 'parent_operation', 'fk_parent_burst']
     
     ### Constants when retrieving meta-data about Array attributes on the current instance.
     METADATA_ARRAY_MAX = "Maximum"
@@ -134,9 +139,23 @@ class Array(Type):
     wraps = numpy.ndarray
     dtype = DType()
     defaults = ( (0, ), {})
-    shape = property(Self.data.shape)
-    array_path = property(Self.trait.name)
     _stored_metadata = MappedTypeLight.ALL_METADATA_ARRAY.keys()
+      
+      
+    @property
+    def shape(self):
+        """  
+        Property SHAPE for the wrapped array.
+        """
+        return self.data.shape
+    
+    
+    @property
+    def array_path(self):
+        """  
+        Property PATH relative.
+        """
+        return self.trait.name
         
         
     def __get__(self, inst, cls):
@@ -184,7 +203,8 @@ class Array(Type):
         setattr(inst, '__' + self.trait.name, value)
         
         if (TRAITS_CONFIGURATION.use_storage and inst.trait.use_storage and value is not None and value.size > 0 
-            and (inst is not None and isinstance(inst, MappedTypeLight) and self.trait.file_storage != FILE_STORAGE_NONE)):
+            and (inst is not None and isinstance(inst, MappedTypeLight) 
+                 and self.trait.file_storage != FILE_STORAGE_NONE)):
             
             if not isinstance(value, self.trait.wraps):
                 raise Exception("Invalid DataType!! It expects %s, but is %s"% str(self.trait.wraps), str(type(value)))
@@ -227,7 +247,7 @@ class Array(Type):
             raise FileStorageException("You should not use SET on attributes-to-be-stored-in-files!")
            
 
-    def log_debug(Self, owner = ""):
+    def log_debug(self, owner = ""):
         """
         Simple access to debugging info on a traited array, usage ::
             obj.trait["array_name"].log_debug(owner="obj")
@@ -235,15 +255,15 @@ class Array(Type):
         or ::
             self.trait["array_name"].log_debug(owner=self.__class__.__name__)
         """
-        name = ".".join((owner, Self.trait.name))
-        sts = str(Self.__class__)
-        if Self.trait.value is not None and Self.trait.value.size != 0:
-            shape = str(Self.trait.value.shape)
-            dtype = str(Self.trait.value.dtype)
-            tvb_dtype = str(Self.trait.value.dtype)
-            has_nan = str(numpy.isnan(Self.trait.value).any())
-            array_max = str(Self.trait.value.max())
-            array_min = str(Self.trait.value.min())
+        name = ".".join((owner, self.trait.name))
+        sts = str(self.__class__)
+        if self.trait.value is not None and self.trait.value.size != 0:
+            shape = str(self.trait.value.shape)
+            dtype = str(self.trait.value.dtype)
+            tvb_dtype = str(self.trait.value.dtype)
+            has_nan = str(numpy.isnan(self.trait.value).any())
+            array_max = str(self.trait.value.max())
+            array_min = str(self.trait.value.min())
             LOG.debug("%s: %s shape: %s" % (sts, name, shape))
             LOG.debug("%s: %s actual dtype: %s" % (sts, name, dtype))
             LOG.debug("%s: %s tvb dtype: %s" % (sts, name, tvb_dtype))
@@ -264,7 +284,7 @@ class SparseMatrix(Array):
     defaults = (((1, 1), ), {'dtype': numpy.float64})
 
 
-    def log_debug(Self, owner = ""):
+    def log_debug(self, owner = ""):
         """
         Simple access to debugging info on a traited sparse matrix, usage ::
             obj.trait["sparse_matrix_name"].log_debug(owner="obj")
@@ -272,15 +292,15 @@ class SparseMatrix(Array):
         or ::
             self.trait["sparse_matrix_name"].log_debug(owner=self.__class__.__name__)
         """
-        name = ".".join((owner, Self.trait.name))
-        sts = str(Self.__class__)
-        if Self.trait.value.size != 0:
-            shape = str(Self.trait.value.shape)
-            sparse_format = str(Self.trait.value.format)
-            nnz = str(Self.trait.value.nnz)
-            dtype = str(Self.trait.value.dtype)
-            array_max = str(Self.trait.value.data.max())
-            array_min = str(Self.trait.value.data.min())
+        name = ".".join((owner, self.trait.name))
+        sts = str(self.__class__)
+        if self.trait.value.size != 0:
+            shape = str(self.trait.value.shape)
+            sparse_format = str(self.trait.value.format)
+            nnz = str(self.trait.value.nnz)
+            dtype = str(self.trait.value.dtype)
+            array_max = str(self.trait.value.data.max())
+            array_min = str(self.trait.value.data.min())
             LOG.debug("%s: %s shape: %s" % (sts, name, shape))
             LOG.debug("%s: %s format: %s" % (sts, name, sparse_format))
             LOG.debug("%s: %s number of non-zeros: %s" % (sts, name, nnz))

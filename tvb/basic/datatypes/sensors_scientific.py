@@ -37,6 +37,14 @@ class SensorsScientific(sensors_data.SensorsData):
     """ This class exists to add scientific methods to SensorsData. """
     __tablename__ = None
     
+    def configure(self):
+        """
+        Invoke the compute methods for computable attributes that haven't been
+        set during initialization.
+        """
+        super(SensorsScientific, self).configure()
+        self.number_of_sensors = self.labels.shape[0]
+
     
     def _find_summary_info(self):
         """

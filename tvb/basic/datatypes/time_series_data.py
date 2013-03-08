@@ -28,7 +28,6 @@ The Data component of TimeSeries DataTypes.
 
 """
 
-import tvb.basic.traits.util as util
 import tvb.basic.traits.types_basic as basic
 from tvb.basic.traits import get_mapped_type
 MappedType = get_mapped_type()
@@ -84,7 +83,6 @@ class TimeSeriesData(MappedType):
     
     sample_rate = basic.Float(
         label = "Sample rate",
-        compute = 1.0 / util.Self.sample_period,
         doc = """The sample rate of the timeseries""")
 
 

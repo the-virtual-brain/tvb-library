@@ -47,6 +47,7 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
         super(TimeSeriesFramework, self).configure()
         data_shape = self.read_data_shape()
         self.nr_dimensions = len(data_shape)
+        self.sample_rate = 1.0 / self.sample_period
         for i in range(min(self.nr_dimensions, 4)): 
             setattr(self, 'length_%dd' % (i+1), int(data_shape[i]))
         

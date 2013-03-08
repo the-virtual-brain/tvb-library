@@ -127,7 +127,6 @@ TRAITS_CONFIGURATION  = config.TRAITS_CONFIGURATION
 KWARG_CONSOLE_DEFAULT = 'console_default'
 KWARG_SELECT_MULTIPLE = 'select_multiple'
 KWARG_ORDER = 'order'                   ## -1 value means hidden from UI
-KWARG_COMPUTE = 'compute'
 KWARG_AVOID_SUBCLASSES = 'fixed_type'   ## When set on a traited attr, no subclasses will be returned
 KWARG_FILE_STORAGE = 'file_storage'
 KWARG_REQUIRED = 'required'
@@ -139,7 +138,7 @@ FILE_STORAGE_NONE = 'None'
 
 
 SPECIAL_KWDS = ['bind', 'doc', 'label', 'db', 'default', 'required', KWARG_AVOID_SUBCLASSES,
-                'range', KWARG_COMPUTE, 'locked', KWARG_FILTERS_UI, KWARG_CONSOLE_DEFAULT,
+                'range', 'locked', KWARG_FILTERS_UI, KWARG_CONSOLE_DEFAULT,
                 KWARG_SELECT_MULTIPLE, KWARG_FILE_STORAGE, KWARG_ORDER, KWARG_OPTIONS]
 
 
@@ -197,11 +196,6 @@ class TraitsInfo(dict):
             return 0
         return self.inits.kwd[KWARG_ORDER]
 
-    @property
-    def compute_formula(self):
-        if KWARG_COMPUTE not in self.inits.kwd:
-            return None
-        return self.inits.kwd[KWARG_COMPUTE]
 
     @property
     def required(self):
@@ -544,18 +538,10 @@ class Type(object):
 
     def configure(self):
         """
-        Call this method to process 'compute' attributes on DataType fields.
-        It will be automatically called before inserting the entity in DB.
+        Call this method to process linked attributes on datatype.
+        it will be called before storing in DB.
         """
-        for attr in self.trait.values():
-            compute_ref = attr.trait.compute_formula
-            if compute_ref is not None:
-                # Evaluate compute expression
-                computed_value = compute_ref(self)
-                try:
-                    setattr(self, attr.trait.name, computed_value)
-                except Exception as exc:
-                    import pdb; pdb.set_trace()
+        pass
 
 
     @property

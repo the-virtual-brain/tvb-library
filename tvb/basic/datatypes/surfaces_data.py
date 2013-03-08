@@ -35,7 +35,6 @@ import numpy
 import scipy.sparse as sparse
 from tvb.basic.traits import get_mapped_type
 MappedType = get_mapped_type()
-import tvb.basic.traits.util as util
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
 import tvb.basic.traits.types_mapped as mapped
@@ -75,7 +74,7 @@ class SurfaceData(MappedType):
     triangles = arrays.IndexArray(
         label = "Triangles",
         order = -1, 
-        target = util.Self.vertices,
+        #target = util.Self.vertices,
         console_default = default.read_data(name="triangles.txt.bz2",
                                             dtype=numpy.int32),
         doc = """Array of indices into the vertices, specifying the triangles
@@ -101,13 +100,11 @@ class SurfaceData(MappedType):
     number_of_vertices = basic.Integer(
         label = "Number of vertices",
         order = -1,
-        compute = util.Self.vertices.shape[0],
         doc = """The number of vertices making up this surface.""")
 
     number_of_triangles = basic.Integer(
         label = "Number of triangles",
         order = -1,
-        compute = util.Self.triangles.shape[0],
         doc = """The number of triangles making up this surface.""")
 
     ##--------------------- FRAMEWORK ATTRIBUTES -----------------------------##

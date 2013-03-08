@@ -33,7 +33,6 @@ import numpy
 
 from tvb.basic.traits import get_mapped_type
 MappedType = get_mapped_type()
-import tvb.basic.traits.util as util
 import tvb.basic.traits.types_basic as basic
 import tvb.basic.traits.core as core
 import tvb.basic.traits.data_readers as readers
@@ -135,14 +134,12 @@ class ConnectivityData(MappedType):
     delays = arrays.FloatArray(
         label = "Conduction delay",
         file_storage = core.FILE_STORAGE_NONE, required = False,
-        #compute = util.Self.tract_lengths / util.Self.speed,
         doc = """Matrix of time delays between regions in physical units,
             setting conduction speed automatically combines with tract lengths
-            to update this matrix, ie don't try and change it manually.""") #'C'
+            to update this matrix, i.e. don't try and change it manually.""") #'C'
 
     number_of_regions = basic.Integer(
         label = "Number of regions",
-        compute = util.Self.weights.shape[0],
         doc = """The number of regions represented in this Connectivity """)
 
     # ------------- FRAMEWORK ATTRIBUTES -----------------------------

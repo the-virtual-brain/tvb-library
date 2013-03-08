@@ -56,6 +56,8 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         """
         super(ConnectivityScientific, self).configure()
         
+        self.number_of_regions = self.weights.shape[0]
+        
         self.trait["weights"].log_debug(owner=self.__class__.__name__)
         self.trait["tract_lengths"].log_debug(owner=self.__class__.__name__)
         self.trait["speed"].log_debug(owner=self.__class__.__name__)

@@ -35,7 +35,6 @@ Sensors uses:
 .. moduleauthor:: Marmaduke Woodman <mw@eml.cc>
 
 """
-import tvb.basic.traits.util as util
 import tvb.basic.traits.types_basic as basic
 from tvb.basic.traits import get_mapped_type
 MappedType = get_mapped_type()
@@ -79,7 +78,6 @@ class SensorsData(MappedType):
     
     number_of_sensors = basic.Integer(
         label = "Number of sensors",
-        compute = util.Self.labels.shape[0],
         doc = """The number of sensors described by these Sensors.""")
 
 

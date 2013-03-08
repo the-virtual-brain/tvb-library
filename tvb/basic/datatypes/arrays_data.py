@@ -115,7 +115,6 @@ class MappedArrayData(MappedType):
     
     nr_dimensions, length_1d, length_2d, length_3d, length_4d = [basic.Integer]*5
     array_data = mapped.Array()  
-    shape = property(util.Self.array_data.shape) 
     
     __generate_table__ = True
 
@@ -128,4 +127,13 @@ class MappedArrayData(MappedType):
         if previous is None:
             return str(self.title)
         return str(self.title) +  " " + previous
-        
+       
+       
+    @property
+    def shape(self):
+        """
+        Shape for current wrapped numpy array.
+        """
+        return self.aggregation_functions.shape
+    
+     

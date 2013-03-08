@@ -29,18 +29,16 @@ The Data component of Spatiotemporal pattern datatypes.
 
 """
 #TODO: Reconsider the class hierarchy... Seems it could be more efficient.
-#NOTE: Definately need to chane the heirarchy, it's a pain this way...
+#NOTE: Definetely we need to change the hierarchy, it's a pain this way...
 #      For example, we need a base Stimulus class...
 
-import tvb.basic.traits.util as util
 import tvb.basic.traits.types_basic as basic
 from tvb.basic.traits import get_mapped_type
 MappedType = get_mapped_type()
 import tvb.basic.datatypes.arrays as arrays
 import tvb.basic.datatypes.surfaces as surfaces
-import tvb.basic.datatypes.connectivity as connectivity
 import tvb.basic.datatypes.volumes as volumes
-
+import tvb.basic.datatypes.connectivity as connectivity_module
 import tvb.basic.datatypes.equations as equations
 
 
@@ -74,7 +72,7 @@ class StimuliRegionData(SpatioTemporalPatternData):
     # when applied to a simulation we need to specify which state-variable it
     # applies to, and possibly how (multiplicative|additive)... but maybe this
     # should live with the model???
-    connectivity = connectivity.Connectivity(label = "Connectivity", order=1)
+    connectivity = connectivity_module.Connectivity(label = "Connectivity", order=1)
     
     spatial = equations.Discrete(
         label = "Spatial Equation", 
@@ -113,6 +111,7 @@ class SpatialPatternVolumeData(SpatialPatternData):
     
     focal_points_volume = arrays.IndexArray(
         label = "Focal points",
-        target = util.Self.volume.data)
+        #target = util.Self.volume.data
+        )
 
 
