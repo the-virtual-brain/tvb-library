@@ -21,20 +21,29 @@
 #
 #
 """
-This modeule contains different file handlers used to log messages
-in different context and for different parts of application.
+This module contains a simple file handlers used to log messages
+for different parts of application.
+
+.. moduleauthor:: Calin Pavel <calin.pavel@codemart.ro>
 """
 
 import os
 from logging.handlers import TimedRotatingFileHandler
 from tvb.basic.config.settings import TVBSettings as cfg
 
+
 class SimpleTimedRotatingFileHandler(TimedRotatingFileHandler):  
     """
     This is a custom rotating file handler which computes the full path for log file 
     depending on the TVB configuration.
     """
+    
     def __init__(self, filename, when='h', interval=1, backupCount=0):
+        """
+        Only set our logging path, and call superclass.
+        """
         log_file =  os.path.join(cfg.TVB_LOG_FOLDER, filename)            
         TimedRotatingFileHandler.__init__(self, log_file, when, interval, backupCount)
+    
+    
         
