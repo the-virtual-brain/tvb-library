@@ -28,8 +28,8 @@ import os
 import numpy
 from scipy import io as scipy_io
 from tvb.basic.logger.logger import getLogger
-from tvb.core.utils import read_list_data
-from tvb.config import TVBSettings
+from tvb.basic.traits.util import read_list_data
+from tvb.basic.config.config import TVBSettings
 
 
 

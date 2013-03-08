@@ -35,7 +35,7 @@ import tvb.basic.logger.logger as logger
 import tvb.basic.traits.exceptions as exceptions
 LOG = logger.getLogger(parent_module=__name__)
 
-from tvb.config import TVBSettings as cfg
+from tvb.basic.config.config import TVBSettings as cfg
 
 ##--------------------- CLOSE SURFACES Start Here---------------------------------------##
 

@@ -28,7 +28,7 @@ in different context and for different parts of application.
 import os
 import logging
 from logging.handlers import TimedRotatingFileHandler, MemoryHandler
-from tvb.config import TVBSettings as cfg
+from tvb.basic.config.config import TVBSettings as cfg
 
 class SimpleTimedRotatingFileHandler(TimedRotatingFileHandler):  
     """

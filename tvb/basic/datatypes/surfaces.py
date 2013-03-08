@@ -35,7 +35,7 @@ import tvb.basic.datatypes.surfaces_scientific  as surfaces_scientific
 import tvb.basic.datatypes.surfaces_framework as surfaces_framework
 import tvb.basic.datatypes.surfaces_data as surfaces_data
 import tvb.basic.traits.exceptions as exceptions
-from tvb.config import TVBSettings as cfg
+from tvb.basic.config.config import TVBSettings as cfg
 
 LOG = logger.getLogger(parent_module=__name__)
 

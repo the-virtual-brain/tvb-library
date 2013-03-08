@@ -47,7 +47,7 @@ Example usage::
 
 import os
 import logging.config
-from tvb.config import TVBSettings as cfg
+from tvb.basic.config.config import TVBSettings as cfg
     
 #Currently for backward compatibility config_root defaults to 'tvb' and 
 #comes as the second argument, this should probably be changed to config_root 

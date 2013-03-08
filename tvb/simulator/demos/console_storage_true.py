@@ -25,7 +25,7 @@ Demo using console mode with storage.Note that consolde profile must have TRAITS
 
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
-import tvb.config as cfg
+import tvb.basic.config.config as cfg
 cfg.TVBSettings.TRAITS_CONFIGURATION.use_storage = True
 
 # Need to atach db events so storage paths and traited attributes work properly

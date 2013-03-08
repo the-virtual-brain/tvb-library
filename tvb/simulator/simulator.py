@@ -39,7 +39,7 @@ import numpy
 import scipy.sparse as sparse
 
 # From "The Virtual Brain"
-from tvb.config import MAGIC_NUMBER
+from tvb.basic.config.config import MAGIC_NUMBER
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
 from tvb.core.entities.transient.filtering import UIFilter, FilterChain

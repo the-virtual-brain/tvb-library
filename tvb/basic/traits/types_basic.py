@@ -42,7 +42,6 @@ Important:
 import numpy
 import math
 import json
-import sqlalchemy
 import tvb.basic.traits.core as core
 import tvb.basic.logger.logger as logger
 

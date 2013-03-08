@@ -45,8 +45,7 @@ from tvb.basic.traits.core import Type, FILE_STORAGE_NONE
 from tvb.basic.traits.core import FILE_STORAGE_DEFAULT
 from tvb.basic.traits.core import TRAITS_CONFIGURATION
 from tvb.basic.traits.types_basic import DType
-from tvb.core.entities.file.exceptions import FileStorageException
-from tvb.core.entities.file.exceptions import MissingDataSetException
+from tvb.basic.traits.exceptions import StorageException
 
 
 class MappedTypeLight(Type):
@@ -224,12 +223,12 @@ class Array(Type):
         elif self.trait.file_storage == FILE_STORAGE_DEFAULT:
             try:
                 return inst.get_data(self.trait.name, ignore_errors=True)
-            except MissingDataSetException, exc:
+            except StorageException, exc:
                 LOG.debug("Missing dataSet " + self.trait.name)
                 LOG.debug(exc)
                 return numpy.ndarray(0)
         else:
-            raise FileStorageException("Use get_data(_, slice) not full GET on attributes-stored-in-files!")
+            raise StorageException("Use get_data(_, slice) not full GET on attributes-stored-in-files!")
         
         
     def _write_in_storage(self, inst, value):
@@ -244,7 +243,7 @@ class Array(Type):
         elif self.trait.file_storage == FILE_STORAGE_DEFAULT:
             inst.store_data(self.trait.name, value)
         else:
-            raise FileStorageException("You should not use SET on attributes-to-be-stored-in-files!")
+            raise StorageException("You should not use SET on attributes-to-be-stored-in-files!")
            
 
     def log_debug(self, owner = ""):
@@ -318,7 +317,7 @@ class SparseMatrix(Array):
         """
         try:
             return self._read_sparse_matrix(inst, self.trait.name)
-        except MissingDataSetException, exc:
+        except StorageException, exc:
             LOG.debug("Missing dataSet " + self.trait.name)
             LOG.debug(exc)
             return None

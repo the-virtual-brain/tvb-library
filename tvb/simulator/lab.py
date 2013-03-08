@@ -14,8 +14,8 @@ import pdb
 from numpy import * # for load & save not available in pylab
 import numpy as np
 
-import tvb.config
-tvb.config.BaseProfile.TRAITS_CONFIGURATION.use_storage = 0
+import tvb.basic.config.config
+tvb.basic.config.config.BaseProfile.TRAITS_CONFIGURATION.use_storage = 0
 from tvb.simulator import (
         simulator, models, coupling, integrators, monitors, noise
         )
@@ -28,7 +28,7 @@ LOG = get_logger(__name__)
 """
 As an alternative, we change the profile as follows:
 
-    from tvb.profile import TvbProfile as tvb_profile
+    from tvb.basic.profile import TvbProfile as tvb_profile
     tvb_profile.set_profile("CONSOLE_PROFILE")
 
 """

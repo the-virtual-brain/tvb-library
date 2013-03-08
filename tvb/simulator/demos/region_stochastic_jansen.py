@@ -37,8 +37,8 @@ import numpy
 #In order to execute a demo in console mode the following imports are needed:
 
 #Switch off STORAGE
-import tvb.config
-tvb.config.BaseProfile.TRAITS_CONFIGURATION.use_storage = 0
+import tvb.basic.config.config
+tvb.basic.config.config.BaseProfile.TRAITS_CONFIGURATION.use_storage = 0
 
 #Logger
 import tvb.basic.logger.logger as logger

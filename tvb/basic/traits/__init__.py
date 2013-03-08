@@ -182,7 +182,7 @@ Suggested reading is `Unifying Types and Classes`_ and the
 
 # add interfaces based on config
 import core, traited_interface
-from tvb.config import TVBSettings as config
+from tvb.basic.config.config import TVBSettings as config
 
 setattr(core.Type, core.TRAITS_CONFIGURATION.interface_method_name, 
         traited_interface.TraitedInterfaceGenerator())

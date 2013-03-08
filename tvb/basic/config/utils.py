@@ -20,45 +20,18 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 #
 #
-"""
-.. moduleauthor:: Calin Pavel
-"""
 
-class TVBException(Exception):
+class ClassProperty(property):
+    """Subclass property to make class-method properties possible"""
+    def __get__(self, cls, owner):
+        return self.fget.__get__(None, owner)()
+    
+class EnhancedDictionary(dict):
     """
-    Base class for all TVB exceptions.
+    A dictionary like class that provides easy access to configuration values.
     """
-    def __init__(self, message, parent_exception=None):
-        Exception.__init__(self, message, parent_exception)
-        self.message = message
+    def __getattr__(self, key):
+        return self[key]
 
-    def __repr__(self):
-        return self.message
-
-
-class ValidationException(TVBException):
-    """
-    Exception class for problems that occurs during MappedType 
-    validation before storing it into DB.
-    """
-    def __init__(self, message):
-        TVBException.__init__(self, message)
-
-
-class MissingEntityException(TVBException):
-    """
-    Exception class used for cases when trying to load an entity
-    from database by id or Gid and none found.
-    """
-    def __init__(self, message):
-        TVBException.__init__(self, message)
-        
-class StorageException(TVBException):
-    """
-    Exception class used for cases when trying to load an entity
-    from database by id or Gid and none found.
-    """
-    def __init__(self, message):
-        TVBException.__init__(self, message)
-        
-        
+    def __setattr__(self, key, value):
+        self[key] = value

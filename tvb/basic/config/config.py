@@ -20,45 +20,46 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 #
 #
+
 """
-.. moduleauthor:: Calin Pavel
+TVB global configurations are predefined/read from here.
 """
+import os
+from tvb.basic.config.utils import ClassProperty, EnhancedDictionary
+from tvb.basic.profile import TvbProfile as tvb_profile
 
-class TVBException(Exception):
-    """
-    Base class for all TVB exceptions.
-    """
-    def __init__(self, message, parent_exception=None):
-        Exception.__init__(self, message, parent_exception)
-        self.message = message
+LOADED_XML_READERS = {}
+MAGIC_NUMBER = 9
 
-    def __repr__(self):
-        return self.message
-
-
-class ValidationException(TVBException):
-    """
-    Exception class for problems that occurs during MappedType 
-    validation before storing it into DB.
-    """
-    def __init__(self, message):
-        TVBException.__init__(self, message)
-
-
-class MissingEntityException(TVBException):
-    """
-    Exception class used for cases when trying to load an entity
-    from database by id or Gid and none found.
-    """
-    def __init__(self, message):
-        TVBException.__init__(self, message)
+class LibraryProfile():
+    
+    MAX_SURFACE_VERTICES_NUMBER = 300000
+    
+    TVB_STORAGE = os.path.expanduser(os.path.join("~", "TVB" + os.sep))
+    
+    @ClassProperty
+    @staticmethod
+    def TVB_LOG_FOLDER():
+        """ 
+        Represents a folder, where all log files are stored.
+        """
+        tmp_path = os.path.join(LibraryProfile.TVB_STORAGE, "logs")
+        if not os.path.exists(tmp_path):
+            os.makedirs(tmp_path)
+        return tmp_path
+    
+    LOGGER_CONFIG_FILE_NAME = "library_logger.conf"
+    
+    TRAITS_CONFIGURATION = EnhancedDictionary()
+    TRAITS_CONFIGURATION.use_storage = False
+    
+    def initialize_profile(self):
+        pass
+    
+if tvb_profile.CURRENT_SELECTED_PROFILE == tvb_profile.LIBRARY_PROFILE:
+    TVBSettings = LibraryProfile
+else:
+    import tvb.config as cfg
+    TVBSettings = cfg.FrameworkSettings
         
-class StorageException(TVBException):
-    """
-    Exception class used for cases when trying to load an entity
-    from database by id or Gid and none found.
-    """
-    def __init__(self, message):
-        TVBException.__init__(self, message)
-        
-        
+TVBSettings.initialize_profile()
