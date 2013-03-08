@@ -134,6 +134,6 @@ class MappedArrayData(MappedType):
         """
         Shape for current wrapped numpy array.
         """
-        return self.aggregation_functions.shape
+        return self.array_data.shape
     
      
