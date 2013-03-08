@@ -28,6 +28,9 @@ Contains functionality which allows a user to set a certain profile for TVB.
 """
 
 class TvbProfile():
+    """
+    ENUM-like class with current TVB profile values.
+    """
     
     SUBPARAM_PROFILE = "-profile"
     
@@ -48,31 +51,45 @@ class TvbProfile():
         """
         Returns the user given profile or None if the user didn't specify a profile.
 
-        script_argv - represents a list of string arguments. If the script_argv contains the element
-        '-profile' than the tvb profile will be set to the next element.
+        :param: script_argv - represents a list of string arguments. 
+                If the script_argv contains the string '-profile',
+                than TVB profile will be set to the next element.
 
-        E.g.: if script_argv=['$param1', ..., '-profile', 'TEST_SQLITE_PROFILE', ...] than the tvb profile
-        will be set to 'TEST_SQLITE_PROFILE'
+        E.g.: if script_argv=['$param1', ..., '-profile', 'TEST_SQLITE_PROFILE', ...] 
+               than TVB profile will be set to 'TEST_SQLITE_PROFILE'
         """
         if TvbProfile.SUBPARAM_PROFILE in script_argv:
             index = script_argv.index(TvbProfile.SUBPARAM_PROFILE)
+            
             if len(script_argv) > index + 1:
                 return script_argv[index + 1]
+            
         return None
 
 
     @staticmethod
-    def set_profile(script_argv):
+    def set_profile(script_argv, remove_from_args=False):
         """
-        Sets the specified profile.
+        Sets TVB profile from script_argv.
 
-        script_argv - represents a list of string arguments. If the script_argv contains the element
-        '-profile' than the tvb profile will be set to the next element.
-        E.g.: if script_argv=['$param1', ..., '-profile', 'TEST_SQLITE_PROFILE', ...] than the tvb profile
-        will be set to 'TEST_SQLITE_PROFILE'
+        :param: script_argv - represents a list of string arguments. 
+                      If the script_argv contains the string '-profile' 
+                      than the TVB profile will be set to the next element.
+        :param: remove_from_args - when True, script_argv will get stripped of profile strings.
+        
+        E.g.: if script_argv = ['$param1', ..., '-profile', 'TEST_SQLITE_PROFILE', ...] 
+              than the  profile will be set to 'TEST_SQLITE_PROFILE'
         """
         selected_profile = TvbProfile.get_profile(script_argv)
+        
         if selected_profile is not None:
             TvbProfile.CURRENT_SELECTED_PROFILE = selected_profile
+        
+            if remove_from_args:
+                script_argv.remove(selected_profile)
+                script_argv.remove(TvbProfile.SUBPARAM_PROFILE)
+            
+            
+            
             
             
