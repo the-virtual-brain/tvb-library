@@ -39,7 +39,7 @@ Important:
 
 import numpy
 from scipy import sparse
-from tvb.basic.logger.logger import getLogger
+from tvb.basic.logger.builder import get_logger
 from tvb.basic.traits.util import get
 from tvb.basic.traits.core import Type, FILE_STORAGE_NONE
 from tvb.basic.traits.core import FILE_STORAGE_DEFAULT
@@ -126,7 +126,7 @@ class MappedTypeLight(Type):
     
 # Type - unmapped classes
     
-LOG = getLogger(__name__)
+LOG = get_logger(__name__)
 
 class Array(Type):
     """

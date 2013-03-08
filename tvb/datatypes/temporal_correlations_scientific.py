@@ -29,11 +29,10 @@ Scientific methods for the Temporal Correlation datatypes.
 
 """
 
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(__name__)
-
 import tvb.datatypes.temporal_correlations_data as temporal_correlations_data
+from tvb.basic.logger.builder import get_logger
 
+LOG = get_logger(__name__)
 
 
 class CrossCorrelationScientific(temporal_correlations_data.CrossCorrelationData):

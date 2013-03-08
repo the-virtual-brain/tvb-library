@@ -28,14 +28,11 @@ Scientific methods for the LookUpTables datatypes.
 
 """
 
-#Third party modules
 import numpy
-
-#Modules from "The Virtual Brain"
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(parent_module=__name__)
-
 import tvb.datatypes.lookup_tables_data as lookup_tables_data
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 
 
 class LookUpTableScientific(lookup_tables_data.LookUpTableData):

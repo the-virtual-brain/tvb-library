@@ -27,7 +27,7 @@
 import os
 import numpy
 from scipy import io as scipy_io
-from tvb.basic.logger.logger import getLogger
+from tvb.basic.logger.builder import get_logger
 from tvb.basic.traits.util import read_list_data
 from tvb.basic.config.settings import TVBSettings
 
@@ -43,7 +43,7 @@ class File(object):
         root_path = os.path.dirname(tvb.simulator.__file__)
         self.path = os.path.join(root_path, 'files', path)
         self.name = name
-        self.logger = getLogger(self.__class__.__module__)
+        self.logger = get_logger(self.__class__.__module__)
     
     
     def read_data(self, name=None, matlab_data_name=None,

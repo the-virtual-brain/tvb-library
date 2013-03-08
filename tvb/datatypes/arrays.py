@@ -30,15 +30,14 @@ methods that are associated with the Array datatypes.
 
 """
 
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(parent_module=__name__)
-
 import tvb.datatypes.arrays_scientific as arrays_scientific
 import tvb.datatypes.arrays_framework as arrays_framework
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 
 
-class FloatArray(arrays_scientific.FloatArrayScientific,
-                 arrays_framework.FloatArrayFramework):
+class FloatArray(arrays_scientific.FloatArrayScientific, arrays_framework.FloatArrayFramework):
     """
     This class brings together the scientific and framework methods that are
     associated with the FloatArray datatype.

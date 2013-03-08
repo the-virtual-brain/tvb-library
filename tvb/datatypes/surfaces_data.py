@@ -43,9 +43,9 @@ import tvb.basic.traits.exceptions as exceptions
 import tvb.datatypes.arrays as arrays
 import tvb.datatypes.equations as equations
 from tvb.datatypes.connectivity import Connectivity
+from tvb.basic.logger.builder import get_logger
 
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(parent_module=__name__)
+LOG = get_logger(__name__)
 
 OUTER_SKIN = "Skin Air"
 OUTER_SKULL = "Skull Skin"

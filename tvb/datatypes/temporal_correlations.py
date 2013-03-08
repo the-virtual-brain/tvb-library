@@ -30,11 +30,11 @@ framework methods that are associated with the Temporal Correlation datatypes.
 
 """
 
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(parent_module=__name__)
-
 import tvb.datatypes.temporal_correlations_scientific as temporal_correlations_scientific
 import tvb.datatypes.temporal_correlations_framework as temporal_correlations_framework
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 
 
 class CrossCorrelation(temporal_correlations_scientific.CrossCorrelationScientific,

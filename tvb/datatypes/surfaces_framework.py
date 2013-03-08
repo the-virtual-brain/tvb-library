@@ -30,11 +30,13 @@ Framework methods for the Surface DataTypes.
 
 import numpy
 import tvb.datatypes.surfaces_data as surfaces_data
-import tvb.basic.logger.logger as logger
 import tvb.basic.traits.exceptions as exceptions
-LOG = logger.getLogger(parent_module=__name__)
-
 from tvb.basic.config.settings import TVBSettings as cfg
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
+
+
 
 # TODO: This is just a temporary solution placed here to remove dependency from tvb.basic to tvb framework.
 # As soon as we implement a better solution to the datatype framework diamond problem this should be removed.

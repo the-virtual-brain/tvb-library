@@ -43,9 +43,10 @@ import numpy
 import math
 import json
 import tvb.basic.traits.core as core
-import tvb.basic.logger.logger as logger
+from tvb.basic.logger.builder import get_logger
 
-LOG = logger.getLogger(__name__)
+LOG = get_logger(__name__)
+
 
 class String(core.Type):
     """

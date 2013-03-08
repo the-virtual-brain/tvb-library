@@ -32,9 +32,9 @@ Scientific methods for the Connectivity datatype.
 from copy import copy
 import numpy
 import tvb.datatypes.connectivity_data as connectivity_data
-import tvb.basic.logger.logger as logger
+from tvb.basic.logger.builder import get_logger
 
-LOG = logger.getLogger(parent_module=__name__)
+LOG = get_logger(__name__)
 
 
 

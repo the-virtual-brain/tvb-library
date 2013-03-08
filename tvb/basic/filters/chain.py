@@ -56,7 +56,7 @@ If you want to add a filter to a XML interface::
 
 import json
 import datetime
-from tvb.basic.logger.logger import getLogger
+from tvb.basic.logger.builder import get_logger
 from tvb.basic.filters.exceptions import InvalidFilterChainInput, InvalidFilterEntity
 
 KEY_DISPLAY = 'display_name'
@@ -65,7 +65,7 @@ KEY_VALUES = 'values'
 KEY_OPERATIONS = 'operations'
 KEY_OPERATOR = 'operator'
 
-LOGGER = getLogger(__name__)
+LOGGER = get_logger(__name__)
        
          
 class FilterChain(object):

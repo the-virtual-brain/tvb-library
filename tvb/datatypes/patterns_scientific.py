@@ -31,12 +31,11 @@ Scientific methods for the Pattern datatypes.
 #TODO: Need configure methods for space and time...
 
 import numpy
-
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(parent_module=__name__)
-
 import tvb.datatypes.patterns_data as patterns_data
 import tvb.basic.traits.util as util
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 
 
 #TODO: UGLY, figure out a better way...

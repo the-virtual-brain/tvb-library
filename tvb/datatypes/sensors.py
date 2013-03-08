@@ -22,26 +22,25 @@
 #
 
 """
-The Sensors datatype. This brings together the scientific and framework 
-methods that are associated with the sensor datatypes.
+The Sensors dataType. This brings together the scientific and framework 
+methods that are associated with the sensor dataTypes.
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 
 """
 
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(parent_module=__name__)
-
 import tvb.datatypes.sensors_data as sensors_data
 import tvb.datatypes.sensors_scientific as sensors_scientific
 import tvb.datatypes.sensors_framework as sensors_framework
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 
 
-class Sensors(sensors_scientific.SensorsScientific,
-              sensors_framework.SensorsFramework):
+class Sensors(sensors_scientific.SensorsScientific, sensors_framework.SensorsFramework):
     """
     This class brings together the scientific and framework methods that are
-    associated with the Sensors datatype.
+    associated with the Sensors DataType.
     
     ::
         

@@ -30,18 +30,17 @@ methods that are associated with the connectivity data.
 
 """
 
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(parent_module=__name__)
-
 import tvb.datatypes.connectivity_scientific as connectivity_scientific
 import tvb.datatypes.connectivity_framework as connectivity_framework
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 
 
-class Connectivity(connectivity_scientific.ConnectivityScientific,
-                   connectivity_framework.ConnectivityFramework):
+class Connectivity(connectivity_scientific.ConnectivityScientific, connectivity_framework.ConnectivityFramework):
     """
     This class brings together the scientific and framework methods that are
-    associated with the Connectivity datatype.
+    associated with the Connectivity dataType.
     
     ::
         

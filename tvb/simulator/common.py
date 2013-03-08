@@ -36,8 +36,8 @@ import numpy
 
 def get_logger(name):
     try:
-        import tvb.basic.logger.logger as logger
-        return logger.getLogger(parent_module=name, config_root='tvb.simulator')
+        from tvb.basic.logger.builder import get_logger
+        return get_logger(__name__)
     except ImportError:
         import logging
         return logging.getLogger(name)

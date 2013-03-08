@@ -29,11 +29,12 @@ methods that are associated with the time-series data.
 
 """
 
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(parent_module=__name__)
-
 import tvb.datatypes.time_series_scientific as time_series_scientific
 import tvb.datatypes.time_series_framework as time_series_framework
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
+
 
 
 class TimeSeries(time_series_scientific.TimeSeriesScientific,

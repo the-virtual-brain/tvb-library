@@ -34,11 +34,11 @@ Returned dictionary will be generated from  traited definition of attributes.
 
 import numpy
 import json
-import tvb.basic.logger.logger as logger
+from tvb.basic.logger.builder import get_logger 
 from tvb.basic.traits.util import get, str_class_name
 from tvb.basic.traits.core import KWARG_AVOID_SUBCLASSES, TYPE_REGISTER, KWARG_FILTERS_UI
 
-LOG = logger.getLogger(__name__)
+LOG = get_logger(__name__)
 
 INTERFACE_ATTRIBUTES_ONLY = "attributes-only"
 INTERFACE_ATTRIBUTES = "attributes"

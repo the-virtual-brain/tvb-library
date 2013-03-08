@@ -29,10 +29,10 @@ Scientific methods for the Coupling datatype.
 
 """
 
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(parent_module=__name__)
-
 import tvb.datatypes.coupling_data as coupling_data
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 
 
 #TODO: This needs refactoring so that all specific types of Coupling are 

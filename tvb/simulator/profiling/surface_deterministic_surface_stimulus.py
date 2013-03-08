@@ -37,8 +37,8 @@ import numpy
 
 # Try and import from "The Virtual Brain"
 try:
-    import tvb.basic.logger.logger as logger
-    LOG = logger.getLogger(__name__)
+    from tvb.basic.logger.builder import get_logger
+    LOG = get_logger(__name__)
 except ImportError:
     import logging
     logging.basicConfig(level=logging.DEBUG)

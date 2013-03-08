@@ -30,11 +30,11 @@ methods that are associated with the pattern datatypes.
 
 """
 
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(parent_module=__name__)
-
 import tvb.datatypes.patterns_scientific as patterns_scientific
 import tvb.datatypes.patterns_framework as patterns_framework
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 
 
 class SpatialPattern(patterns_scientific.SpatialPatternScientific,

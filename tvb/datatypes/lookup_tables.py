@@ -30,15 +30,15 @@ methods that are associated with the precalculated look up tables.
 
 """
 
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(parent_module=__name__)
-
 import tvb.datatypes.lookup_tables_scientific as lookup_tables_scientific
 import tvb.datatypes.lookup_tables_framework as lookup_tables_framework
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 
 
 class LookUpTable(lookup_tables_scientific.LookUpTableScientific,
-                   lookup_tables_framework.LookUpTableFramework):
+                  lookup_tables_framework.LookUpTableFramework):
     """
     This class brings together the scientific and framework methods that are
     associated with the LookUpTable datatype.

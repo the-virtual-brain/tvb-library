@@ -30,11 +30,11 @@ methods that are associated with the Spectral datatypes.
 
 """
 
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(parent_module=__name__)
-
 import tvb.datatypes.spectral_scientific as spectral_scientific
 import tvb.datatypes.spectral_framework as spectral_framework
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 
 
 class FourierSpectrum(spectral_scientific.FourierSpectrumScientific,

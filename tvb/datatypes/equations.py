@@ -30,15 +30,14 @@ methods that are associated with the Equation datatypes.
 
 """
 
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(parent_module=__name__)
-
 import tvb.datatypes.equations_scientific as equations_scientific
 import tvb.datatypes.equations_framework as equations_framework
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 
 
-class Equation(equations_scientific.EquationScientific,
-               equations_framework.EquationFramework):
+class Equation(equations_scientific.EquationScientific, equations_framework.EquationFramework):
     """
     This class brings together the scientific and framework methods that are
     associated with the Equation dataTypes.

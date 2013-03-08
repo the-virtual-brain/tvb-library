@@ -30,11 +30,10 @@ Scientific methods for the Spectral datatypes.
 """
 
 import numpy
-
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(__name__)
-
 import tvb.datatypes.mode_decompositions_data as mode_decompositions_data
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 
 
 class PrincipalComponentsScientific(mode_decompositions_data.PrincipalComponentsData):
@@ -47,7 +46,7 @@ class PrincipalComponentsScientific(mode_decompositions_data.PrincipalComponents
     def configure(self):
         """
         Invoke the compute methods for computable attributes that haven't been
-        set during initialisation.
+        set during initialization.
         """
         if self.state is not None:
             super(PrincipalComponentsScientific, self).configure()

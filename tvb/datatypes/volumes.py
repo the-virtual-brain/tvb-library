@@ -29,18 +29,17 @@ methods that are associated with the volume datatypes.
 
 """
 
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(parent_module=__name__)
-
 import tvb.datatypes.volumes_scientific as volumes_scientific
 import tvb.datatypes.volumes_framework as volumes_framework
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 
 
-class Volume(volumes_scientific.VolumeScientific, 
-             volumes_framework.VolumeFramework):
+class Volume(volumes_scientific.VolumeScientific, volumes_framework.VolumeFramework):
     """
     This class brings together the scientific and framework methods that are
-    associated with the Volume datatype.
+    associated with the Volume dataType.
     
     ::
         

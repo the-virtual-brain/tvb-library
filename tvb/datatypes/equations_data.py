@@ -38,14 +38,12 @@ in the equation...
 #TODO: Need to consider a split into zero-mean and not zero-mean for FiniteSupportEquations...
 #TODO: Consider adding an attribute of default range, sensible for default parameters...
 
-import numpy
-import tvb.basic.logger.logger as logger
 import tvb.basic.traits.types_basic as basic
 import tvb.basic.traits.core as core
+from tvb.basic.logger.builder import get_logger
 
-import tvb.datatypes.arrays as arrays 
 
-LOG = logger.getLogger(parent_module=__name__)
+LOG = get_logger(__name__)
 
 
 
@@ -57,7 +55,8 @@ class EquationData(basic.MapAsJson, core.Type):
     
     """
     _base_classes = ['Equation', 'FiniteSupportEquation', "Discrete", "SpatialApplicableEquation",
-                     'Coupling', 'CouplingData', 'CouplingScientific', 'CouplingFramework', #TODO: There should be a refactor of Coupling which may make these unnecessary
+                     'Coupling', 'CouplingData', 'CouplingScientific', 'CouplingFramework', 
+                     #TODO: There should be a refactor of Coupling which may make these unnecessary
                      'LinearCoupling', 'LinearCouplingData', 'LinearCouplingScientific', 'LinearCouplingFramework',
                      'SigmoidalCoupling', 'SigmoidalCouplingData', 'SigmoidalCouplingScientific', 'SigmoidalCouplingFramework']
 
@@ -288,7 +287,6 @@ class PulseTrainData(EquationData):
     parameters = basic.Dict(
         default = {"T": 42.0, "tau": 13.0, "amp": 1.0, "onset": 30.0},   
         label = "Pulse Train Parameters")
-    pass
     
 
         

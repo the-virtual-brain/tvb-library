@@ -29,10 +29,11 @@ Scientific methods for the Graph datatypes.
 
 """
 
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(__name__)
-
 import tvb.datatypes.graph_data as graph_data
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
+
 
 
 class CovarianceScientific(graph_data.CovarianceData):

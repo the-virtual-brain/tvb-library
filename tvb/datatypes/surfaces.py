@@ -30,14 +30,14 @@ methods that are associated with the surfaces data.
 
 """
 
-import tvb.basic.logger.logger as logger
 import tvb.datatypes.surfaces_scientific  as surfaces_scientific
 import tvb.datatypes.surfaces_framework as surfaces_framework
 import tvb.datatypes.surfaces_data as surfaces_data
 import tvb.basic.traits.exceptions as exceptions
 from tvb.basic.config.settings import TVBSettings as cfg
+from tvb.basic.logger.builder import get_logger
 
-LOG = logger.getLogger(parent_module=__name__)
+LOG = get_logger(__name__)
 
 CORTICAL = surfaces_data.CORTICAL
 OUTER_SKIN = surfaces_data.OUTER_SKIN

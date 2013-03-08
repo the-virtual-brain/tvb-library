@@ -38,8 +38,8 @@ integration.
 import numpy
 #from scipy import io as scipy_io #For eeg_projection hack...
 """
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(__name__)
+from tvb.basic.logger.builder import get_logger
+LOG = get_logger(__name__)
 
 #Import from tvb.simulator modules
 #import tvb.simulator #For eeg_projection hack...

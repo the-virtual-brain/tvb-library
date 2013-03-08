@@ -30,12 +30,11 @@ Scientific methods for the Spectral datatypes.
 """
 
 import numpy
-
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(__name__)
-
 import tvb.basic.traits.util as util
 import tvb.datatypes.spectral_data as spectral_data
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 
 
 class FourierSpectrumScientific(spectral_data.FourierSpectrumData):

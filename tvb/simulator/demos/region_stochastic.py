@@ -36,8 +36,8 @@ Demonstrate using the simulator at the region level, stochastic integration.
 import numpy
 
 """
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(__name__)
+from tvb.basic.logger.builder import get_logger
+LOG = get_logger(__name__)
 
 #Import from tvb.simulator modules:
 import tvb.simulator.simulator as simulator

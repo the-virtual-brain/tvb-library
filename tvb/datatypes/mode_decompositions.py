@@ -29,11 +29,11 @@ framework methods that are associated with the Mode Decomposition datatypes.
 
 """
 
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(parent_module=__name__)
-
 import tvb.datatypes.mode_decompositions_scientific as mode_decompositions_scientific
 import tvb.datatypes.mode_decompositions_framework as mode_decompositions_framework
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 
 
 class PrincipalComponents(mode_decompositions_scientific.PrincipalComponentsScientific,

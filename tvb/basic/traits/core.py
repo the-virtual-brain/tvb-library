@@ -112,8 +112,9 @@ import abc
 from copy import deepcopy, copy
 from tvb.basic.config.settings import TVBSettings as config
 from tvb.basic.traits.util import get, Args, TypeRegister, ispublic
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(__name__)
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 TRAITS_CONFIGURATION  = config.TRAITS_CONFIGURATION
 
 KWARG_CONSOLE_DEFAULT = 'console_default'

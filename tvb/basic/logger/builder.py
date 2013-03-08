@@ -22,20 +22,8 @@
 #
 
 """
-This is the code used for displaying logging messages in an uniform way, from
-the entire application.
+Singleton logging builder.
 
-Example usage::
-    
-    #At the top of a module:
-    import tvb.basic.logger.logger as logger
-    LOG = logger.getLogger(parent_module=__name__, config_root='tvb')
-    
-    #Then simply use it with:
-    LOG.info('a meaningful message')
-        
-    #Or to achieve class level labelling (assuming Class.__str__ is defined):
-    LOG.info('%s: a meaningful message' % str(self))
 
 .. moduleauthor:: Calin Pavel <calin.pavel@codemart.ro>
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
@@ -47,35 +35,23 @@ Example usage::
 
 import os
 import logging.config
-from tvb.basic.config.settings import TVBSettings as cfg
-    
-#Currently for backward compatibility config_root defaults to 'tvb' and 
-#comes as the second argument, this should probably be changed to config_root 
-#as a non-optional first arg, then parent_module as an optional kwarg.
-def getLogger(parent_module = '', config_root='tvb'):
-    """
-    Parent module is optional to specify and describes the module the logger was
-    called from.
-    :param parent_module: module for which to create logger.
-    :param config_root: Deprecated - !!! THIS IS NOT USED ANYMORE !!!
-    """
-    return LOGGER_BUILDER.build_logger(parent_module)
+from tvb.basic.config.settings import TVBSettings   
 
 
 class LoggerBuilder(object):
     """
-    Class taking care of uniform Python logger initialization. It uses the 
-    Python logging package. It's purpose is just to offer a common mechanism for 
-    initializing all modules in a package.
+    Class taking care of uniform Python logger initialization. 
+    It uses the Python native logging package. 
+    It's purpose is just to offer a common mechanism for initializing all modules in a package.
     """
 
     def __init__(self, config_root):
         """
-        Prepare Python logging, by specifying a configuration file for current
-        package (config_root param).
+        Prepare Python logger based on a configuration file.
+        :param: config_root - current package to configure logger for it.
         """
         
-        config_file_name = cfg.LOGGER_CONFIG_FILE_NAME
+        config_file_name = TVBSettings.LOGGER_CONFIG_FILE_NAME
         package = __import__(config_root, globals(), locals(), ['__init__'], 0)
         package_path = package.__path__[0]
         
@@ -83,16 +59,31 @@ class LoggerBuilder(object):
         logging.config.fileConfig(os.path.join(package_path, config_file_name), 
                                   disable_existing_loggers = True)
 
-
-    def build_logger(self, parent_module):
-        """ Build a logger instance and return it"""
+    @staticmethod
+    def build_logger(parent_module):
+        """
+        Build a logger instance and return it
+        """
         return logging.getLogger(parent_module)
 
 
-if "LOGGER_BUIDER" not in globals():
-    if cfg.TRAITS_CONFIGURATION.use_storage:
-        LOGGER_BUILDER = LoggerBuilder('tvb.logger')
-    else:
-        LOGGER_BUILDER = LoggerBuilder('tvb.basic.logger')
+
+### We make sure a single instance of logger-builder is created.
+if "GLOBAL_LOGGER_BUILDER" not in globals():
     
+    if TVBSettings.TRAITS_CONFIGURATION.use_storage:
+        GLOBAL_LOGGER_BUILDER = LoggerBuilder('tvb.logger')
+    else:
+        GLOBAL_LOGGER_BUILDER = LoggerBuilder('tvb.basic.logger')
+
+ 
+ 
+def get_logger(parent_module = ''):
+    """
+    Function to retrieve a new Python logger instance for current module.
+    
+    :param parent_module: module for which to create logger.
+    """
+    return GLOBAL_LOGGER_BUILDER.build_logger(parent_module)
+   
     

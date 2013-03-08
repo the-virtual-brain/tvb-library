@@ -36,8 +36,8 @@ import numpy
 import scipy.sparse as sparse
 import tvb.datatypes.surfaces_data as surfaces_data
 import tvb.basic.traits.util as util
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(parent_module=__name__)
+from tvb.basic.logger.builder import get_logger
+LOG = get_logger(__name__)
 
 try:  #externals.geodesic_distance.
     import gdist

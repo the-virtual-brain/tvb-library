@@ -37,9 +37,9 @@ import parser
 import numpy
 import tvb.datatypes.equations_data as equations_data
 import tvb.basic.traits.parameters_factory as parameters_factory
-import tvb.basic.logger.logger as logger
+from tvb.basic.logger.builder import get_logger
 
-LOG = logger.getLogger(__name__)
+LOG = get_logger(__name__)
 
 # In how many points should the equation be evaluated for the plot. Increasing this will
 # give smoother results at the cost of some performance

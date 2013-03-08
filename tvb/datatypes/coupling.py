@@ -30,16 +30,15 @@ methods that are associated with the Coupling datatypes.
 
 """
 
-import tvb.basic.logger.logger as logger
-LOG = logger.getLogger(parent_module=__name__)
-
+from tvb.basic.logger.builder import get_logger
 import tvb.datatypes.coupling_scientific as coupling_scientific
 import tvb.datatypes.coupling_framework as coupling_framework
 
 
+LOG = get_logger(__name__)
 
-class Coupling(coupling_scientific.CouplingScientific,
-               coupling_framework.CouplingFramework):
+
+class Coupling(coupling_scientific.CouplingScientific, coupling_framework.CouplingFramework):
     """
     This class brings together the scientific and framework methods that are
     associated with the Coupling datatypes.

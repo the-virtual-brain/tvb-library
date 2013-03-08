@@ -36,18 +36,15 @@ At present, we only make use of these in the Brunel and Wang model.
 
 
 import numpy
-import tvb.basic.logger.logger as logger
 import tvb.basic.traits.types_basic as basic
 import tvb.basic.traits.data_readers as readers
+from tvb.basic.logger.builder import get_logger
 from tvb.basic.traits import get_mapped_type
 MappedType = get_mapped_type()
-import tvb.basic.traits.util as util
-
-
-
 import tvb.datatypes.arrays as arrays
 
-LOG = logger.getLogger(parent_module=__name__)
+
+LOG = get_logger(__name__)
 
 # NOTE: For the time being, we make use of the precalculated tables we already have.
 # however, we LookUpTables datatypes could have a compute() method to 
@@ -72,7 +69,6 @@ class LookUpTableData(MappedType):
             via sphinx.""")
             
     
-    pass
     
 
 class PsiTableData(LookUpTableData):
@@ -176,5 +172,4 @@ class NerfTableData(LookUpTableData):
        #compute = numpy.array([1 / util.Self.dx]),
        doc = """.""")
     
-    pass
 
