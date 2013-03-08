@@ -29,9 +29,10 @@ Also the generic TVB-Configuration gets set from this point
 """
 
 import os
+import sys
+from sys import platform
 from tvb.basic.config.utils import ClassProperty, EnhancedDictionary
 from tvb.basic.profile import TvbProfile as tvb_profile
-
 
 
 class LibraryProfile():
@@ -73,7 +74,53 @@ class LibraryProfile():
         return tmp_path
     
    
-    def initialize_profile(self):
+    
+    @staticmethod
+    def is_development():
+        """Return True when TVB  is used with Python installed natively."""
+        import tvb
+        tvb_root = os.path.dirname(os.path.abspath(tvb.__file__))
+        return (os.path.exists(os.path.join(tvb_root, 'demoData'))
+                and os.path.exists(os.path.join(tvb_root, 'ui_test'))
+                and os.path.exists(os.path.join(tvb_root, 'tvb_test')))
+
+    
+    def is_windows(self):
+        """
+        Return True if current run is not development and is running on Windows.
+        """
+        return platform.startswith('win') and not self.is_development()
+
+    
+    def is_linux(self):
+        """ 
+        Return True if current run is not development and is running on Linux.
+        """
+        return not (platform.startswith('win') or platform =='darwin' or self.is_development())
+
+    
+    def is_mac(self):
+        """
+        Return True if current run is not development and is running on Mac OS X
+        """
+        return platform =='darwin' and not self.is_development()
+    
+    
+    def get_python_path(self):
+        """Get Python path, based on running options."""
+        if self.is_development():
+            return 'python'
+        if self.is_windows():
+            return os.path.join(os.path.dirname(sys.executable), 'python.exe')
+        if self.is_mac():
+            return '../MacOS/python'
+        if self.is_linux():
+            return os.path.join(os.path.dirname(sys.executable), 'python2.6')
+        raise Exception("Invalid BUILD type found!!!")
+
+    
+    @classmethod
+    def initialize_profile(cls):
         """No initialization needed for this particular profile. But usefull in general"""
         pass
     
@@ -81,7 +128,7 @@ class LibraryProfile():
 ###
 ###  Dependent of the selected profile. Load the correct configuration.
 ###    
-if tvb_profile.CURRENT_SELECTED_PROFILE == tvb_profile.LIBRARY_PROFILE:
+if tvb_profile.CURRENT_SELECTED_PROFILE == tvb_profile.LIBRARY_PROFILE or tvb_profile.CURRENT_SELECTED_PROFILE is None:
     ## TVB-Simulator-Library is used stand-alone.
     TVBSettings = LibraryProfile
     
