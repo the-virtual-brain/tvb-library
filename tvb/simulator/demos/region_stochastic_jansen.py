@@ -38,7 +38,7 @@ import numpy
 
 #Switch off STORAGE
 import tvb.basic.config.settings
-tvb.basic.config.settings.BaseProfile.TRAITS_CONFIGURATION.use_storage = 0
+tvb.basic.config.settings.TVBSettings.TRAITS_CONFIGURATION.use_storage = 0
 
 #Logger
 import tvb.basic.logger.logger as logger

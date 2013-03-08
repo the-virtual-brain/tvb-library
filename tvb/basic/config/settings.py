@@ -58,6 +58,7 @@ class LibraryProfile():
     ## Way of functioning traits is different when using storage or not.
     ## Storage set to false is valid when using TVB_Simulator_Library stand-alone.
     TRAITS_CONFIGURATION = EnhancedDictionary()
+    TRAITS_CONFIGURATION.interface_method_name = 'interface'
     TRAITS_CONFIGURATION.use_storage = False
     
     ## Name of file where logging configuration is stored.
@@ -85,56 +86,26 @@ class LibraryProfile():
                 and os.path.exists(os.path.join(tvb_root, 'tvb_test')))
 
     
-    def is_windows(self):
-        """
-        Return True if current run is not development and is running on Windows.
-        """
-        return platform.startswith('win') and not self.is_development()
-
-    
-    def is_linux(self):
-        """ 
-        Return True if current run is not development and is running on Linux.
-        """
-        return not (platform.startswith('win') or platform =='darwin' or self.is_development())
-
-    
-    def is_mac(self):
-        """
-        Return True if current run is not development and is running on Mac OS X
-        """
-        return platform =='darwin' and not self.is_development()
-    
-    
-    def get_python_path(self):
-        """Get Python path, based on running options."""
-        if self.is_development():
-            return 'python'
-        if self.is_windows():
-            return os.path.join(os.path.dirname(sys.executable), 'python.exe')
-        if self.is_mac():
-            return '../MacOS/python'
-        if self.is_linux():
-            return os.path.join(os.path.dirname(sys.executable), 'python2.6')
-        raise Exception("Invalid BUILD type found!!!")
-
-    
     @classmethod
     def initialize_profile(cls):
         """No initialization needed for this particular profile. But usefull in general"""
         pass
     
-    
+FRAMEWORK_PRESENT = True
+try:
+    import tvb.config as cfg
+except ImportError:
+    FRAMEWORK_PRESENT = False
 ###
 ###  Dependent of the selected profile. Load the correct configuration.
 ###    
-if tvb_profile.CURRENT_SELECTED_PROFILE == tvb_profile.LIBRARY_PROFILE or tvb_profile.CURRENT_SELECTED_PROFILE is None:
+if tvb_profile.CURRENT_SELECTED_PROFILE == tvb_profile.LIBRARY_PROFILE or FRAMEWORK_PRESENT == False:
     ## TVB-Simulator-Library is used stand-alone.
+    ## Fallback to LibraryProfile either if this was the profile passed as argument or if TVB Framework is not present.
     TVBSettings = LibraryProfile
     
 else:
     ## Initialization based on profile is further done in Framework.
-    import tvb.config as cfg
     TVBSettings = cfg.FrameworkSettings
         
 TVBSettings.initialize_profile()

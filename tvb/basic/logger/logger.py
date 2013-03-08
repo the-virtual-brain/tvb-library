@@ -59,7 +59,7 @@ def getLogger(parent_module = '', config_root='tvb'):
     :param parent_module: module for which to create logger.
     :param config_root: Deprecated - !!! THIS IS NOT USED ANYMORE !!!
     """
-    return LOGGER_BUIDER.build_logger(parent_module)
+    return LOGGER_BUILDER.build_logger(parent_module)
 
 
 class LoggerBuilder(object):
@@ -91,8 +91,8 @@ class LoggerBuilder(object):
 
 if "LOGGER_BUIDER" not in globals():
     if cfg.TRAITS_CONFIGURATION.use_storage:
-        LOGGER_BUIDER = LoggerBuilder('tvb.logger')
+        LOGGER_BUILDER = LoggerBuilder('tvb.logger')
     else:
-        LOGGER_BUILDER = LoggerBuilder('tvb.basic.logger.logger')
+        LOGGER_BUILDER = LoggerBuilder('tvb.basic.logger')
     
     

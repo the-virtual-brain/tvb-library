@@ -15,7 +15,7 @@ from numpy import * # for load & save not available in pylab
 import numpy as np
 
 import tvb.basic.config.settings
-tvb.basic.config.settings.BaseProfile.TRAITS_CONFIGURATION.use_storage = 0
+tvb.basic.config.settings.TVBSettings.TRAITS_CONFIGURATION.use_storage = 0
 from tvb.simulator import (
         simulator, models, coupling, integrators, monitors, noise
         )
