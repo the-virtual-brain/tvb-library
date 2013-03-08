@@ -30,12 +30,22 @@ Framework methods for the Surface DataTypes.
 
 import numpy
 import tvb.basic.datatypes.surfaces_data as surfaces_data
-import tvb.core.adapters.abcdisplayer as abcdisplayer
 import tvb.basic.logger.logger as logger
 import tvb.basic.traits.exceptions as exceptions
 LOG = logger.getLogger(parent_module=__name__)
 
 from tvb.basic.config.settings import TVBSettings as cfg
+
+# TODO: This is just a temporary solution placed here to remove dependency from tvb.basic to tvb framework.
+# As soon as we implement a better solution to the datatype framework diamond problem this should be removed.
+def paths2url(datatype_entity, attribute_name, flatten=False, parameter=None):
+    """
+    Prepare a File System Path for passing into an URL.
+    """
+    if parameter is None:
+        return cfg.WEB_VISUALIZERS_URL_PREFIX + datatype_entity.gid + '/'+ attribute_name + '/' + str(flatten)
+    return (cfg.WEB_VISUALIZERS_URL_PREFIX + datatype_entity.gid + '/' + attribute_name + 
+            '/' + str(flatten) + "?" + str(parameter))
 
 ##--------------------- CLOSE SURFACES Start Here---------------------------------------##
 
@@ -160,17 +170,17 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         alphas_indices = []
         for i in range(self.number_of_split_slices):
             param = "slice_number=" + str(i)
-            url_vertices.append(abcdisplayer.ABCDisplayer.paths2url(self, 'get_vertices_slice', parameter=param, flatten=True))
-            url_triangles.append(abcdisplayer.ABCDisplayer.paths2url(self, 'get_triangles_slice', parameter=param, flatten =True))
-            url_normals.append(abcdisplayer.ABCDisplayer.paths2url(self, 'get_vertex_normals_slice', parameter=param, flatten=True))
+            url_vertices.append(paths2url(self, 'get_vertices_slice', parameter=param, flatten=True))
+            url_triangles.append(paths2url(self, 'get_triangles_slice', parameter=param, flatten =True))
+            url_normals.append(paths2url(self, 'get_vertex_normals_slice', parameter=param, flatten=True))
             if not include_alphas or region_mapping is None:
                 continue
-            alphas.append(abcdisplayer.ABCDisplayer.paths2url(region_mapping, "get_alpha_array", flatten=True, 
+            alphas.append(paths2url(region_mapping, "get_alpha_array", flatten=True, 
                                                  parameter="size="+ str(self.number_of_vertices)))
             start_idx = self.SPLIT_MAX_SIZE * i 
             end_idx = self.SPLIT_MAX_SIZE * (i + 1) + self.SPLIT_BUFFER_SIZE
             end_idx = min(end_idx, self.number_of_vertices)
-            alphas_indices.append(abcdisplayer.ABCDisplayer.paths2url(region_mapping, "get_alpha_indices_array", 
+            alphas_indices.append(paths2url(region_mapping, "get_alpha_indices_array", 
                                                                       flatten=True, parameter="start_idx="+ 
                                                                       str(start_idx) +";end_idx="+ str(end_idx)))
           
@@ -237,9 +247,9 @@ class SurfaceFramework(surfaces_data.SurfaceData):
             
         for i in range(number_of_split):
             param = "slice_number=" + str(i)
-            vertices.append(abcdisplayer.ABCDisplayer.paths2url(self, 'get_pick_vertices_slice', parameter=param, flatten=True))
-            triangles.append(abcdisplayer.ABCDisplayer.paths2url(self, 'get_pick_triangles_slice', parameter=param, flatten =True))
-            normals.append(abcdisplayer.ABCDisplayer.paths2url(self, 'get_pick_vertex_normals_slice', parameter=param, flatten=True))
+            vertices.append(paths2url(self, 'get_pick_vertices_slice', parameter=param, flatten=True))
+            triangles.append(paths2url(self, 'get_pick_triangles_slice', parameter=param, flatten =True))
+            normals.append(paths2url(self, 'get_pick_vertex_normals_slice', parameter=param, flatten=True))
             
         return vertices, normals, triangles
     

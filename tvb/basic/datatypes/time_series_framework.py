@@ -34,8 +34,6 @@ Framework methods for the TimeSeries datatypes.
 import json
 import numpy
 import tvb.basic.datatypes.time_series_data as time_series_data
-import tvb.core.entities.model as model
-
 
 
 class TimeSeriesFramework(time_series_data.TimeSeriesData):

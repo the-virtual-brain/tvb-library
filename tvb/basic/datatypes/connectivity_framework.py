@@ -29,8 +29,6 @@ Framework methods for the Connectivity datatype.
 
 import numpy
 import tvb.basic.datatypes.connectivity_data as connectivity_data
-import tvb.core.entities.model as model
-
 
 class ConnectivityFramework(connectivity_data.ConnectivityData):
     """ 

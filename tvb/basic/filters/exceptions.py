@@ -20,48 +20,25 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 #
 #
+'''
+Created on Oct 24, 2012
 
-"""
-TVB global configurations are predefined/read from here.
-"""
-import os
-from tvb.basic.config.utils import ClassProperty, EnhancedDictionary
-from tvb.basic.profile import TvbProfile as tvb_profile
+.. moduleauthor:: bogdan.neacsa <bogdan.neacsa@codemart.ro>
+'''
+from tvb.basic.traits.exceptions import TVBException
+
+class InvalidFilterChainInput(TVBException):
+    """
+    Exception raised if a input that does not match the declared filter is passed as input.
+    """
+    def __init__(self, message):
+        TVBException.__init__(self, message)
 
 
-class LibraryProfile():
-
-    MAGIC_NUMBER = 9
-    
-    MAX_SURFACE_VERTICES_NUMBER = 300000
-    
-    TVB_STORAGE = os.path.expanduser(os.path.join("~", "TVB" + os.sep))
-    
-    WEB_VISUALIZERS_URL_PREFIX = ""
-    
-    @ClassProperty
-    @staticmethod
-    def TVB_LOG_FOLDER():
-        """ 
-        Represents a folder, where all log files are stored.
-        """
-        tmp_path = os.path.join(LibraryProfile.TVB_STORAGE, "logs")
-        if not os.path.exists(tmp_path):
-            os.makedirs(tmp_path)
-        return tmp_path
-    
-    LOGGER_CONFIG_FILE_NAME = "library_logger.conf"
-    
-    TRAITS_CONFIGURATION = EnhancedDictionary()
-    TRAITS_CONFIGURATION.use_storage = False
-    
-    def initialize_profile(self):
-        pass
-    
-if tvb_profile.CURRENT_SELECTED_PROFILE == tvb_profile.LIBRARY_PROFILE:
-    TVBSettings = LibraryProfile
-else:
-    import tvb.config as cfg
-    TVBSettings = cfg.FrameworkSettings
-        
-TVBSettings.initialize_profile()
+class InvalidFilterEntity(TVBException):
+    """
+    Exception raised if a filter entity has contradicting values for operations and values.
+    ex: in None, not in 1 
+    """
+    def __init__(self, message):
+        TVBException.__init__(self, message)

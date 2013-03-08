@@ -12,12 +12,11 @@ import numpy.random
 import tvb.basic.traits.parameters_factory as parameters_factory
 from tvb.basic.datatypes import equations
 from tvb.simulator.noise import Noise
-import tvb.core.adapters.abcadapter as abcadapter
 
 KEY_NOISE = "noise"
-PARAMS_NOISE = (KEY_NOISE + abcadapter.ABCAdapter.KEYWORD_PARAMS)[:-1]
+PARAMS_NOISE = (KEY_NOISE + '_parameters_')[:-1]
 KEY_RANDOM_STREAM = "random_stream"
-PARAMS_RANDOM_STREAM = (KEY_RANDOM_STREAM + abcadapter.ABCAdapter.KEYWORD_PARAMS)[:-1]
+PARAMS_RANDOM_STREAM = (KEY_RANDOM_STREAM + '_parameters_')[:-1]
 KEY_EQUATION = "b"
 PARAMS_EQUATION = "b_parameters"
 

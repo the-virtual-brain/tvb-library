@@ -48,8 +48,6 @@ import tvb.basic.datatypes.equations as equations
 import tvb.basic.traits.types_basic as basic
 import tvb.basic.traits.core as core
 
-import tvb.core.adapters.abcadapter as abcadapter
-
 
 # DUKE: this class is a big 'ol pain in the butt
 class RandomStream(core.Type):

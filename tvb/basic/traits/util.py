@@ -32,19 +32,19 @@ import collections, inspect
 from tvb.basic.config.settings import TVBSettings
 
 
-
 # returns true if key is, by convention, public
 ispublic = lambda key: key[0] is not '_'
+
 
 def read_list_data(full_path, dimensions=None, dtype=numpy.float64, skiprows=0, usecols=None):
     """
     Read numpy.array from a text file.
     """
-    array_result = numpy.loadtxt(full_path, dtype=dtype, 
-                                 skiprows=skiprows, usecols=usecols)
+    array_result = numpy.loadtxt(full_path, dtype=dtype, skiprows=skiprows, usecols=usecols)
     if dimensions:
         return array_result.reshape(dimensions)
     return array_result
+
 
 def str_class_name(thing, short_form = False):
     """
@@ -139,6 +139,3 @@ class TypeRegister(list):
                                     and not inspect.isabstract(opt) and opt.__name__ not in bases]
         return sublcasses
 
-
-
- 
