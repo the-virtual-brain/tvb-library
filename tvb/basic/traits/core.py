@@ -110,7 +110,7 @@ O   while traits' values may need to live at first in the trait attr attr
 """
 import abc 
 from copy import deepcopy, copy
-from tvb.basic.config.config import TVBSettings as config
+from tvb.basic.config.settings import TVBSettings as config
 from tvb.basic.traits.util import get, Args, TypeRegister, ispublic
 import tvb.basic.logger.logger as logger
 LOG = logger.getLogger(__name__)

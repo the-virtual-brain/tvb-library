@@ -47,7 +47,7 @@ Example usage::
 
 import os
 import logging.config
-from tvb.basic.config.config import TVBSettings as cfg
+from tvb.basic.config.settings import TVBSettings as cfg
     
 #Currently for backward compatibility config_root defaults to 'tvb' and 
 #comes as the second argument, this should probably be changed to config_root 
@@ -91,7 +91,7 @@ class LoggerBuilder(object):
 
 if "LOGGER_BUIDER" not in globals():
     if cfg.TRAITS_CONFIGURATION.use_storage:
-        LOGGER_BUIDER = LoggerBuilder('tvb.logger_config')
+        LOGGER_BUIDER = LoggerBuilder('tvb.logger')
     else:
         LOGGER_BUILDER = LoggerBuilder('tvb.basic.logger.logger')
     

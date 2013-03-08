@@ -39,7 +39,7 @@ import numpy
 import scipy.sparse as sparse
 
 # From "The Virtual Brain"
-from tvb.basic.config.config import MAGIC_NUMBER
+from tvb.basic.config.settings import TVBSettings
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
 from tvb.core.entities.transient.filtering import UIFilter, FilterChain
@@ -826,7 +826,7 @@ class Simulator(core.Type):
         LOG.info("Calculating storage requirement for ...")
         strgreq = 0
         for monitor in self.monitors:
-            strgreq += (MAGIC_NUMBER * self.simulation_length  * 
+            strgreq += (TVBSettings.MAGIC_NUMBER * self.simulation_length  * 
                         self.number_of_nodes * self.model.nvar * 
                         self.model.number_of_modes / monitor.period)
         self._storage_requirement = int(strgreq)

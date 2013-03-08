@@ -28,10 +28,10 @@ import os
 from tvb.basic.config.utils import ClassProperty, EnhancedDictionary
 from tvb.basic.profile import TvbProfile as tvb_profile
 
-LOADED_XML_READERS = {}
-MAGIC_NUMBER = 9
 
 class LibraryProfile():
+
+    MAGIC_NUMBER = 9
     
     MAX_SURFACE_VERTICES_NUMBER = 300000
     

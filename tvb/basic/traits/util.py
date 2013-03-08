@@ -29,7 +29,7 @@ All the little functions that make life nicer in the Traits package.
 """
 import numpy
 import collections, inspect  
-from tvb.basic.config.config import TVBSettings
+from tvb.basic.config.settings import TVBSettings
 
 
 
