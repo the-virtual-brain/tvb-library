@@ -48,8 +48,8 @@ import tvb.simulator.integrators as integrators
 import tvb.simulator.noise as noise
 import tvb.simulator.monitors as monitors
 
-import tvb.basic.datatypes.connectivity as connectivity
-import tvb.basic.datatypes.surfaces as surfaces
+import tvb.datatypes.connectivity as connectivity
+import tvb.datatypes.surfaces as surfaces
 """
 
 from tvb.simulator.lab import *

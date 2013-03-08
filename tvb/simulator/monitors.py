@@ -55,9 +55,9 @@ import numpy
 from tvb.simulator.common import get_logger
 LOG = get_logger(__name__)
 
-import tvb.basic.datatypes.sensors as sensors_module
-import tvb.basic.datatypes.arrays as arrays
-import tvb.basic.datatypes.projections as projections
+import tvb.datatypes.sensors as sensors_module
+import tvb.datatypes.arrays as arrays
+import tvb.datatypes.projections as projections
 
 import tvb.basic.traits.util as util
 import tvb.basic.traits.types_basic as basic

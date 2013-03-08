@@ -52,9 +52,9 @@ import tvb.simulator.simulator as simulator
 import tvb.simulator.models as models
 import tvb.simulator.coupling as coupling
 try:
-    import tvb.basic.datatypes.connectivity as connectivity
+    import tvb.datatypes.connectivity as connectivity
 except ImportError:
-    msg = "Failed to import tvb.basic.datatypes.connectivity, falling back to "
+    msg = "Failed to import tvb.datatypes.connectivity, falling back to "
     msg = msg + "tvb.simulator.connectivity."
     LOG.warning(msg)
 

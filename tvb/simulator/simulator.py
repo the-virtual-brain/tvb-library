@@ -49,11 +49,11 @@ import tvb.simulator.integrators as integrators_module
 import tvb.simulator.monitors as monitors_module
 import tvb.simulator.coupling as coupling_module
 
-import tvb.basic.datatypes.arrays as arrays_dtype
-import tvb.basic.datatypes.surfaces as surfaces_dtype
-import tvb.basic.datatypes.connectivity as connectivity_dtype
-#import tvb.basic.datatypes.coupling as coupling_dtype
-import tvb.basic.datatypes.patterns as patterns_dtype
+import tvb.datatypes.arrays as arrays_dtype
+import tvb.datatypes.surfaces as surfaces_dtype
+import tvb.datatypes.connectivity as connectivity_dtype
+#import tvb.datatypes.coupling as coupling_dtype
+import tvb.datatypes.patterns as patterns_dtype
 
 from tvb.simulator.common import psutil, get_logger
 LOG = get_logger(__name__)
@@ -105,7 +105,7 @@ class Simulator(core.Type):
                                linked_elem_field=FilterChain.datatype + "._connectivity", 
                                linked_elem_parent_name="surface", 
                                linked_elem_parent_option=None)],
-        doc = """A tvb.basic.datatypes.Connectivity object which contains the 
+        doc = """A tvb.datatypes.Connectivity object which contains the 
         structural long-range connectivity data (i.e., white-matter tracts). In
         combination with the ``Long-range coupling function`` it defines the inter-regional
         connections. These couplings undergo a time delay via signal propagation 
@@ -142,7 +142,7 @@ class Simulator(core.Type):
                                linked_elem_field=FilterChain.datatype + "._surface", 
                                linked_elem_parent_name="surface", 
                                linked_elem_parent_option=None)],
-        doc = """By default, a tvb.basic.datatypes.Cortex object which represents the 
+        doc = """By default, a tvb.datatypes.Cortex object which represents the 
         cortical surface defined by points in the 3D physical space and their 
         neighborhood relationship. In the current TVB version, when setting up a 
         surface-based simulation, the option to configure the spatial spread of 

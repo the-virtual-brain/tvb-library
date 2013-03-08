@@ -43,8 +43,8 @@ import numpy
 from tvb.simulator.common import get_logger
 LOG = get_logger(__name__)
 
-import tvb.basic.datatypes.arrays as arrays
-import tvb.basic.datatypes.equations as equations
+import tvb.datatypes.arrays as arrays
+import tvb.datatypes.equations as equations
 import tvb.basic.traits.types_basic as basic
 import tvb.basic.traits.core as core
 

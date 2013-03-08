@@ -161,7 +161,7 @@ def plot_local_connectivity(cortex, cutoff=None):
     
     Usage, from demos directory, with tvb in your path ::
         
-        import tvb.basic.datatypes.surfaces as surfaces
+        import tvb.datatypes.surfaces as surfaces
         import plotting_tools
         cortex = surfaces.Cortex()
         plotting_tools.plot_local_connectivity(cortex, cutoff=60.)

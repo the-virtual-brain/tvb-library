@@ -33,8 +33,8 @@ Usage
     period = 0.00048828125 #NOTE: Providing period in seconds
 
     #Create a tvb TimeSeries object
-    import tvb.basic.datatypes.time_series
-    tsr = tvb.basic.datatypes.time_series.TimeSeriesRegion()
+    import tvb.datatypes.time_series
+    tsr = tvb.datatypes.time_series.TimeSeriesRegion()
     tsr.data = data
     tsr.sample_period = period
 
@@ -59,7 +59,7 @@ import matplotlib.widgets as widgets
 from tvb.simulator.common import get_logger
 LOG = get_logger(__name__)
 
-import tvb.basic.datatypes.time_series as time_series_datatypes
+import tvb.datatypes.time_series as time_series_datatypes
 
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic

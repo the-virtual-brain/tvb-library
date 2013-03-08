@@ -20,7 +20,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 #
 #
-from tvb.basic.datatypes import lookup_tables
+from tvb.datatypes import lookup_tables
 
 """
 A collection of neuronal dynamics models.
@@ -45,8 +45,8 @@ from scipy.integrate import trapz as scipy_integrate_trapz
 from scipy.stats import norm as scipy_stats_norm
 
 #The Virtual Brain
-import tvb.basic.datatypes.arrays as arrays
-import tvb.basic.datatypes.lookup_tables as lookup_tables
+import tvb.datatypes.arrays as arrays
+import tvb.datatypes.lookup_tables as lookup_tables
 
 from tvb.simulator.common import get_logger
 LOG = get_logger(__name__)

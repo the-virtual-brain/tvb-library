@@ -91,7 +91,7 @@ from matplotlib.pyplot import *
 
 
 from tvb.simulator.lab import *
-import tvb.basic.datatypes.projections as projections
+import tvb.datatypes.projections as projections
 
 # lV1, lV2,
 nodes     = [35, 36] 

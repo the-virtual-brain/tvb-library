@@ -36,8 +36,8 @@ Current modes are re-scaling methods.
 import tvb.basic.logger.logger as logger
 LOG = logger.getLogger(__name__)
 
-#Import from tvb.basic.datatypes modules:
-import tvb.basic.datatypes.connectivity as connectivity
+#Import from tvb.datatypes modules:
+import tvb.datatypes.connectivity as connectivity
 
 from matplotlib.pyplot import *
 from tvb.simulator.plot.tools import *

@@ -29,7 +29,7 @@
 
 import numpy
 
-import tvb.basic.datatypes.surfaces as surfaces_module
+import tvb.datatypes.surfaces as surfaces_module
     
 from tvb.simulator.region_boundaries import RegionBoundaries
 from tvb.simulator.region_colours import RegionColours 

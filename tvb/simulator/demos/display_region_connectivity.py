@@ -30,7 +30,7 @@ import tvb.basic.logger.logger as logger
 LOG = logger.getLogger(__name__)
 
 
-import tvb.basic.datatypes.connectivity as connectivity
+import tvb.datatypes.connectivity as connectivity
 from tvb.simulator.plot.tools import *
 
 

@@ -37,8 +37,8 @@ import numpy
 import tvb.basic.logger.logger as logger
 LOG = logger.getLogger(__name__)
 
-import tvb.basic.datatypes.connectivity as connectivity
-from tvb.basic.datatypes.time_series import TimeSeriesRegion
+import tvb.datatypes.connectivity as connectivity
+from tvb.datatypes.time_series import TimeSeriesRegion
 
 import tvb.analyzers.pca  as pca
 

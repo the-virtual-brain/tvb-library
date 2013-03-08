@@ -37,8 +37,8 @@ import numpy
 import tvb.basic.logger.logger as logger
 LOG = logger.getLogger(__name__)
 
-from tvb.basic.datatypes.time_series import TimeSeriesSurface
-import tvb.basic.datatypes.surfaces as surfaces_datatypes
+from tvb.datatypes.time_series import TimeSeriesSurface
+import tvb.datatypes.surfaces as surfaces_datatypes
 
 import tvb.analyzers.pca as pca
 

@@ -47,7 +47,7 @@ import numpy
 #The Virtual Brain
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
-import tvb.basic.datatypes.arrays as arrays
+import tvb.datatypes.arrays as arrays
 
 from tvb.simulator.common import get_logger
 LOG = get_logger(__name__)

@@ -43,7 +43,7 @@ If you want to add a filter to a XML interface::
         <name value="data1"/>
         <label value="First dataset:"/>
         <description value="First set of signals"/>
-        <type value="tvb.basic.datatypes.arrays.MappedArray" field="data" default="default_data">
+        <type value="tvb.datatypes.arrays.MappedArray" field="data" default="default_data">
             <conditions>
                 <cond_fields value_list="['datatype_class._nr_dimensions']"/>
                 <cond_operations value_list="['==']"/>

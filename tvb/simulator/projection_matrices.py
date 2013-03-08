@@ -32,9 +32,9 @@ default dataset running on a highend workstation, circa 2010 (custom ATLAS).
 An example for EEG
 ::
 
-    import tvb.basic.datatypes.surfaces as surfaces_module
-    import tvb.basic.datatypes.sensors as sensors_module
-    import tvb.basic.datatypes.projections as projections_module
+    import tvb.datatypes.surfaces as surfaces_module
+    import tvb.datatypes.sensors as sensors_module
+    import tvb.datatypes.projections as projections_module
 
     brain_skull = surfaces_module.BrainSkull()
     skull_skin = surfaces_module.SkullSkin()
@@ -96,9 +96,9 @@ import openmeeg as om # allez oohh-eemmeuh, allez oohh-eemmeuh...
 
 #The Virtual Brain
 
-import tvb.basic.datatypes.surfaces as surfaces_module
-import tvb.basic.datatypes.sensors as sensors_module
-import tvb.basic.datatypes.connectivity as connectivity_module
+import tvb.datatypes.surfaces as surfaces_module
+import tvb.datatypes.sensors as sensors_module
+import tvb.datatypes.connectivity as connectivity_module
 
 import tvb.basic.traits.types_basic as basic
 import tvb.basic.traits.core as core

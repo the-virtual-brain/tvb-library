@@ -51,7 +51,7 @@ except ImportError:
     LOG.warning("Failed to import tvb.basic.logger.logger, falling back to logging")
 
 
-from tvb.basic.datatypes.arrays import FloatArray, IntegerArray
+from tvb.datatypes.arrays import FloatArray, IntegerArray
 from tvb.basic.traits.core import Type
 from tvb.basic.traits.types_basic import Integer
 

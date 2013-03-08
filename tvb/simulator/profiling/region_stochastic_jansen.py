@@ -51,7 +51,7 @@ import tvb.simulator.coupling as coupling
 import tvb.simulator.integrators as integrators
 import tvb.simulator.monitors as monitors
 
-import tvb.basic.datatypes.connectivity as connectivity
+import tvb.datatypes.connectivity as connectivity
 
 
 ##----------------------------------------------------------------------------##

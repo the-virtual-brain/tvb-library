@@ -52,10 +52,10 @@ import tvb.simulator.coupling as coupling
 import tvb.simulator.integrators as integrators
 import tvb.simulator.monitors as monitors
 
-import tvb.basic.datatypes.connectivity as connectivity
+import tvb.datatypes.connectivity as connectivity
 
-import tvb.basic.datatypes.equations as equations
-import tvb.basic.datatypes.patterns as patterns
+import tvb.datatypes.equations as equations
+import tvb.datatypes.patterns as patterns
 
 ##----------------------------------------------------------------------------##
 ##-                      Perform the simulation                              -##
