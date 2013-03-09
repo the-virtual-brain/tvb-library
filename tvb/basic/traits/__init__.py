@@ -79,12 +79,12 @@ package modules
     core            Provides the core of Traits, a metaclass and class that
                     implement the reflection/annotation that Traits allows.
 
-    basic           Provides basic predefined types as well as the Type that
+    types_basic     Provides basic predefined types as well as the Type that
                     should be inherited from when making new Types
 
-    array           Provides a class wrapping the NumPy ndarray
+    data_readers    Means to load data from files, in console mode.
 
-    interface       Provides recursive interfaces classes that are data
+    traited_interface  Provides recursive interfaces classes that are data
                     descriptors, i.e. when placed on classes, they compute
                     the full description of the class and it's Traited
                     attributes.
@@ -92,106 +92,30 @@ package modules
     util            Utility functions and classes.
 
 
-refactor notes
---------------
-
-use of keywords
-```````````````
-
-TODO changed this, needs updates to describe use of opt_kwds and req_kwds.
-
-Intializing traits with any keywords you like usually involves appending
-the keyword name to MetaType.pop_kwds. If you forget, you'll get a nice
-message telling you what to do:
-
-    >>> import core
-    >>> class Foo(core.Type):
-    ...     pass
-
-    >>> Foo(wahwah='hendrix')
-
-    TypeError: couldn't create instance of __main__.Foo with unhandled kwds,
-        {'wahwah': 'hendrix'}. To ignore this kwd, append core.MetaType.pop_kwds
-
-    >>> core.MetaType.pop_kwds.append('wahwah')
-    >>> f = Foo(wahwah='hendrix')
-    >>> f.inits.kwd['wahwah']
-    'hendrix'
-
-If you want to do something algorithmic with a keyword value during class
-or instance creation, it requires subclassing MetaType or Type,
-respectively.
-
-See `traits.sql` for an example.
-
 automatic class documentation
 `````````````````````````````
 
 Classes that subclass Type (or subclasses of MetaType) have their docstrings
 automatically augmented by the repr() of each attribute which is a Type. This
-allows one to find the trait documentation both in Sphinx and at the console.
-
-work list
-`````````
-
-X  extend keyword handling
-X  better documentation traits itself
-O  config reads TVB config / integrated
-O  log a count of how many non default values used
-O  extensive logging
-X  traits auto-added to class doc
-/  pylint score 7.37/10 (on core.py)
-/  merge into TVB via datatypes, then interfaces, simulator, analyzers
-X  merge with minitraits
-/  test suite
-O  get tests into tvb_test
-/  figure out datatypes sql patterns, embed in Trait classes
-/  figure out attr acces patterns, embed in Trait data descrip methods
-O  protecting keywords and attributes from setting stuff
-
-/  integrate w/ model.DataType: fix entities.mode.DataType.__init__
-O  warn/raise bloody hell if trait name conflicts w/ DB attribute
-    or just make DB attributes private
-
-It is typically possible for a user to screw up the system in a number of
-ways. In other languages, we'd go to great lengths to keep that from happening,
-but here, I'd prefer using a combination of logging and sanity flags. The user
-can go crazy, but if one or more of the sanity flags are False, the user
-should know he/she has done something incorrect and some things may not work.
-
-In particular at class creation, we should make extensive logging notes of
-the base(s) attributes and the incoming attributes, and warn about conflicts
-if we don't know why.
-
+allows one to find the trait documentation both in SPhinx and at the console.
 
 References
 ----------
 
-Suggested reading is `Unifying Types and Classes`_ and the
-`Python data model`_.
+Suggested reading is `Unifying Types and Classes`_ and th `Python data model`_.
 
 .. _Unifying Types and Classes:
     http://www.python.org/download/releases/2.2.3/descrintro/
 .. _Python data model: http://docs.python.org/reference/datamodel.html
 
 .. moduleauthor:: Marmaduke Woodman <mw@eml.cc>
-.. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
-.. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 
 """
 
-# add interfaces based on config
 import core, traited_interface
-from tvb.basic.config.settings import TVBSettings as config
 
-setattr(core.Type, core.TRAITS_CONFIGURATION.interface_method_name, 
-        traited_interface.TraitedInterfaceGenerator())
+# Add interfaces based on configured parameter on classes
+setattr(core.Type, core.TRAITS_CONFIGURATION.interface_method_name, traited_interface.TraitedInterfaceGenerator())
 
-def get_mapped_type():
-    if config.TRAITS_CONFIGURATION.use_storage:
-        import tvb.core.traits.types_mapped as mapped
-        return mapped.MappedType
-    else:
-        from tvb.basic.traits.types_mapped import MappedTypeLight
-        return MappedTypeLight
+
 

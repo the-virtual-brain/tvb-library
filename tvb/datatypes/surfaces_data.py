@@ -33,17 +33,16 @@ The Data component of Surfaces DataTypes.
 
 import numpy
 import scipy.sparse as sparse
-from tvb.basic.traits import get_mapped_type
-MappedType = get_mapped_type()
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
-import tvb.basic.traits.types_mapped as mapped
+import tvb.basic.traits.types_mapped_light as mapped
 import tvb.basic.traits.data_readers as readers
 import tvb.basic.traits.exceptions as exceptions
 import tvb.datatypes.arrays as arrays
 import tvb.datatypes.equations as equations
 from tvb.datatypes.connectivity import Connectivity
 from tvb.basic.logger.builder import get_logger
+from tvb.basic.traits.types_mapped import MappedType
 
 LOG = get_logger(__name__)
 

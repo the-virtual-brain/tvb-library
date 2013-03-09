@@ -30,7 +30,7 @@ Framework methods for the Array datatypes.
 
 """
 import numpy
-import tvb.basic.traits.types_mapped as mapped
+import tvb.basic.traits.types_mapped_light as mapped
 import tvb.datatypes.arrays_data as arrays_data
 
 

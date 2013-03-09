@@ -30,8 +30,7 @@ The Data component of Temporal Correlation datatypes.
 
 """
 
-from tvb.basic.traits import get_mapped_type
-MappedType = get_mapped_type()
+from tvb.basic.traits.types_mapped import MappedType
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
 import tvb.datatypes.arrays as arrays

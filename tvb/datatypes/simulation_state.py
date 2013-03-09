@@ -29,9 +29,8 @@ DataType for storing a simulator's state in files and as DB reference.
 
 
 import tvb.basic.traits.types_basic as basic
-from tvb.basic.traits import get_mapped_type
-MappedType = get_mapped_type()
 import tvb.datatypes.arrays as arrays
+from tvb.basic.traits.types_mapped import MappedType
 
 
 class SimulationState(MappedType):

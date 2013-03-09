@@ -28,12 +28,11 @@ The Data component of Spectral datatypes.
 .. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
 
 """
-from tvb.basic.traits import get_mapped_type
-MappedType = get_mapped_type()
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
 import tvb.datatypes.arrays as arrays
 import tvb.datatypes.time_series as time_series
+from tvb.basic.traits.types_mapped import MappedType
 
 
 class PrincipalComponentsData(MappedType):

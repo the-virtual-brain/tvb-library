@@ -36,12 +36,11 @@ At present, we only make use of these in the Brunel and Wang model.
 
 
 import numpy
+import tvb.datatypes.arrays as arrays
 import tvb.basic.traits.types_basic as basic
 import tvb.basic.traits.data_readers as readers
 from tvb.basic.logger.builder import get_logger
-from tvb.basic.traits import get_mapped_type
-MappedType = get_mapped_type()
-import tvb.datatypes.arrays as arrays
+from tvb.basic.traits.types_mapped import MappedType
 
 
 LOG = get_logger(__name__)

@@ -33,20 +33,19 @@ The Data component of Spatiotemporal pattern datatypes.
 #      For example, we need a base Stimulus class...
 
 import tvb.basic.traits.types_basic as basic
-from tvb.basic.traits import get_mapped_type
-MappedType = get_mapped_type()
 import tvb.datatypes.arrays as arrays
 import tvb.datatypes.surfaces as surfaces
 import tvb.datatypes.volumes as volumes
 import tvb.datatypes.connectivity as connectivity_module
 import tvb.datatypes.equations as equations
+from tvb.basic.traits.types_mapped import MappedType
 
 
 class SpatialPatternData(MappedType):
     """
     Equation for space variation.
     """
-    #NOTE; includes eqn, params, and pattern (ie descrete rep of eqn on space)
+    #NOTE; includes eqn, parameters, and pattern (i.e. discrete representation of equation on space)
     spatial = equations.FiniteSupportEquation(
         label = "Spatial Equation",
         order = 2)

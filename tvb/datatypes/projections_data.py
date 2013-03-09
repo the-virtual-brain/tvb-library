@@ -28,13 +28,11 @@ The Data component of ProjectionMatrices DataTypes.
 """
 
 import tvb.basic.traits.types_basic as basic
-from tvb.basic.traits import get_mapped_type
-MappedType = get_mapped_type()
 import tvb.datatypes.arrays as arrays
 import tvb.datatypes.surfaces as surfaces_module
 import tvb.datatypes.sensors as sensors_module
 import tvb.datatypes.connectivity as connectivity_module
-
+from tvb.basic.traits.types_mapped import MappedType
 
 
 class ProjectionMatrixData(MappedType):

@@ -25,8 +25,7 @@
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
 """
 
-from tvb.basic.traits import get_mapped_type
-MappedType = get_mapped_type()
+from tvb.basic.traits.types_mapped import MappedType
 from tvb.basic.traits.types_basic import JSONType, String, Dict
 from tvb.datatypes.time_series import TimeSeries
 

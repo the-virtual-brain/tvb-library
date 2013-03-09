@@ -36,10 +36,9 @@ Sensors uses:
 
 """
 import tvb.basic.traits.types_basic as basic
-from tvb.basic.traits import get_mapped_type
-MappedType = get_mapped_type()
 import tvb.basic.traits.data_readers as readers
 import tvb.datatypes.arrays as arrays
+from tvb.basic.traits.types_mapped import MappedType
 
 
 EEG_POLYMORPHIC_IDENTITY = "EEG"

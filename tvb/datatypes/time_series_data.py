@@ -27,16 +27,15 @@ The Data component of TimeSeries DataTypes.
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 
 """
-
+from tvb.basic.traits.types_mapped import MappedType
 import tvb.basic.traits.types_basic as basic
-from tvb.basic.traits import get_mapped_type
-MappedType = get_mapped_type()
 import tvb.basic.traits.core as core
 import tvb.datatypes.arrays as arrays
 import tvb.datatypes.sensors as sensors_module
 import tvb.datatypes.connectivity as connectivity_module
 import tvb.datatypes.surfaces as surfaces
 import tvb.datatypes.volumes as volumes
+
 
 
 class TimeSeriesData(MappedType):

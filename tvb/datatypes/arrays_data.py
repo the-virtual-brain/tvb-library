@@ -31,11 +31,9 @@ The Data component of traited array datatypes.
 """
 
 import numpy
-from tvb.basic.traits import get_mapped_type
-MappedType = get_mapped_type()
-import tvb.basic.traits.util as util
 import tvb.basic.traits.types_basic as basic
-import tvb.basic.traits.types_mapped as mapped
+import tvb.basic.traits.types_mapped_light as mapped
+from tvb.basic.traits.types_mapped import MappedType
 
 
 class FloatArrayData(mapped.Array):
@@ -106,7 +104,9 @@ class IndexArrayData(IntegerArrayData):
 
 
 class MappedArrayData(MappedType):
-    """ Array that will be Mapped as a table in DB"""
+    """
+    Array that will be Mapped as a table in DB.
+    """
     
     title = basic.String
     label_x, label_y = basic.String, basic.String
@@ -132,7 +132,7 @@ class MappedArrayData(MappedType):
     @property
     def shape(self):
         """
-        Shape for current wrapped numpy array.
+        Shape for current wrapped NumPy array.
         """
         return self.array_data.shape
     

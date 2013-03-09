@@ -28,8 +28,7 @@ The Data component of Volumes datatypes.
 
 """
 
-from tvb.basic.traits import get_mapped_type
-MappedType = get_mapped_type()
+from tvb.basic.traits.types_mapped import MappedType
 import tvb.basic.traits.types_basic as basic
 import tvb.datatypes.arrays as arrays
 
