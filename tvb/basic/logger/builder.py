@@ -72,7 +72,7 @@ class LoggerBuilder(object):
 if "GLOBAL_LOGGER_BUILDER" not in globals():
     
     if TVBSettings.TRAITS_CONFIGURATION.use_storage:
-        GLOBAL_LOGGER_BUILDER = LoggerBuilder('tvb.logger')
+        GLOBAL_LOGGER_BUILDER = LoggerBuilder('tvb.config.logger')
     else:
         GLOBAL_LOGGER_BUILDER = LoggerBuilder('tvb.basic.logger')
 

@@ -29,8 +29,6 @@ Also the generic TVB-Configuration gets set from this point
 """
 
 import os
-import sys
-from sys import platform
 from tvb.basic.config.utils import ClassProperty, EnhancedDictionary
 from tvb.basic.profile import TvbProfile as tvb_profile
 
@@ -75,38 +73,31 @@ class LibraryProfile():
         return tmp_path
     
    
-    
-    @staticmethod
-    def is_development():
-        """Return True when TVB  is used with Python installed natively."""
-        import tvb
-        tvb_root = os.path.dirname(os.path.abspath(tvb.__file__))
-        return (os.path.exists(os.path.join(tvb_root, 'demoData'))
-                and os.path.exists(os.path.join(tvb_root, 'ui_test'))
-                and os.path.exists(os.path.join(tvb_root, 'tvb_test')))
-
-    
     @classmethod
     def initialize_profile(cls):
-        """No initialization needed for this particular profile. But usefull in general"""
+        """No initialization needed for this particular profile. But useful in general"""
         pass
     
+
+    
+###
+###  Dependent of the selected profile and framework classes being present or not, load the correct configuration.
+###    
+
 FRAMEWORK_PRESENT = True
 try:
-    import tvb.config as cfg
+    from tvb.config.settings import FrameworkSettings
 except ImportError:
     FRAMEWORK_PRESENT = False
-###
-###  Dependent of the selected profile. Load the correct configuration.
-###    
+    
 if tvb_profile.CURRENT_SELECTED_PROFILE == tvb_profile.LIBRARY_PROFILE or FRAMEWORK_PRESENT == False:
     ## TVB-Simulator-Library is used stand-alone.
-    ## Fallback to LibraryProfile either if this was the profile passed as argument or if TVB Framework is not present.
+    ## Fall-back to LibraryProfile either if this was the profile passed as argument or if TVB Framework is not present.
     TVBSettings = LibraryProfile
     
 else:
     ## Initialization based on profile is further done in Framework.
-    TVBSettings = cfg.FrameworkSettings
+    TVBSettings = FrameworkSettings
         
 TVBSettings.initialize_profile()
 
