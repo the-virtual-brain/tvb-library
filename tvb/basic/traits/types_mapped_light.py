@@ -28,7 +28,6 @@ Important:
 
 - Type - traited, possible mapped to db *col*
 - MappedType - traited, mapped to db *table*
-- MappedStorage - entity saved in file storage also
 
 
 .. moduleauthor:: Calin Pavel <calin.pavel@codemart.ro>
@@ -47,11 +46,13 @@ from tvb.basic.traits.core import TRAITS_CONFIGURATION
 from tvb.basic.traits.types_basic import DType
 from tvb.basic.traits.exceptions import StorageException
 
+LOG = get_logger(__name__)
+
 
 class MappedTypeLight(Type):
     """
     Light base class for all entities which are about to be mapped in storage.
-    Current light implementation is to be used with the library stand-alone mode.
+    Current light implementation is to be used with the scientific-library stand-alone mode.
     """
     
     METADATA_EXCLUDE_PARAMS = ['id', 'LINKS', 'fk_datatype_group', 'visible', 'disk_size', 
@@ -124,10 +125,8 @@ class MappedTypeLight(Type):
                 result[key] = value
         return result
     
-# Type - unmapped classes
-    
-LOG = get_logger(__name__)
 
+    
 class Array(Type):
     """
     Traits type that wraps a NumPy NDArray.

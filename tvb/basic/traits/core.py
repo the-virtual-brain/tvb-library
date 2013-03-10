@@ -65,10 +65,6 @@ Need to implement better info container for this:
         db          *           False, Col inst; specifies sqlalchemy column
         locked      bool        defaults False, if True, __set__ raise AttrError
 
-    Class attribute that needs to picked up during class creation, and
-    inherited via .trait
-
-        uitype      string      specifies what kindof ui selector is used
 
     trait 'state' information
 
@@ -77,37 +73,10 @@ Need to implement better info container for this:
     .initialize() gets us to the populated state, and then we might use a
     provided compute function to become cached.
 
-
-
-TODOs
------
-
-O   implement behavior for new keywords
-O   move _init_* to TraitInfo
-O   move Type.update to Type.__call__
-O   warn/raise Exc/protect if __type__ or __call__ overridden
-O   consider a with-style context manager for manipulating traits info:
-
-        with Sim.trait.unbound as sim:
-            sim.x.range *= 2
-
-    or
-
-        with unbound(Sim.model.dt) as dt:
-            dt.range = Range(lo=1e-9, hi=0.3)
-
-    which makes sure that it's rebound after the changes. Would want unbound to
-    check that we're within a with statement.
-
-O   while traits' values may need to live at first in the trait attr attr
-    value, after the trait has an owner, it should always __get__ on the owner
-    value. But this will also depend on the db/compute state.
-
-
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
 .. moduleauthor:: marmaduke <duke@eml.cc>
-
 """
+
 import abc 
 from copy import deepcopy, copy
 from tvb.basic.config.settings import TVBSettings as config
@@ -115,7 +84,6 @@ from tvb.basic.traits.util import get, Args, TypeRegister, ispublic
 from tvb.basic.logger.builder import get_logger
 
 LOG = get_logger(__name__)
-TRAITS_CONFIGURATION  = config.TRAITS_CONFIGURATION
 
 KWARG_CONSOLE_DEFAULT = 'console_default'
 KWARG_SELECT_MULTIPLE = 'select_multiple'
@@ -262,7 +230,6 @@ class MetaType(abc.ABCMeta):
         Rough list of what's done:
 
             - catch wrapping class and defaults for that class 
-            - catch a uitype specification
             - create class via super's __new__ 
             - add new class to list of classes
             - augment docstring of class 
@@ -282,11 +249,9 @@ class MetaType(abc.ABCMeta):
         # if we're wrapping a class, pop that out
         wraps = dikt.pop('wraps', set([]))
         wraps_defaults = dikt.pop('defaults', ())
-        uitype = dikt.pop('uitype', '')
 
         # make new class
         newcls = super(MetaType, mcs).__new__(mcs, name, bases, dikt)
-
         # add new class to type register
         TYPE_REGISTER.append(newcls)
 
@@ -307,15 +272,13 @@ class MetaType(abc.ABCMeta):
                     attr = attr()
                 attr.trait.name = key
                 setattr(newcls, key, attr)
-                #rpr = attr.__repr__()
-                #doc += "\n\t``%s``:\n\t\t%s\n" % (key, rpr if rpr else '<bad repr>')
                 doc += "\n\t``%s`` (%s)\n" % (key, str(attr.trait.inits.kwd.get('label', "")))
                 doc += "\t\t| %s\n" % str(attr.trait.inits.kwd.get('doc', "")).replace("\n", " ")
                 doc += "\t\t| ``default``:  %s \n" % str(attr.trait.inits.kwd.get('default', None)).replace("\n", " ")
                 specified_range = attr.trait.inits.kwd.get('range', None)
                 if specified_range:
-                    doc += "\t\t| ``range``: low = %s ; high = %s \n\t\t\n" % (str(specified_range.lo), str(specified_range.hi))
-                #TODO: Need a better parsing of range 
+                    doc += "\t\t| ``range``: low = %s ; high = %s \n\t\t\n" % (str(specified_range.lo), 
+                                                                               str(specified_range.hi))
                 trait[key] = attr
 
         # add info to new class
@@ -348,20 +311,15 @@ class MetaType(abc.ABCMeta):
             - record all other keyword args for later use 
             - create class instance 
             - return instance updated with information
-
         """
 
         inits = Args(args, kwds.copy())
-
-        # build value if we're wrapping
-        # TODO: big clean up, use wraps_defaults always
         if 'default' in kwds:
-            # TODO: type check
             value = kwds.pop('default')
             if isinstance(value, MetaType):
-                value= value()
+                value = value()
 
-        elif KWARG_CONSOLE_DEFAULT in kwds and not TRAITS_CONFIGURATION.use_storage:
+        elif KWARG_CONSOLE_DEFAULT in kwds and not config.TRAITS_CONFIGURATION.use_storage:
             value = kwds.pop(KWARG_CONSOLE_DEFAULT)
         elif ncs.trait.wraps:
             wrapped_callable = ncs.trait.wraps[0] if isinstance(ncs.trait.wraps, tuple) else ncs.trait.wraps
@@ -393,8 +351,6 @@ class MetaType(abc.ABCMeta):
                 # then it's not because we haven't handled all args & kwds
                 raise exc
             else:
-                # TODO: we decided against extensible keywords, so this
-                # message should be removed.
                 msg = "couldn't create instance of %s with unhandled " % (ncs.__module__ + '.' + ncs.__name__, )
                 msg += "args, %s, " % (args,) if args else ""
                 kwd_advice = " to ignore this kwd, append %s.pop_kwds."

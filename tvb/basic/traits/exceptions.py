@@ -48,15 +48,16 @@ class ValidationException(TVBException):
 class MissingEntityException(TVBException):
     """
     Exception class used for cases when trying to load an entity
-    from database by id or Gid and none found.
+    from database by id or GID and none found.
     """
     def __init__(self, message):
         TVBException.__init__(self, message)
+   
         
 class StorageException(TVBException):
     """
     Exception class used for cases when trying to load an entity
-    from database by id or Gid and none found.
+    from database by id or GID and none found.
     """
     def __init__(self, message):
         TVBException.__init__(self, message)

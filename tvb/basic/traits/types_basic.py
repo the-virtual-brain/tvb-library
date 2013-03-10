@@ -22,10 +22,10 @@
 #
 
 """
-This module describes the simple of traited attributes one needs in a class.
+This module describes the simple of traited attributes one might needs on a class.
 
 If your subclass should be mapped to a database table (true for most entities
-that will be reused), use MappedType.
+that will be reused), use MappedType as superclass.
 
 If you subclass is supported natively by SQLAlchemy, subclass Type, otherwise
 subclass MappedType.
@@ -50,14 +50,14 @@ LOG = get_logger(__name__)
 
 class String(core.Type):
     """
-    Traits type that wraps a python string.
+    Traits type that wraps a Python string.
     """
     wraps = (str, unicode)
 
 
 class Bool(core.Type):
     """
-    Traits type wrapping Python bool. 
+    Traits type wrapping Python boolean primitive. 
     The only instances of Python bool are True and False.
     """
     wraps = bool
@@ -81,8 +81,6 @@ class Complex(core.Type):
     """
     Traits type that wraps Numpy's complex64.
     """
-    #TODO: Probably should be complex128, as 
-    #      we would generally want equivalence with float64
     wraps = numpy.complex64
 
 
@@ -101,11 +99,9 @@ class MapAsJson():
             return json_value
         return self
 
-
     @staticmethod
     def to_json(entity):
         return json.dumps(entity)
-
 
     @staticmethod
     def from_json(string):
@@ -146,8 +142,8 @@ class Sequence(MapAsJson, String):
     Traits type base class that wraps python sequence 
     python types (containers)
     """
-
     wraps = (dict, list, tuple, set, slice, numpy.ndarray)
+
 
 class Enumerate(Sequence):
     """
@@ -172,6 +168,7 @@ class Enumerate(Sequence):
             #Bypass default since that only accepts arrays for multiple selects
             setattr(inst, '_' + self.trait.name, self.to_json(value))
             self.trait.value = value
+
 
 class Dict(Sequence):
     """
@@ -221,7 +218,7 @@ class Range(core.Type):
     Range is like Python range() except that it will accept ranges with
     multiplicative or additive step sizes.
 
-    Instances of Range will not generate their discete values automatically,
+    Instances of Range will not generate their discrete values automatically,
     but these values can be obtained by converting to a list
 
         >>> range_values = list(Range(hi=1.0, step=0.1))
@@ -235,17 +232,13 @@ class Range(core.Type):
         2.0
 
     """
-    #TODO: May need a dtype, for when we want a range of integers -- indexes, for example. 
-
     lo = Float(doc='start of range')
     hi = Float(doc='end of range')
 
-    step = Float(default=1.0,
-                 doc='fixed step size between elements')
+    step = Float(default = 1.0, doc = 'fixed step size between elements')
 
-    base = Float(default=math.e,
-                 doc='fixed multiplier between elements')
-
+    base = Float(default = math.e, doc = 'fixed multiplier between elements')
+ 
     def __iter__(self):
         """ Get valid values in interval"""
         def gen():
@@ -269,7 +262,7 @@ class ValidationRange(core.Type):
 class JSONType(String):
     """
     Wrapper over a String which holds a serializable object.
-    On set/get Json loand/dump will be called.
+    On set/get JSON load/dump will be called.
     """
     
     def __get__(self, inst, cls):
@@ -290,7 +283,7 @@ class JSONType(String):
   
 class DType(String):
     """
-    Traits type that wraps a numpy dtype specification.
+    Traits type that wraps a Numpy dType specification.
     """
 
     wraps = (numpy.dtype, str)

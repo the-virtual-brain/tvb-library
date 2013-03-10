@@ -139,3 +139,4 @@ class TypeRegister(list):
                                     and not inspect.isabstract(opt) and opt.__name__ not in bases]
         return sublcasses
 
+

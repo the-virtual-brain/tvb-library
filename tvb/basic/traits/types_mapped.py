@@ -23,6 +23,11 @@
 
 """
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
+
+Initialize MappedType base class, based on current environment:
+- when environment is stand-alone scientific library, use MappedTypeLight
+- when TVB-Framework is also present: use MappedType with SQL-Alchemy dependency.
+
 """
 
 from tvb.basic.config.settings import TVBSettings

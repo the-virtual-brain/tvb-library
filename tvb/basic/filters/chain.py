@@ -21,6 +21,7 @@
 #
 #
 """
+.. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 
 The following are the categories that will be available for filters in the UI. 
@@ -130,9 +131,11 @@ class FilterChain(object):
         operations.extend(other.operations)
         return FilterChain(new_display_name, new_fields, new_values, operations, 'and')
     
+    
     def __str__(self):
         return self.__class__.__name__ + "(fields=%s, operations=%s, values=%s, operator_between_fields=%s)"% (
                 self.fields, self.operations, self.values, self.operator_between_fields)
+    
             
     def to_json(self):
         """
@@ -204,7 +207,7 @@ class FilterChain(object):
     def get_python_filter_equivalent(self, datatype_to_check=None, algogroup_to_check=None, 
                                      algocategory_to_check=None, operation_to_check=None):
         """
-        Python eval of the filter against a current given DataType
+        Python evaluate of the filter against a current given DataType
         Check a filter instance next to a given input.
         
         @param input_to_check: the dataType to be checked against this filter instance
@@ -287,7 +290,7 @@ class FilterChain(object):
 
     def __get_sql_filter_equivalent(self, field, operation, value):
         """
-        For a field, value and operation get the sqlalchemy specific syntax.
+        For a field, value and operation get the sql-alchemy specific syntax.
         """
         result = ""
         if operation in ("not in", "in"):
