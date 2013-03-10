@@ -39,10 +39,9 @@ Important:
 import numpy
 from scipy import sparse
 from tvb.basic.logger.builder import get_logger
+from tvb.basic.config.settings import TVBSettings
 from tvb.basic.traits.util import get
-from tvb.basic.traits.core import Type, FILE_STORAGE_NONE
-from tvb.basic.traits.core import FILE_STORAGE_DEFAULT
-from tvb.basic.traits.core import TRAITS_CONFIGURATION
+from tvb.basic.traits.core import Type, FILE_STORAGE_NONE, FILE_STORAGE_DEFAULT
 from tvb.basic.traits.types_basic import DType
 from tvb.basic.traits.exceptions import StorageException
 
@@ -88,7 +87,7 @@ class MappedTypeLight(Type):
                  Generic informations, like Max/Min/Mean/Var are to be retrieved for this array_attr
         """
         summary = dict()
-        if TRAITS_CONFIGURATION.use_storage and self.trait.use_storage:
+        if TVBSettings.TRAITS_CONFIGURATION.use_storage and self.trait.use_storage:
             if included_info is None:
                 included_info = self.trait[array_name]._stored_metadata
             summary = self.__read_storage_array_metadata(array_name, included_info)
@@ -172,7 +171,8 @@ class Array(Type):
             cached_data = get(inst, '__'+ self.trait.name, None)
             
             if ((cached_data is None or cached_data.size == 0) and self.trait.file_storage != FILE_STORAGE_NONE
-                and TRAITS_CONFIGURATION.use_storage and inst.trait.use_storage and isinstance(inst, MappedTypeLight)):
+                and TVBSettings.TRAITS_CONFIGURATION.use_storage and inst.trait.use_storage 
+                and isinstance(inst, MappedTypeLight)):
                 
                 ### Data not already loaded, and storage usage
                 cached_data = self._read_from_storage(inst)
@@ -200,9 +200,9 @@ class Array(Type):
             
         setattr(inst, '__' + self.trait.name, value)
         
-        if (TRAITS_CONFIGURATION.use_storage and inst.trait.use_storage and value is not None and value.size > 0 
-            and (inst is not None and isinstance(inst, MappedTypeLight) 
-                 and self.trait.file_storage != FILE_STORAGE_NONE)):
+        if (TVBSettings.TRAITS_CONFIGURATION.use_storage and inst.trait.use_storage and value is not None 
+            and value.size > 0 and (inst is not None and isinstance(inst, MappedTypeLight) 
+                                    and self.trait.file_storage != FILE_STORAGE_NONE)):
             
             if not isinstance(value, self.trait.wraps):
                 raise Exception("Invalid DataType!! It expects %s, but is %s"% str(self.trait.wraps), str(type(value)))

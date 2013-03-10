@@ -113,9 +113,11 @@ Suggested reading is `Unifying Types and Classes`_ and th `Python data model`_.
 """
 
 import core, traited_interface
+from tvb.basic.config.settings import TVBSettings
 
 # Add interfaces based on configured parameter on classes
-setattr(core.Type, core.TRAITS_CONFIGURATION.interface_method_name, traited_interface.TraitedInterfaceGenerator())
+setattr(core.Type, TVBSettings.TRAITS_CONFIGURATION.interface_method_name, 
+        traited_interface.TraitedInterfaceGenerator())
 
 
 
