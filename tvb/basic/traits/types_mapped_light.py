@@ -201,8 +201,8 @@ class Array(Type):
         setattr(inst, '__' + self.trait.name, value)
         
         if (TVBSettings.TRAITS_CONFIGURATION.use_storage and inst.trait.use_storage and value is not None 
-            and value.size > 0 and (inst is not None and isinstance(inst, MappedTypeLight) 
-                                    and self.trait.file_storage != FILE_STORAGE_NONE)):
+            and (inst is not None and isinstance(inst, MappedTypeLight) 
+                 and self.trait.file_storage != FILE_STORAGE_NONE) and value.size > 0):
             
             if not isinstance(value, self.trait.wraps):
                 raise Exception("Invalid DataType!! It expects %s, but is %s"% str(self.trait.wraps), str(type(value)))

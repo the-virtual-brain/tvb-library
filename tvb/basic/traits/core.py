@@ -390,7 +390,7 @@ class MetaType(abc.ABCMeta):
 
 class Type(object):
     """
-    Type class provides a base class for datatypes and the attributes on
+    Type class provides a base class for dataTypes and the attributes on
     datatypes.
 
     When a Type instance is an attribute of a class and self.bound is True, the
@@ -409,7 +409,7 @@ class Type(object):
     _summary_info = None
 
     def __get__(self, inst, cls):
-        """When an attribut of Type is retrieved on another class"""
+        """When an attribute of Type is retrieved on another class"""
         if inst is None:
             return self
         if self.trait.bound:

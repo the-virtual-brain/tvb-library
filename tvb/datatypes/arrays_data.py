@@ -31,6 +31,7 @@ The Data component of traited array datatypes.
 """
 
 import numpy
+import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
 import tvb.basic.traits.types_mapped_light as mapped
 from tvb.basic.traits.types_mapped import MappedType
@@ -100,6 +101,7 @@ class IndexArrayData(IntegerArrayData):
  
     target = mapped.Array(
         label = "Indexed array",
+        file_storage = core.FILE_STORAGE_NONE,
         doc = "A link to the array that the indices index.")
 
 

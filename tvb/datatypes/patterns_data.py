@@ -110,7 +110,7 @@ class SpatialPatternVolumeData(SpatialPatternData):
     
     focal_points_volume = arrays.IndexArray(
         label = "Focal points",
-        #target = util.Self.volume.data
+        target = volume
         )
 
 

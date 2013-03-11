@@ -73,11 +73,9 @@ class SurfaceData(MappedType):
     triangles = arrays.IndexArray(
         label = "Triangles",
         order = -1, 
-        #target = util.Self.vertices,
-        console_default = default.read_data(name="triangles.txt.bz2",
-                                            dtype=numpy.int32),
-        doc = """Array of indices into the vertices, specifying the triangles
-        which define the surface.""")
+        target = vertices,
+        console_default = default.read_data(name="triangles.txt.bz2", dtype=numpy.int32),
+        doc = """Array of indices into the vertices, specifying the triangles which define the surface.""")
 
     vertex_normals = arrays.OrientationArray(
         label = "Vertex normal vectors",
