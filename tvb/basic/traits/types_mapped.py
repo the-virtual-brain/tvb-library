@@ -36,7 +36,7 @@ if TVBSettings.TRAITS_CONFIGURATION.use_storage:
     import tvb.core.traits.types_mapped as mapped
     MappedType = mapped.MappedType
 else:
-    from tvb.basic.traits.types_mapped import MappedTypeLight
+    from tvb.basic.traits.types_mapped_light import MappedTypeLight
     MappedType = MappedTypeLight
     
    
