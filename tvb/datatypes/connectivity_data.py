@@ -54,23 +54,15 @@ class ConnectivityData(MappedType):
 
     region_labels = arrays.StringArray(
         label = "Region labels",
-        console_default = default.read_data(name="centres.txt.bz2",
-                                            usecols=(0,), dtype="string"),
+        console_default = default.read_data(name="centres.txt.bz2", usecols=(0,), dtype="string"),
         doc = """Short strings, 'labels', for the regions represented by the
             connectivity matrix.""") #  'B' -- sort of 'C', index as string.
-
-#    region_names = arrays.StringArray(#TODO:Prob. need to extend nchars of StringArray
-#                                   unless we can specify a List of Strings...
-#        label = "Region names",
-#        console_default = default.read_data(name="region_names.txt"),
-#        doc = """Long form, descriptive, names for the regions represented by
-#            the connectivity matrix.""")
 
     weights = arrays.FloatArray(
         label = "Connection strengths",
         console_default = default.read_data(name="weights.txt.bz2"),
         doc = """Matrix of values representing the strength of connections
-            between regions, arbitrary units.""") #  'B'
+                 between regions, arbitrary units.""") #  'B'
 
     unidirectional = basic.Integer(default=0, 
         required = False,
@@ -80,7 +72,7 @@ class ConnectivityData(MappedType):
         label = "Tract lengths",
         console_default = default.read_data(name="tract_lengths.txt.bz2"),
         doc = """The length of myelinated fibre tracts between regions. If
-            not provided Euclidean distance between region centres is used.""") #'SC'
+                 not provided Euclidean distance between region centres is used.""") #'SC'
 
     speed = arrays.FloatArray(
         label = "Conduction speed", 
@@ -99,8 +91,7 @@ class ConnectivityData(MappedType):
         label = "Cortical",
         console_default = default.read_data(name="cortical.txt.bz2", dtype=numpy.bool),
         required = False,
-        doc = """A boolean vector specifying whether or not a region is part
-            of the cortex.""") # 'B'
+        doc = """A boolean vector specifying whether or not a region is part of the cortex.""") # 'B'
 
     hemispheres = arrays.BoolArray(
         label = "Hemispheres (True for Right and False for Left Hemisphere",
@@ -144,11 +135,11 @@ class ConnectivityData(MappedType):
     # Rotation if positions are not normalized.
     nose_correction = basic.JSONType(required = False)
 
-    # Original Connectivity, from which current conn was edited
+    # Original Connectivity, from which current connectivity was edited.
     parent_connectivity = basic.String(required = False)
 
     # In case of edited Connectivity, this are the nodes left in interest area,
-    # the rest were part of a leasion, so they were removed.
+    # the rest were part of a lesion, so they were removed.
     saved_selection = basic.JSONType(required = False)
 
 

@@ -93,14 +93,17 @@ KWARG_FILE_STORAGE = 'file_storage'
 KWARG_REQUIRED = 'required'
 KWARG_FILTERS_UI = 'filters_ui'
 KWARG_OPTIONS = 'options'
+KWARG_STORAGE_PATH = 'storage_path'
+KWARS_USE_STORAGE = 'use_storage'
+
 FILE_STORAGE_DEFAULT = 'HDF5'
 FILE_STORAGE_EXPAND = 'expandable_HDF5'
 FILE_STORAGE_NONE = 'None'
 
 
 SPECIAL_KWDS = ['bind', 'doc', 'label', 'db', 'default', 'required', KWARG_AVOID_SUBCLASSES,
-                'range', 'locked', KWARG_FILTERS_UI, KWARG_CONSOLE_DEFAULT,
-                KWARG_SELECT_MULTIPLE, KWARG_FILE_STORAGE, KWARG_ORDER, KWARG_OPTIONS]
+                'range', 'locked', KWARG_FILTERS_UI, KWARG_CONSOLE_DEFAULT, KWARG_SELECT_MULTIPLE, 
+                KWARG_FILE_STORAGE, KWARG_ORDER, KWARG_OPTIONS, KWARG_STORAGE_PATH, KWARS_USE_STORAGE]
 
 
 # module global used by MetaType
@@ -157,9 +160,9 @@ class TraitsInfo(dict):
 
     @property
     def use_storage(self):
-        if 'use_storage' not in self.inits.kwd:
+        if KWARS_USE_STORAGE not in self.inits.kwd:
             return True
-        return self.inits.kwd['use_storage']
+        return self.inits.kwd[KWARS_USE_STORAGE]
 
     @property
     def range_interval(self):

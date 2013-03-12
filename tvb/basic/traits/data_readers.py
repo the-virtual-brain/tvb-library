@@ -35,7 +35,7 @@ from tvb.basic.config.settings import TVBSettings
 
 class File(object):
     """
-    will be used for setting default values, when console-mode.
+    Will be used for setting default values, when console-mode.
     """
     
     def __init__(self, path, name=None):
@@ -68,8 +68,9 @@ class File(object):
         return self._read_matlab(full_path, matlab_data_name)
         
     
-        
-    def _read_npz(self, full_path):
+    @staticmethod    
+    def _read_npz(full_path):
+        """Numpy Load """
         return numpy.load(full_path)
     
     

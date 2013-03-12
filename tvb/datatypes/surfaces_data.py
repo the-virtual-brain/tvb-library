@@ -224,9 +224,8 @@ class RegionMappingData(arrays.MappedArray):
     default = readers.File(path = "surfaces/cortex_reg13")
 
     #TODO: this is consistent with default Connectivity, but needs reconsidering...
-    array_data = arrays.IndexArray(console_default =
-                            default.read_data(name="o52r00_irp2008.txt.bz2",
-                                              dtype=numpy.int32))
+    array_data = arrays.IndexArray(console_default = default.read_data(name="o52r00_irp2008.txt.bz2",
+                                                                       dtype=numpy.int32))
 
     connectivity = Connectivity
 
