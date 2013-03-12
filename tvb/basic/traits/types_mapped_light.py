@@ -70,6 +70,10 @@ class MappedTypeLight(Type):
                           METADATA_ARRAY_SHAPE: 'shape'}
     
     def __init__(self, **kwargs):
+        if 'storage_path' in kwargs:
+            kwargs.pop('storage_path')
+        if 'use_storage' in kwargs:
+            kwargs.pop('use_storage')
         super(MappedTypeLight, self).__init__(**kwargs)
         self._current_metadata = dict()
         
@@ -106,6 +110,30 @@ class MappedTypeLight(Type):
         for key, value in summary.iteritems():
             result[array_name.capitalize().replace("_", " ") + " - " + key] = value
         return result
+    
+    
+    def get_data_shape(self, data_name, where='/'):
+        """
+        This method reads data-shape from the given data set
+            ::param data_name: Name of the data set from where to read size
+            ::param where: represents the path where dataset is stored (e.g. /data/info)  
+            ::return: a shape tuple
+        """
+        if TVBSettings.TRAITS_CONFIGURATION.use_storage and self.trait.use_storage:
+            try:
+                store_manager = self._get_file_storage_mng()
+                return store_manager.get_data_shape(data_name, where)
+            except IOError, excep:
+                self.logger.warning(str(excep))
+                self.logger.warning("Could not read shape from file. Most probably because data was not written....")
+                return ()
+        else:
+            array_data = getattr(self, data_name)
+            if hasattr(array_data, 'shape'):
+                return getattr(array_data, 'shape')
+            self.logger.warning("Could not find 'shape' attribute on " + str(data_name) + " returning empty shape!!")
+            return ()
+    
     
     
     def __read_storage_array_metadata(self, array_name, included_info=None):
