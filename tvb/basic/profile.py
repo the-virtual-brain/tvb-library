@@ -89,7 +89,23 @@ class TvbProfile():
                 script_argv.remove(selected_profile)
                 script_argv.remove(TvbProfile.SUBPARAM_PROFILE)
             
+       
+    @staticmethod
+    def is_library_mode():
+        """
+        Fall-back to LibraryProfile either if this was the profile passed as argument or if TVB Framework is not present.
+        
+        :return: True when currently selected profile is LibraryProfile, 
+        or when the framework classes are not present, and we should enforce the library profile.
+        
+        """
+        framework_present = True
+        try:
+            from tvb.config.settings import FrameworkSettings
+        except ImportError:
+            framework_present = False
             
+        return TvbProfile.CURRENT_SELECTED_PROFILE == TvbProfile.LIBRARY_PROFILE or not framework_present     
             
             
             

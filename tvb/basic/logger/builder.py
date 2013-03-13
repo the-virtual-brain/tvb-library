@@ -34,8 +34,9 @@ Singleton logging builder.
 """
 
 import os
-import logging.config
-from tvb.basic.config.settings import TVBSettings   
+import logging.config 
+from tvb.basic.profile import TvbProfile
+from tvb.basic.config.settings import TVBSettings  
 
 
 class LoggerBuilder(object):
@@ -71,10 +72,10 @@ class LoggerBuilder(object):
 ### We make sure a single instance of logger-builder is created.
 if "GLOBAL_LOGGER_BUILDER" not in globals():
     
-    if TVBSettings.TRAITS_CONFIGURATION.use_storage:
-        GLOBAL_LOGGER_BUILDER = LoggerBuilder('tvb.config.logger')
-    else:
+    if TvbProfile.is_library_mode():
         GLOBAL_LOGGER_BUILDER = LoggerBuilder('tvb.basic.logger')
+    else:
+        GLOBAL_LOGGER_BUILDER = LoggerBuilder('tvb.config.logger')
 
  
  

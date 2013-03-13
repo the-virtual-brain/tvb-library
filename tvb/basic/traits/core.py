@@ -31,14 +31,12 @@ Traits overview
 
 Traits classes are separated into two modules:
 
-core.
-
-    TraitsInfo          metadata container for traits system
+core:
+    TraitsInfo          meta-data container for traits system
     MetaType            base class for traited class creation
     Type                base traited class 
 
-basic.
-
+mapped:
     MappedType          basic class for traited class mapped to db
     *(Type)             traits mapped to columns
     *(MappedType)       traits mapped to column(foreignkey) -> table 
@@ -48,33 +46,18 @@ Traits metadata
 ---------------
 
 While the traits of a class can be declared nearly arbitrarily, there are
-intrinsic pieces of information in the metadata required to make the traits
+intrinsic pieces of information in the meta-data required to make the traits
 system work:
 
-
-Need to implement better info container for this:
-
-    More information based on trait instantiation kwds
-
-        doc         string      long description, possibly multi string
+        doc         string      long description, possibly longer string
         label       string      short name appearing in UI
         default     object      default value of attribute
-        required    bool        determines whether must be set to initialize
+        required    boolean     determines whether must be set before storage
         range       Range       helps validate or specify parameter variation
-        compute     fn/ref      function computing value
-        db          *           False, Col inst; specifies sqlalchemy column
-        locked      bool        defaults False, if True, __set__ raise AttrError
-
-
-    trait 'state' information
-
-        state       one of 'nodb', 'dbloaded', 'populated', 'cached'
-
-    .initialize() gets us to the populated state, and then we might use a
-    provided compute function to become cached.
 
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
 .. moduleauthor:: marmaduke <duke@eml.cc>
+
 """
 
 import abc 
@@ -82,6 +65,7 @@ from copy import deepcopy, copy
 from tvb.basic.config.settings import TVBSettings as config
 from tvb.basic.traits.util import get, Args, TypeRegister, ispublic
 from tvb.basic.logger.builder import get_logger
+
 
 LOG = get_logger(__name__)
 
@@ -106,8 +90,9 @@ SPECIAL_KWDS = ['bind', 'doc', 'label', 'db', 'default', 'required', KWARG_AVOID
                 KWARG_FILE_STORAGE, KWARG_ORDER, KWARG_OPTIONS, KWARS_USE_STORAGE]
 
 
-# module global used by MetaType
+## Module global used by MetaType.
 TYPE_REGISTER = TypeRegister()
+
 
 class TraitsInfo(dict):
     """
@@ -117,14 +102,13 @@ class TraitsInfo(dict):
     by traits, e.g. data & bound, may mean other things to other
     classes and we can't step on their toes.
 
-    TraitsInfo is a dict of the owner's traited attributes, and its
-    other attributes are:
+    TraitsInfo is a dictionary of the owner's traited attributes, and its other attributes are:
 
     - name - name of attribute on owner class
     - bound - whether the trait is bound as data descriptor
     - wraps - class this trait wraps
     - inits - a namedtuple of positional and keyword arguments
-        given to intialize the trait instance
+              given to intialize the trait instance
     - value - instance value of trait, equal to trait if wraps==None
     - defaults - default args to wraps' constructor
 
@@ -150,7 +134,6 @@ class TraitsInfo(dict):
         if KWARG_ORDER not in self.inits.kwd:
             return 0
         return self.inits.kwd[KWARG_ORDER]
-
 
     @property
     def required(self):
@@ -201,7 +184,7 @@ class MetaType(abc.ABCMeta):
     """
 
     The MetaType class augments the class creation and instantiation of all the
-    types in the Traits system. See the docstrings of the methods for more
+    types in the Traits system. See the doc-strings of the methods for more
     details:
 
         __new__  - creates a class 
@@ -215,7 +198,6 @@ class MetaType(abc.ABCMeta):
 
     def __new__(mcs, name, bases, dikt):
         """
-
         MetaType.__new__ creates a new class, but is typically involved
         *implicitly* either by declaring the __metaclass__ attribute
 
@@ -227,26 +209,14 @@ class MetaType(abc.ABCMeta):
             class Foo(Type):
                 pass
 
-        but in both cases, this method is called to produce the new class
-        object.
+        but in both cases, this method is called to produce the new class object.
 
-        Rough list of what's done:
-
-            - catch wrapping class and defaults for that class 
-            - create class via super's __new__ 
-            - add new class to list of classes
-            - augment docstring of class 
-            - catch and setup all trait attributes on class
-            - add required information to class 
-
-        To setup a trait attribute, we 
-
+        To setup a trait attribute, we :
             - check if it's a type, if so, instantiate
             - tell the attr it's name on owner class 
-            - setup privatized attr with attr value 
-            - augment owner class docstring with trait description 
+            - setup private attr with attr.value 
+            - augment owner class doc-string with trait description 
             - add trait to information on class 
-
         """
 
         # if we're wrapping a class, pop that out
@@ -296,12 +266,11 @@ class MetaType(abc.ABCMeta):
             attr.trait.bound = attr.trait.inits.kwd.get('bind', True)
 
         newcls.__doc__ = doc
-
         return newcls
+
 
     def __call__(ncs, *args, **kwds):
         """
-
         MetaType.__call__ method wraps ncs.__init__(ncs.__new__(*, **), *, **),
         and is implicitly called when the class __init__()s.
 
@@ -393,8 +362,7 @@ class MetaType(abc.ABCMeta):
 
 class Type(object):
     """
-    Type class provides a base class for dataTypes and the attributes on
-    datatypes.
+    Type class provides a base class for dataTypes and the attributes on dataTypes.
 
     When a Type instance is an attribute of a class and self.bound is True, the
     instance will act as a data descriptor, setting/getting its corresponding
@@ -402,35 +370,37 @@ class Type(object):
 
     In the case of sql'ed values, names are coordinated such that the private
     value (```obj._name```) of the public attr (```obj.name```) on the owner
-    class used by the Type instance is actually the corresponding sqlalchemy
+    class used by the Type instance is actually the corresponding sqlAlchemy
     data descriptor as generated by the value of 'sql' keyword to the Type
     instance __init__.
-
     """
 
     __metaclass__ = MetaType
     _summary_info = None
 
+
     def __get__(self, inst, cls):
-        """When an attribute of Type is retrieved on another class"""
+        """
+        When an attribute of Type is retrieved on another class.
+        """
         if inst is None:
             return self
         if self.trait.bound:
             if hasattr(inst, '_' + self.trait.name):
-                # Return simple DB field or cached value
+                ## Return simple DB field or cached value
                 return getattr(inst, '_' + self.trait.name)
             else:
                 return None
         else:
             return self
 
+
     def __set__(self, inst, value):
         """
         When an attribute of Type is set on another class
         """
         if self.trait.bound:
-            # First validate that the given vaue is compatible with the
-            # current attribute definition
+            ## First validate that the given value is compatible with the current attribute definition
             accepted_types = [type(self), type(None)]
             if isinstance(self.trait.wraps, tuple):
                 accepted_types.extend(self.trait.wraps)
@@ -460,7 +430,6 @@ class Type(object):
         """
         Type.repr builds a useful representation of itself, which can be 
         configured with values in config:
-
         """
         trait = self.trait
         rep  = self.__class__.__name__ + "("
@@ -481,8 +450,8 @@ class Type(object):
 
     def configure(self):
         """
-        Call this method to process linked attributes on datatype.
-        it will be called before storing in DB.
+        Call this method to process linked attributes on DataType.
+        This will be called before storing entity in DB.
         """
         pass
 
@@ -504,4 +473,8 @@ class Type(object):
         """
         return None
 
+
+
 TypeBase = Type
+
+

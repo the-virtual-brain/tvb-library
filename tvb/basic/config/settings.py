@@ -30,7 +30,7 @@ Also the generic TVB-Configuration gets set from this point
 
 import os
 from tvb.basic.config.utils import ClassProperty, EnhancedDictionary
-from tvb.basic.profile import TvbProfile as tvb_profile
+from tvb.basic.profile import TvbProfile
 
 
 class LibraryProfile():
@@ -83,20 +83,14 @@ class LibraryProfile():
 ###
 ###  Dependent of the selected profile and framework classes being present or not, load the correct configuration.
 ###    
-
-FRAMEWORK_PRESENT = True
-try:
-    from tvb.config.settings import FrameworkSettings
-except ImportError:
-    FRAMEWORK_PRESENT = False
     
-if tvb_profile.CURRENT_SELECTED_PROFILE == tvb_profile.LIBRARY_PROFILE or FRAMEWORK_PRESENT == False:
+if TvbProfile.is_library_mode():
     ## TVB-Simulator-Library is used stand-alone.
-    ## Fall-back to LibraryProfile either if this was the profile passed as argument or if TVB Framework is not present.
     TVBSettings = LibraryProfile
     
 else:
     ## Initialization based on profile is further done in Framework.
+    from tvb.config.settings import FrameworkSettings
     TVBSettings = FrameworkSettings
         
 TVBSettings.initialize_profile()

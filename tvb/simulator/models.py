@@ -20,7 +20,6 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 #
 #
-from tvb.datatypes import lookup_tables
 
 """
 A collection of neuronal dynamics models.
@@ -35,25 +34,21 @@ from the class Trait from the tvb.basic.traits module.
 
 """
 
-# Standard python libraries
 import inspect
-
-# Third party python libraries
 import numpy
 import numexpr
 from scipy.integrate import trapz as scipy_integrate_trapz
 from scipy.stats import norm as scipy_stats_norm
-
-#The Virtual Brain
+from tvb.datatypes import lookup_tables
+from tvb.simulator.common import get_logger
 import tvb.datatypes.arrays as arrays
 import tvb.datatypes.lookup_tables as lookup_tables
-
-from tvb.simulator.common import get_logger
-LOG = get_logger(__name__)
-
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
 import tvb.simulator.noise as noise_module
+
+
+LOG = get_logger(__name__)
 
 
 #TODO: For UI convinience set the step in all parameters ranges such that there
