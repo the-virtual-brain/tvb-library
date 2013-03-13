@@ -48,11 +48,9 @@ class PrincipalComponentsScientific(mode_decompositions_data.PrincipalComponents
         Invoke the compute methods for computable attributes that haven't been
         set during initialization.
         """
-        if self.state is not None:
-            super(PrincipalComponentsScientific, self).configure()
+        super(PrincipalComponentsScientific, self).configure()
         
-        LOG.debug("Instance state: %s" % str(self.state))
-        if self.state is None and self.weights.size != 0:
+        if self.trait.use_storage is False and sum(self.get_data_shape('weights')) != 0:
             if self.norm_source.size == 0:
                 self.compute_norm_source()
             
@@ -129,11 +127,9 @@ class IndependentComponentsScientific(mode_decompositions_data.IndependentCompon
         Invoke the compute methods for computable attributes that haven't been
         set during initialisation.
         """
-        if self.state is not None:
-            super(IndependentComponentsScientific, self).configure()
+        super(IndependentComponentsScientific, self).configure()
         
-        LOG.debug("Instance state: %s" % str(self.state))
-        if self.state is None and self.unmixing_matrix.size != 0:
+        if self.trait.use_storage is False and sum(self.get_data_shape('unmixing_matrix')) != 0:
             if self.norm_source.size == 0:
                 self.compute_norm_source()
             

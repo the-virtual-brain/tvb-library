@@ -35,14 +35,13 @@ import numpy
 import scipy.sparse as sparse
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
-import tvb.basic.traits.types_mapped_light as mapped
 import tvb.basic.traits.data_readers as readers
 import tvb.basic.traits.exceptions as exceptions
 import tvb.datatypes.arrays as arrays
 import tvb.datatypes.equations as equations
 from tvb.datatypes.connectivity import Connectivity
 from tvb.basic.logger.builder import get_logger
-from tvb.basic.traits.types_mapped import MappedType
+from tvb.basic.traits.types_mapped import MappedType, SparseMatrix
 
 LOG = get_logger(__name__)
 
@@ -88,7 +87,7 @@ class SurfaceData(MappedType):
         order = -1,
         doc = """An array of unit normal vectors for the surfaces triangles.""")
 
-    geodesic_distance_matrix = mapped.SparseMatrix(
+    geodesic_distance_matrix = SparseMatrix(
         label = "Geodesic distance matrix",
         order = -1,
         required = False,
@@ -243,7 +242,7 @@ class LocalConnectivityData(MappedType):
 
     surface = CorticalSurfaceData(label = "Surface", order=1)
 
-    matrix = mapped.SparseMatrix(order = -1)
+    matrix = SparseMatrix(order = -1)
 
     equation = equations.FiniteSupportEquation(
         label = "Spatial",

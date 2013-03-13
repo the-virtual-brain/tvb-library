@@ -51,11 +51,9 @@ class FourierSpectrumScientific(spectral_data.FourierSpectrumData):
         Invoke the compute methods for computable attributes that haven't been
         set during initialisation.
         """
-        if self.state is not None:
-            super(FourierSpectrumScientific, self).configure()
+        super(FourierSpectrumScientific, self).configure()
         
-        LOG.debug("Instance state: %s" % str(self.state))
-        if self.state is None and self.array_data.size != 0:
+        if self.trait.use_storage is False and sum(self.get_data_shape('array_data')) != 0:
             if self.amplitude.size == 0:
                 self.compute_amplitude()
             
@@ -163,11 +161,9 @@ class WaveletCoefficientsScientific(spectral_data.WaveletCoefficientsData):
         Invoke the compute methods for computable attributes that haven't been
         set during initialisation.
         """
-        if self.state is not None:
-            super(WaveletCoefficientsScientific, self).configure()
+        super(WaveletCoefficientsScientific, self).configure()
         
-        LOG.debug("Instance state: %s" % str(self.state))
-        if self.state is None and self.array_data.size != 0:
+        if self.trait.use_storage is False and sum(self.get_data_shape('array_data')) != 0:
             if self.amplitude.size == 0:
                 self.compute_amplitude()
             

@@ -35,9 +35,13 @@ from tvb.basic.config.settings import TVBSettings
 if TVBSettings.TRAITS_CONFIGURATION.use_storage:
     import tvb.core.traits.types_mapped as mapped
     MappedType = mapped.MappedType
+    Array = mapped.Array
+    SparseMatrix = mapped.SparseMatrix
 else:
-    from tvb.basic.traits.types_mapped_light import MappedTypeLight
-    MappedType = MappedTypeLight
+    import tvb.basic.traits.types_mapped_light as mapped 
+    MappedType = mapped.MappedTypeLight
+    Array = mapped.Array
+    SparseMatrix = mapped.SparseMatrix
     
    
    

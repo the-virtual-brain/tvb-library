@@ -30,11 +30,11 @@ Framework methods for the Array datatypes.
 
 """
 import numpy
-import tvb.basic.traits.types_mapped_light as mapped
+from tvb.basic.traits.types_mapped import Array
 import tvb.datatypes.arrays_data as arrays_data
 
 
-class BaseArrayFramework(mapped.Array):
+class BaseArrayFramework(Array):
     """Basic class for non-mapped arrays."""
     pass
 

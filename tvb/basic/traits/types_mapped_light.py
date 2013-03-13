@@ -30,6 +30,7 @@ Important:
 - MappedType - traited, mapped to db *table*
 
 
+.. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 .. moduleauthor:: Calin Pavel <calin.pavel@codemart.ro>
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
 .. moduleauthor:: marmaduke <mw@eml.cc>
@@ -41,11 +42,8 @@ from scipy import sparse
 from tvb.basic.logger.builder import get_logger
 from tvb.basic.config.settings import TVBSettings
 from tvb.basic.traits.util import get
-from tvb.basic.traits.core import Type, FILE_STORAGE_NONE, FILE_STORAGE_DEFAULT
+from tvb.basic.traits.core import Type
 from tvb.basic.traits.types_basic import DType
-from tvb.basic.traits.exceptions import StorageException
-
-LOG = get_logger(__name__)
 
 
 class MappedTypeLight(Type):
@@ -69,6 +67,8 @@ class MappedTypeLight(Type):
                           METADATA_ARRAY_MEAN: 'mean', METADATA_ARRAY_VAR: 'var', 
                           METADATA_ARRAY_SHAPE: 'shape'}
     
+    logger = get_logger(__module__)
+    
     def __init__(self, **kwargs):
         super(MappedTypeLight, self).__init__(**kwargs)
         self._current_metadata = dict()
@@ -86,26 +86,27 @@ class MappedTypeLight(Type):
         :return: dictionary {label: value} about an attribute of type mapped.Array
                  Generic informations, like Max/Min/Mean/Var are to be retrieved for this array_attr
         """
-        summary = dict()
-        if TVBSettings.TRAITS_CONFIGURATION.use_storage and self.trait.use_storage:
-            if included_info is None:
-                included_info = self.trait[array_name]._stored_metadata
-            summary = self.__read_storage_array_metadata(array_name, included_info)
-            if self.METADATA_ARRAY_SHAPE in included_info:
-                summary[self.METADATA_ARRAY_SHAPE] = self.get_data_shape(array_name)
-        else:
-            array_attr = getattr(self, array_name)
-            if isinstance(array_attr, numpy.ndarray):
-                for key in included_info:
-                    if key in self.ALL_METADATA_ARRAY:
-                        summary[key] = eval("array_attr." + self.ALL_METADATA_ARRAY[key] + "()")
-                    else:
-                        self.logger.warning("Not supported meta-data will be ignored "+ str(key))  
+        summary = self.__get_summary_info(array_name, included_info)
         ### Before return, prepare names for UI display.                
         result = dict()
         for key, value in summary.iteritems():
             result[array_name.capitalize().replace("_", " ") + " - " + key] = value
         return result
+    
+    
+    def __get_summary_info(self, array_name, included_info):
+        """
+        Get a summary from the metadata of the current array.
+        """
+        summary = dict()
+        array_attr = getattr(self, array_name)
+        if isinstance(array_attr, numpy.ndarray):
+            for key in included_info:
+                if key in self.ALL_METADATA_ARRAY:
+                    summary[key] = eval("array_attr." + self.ALL_METADATA_ARRAY[key] + "()")
+                else:
+                    self.logger.warning("Not supported meta-data will be ignored "+ str(key))
+        return summary
     
     
     def get_data_shape(self, data_name):
@@ -117,27 +118,9 @@ class MappedTypeLight(Type):
         array_data = getattr(self, data_name)
         if hasattr(array_data, 'shape'):
             return getattr(array_data, 'shape')
-        LOG.warning("Could not find 'shape' attribute on " + str(data_name) + " returning empty shape!!")
+        self.logger.warning("Could not find 'shape' attribute on " + str(data_name) + " returning empty shape!!")
         return ()
     
-    
-    def __read_storage_array_metadata(self, array_name, included_info=None):
-        """
-        Retrieve from HDF5 specific meta-data about an array.
-        """
-        summary_hdf5 = self.get_metadata(array_name)
-        result = dict()
-        if included_info is None:
-            if array_name in self.trait:
-                included_info = self.trait[array_name]._stored_metadata
-            else:
-                included_info = []
-        for key, value in summary_hdf5.iteritems():
-            if key in included_info:
-                result[key] = value
-        return result
-    
-
     
 class Array(Type):
     """
@@ -150,7 +133,7 @@ class Array(Type):
     dtype = DType()
     defaults = ( (0, ), {})
     _stored_metadata = MappedTypeLight.ALL_METADATA_ARRAY.keys()
-      
+    logger = get_logger(__module__)
       
     @property
     def shape(self):
@@ -180,20 +163,7 @@ class Array(Type):
             return self
         
         if self.trait.bound:
-        
-            cached_data = get(inst, '__'+ self.trait.name, None)
-            
-            if ((cached_data is None or cached_data.size == 0) and self.trait.file_storage != FILE_STORAGE_NONE
-                and TVBSettings.TRAITS_CONFIGURATION.use_storage and inst.trait.use_storage 
-                and isinstance(inst, MappedTypeLight)):
-                
-                ### Data not already loaded, and storage usage
-                cached_data = self._read_from_storage(inst)
-                setattr(inst, '__' + self.trait.name, cached_data)
-                
-            ## Data already loaded, or no storage is used
-            return cached_data
-        
+            return self._get_cached_data(inst)
         else:
             return self
         
@@ -213,51 +183,14 @@ class Array(Type):
             
         setattr(inst, '__' + self.trait.name, value)
         
-        if (TVBSettings.TRAITS_CONFIGURATION.use_storage and inst.trait.use_storage and value is not None 
-            and (inst is not None and isinstance(inst, MappedTypeLight) 
-                 and self.trait.file_storage != FILE_STORAGE_NONE) and value.size > 0):
-            
-            if not isinstance(value, self.trait.wraps):
-                raise Exception("Invalid DataType!! It expects %s, but is %s"% str(self.trait.wraps), str(type(value)))
-            
-            self._write_in_storage(inst, value)
        
+    def _get_cached_data(self, inst):
+        """
+        Just read from instance since we don't have storage in library mode.
+        """
+        return get(inst, '__'+ self.trait.name, None)
+    
        
-    def _read_from_storage(self, inst):
-        """
-        Call correct storage methods, and validation
-        :param inst: Will give us the storage_path, it is a MappedType instance
-        :return: entity of self.wraps type
-        @raise: Exception when used with chunks
-        """
-        if self.trait.file_storage == FILE_STORAGE_NONE:
-            return None
-        elif self.trait.file_storage == FILE_STORAGE_DEFAULT:
-            try:
-                return inst.get_data(self.trait.name, ignore_errors=True)
-            except StorageException, exc:
-                LOG.debug("Missing dataSet " + self.trait.name)
-                LOG.debug(exc)
-                return numpy.ndarray(0)
-        else:
-            raise StorageException("Use get_data(_, slice) not full GET on attributes-stored-in-files!")
-        
-        
-    def _write_in_storage(self, inst, value):
-        """
-        Store value on disk (in h5 file).
-        :param inst: Will give us the storage_path, it is a MappedType instance
-        :param value: expected to be of type self.wraps
-        @raise Exception : when passed value is incompatible (e.g. used with chunks)  
-        """
-        if self.trait.file_storage == FILE_STORAGE_NONE:
-            pass
-        elif self.trait.file_storage == FILE_STORAGE_DEFAULT:
-            inst.store_data(self.trait.name, value)
-        else:
-            raise StorageException("You should not use SET on attributes-to-be-stored-in-files!")
-           
-
     def log_debug(self, owner = ""):
         """
         Simple access to debugging info on a traited array, usage ::
@@ -275,14 +208,14 @@ class Array(Type):
             has_nan = str(numpy.isnan(self.trait.value).any())
             array_max = str(self.trait.value.max())
             array_min = str(self.trait.value.min())
-            LOG.debug("%s: %s shape: %s" % (sts, name, shape))
-            LOG.debug("%s: %s actual dtype: %s" % (sts, name, dtype))
-            LOG.debug("%s: %s tvb dtype: %s" % (sts, name, tvb_dtype))
-            LOG.debug("%s: %s has NaN: %s" % (sts, name, has_nan))
-            LOG.debug("%s: %s maximum: %s" % (sts, name, array_max))
-            LOG.debug("%s: %s minimum: %s" % (sts, name, array_min))
+            self.logger.debug("%s: %s shape: %s" % (sts, name, shape))
+            self.logger.debug("%s: %s actual dtype: %s" % (sts, name, dtype))
+            self.logger.debug("%s: %s tvb dtype: %s" % (sts, name, tvb_dtype))
+            self.logger.debug("%s: %s has NaN: %s" % (sts, name, has_nan))
+            self.logger.debug("%s: %s maximum: %s" % (sts, name, array_max))
+            self.logger.debug("%s: %s minimum: %s" % (sts, name, array_min))
         else:
-            LOG.debug("%s: %s is Empty" % (sts, name))
+            self.logger.debug("%s: %s is Empty" % (sts, name))
             
             
 
@@ -293,7 +226,7 @@ class SparseMatrix(Array):
     """
     wraps = sparse.csc_matrix 
     defaults = (((1, 1), ), {'dtype': numpy.float64})
-
+    logger = get_logger(__module__)
 
     def log_debug(self, owner = ""):
         """
@@ -312,114 +245,12 @@ class SparseMatrix(Array):
             dtype = str(self.trait.value.dtype)
             array_max = str(self.trait.value.data.max())
             array_min = str(self.trait.value.data.min())
-            LOG.debug("%s: %s shape: %s" % (sts, name, shape))
-            LOG.debug("%s: %s format: %s" % (sts, name, sparse_format))
-            LOG.debug("%s: %s number of non-zeros: %s" % (sts, name, nnz))
-            LOG.debug("%s: %s dtype: %s" % (sts, name, dtype))
-            LOG.debug("%s: %s maximum: %s" % (sts, name, array_max))
-            LOG.debug("%s: %s minimum: %s" % (sts, name, array_min))
+            self.logger.debug("%s: %s shape: %s" % (sts, name, shape))
+            self.logger.debug("%s: %s format: %s" % (sts, name, sparse_format))
+            self.logger.debug("%s: %s number of non-zeros: %s" % (sts, name, nnz))
+            self.logger.debug("%s: %s dtype: %s" % (sts, name, dtype))
+            self.logger.debug("%s: %s maximum: %s" % (sts, name, array_max))
+            self.logger.debug("%s: %s minimum: %s" % (sts, name, array_min))
         else:
-            LOG.debug("%s: %s is Empty" % (sts, name))
+            self.logger.debug("%s: %s is Empty" % (sts, name))
 
-    
-    
-    def _read_from_storage(self, inst):
-        """
-        Overwrite method from superclass, and call Sparse_Matrix specific reader.
-        """
-        try:
-            return self._read_sparse_matrix(inst, self.trait.name)
-        except StorageException, exc:
-            LOG.debug("Missing dataSet " + self.trait.name)
-            LOG.debug(exc)
-            return None
-        
-    
-    def _write_in_storage(self, inst, value):
-        """
-        Overwrite method from superclass, and call specific Sparse_Matrix writer.
-        """
-        self._store_sparse_matrix(inst, value, self.trait.name)
-    
-    
-    # ------------------------- STORE and READ sparse matrix to / from HDF5 format 
-    ROOT_PATH = "/"
-   
-    FORMAT_META = "format" 
-    DTYPE_META = "dtype" 
-    SHAPE_META = "shape" 
-    DATA_DS = "data" 
-    INDPTR_DS = "indptr" 
-    INDICES_DS = "indices" 
-    ROWS_DS = "rows" 
-    COLS_DS = "cols" 
-     
-     
-    @staticmethod   
-    def _store_sparse_matrix(inst, mtx, data_name): 
-        """    
-        This method stores sparse matrix into H5 file.
-        ::param inst: instance on for which to store sparse matrix
-        ::param mtx: sparse matrix to store
-        ::param data_name: name of data group which will contain sparse matrix details     
-        """
-        info_dict = {}
-        info_dict[SparseMatrix.DTYPE_META] = mtx.dtype.str 
-        info_dict[SparseMatrix.SHAPE_META] = str(mtx.shape) 
-        info_dict[SparseMatrix.FORMAT_META] = mtx.format 
-    
-        data_group_path = SparseMatrix.ROOT_PATH + data_name
-        
-        # Store data and additional info
-        inst.store_data(SparseMatrix.DATA_DS, mtx.data, data_group_path) 
-        inst.store_data(SparseMatrix.INDPTR_DS, mtx.indptr, data_group_path) 
-        inst.store_data(SparseMatrix.INDICES_DS, mtx.indices, data_group_path)
-        
-        # Store additional info on the group dedicated to sparse matrix
-        inst.set_metadata(info_dict, '', True, data_group_path) 
-     
-    
-    @staticmethod
-    def _read_sparse_matrix(inst, data_name):
-        """
-        Reads SparseMatrix from H5 file and returns an instance of such matrix
-        ::param inst: instance on for which to read sparse matrix
-        ::param data_name: name of data group which contains sparse matrix details
-        ::return in instance of sparse matrix with data loaded from H5 file
-        """ 
-        constructors = {'csr':sparse.csr_matrix, 'csc':sparse.csc_matrix} 
-    
-        data_group_path = SparseMatrix.ROOT_PATH + data_name
-        
-        info_dict = inst.get_metadata('', data_group_path)
-        
-        mtx_format = info_dict[SparseMatrix.FORMAT_META] 
-        if not isinstance(mtx_format, str): 
-            mtx_format = mtx_format[0] 
-    
-        dtype = info_dict[SparseMatrix.DTYPE_META] 
-        if not isinstance(dtype, str): 
-            dtype = dtype[0] 
-    
-        constructor = constructors[mtx_format] 
-    
-        if mtx_format in ['csc', 'csr']:
-            data =  inst.get_data(SparseMatrix.DATA_DS, where=data_group_path)
-            indices = inst.get_data(SparseMatrix.INDICES_DS, where=data_group_path)
-            indptr = inst.get_data(SparseMatrix.INDPTR_DS, where=data_group_path)
-            shape = eval(info_dict[SparseMatrix.SHAPE_META])
-            
-            mtx = constructor((data, indices, indptr), shape = shape, dtype = dtype)
-            mtx.sort_indices() 
-        elif mtx_format == 'coo': 
-            data =  inst.get_data(SparseMatrix.DATA_DS, where=data_group_path)
-            shape = eval(info_dict[SparseMatrix.SHAPE_META])
-            rows =  inst.get_data(SparseMatrix.ROWS_DS, where=data_group_path)
-            cols =  inst.get_data(SparseMatrix.COLS_DS, where=data_group_path)
-            
-            mtx = constructor((data, sparse.c_[rows, cols].T), shape = shape, dtype = dtype ) 
-        else: 
-            raise Exception("Unsupported format: %s"%mtx_format) 
-    
-        return mtx 
-    

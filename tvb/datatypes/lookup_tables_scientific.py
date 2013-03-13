@@ -113,7 +113,6 @@ class NerfTableScientific(lookup_tables_data.NerfTableData, LookUpTableScientifi
         set during initialization.
         """
         super(NerfTableScientific, self).configure()
-        
 
         if self.number_of_values == 0:
             self.number_of_values = self.data.shape[0]

@@ -103,7 +103,7 @@ FILE_STORAGE_NONE = 'None'
 
 SPECIAL_KWDS = ['bind', 'doc', 'label', 'db', 'default', 'required', KWARG_AVOID_SUBCLASSES,
                 'range', 'locked', KWARG_FILTERS_UI, KWARG_CONSOLE_DEFAULT, KWARG_SELECT_MULTIPLE, 
-                KWARG_FILE_STORAGE, KWARG_ORDER, KWARG_OPTIONS, KWARG_STORAGE_PATH, KWARS_USE_STORAGE]
+                KWARG_FILE_STORAGE, KWARG_ORDER, KWARG_OPTIONS, KWARS_USE_STORAGE]
 
 
 # module global used by MetaType

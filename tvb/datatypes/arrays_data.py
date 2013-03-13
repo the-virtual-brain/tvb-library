@@ -33,29 +33,28 @@ The Data component of traited array datatypes.
 import numpy
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
-import tvb.basic.traits.types_mapped_light as mapped
-from tvb.basic.traits.types_mapped import MappedType
+from tvb.basic.traits.types_mapped import MappedType, Array
 
 
-class FloatArrayData(mapped.Array):
+class FloatArrayData(Array):
     """ A numpy.ndarray of dtype numpy.float64 """
     _ui_name = "Floating-point array"
     dtype = basic.DType(default=numpy.float64)
 
 
-class IntegerArrayData(mapped.Array):
+class IntegerArrayData(Array):
     """ A numpy.ndarray of dtype numpy.int32 """
     _ui_name = "Array of integers"
     dtype = basic.DType(default=numpy.int32)
 
 
-class ComplexArrayData(mapped.Array):
+class ComplexArrayData(Array):
     """ A numpy.ndarray of dtype numpy.complex128 """
     _ui_name = "Array of complex numbers"
     dtype = basic.DType(default=numpy.complex128)
 
 
-class BoolArrayData(mapped.Array):
+class BoolArrayData(Array):
     """ A numpy.ndarray of dtype numpy.bool """
     _ui_name = "Boolean array"
     dtype = basic.DType(default=numpy.bool)
@@ -64,7 +63,7 @@ class BoolArrayData(mapped.Array):
 # if you want variable length strings, you must use dtype=object
 # otherwise, must specify max lenth as 'na' where n is integer,
 # e.g. dtype='100a' for a string w/ max len 100 characters.
-class StringArrayData(mapped.Array):
+class StringArrayData(Array):
     """ A numpy.ndarray of dtype str """
     _ui_name = "Array of strings"
     dtype = "128a" # "42a"
@@ -99,7 +98,7 @@ class IndexArrayData(IntegerArrayData):
     """ An array that indexes another array. """
     _ui_name = "Index array"
  
-    target = mapped.Array(
+    target = Array(
         label = "Indexed array",
         file_storage = core.FILE_STORAGE_NONE,
         doc = "A link to the array that the indices index.")
@@ -116,7 +115,7 @@ class MappedArrayData(MappedType):
     dimensions_labels = basic.JSONType(required = False)
     
     nr_dimensions, length_1d, length_2d, length_3d, length_4d = [basic.Integer]*5
-    array_data = mapped.Array()  
+    array_data = Array()  
     
     __generate_table__ = True
 
