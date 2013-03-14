@@ -61,9 +61,14 @@ from tvb.simulator.lab import *
 ##----------------------------------------------------------------------------##
 
 LOG.info("Configuring...")
-#Initialise a Model, Coupling, and Connectivity.
+#Initialize a Model, Coupling, and Connectivity.
 oscilator = models.Generic2dOscillator()
+
 white_matter = connectivity.Connectivity()
+## Load a connectivity different than the default on in traits code.
+## The next line is optional!
+white_matter.default.reload(white_matter, "connectivity/g_20110513_hemisphere_both_subcortical_true_regions_96")
+
 white_matter.speed = numpy.array([4.0])
 
 white_matter_coupling = coupling.Linear(a=0.0126)
