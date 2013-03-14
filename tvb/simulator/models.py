@@ -39,7 +39,6 @@ import numpy
 import numexpr
 from scipy.integrate import trapz as scipy_integrate_trapz
 from scipy.stats import norm as scipy_stats_norm
-from tvb.datatypes import lookup_tables
 from tvb.simulator.common import get_logger
 import tvb.datatypes.arrays as arrays
 import tvb.datatypes.lookup_tables as lookup_tables

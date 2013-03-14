@@ -32,7 +32,6 @@ import tvb.simulator
 from scipy import io as scipy_io
 from tvb.basic.logger.builder import get_logger
 from tvb.basic.traits.util import read_list_data
-from tvb.basic.traits.core import KWARG_CONSOLE_DEFAULT
 from tvb.basic.config.settings import TVBSettings
 
 
@@ -122,7 +121,8 @@ class File(object):
         Re-read a file, and populate attributes on target_instance, 
         according with previously stored map or references.
         """
-        new_default = File(folder_path, file_name)
+        current_class = self.__class__
+        new_default = current_class(folder_path, file_name)
         new_default.references = self.references
         
         for field_name in self.references:
@@ -148,6 +148,37 @@ class File(object):
             
         target_instance.default = new_default
         
+
+
+class Table(File):
+    """
+    A lookup table reload capable map of references.
+    """
     
+    def __init__(self, folder_path, file_name = None):
+        super(Table, self).__init__(folder_path, file_name)
+        self.loaded_table = None
+        if file_name is not None:
+            self.loaded_table = self.read_data(file_name)
+            
     
+    def read_dimension(self, dimension_1, dimension_2 = None, field = None):
+        """
+        This method will more or less replace in end-usage the method from superclass 'read_data'.
+        On a table, this is the method calls we want to persist in references.
+        """
+        if field is not None:
+            self.references[field] = {self.KEY_PARAMETERS : {'dimension_1' : dimension_1,
+                                                             'dimension_2': dimension_2 }, 
+                                      self.KEY_METHOD: 'read_dimension'}
+        
+        if self.loaded_table is None:
+            return numpy.array([])
+            
+        if dimension_2 is not None:
+            return numpy.array(self.loaded_table[dimension_1][dimension_2])
+    
+        return numpy.array(self.loaded_table[dimension_1]),
+    
+        
     

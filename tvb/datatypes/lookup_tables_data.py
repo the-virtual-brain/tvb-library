@@ -49,124 +49,85 @@ LOG = get_logger(__name__)
 # however, we LookUpTables datatypes could have a compute() method to 
 # calculate a given function (using Equation datatypes? ). 
 
+
 class LookUpTableData(MappedType):
     """
-    
-    Specific table subclasses are implemented below
+    Lookup Tables for storing pre-computed functions.
+    Specific table subclasses are implemented below.
     
     """
-#    _base_classes = ['LookUpTables']
+    
+    _base_classes = ['LookUpTables']
 
-    default = readers.File(folder_path = "tables/")
+    table = readers.Table(folder_path = "tables")
     
     equation = basic.String(
         label = "String representation of the precalculated function",
         doc = """A latex representation of the function whose values are stored 
-            in the table, with the extra escaping needed for interpretation 
-            via sphinx.""")
-            
-    
-    
-
-class PsiTableData(LookUpTableData):
-    """
-    Look up table containing the values of a function
-    representing the time-averaged gating variable
-    :math:`\\psi(\\nu)` as a function of the presynaptic
-    rates :math:`\\nu` 
-    
-    """
-    default = readers.File(folder_path = "tables/")
-    
-    # NOTE: Non traited attribute, can be used only with console_default annotation
-    table = default.read_data(file_name = "psi.npz")
+            in the table, with the extra escaping needed for interpretation via sphinx.""")
     
     xmin = arrays.FloatArray(
-        label = "",
-        console_default = numpy.array(table['min_max'][0] if table is not None else []),
+        label = "x-min",
+        console_default = table.read_dimension('min_max', 0, field = "xmin"), 
         doc = """Minimum value""")
         
     xmax = arrays.FloatArray(
-        label = "",
-        console_default = numpy.array(table['min_max'][1] if table is not None else []),
+        label = "x-max",
+        console_default = table.read_dimension('min_max', 1, field = "xmax"), 
         doc = """Maximum value""")
     
     data = arrays.FloatArray(
-        label = ".",
-        console_default = numpy.array(table['f'] if table is not None else []),
+        label = "data",
+        console_default = table.read_dimension('f', field = "data"), 
         doc = """Tabulated values""")
     
     number_of_values = basic.Integer(
         label = "Number of values",
         default = 0,
-        #compute = util.Self.data.shape[0],
         doc = """The number of values in the table """)
         
     df = arrays.FloatArray(
-        label = ".",
-        console_default = numpy.array(table['df'] if table is not None else []),
+        label = "df",
+        console_default = table.read_dimension('df', field = "df"), 
         doc = """.""")
      
     dx = arrays.FloatArray(
         label = "dx",
         default = numpy.array([]), 
-        #compute = ((util.Self.xmax - util.Self.xmin) / (util.Self.number_of_values) - 1),
         doc = """Tabulation step""")    
     
     invdx = arrays.FloatArray(
        label = "invdx",
        default = numpy.array([]),
-       #compute = numpy.array([1 / util.Self.dx]),
        doc = """.""")
+            
+    
+
+class PsiTableData(LookUpTableData):
+    """
+    Look up table containing the values of a function representing the time-averaged gating variable
+    :math:`\\psi(\\nu)` as a function of the presynaptic rates :math:`\\nu` 
+    
+    """
+    
+    def __init__(self, **kwargs):
+        super(PsiTableData, self).__init__(**kwargs)
+        PsiTableData.table.reload(PsiTableData, folder_path = "tables", file_name = "psi.npz")
+    
     
 
 class NerfTableData(LookUpTableData):
     """
-    Look up table containing the values of 
-    erf integral within the :math:`\\phi`
+    Look up table containing the values of Nerf integral within the :math:`\\phi`
     function that describes how the discharge rate vary as a function of parameters
-    defining the statistical properties of the membrane potential in presence
-    of synaptic inputs.
+    defining the statistical properties of the membrane potential in presence of synaptic inputs.
+    
     """
-    default = readers.File(folder_path = "tables/")
     
-    table = default.read_data(file_name="nerf_int.npz")
-    
-    xmin = arrays.FloatArray(
-        label = "",
-        console_default = numpy.array(table['min_max'][0] if table is not None else []),
-        doc = """Minimum value""")
+    def __init__(self, **kwargs):
+        super(NerfTableData, self).__init__(**kwargs)
+        NerfTableData.table.reload(NerfTableData, folder_path = "tables", file_name = "nerf_int.npz")
         
-    xmax = arrays.FloatArray(
-        label = "",
-        console_default = numpy.array(table['min_max'][1] if table is not None else []),
-        doc = """Maximum value""")
     
-    data = arrays.FloatArray(
-        label = ".",
-        console_default = numpy.array(table['f'] if table is not None else []),
-        doc = """Tabulated values""")
-    
-    number_of_values = basic.Integer(
-        label = "Number of values",
-#        compute = util.Self.data.shape[0],
-        doc = """The number of values in the table """)
-        
-    df = arrays.FloatArray(
-        label = ".",
-        console_default = numpy.array(table['df'] if table is not None else []),
-        doc = """.""")
-     
-    dx = arrays.FloatArray(
-        label = "dx", 
-        default = numpy.array([]),
-        #compute = ((util.Self.xmax - util.Self.xmin) / (util.Self.number_of_values) - 1),
-        doc = """Tabulation step""")    
-    
-    invdx = arrays.FloatArray(
-       label = "invdx",
-       default = numpy.array([]),
-       #compute = numpy.array([1 / util.Self.dx]),
-       doc = """.""")
     
 
