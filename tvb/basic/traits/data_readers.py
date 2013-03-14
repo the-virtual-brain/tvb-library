@@ -144,7 +144,7 @@ class File(object):
                     
             except Exception, excep:
                 self.logger.warning("Could not read data for field " + field_name + " on instance of class "
-                                    + target_instance.__class__.__name__, excep)
+                                    + target_instance.__class__.__name__ + "\n" + str(excep))
             
         target_instance.default = new_default
         
