@@ -65,9 +65,6 @@ class File(object):
         if TVBSettings.TRAITS_CONFIGURATION.use_storage:
             # We want to avoid reading files when no library-mode is used.
             return None
-        
-        if file_name is None:
-            file_name = self.file_name
             
         if field is not None:
             self.references[field] = {self.KEY_PARAMETERS : {'file_name' : file_name,
@@ -76,11 +73,12 @@ class File(object):
                                                              'skiprows': skiprows,
                                                              'usecols': usecols }, 
                                       self.KEY_METHOD: 'read_data'}
-         
         if lazy_load:
             ## Do not read now, just keep the reference. It will be used on "reload" later.
             return None
-           
+        
+        if file_name is None:
+            file_name = self.file_name   
         full_path = os.path.join(self.folder_path, file_name)
         self.logger.debug("Starting to read from: " + str(full_path))
         
@@ -133,13 +131,20 @@ class File(object):
                 self.logger.debug("Skipped attribute reference: " + field_name + " on instance of "
                                   + target_instance.__class__.__name__)
                 continue
-            previous_parameters = self.references[field_name][self.KEY_PARAMETERS]
-            method_name = self.references[field_name][self.KEY_METHOD]
-            method_call = getattr(new_default, method_name)
-            new_value = method_call(**previous_parameters)
-            setattr(target_instance, field_name, new_value)
-            if inspect.isclass(target_instance):
-                target_instance.trait[field_name].trait.value = new_value
+            
+            try:
+                previous_parameters = self.references[field_name][self.KEY_PARAMETERS]
+                method_name = self.references[field_name][self.KEY_METHOD]
+                method_call = getattr(new_default, method_name)
+                new_value = method_call(**previous_parameters)
+                setattr(target_instance, field_name, new_value)
+                
+                if inspect.isclass(target_instance):
+                    target_instance.trait[field_name].trait.value = new_value
+                    
+            except Exception, excep:
+                self.logger.warning("Could not read data for field " + field_name + " on instance of class "
+                                    + target_instance.__class__.__name__, excep)
             
         target_instance.default = new_default
         

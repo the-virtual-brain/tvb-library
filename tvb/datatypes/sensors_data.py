@@ -35,10 +35,11 @@ Sensors uses:
 .. moduleauthor:: Marmaduke Woodman <mw@eml.cc>
 
 """
+
+from tvb.basic.traits.types_mapped import MappedType
 import tvb.basic.traits.types_basic as basic
 import tvb.basic.traits.data_readers as readers
 import tvb.datatypes.arrays as arrays
-from tvb.basic.traits.types_mapped import MappedType
 
 
 EEG_POLYMORPHIC_IDENTITY = "EEG"
@@ -57,6 +58,7 @@ class SensorsData(MappedType):
     _ui_name = "Unknown sensors" 
     
     sensors_type = basic.String
+    
     __mapper_args__ = {'polymorphic_on': 'sensors_type'}
     
     default = readers.File(folder_path = "sensors", file_name = 'EEG_unit_vectors_BrainProducts_62.txt.bz2')
@@ -91,11 +93,11 @@ class SensorsEEGData(SensorsData):
                                /   \\
         file columns: labels, x, y, z
         
-    
     """
     _ui_name = "EEG Sensors"
     
     __tablename__ = None
+    
     __mapper_args__ = {'polymorphic_identity': EEG_POLYMORPHIC_IDENTITY}
     
     sensors_type = basic.String(default = EEG_POLYMORPHIC_IDENTITY)
@@ -105,7 +107,8 @@ class SensorsEEGData(SensorsData):
 
     def __init__(self, **kwargs):
         super(SensorsEEGData, self).__init__(**kwargs)
-        self.default.reload(self, folder_path = "sensors", file_name = "EEG_unit_vectors_BrainProducts_62.txt.bz2")
+        SensorsEEGData.default.reload(SensorsEEGData, folder_path = "sensors", 
+                                      file_name = "EEG_unit_vectors_BrainProducts_62.txt.bz2")
 
 
 
@@ -121,11 +124,11 @@ class SensorsMEGData(SensorsData):
                                /   \       /   \\
         file columns: labels, x, y, z,   dx, dy, dz
         
-    
     """
     _ui_name = "MEG sensors"
     
     __tablename__ = None
+    
     __mapper_args__ = {'polymorphic_identity': MEG_POLYMORPHIC_IDENTITY}
     
     sensors_type = basic.String(default = MEG_POLYMORPHIC_IDENTITY)
@@ -139,7 +142,7 @@ class SensorsMEGData(SensorsData):
 
     def __init__(self, **kwargs):
         super(SensorsMEGData, self).__init__(**kwargs)
-        self.default.reload(self, folder_path = "sensors", file_name = "meg_channels_reg13.txt.bz2")
+        SensorsMEGData.default.reload(SensorsMEGData, folder_path = "sensors", file_name = "meg_channels_reg13.txt.bz2")
 
 
 
@@ -147,10 +150,10 @@ class SensorsInternalData(SensorsData):
     """
     Sensors inside the brain...
     """
-    
     _ui_name = "Internal Sensors"
     
     __tablename__ = None
+    
     __mapper_args__ = {'polymorphic_identity': INTERNAL_POLYMORPHIC_IDENTITY}
     
     sensors_type = basic.String(default = INTERNAL_POLYMORPHIC_IDENTITY)
