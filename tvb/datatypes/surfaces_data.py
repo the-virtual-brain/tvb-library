@@ -61,25 +61,25 @@ class SurfaceData(MappedType):
     single object.
     """
 
-    default = readers.File(path = "surfaces/cortex_reg13")
+    default = readers.File(folder_path = "surfaces/cortex_reg13")
 
     vertices = arrays.PositionArray(
         label = "Vertex positions",
         order = -1,
-        console_default = default.read_data(name="vertices.txt.bz2"),
+        console_default = default.read_data(file_name = "vertices.txt.bz2", field = "vertices"),
         doc = """An array specifying coordinates for the surface vertices.""")
 
     triangles = arrays.IndexArray(
         label = "Triangles",
         order = -1, 
         target = vertices,
-        console_default = default.read_data(name="triangles.txt.bz2", dtype=numpy.int32),
+        console_default = default.read_data(file_name = "triangles.txt.bz2", dtype =numpy.int32, field = "triangles"),
         doc = """Array of indices into the vertices, specifying the triangles which define the surface.""")
 
     vertex_normals = arrays.OrientationArray(
         label = "Vertex normal vectors",
         order = -1,
-        console_default = default.read_data(name="vertex_normals.txt.bz2"),
+        console_default = default.read_data(file_name = "vertex_normals.txt.bz2", field = "vertex_normals"),
         doc = """An array of unit normal vectors for the surfaces vertices.""")
 
     triangle_normals = arrays.OrientationArray(
@@ -107,11 +107,15 @@ class SurfaceData(MappedType):
     zero_based_triangles = basic.Bool(order = -1)
 
     split_triangles = arrays.IndexArray(order = -1, required = False)
+    
     number_of_split_slices = basic.Integer(order = -1)
+    
     split_triangles_indices = basic.List(order = -1)
 
     surface_type = basic.String
+    
     __mapper_args__ = {'polymorphic_on': 'surface_type'}
+
 
 
 class CorticalSurfaceData(SurfaceData):
@@ -120,13 +124,18 @@ class CorticalSurfaceData(SurfaceData):
     """
 
     _ui_name = "A cortical surface"
+    
     surface_type = basic.String(default = CORTICAL, order = -1)
 
     ##--------------------- FRAMEWORK ATTRIBUTES -----------------------------##
     __tablename__ = None
+    
     __mapper_args__ = {'polymorphic_identity': CORTICAL}
 
-    default = readers.File(path = "surfaces/cortex_tvb_whitematter")
+    def __init__(self, **kwargs):
+        super(CorticalSurfaceData, self).__init__(**kwargs)
+        CorticalSurfaceData.default.reload(CorticalSurfaceData, folder_path = "surfaces/cortex_tvb_whitematter")
+
 
 
 class SkinAirData(SurfaceData):
@@ -136,13 +145,17 @@ class SkinAirData(SurfaceData):
 
     _ui_name = "Skin"
 
-    default = readers.File(path = "surfaces/outer_skin_4096")
-
     surface_type = basic.String(default = OUTER_SKIN)
 
     ##--------------------- FRAMEWORK ATTRIBUTES -----------------------------##
     __mapper_args__ = {'polymorphic_identity': OUTER_SKIN}
+
     __generate_table__ = True
+
+    def __init__(self, **kwargs):
+        super(SkinAirData, self).__init__(**kwargs)
+        SkinAirData.default.reload(SkinAirData, folder_path = "surfaces/outer_skin_4096")
+
 
 
 class BrainSkullData(SurfaceData):
@@ -153,13 +166,17 @@ class BrainSkullData(SurfaceData):
     _ui_name = "Inside of the skull"
 
     surface_type = basic.String(default = INNER_SKULL)
-    default = readers.File(path = "surfaces/inner_skull_4096")
 
     ##--------------------- FRAMEWORK ATTRIBUTES -----------------------------##
     __tablename__ = None
+    
     __mapper_args__ = {'polymorphic_identity': INNER_SKULL}
     
+    def __init__(self, **kwargs):
+        super(BrainSkullData, self).__init__(**kwargs)
+        BrainSkullData.default.reload(BrainSkullData, folder_path = "surfaces/inner_skull_4096")
     
+
 
 class SkullSkinData(SurfaceData):
     """
@@ -167,13 +184,18 @@ class SkullSkinData(SurfaceData):
     """
 
     _ui_name = "Outside of the skull"
+    
     surface_type = basic.String(default = OUTER_SKULL)
 
-    default = readers.File(path = "surfaces/outer_skull_4096")
 
     ##--------------------- FRAMEWORK ATTRIBUTES -----------------------------##
     __tablename__ = None
+    
     __mapper_args__ = {'polymorphic_identity': OUTER_SKULL}
+    
+    def __init__(self, **kwargs):
+        super(SkullSkinData, self).__init__(**kwargs)
+        SkullSkinData.default.reload(SkullSkinData, folder_path = "surfaces/outer_skull_4096")
 
 
 ##--------------------- CLOSE SURFACES End Here---------------------------------------##
@@ -197,6 +219,7 @@ class EEGCapData(OpenSurfaceData):
     surface_type = basic.String(default = EEG_CAP)
     
     __tablename__ = None
+    
     __mapper_args__ = {'polymorphic_identity' : EEG_CAP}
     
     
@@ -209,6 +232,7 @@ class FaceSurfaceData(OpenSurfaceData):
     surface_type = basic.String(default = FACE)
     
     __tablename__ = None
+    
     __mapper_args__ = {'polymorphic_identity' : FACE}
 
 
@@ -220,18 +244,17 @@ class RegionMappingData(arrays.MappedArray):
     """
     An array representing a measure of a Connectivity dataType.
     """
-    default = readers.File(path = "surfaces/cortex_reg13")
+    default = readers.File(folder_path = "surfaces/cortex_reg13")
 
-    #TODO: this is consistent with default Connectivity, but needs reconsidering...
-    array_data = arrays.IndexArray(console_default = default.read_data(name="o52r00_irp2008.txt.bz2",
-                                                                       dtype=numpy.int32))
+    array_data = arrays.IndexArray(console_default = default.read_data(file_name = "o52r00_irp2008.txt.bz2",
+                                                                       dtype = numpy.int32, field = "array_data"))
 
     connectivity = Connectivity
 
     surface = SurfaceData
 
     __generate_table__ = True
-    ##--------------------- FRAMEWORK ATTRIBUTES -----------------------------##
+
 
 
 class LocalConnectivityData(MappedType):
@@ -337,8 +360,6 @@ class CortexData(CorticalSurfaceData):
 
     _ui_name = "A cortex..."
 
-    default = readers.File(path = "surfaces/cortex_reg13")
-
     local_connectivity = LocalConnectivityData(label = "Local Connectivity",
                                                required = False,
                                                doc = """Define the interaction 
@@ -370,11 +391,10 @@ class CortexData(CorticalSurfaceData):
 
     eeg_projection = arrays.FloatArray(
         label = "EEG projection", order = -1,
-        console_default = default.read_data(name="projection_outer_skin_4096_eeg_1020_62.mat",
-                                            matlab_data_name="ProjectionMatrix"), 
+        console_default = CorticalSurfaceData.default.read_data(matlab_data_name = "ProjectionMatrix", lazy_load = True,
+                            field = "eeg_projection", file_name = "projection_outer_skin_4096_eeg_1020_62.mat"),
         #NOTE: This is redundant if the EEG monitor isn't used, but it makes life simpler.
         required = False,
-        #linked = ?sensors, skull, skin, etc?
         doc = """A 2-D array which projects the neural activity on the cortical
             surface to a set of EEG sensors.""") 
         #  requires linked sensors.SensorsEEG and Skull/Skin/Air
@@ -395,7 +415,12 @@ class CortexData(CorticalSurfaceData):
             cortical surface to a set of embeded sensors.""") 
         #  requires linked SensorsInternal
 
-    __generate_table__ = True
+    __generate_table__ = False
+
+    def __init__(self, **kwargs):
+        super(CortexData, self).__init__(**kwargs)
+        CortexData.default.reload(CortexData, folder_path = "surfaces/cortex_reg13")
+
 
     def populate_cortex(self, cortex_surface, cortex_parameters=None):
         """

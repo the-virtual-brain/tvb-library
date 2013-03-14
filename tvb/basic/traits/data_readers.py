@@ -20,63 +20,83 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 #
 #
+
 """
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
 """
 
 import os
 import numpy
+import inspect
+import tvb.simulator
 from scipy import io as scipy_io
 from tvb.basic.logger.builder import get_logger
 from tvb.basic.traits.util import read_list_data
+from tvb.basic.traits.core import KWARG_CONSOLE_DEFAULT
 from tvb.basic.config.settings import TVBSettings
 
+
+### As current reader will be used in library-mode, all paths are relative to simulator.
+ROOT_PATH = os.path.join(os.path.dirname(tvb.simulator.__file__), 'files')
 
 
 class File(object):
     """
-    Will be used for setting default values, when console-mode.
+    Will be used for reading default values, when library-profile is selected.
     """
     
-    def __init__(self, path, name=None):
-        import tvb.simulator
-        root_path = os.path.dirname(tvb.simulator.__file__)
-        self.path = os.path.join(root_path, 'files', path)
-        self.name = name
+    KEY_PARAMETERS = "parameters"
+    KEY_METHOD = "method_name"
+    
+    
+    def __init__(self, folder_path, file_name = None):
+        self.folder_path = os.path.join(ROOT_PATH, folder_path)
+        self.file_name = file_name
+        ### Map of references to be used for further reload of default from a different file.
+        self.references = {}
         self.logger = get_logger(self.__class__.__module__)
     
     
-    def read_data(self, name=None, matlab_data_name=None,
-                  dtype=numpy.float64, skiprows=0, usecols=None):
+    def read_data(self, file_name = None, matlab_data_name = None, dtype = numpy.float64, 
+                  skiprows = 0, usecols = None, field = None, lazy_load = False):
         """
-        Read from given file.
+        Read from given file and sub-file.
         """
         if TVBSettings.TRAITS_CONFIGURATION.use_storage:
-            # We want to avoid reading files when no console-mode is used.
+            # We want to avoid reading files when no library-mode is used.
             return None
-        if name is not None:
-            self.name = name
-        full_path = os.path.join(self.path, self.name)
+        
+        if file_name is None:
+            file_name = self.file_name
+            
+        if field is not None:
+            self.references[field] = {self.KEY_PARAMETERS : {'file_name' : file_name,
+                                                             'matlab_data_name': matlab_data_name,
+                                                             'dtype': dtype,
+                                                             'skiprows': skiprows,
+                                                             'usecols': usecols }, 
+                                      self.KEY_METHOD: 'read_data'}
+         
+        if lazy_load:
+            ## Do not read now, just keep the reference. It will be used on "reload" later.
+            return None
+           
+        full_path = os.path.join(self.folder_path, file_name)
         self.logger.debug("Starting to read from: " + str(full_path))
-        # Try to read Numpy
+        
+        # Try to read NumPy
         if full_path.endswith('.txt') or full_path.endswith('.txt.bz2'):
             return read_list_data(full_path, dtype=dtype, skiprows=skiprows, usecols=usecols)
         if full_path.endswith('.npz'):
-            return self._read_npz(full_path)
+            return numpy.load(full_path)
         
         # Try to read Matlab format
         return self._read_matlab(full_path, matlab_data_name)
         
     
-    @staticmethod    
-    def _read_npz(full_path):
-        """Numpy Load """
-        return numpy.load(full_path)
-    
-    
     def _read_matlab(self, path, matlab_data_name=None):
         """
-        Read array from file.
+        Read array from Matlab file. 
         """
         if path.endswith(".mtx"):
             return scipy_io.mmread(path)
@@ -94,9 +114,35 @@ class File(object):
     def __copy__(self):
         return self
 
+
     def __deepcopy__(self, memo):
         return self
     
+    
+    def reload(self, target_instance, folder_path, file_name = None):
+        """
+        Re-read a file, and populate attributes on target_instance, 
+        according with previously stored map or references.
+        """
+        new_default = File(folder_path, file_name)
+        new_default.references = self.references
+        
+        for field_name in self.references:
+            if not hasattr(target_instance, field_name):
+                ## Skip attribute references which might come from subclasses.
+                self.logger.debug("Skipped attribute reference: " + field_name + " on instance of "
+                                  + target_instance.__class__.__name__)
+                continue
+            previous_parameters = self.references[field_name][self.KEY_PARAMETERS]
+            method_name = self.references[field_name][self.KEY_METHOD]
+            method_call = getattr(new_default, method_name)
+            new_value = method_call(**previous_parameters)
+            setattr(target_instance, field_name, new_value)
+            if inspect.isclass(target_instance):
+                target_instance.trait[field_name].trait.value = new_value
+            
+        target_instance.default = new_default
+        
     
     
     

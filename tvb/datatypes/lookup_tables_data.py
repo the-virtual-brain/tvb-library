@@ -56,10 +56,8 @@ class LookUpTableData(MappedType):
     
     """
 #    _base_classes = ['LookUpTables']
-    
 
-    default = readers.File(path = "tables/")
-    
+    default = readers.File(folder_path = "tables/")
     
     equation = basic.String(
         label = "String representation of the precalculated function",
@@ -78,10 +76,10 @@ class PsiTableData(LookUpTableData):
     rates :math:`\\nu` 
     
     """
-    default = readers.File(path = "tables/")
+    default = readers.File(folder_path = "tables/")
     
     # NOTE: Non traited attribute, can be used only with console_default annotation
-    table = default.read_data(name="psi.npz")
+    table = default.read_data(file_name = "psi.npz")
     
     xmin = arrays.FloatArray(
         label = "",
@@ -130,9 +128,9 @@ class NerfTableData(LookUpTableData):
     defining the statistical properties of the membrane potential in presence
     of synaptic inputs.
     """
-    default = readers.File(path = "tables/")
+    default = readers.File(folder_path = "tables/")
     
-    table = default.read_data(name="nerf_int.npz")
+    table = default.read_data(file_name="nerf_int.npz")
     
     xmin = arrays.FloatArray(
         label = "",
