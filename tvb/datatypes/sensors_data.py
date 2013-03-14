@@ -107,8 +107,8 @@ class SensorsEEGData(SensorsData):
 
     def __init__(self, **kwargs):
         super(SensorsEEGData, self).__init__(**kwargs)
-        SensorsEEGData.default.reload(SensorsEEGData, folder_path = "sensors", 
-                                      file_name = "EEG_unit_vectors_BrainProducts_62.txt.bz2")
+        self.default.reload(self.__class__, folder_path = "sensors", 
+                            file_name = "EEG_unit_vectors_BrainProducts_62.txt.bz2")
 
 
 
@@ -142,7 +142,7 @@ class SensorsMEGData(SensorsData):
 
     def __init__(self, **kwargs):
         super(SensorsMEGData, self).__init__(**kwargs)
-        SensorsMEGData.default.reload(SensorsMEGData, folder_path = "sensors", file_name = "meg_channels_reg13.txt.bz2")
+        self.default.reload(self.__class__, folder_path = "sensors", file_name = "meg_channels_reg13.txt.bz2")
 
 
 

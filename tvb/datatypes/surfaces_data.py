@@ -134,7 +134,7 @@ class CorticalSurfaceData(SurfaceData):
 
     def __init__(self, **kwargs):
         super(CorticalSurfaceData, self).__init__(**kwargs)
-        CorticalSurfaceData.default.reload(CorticalSurfaceData, folder_path = "surfaces/cortex_tvb_whitematter")
+        self.default.reload(self.__class__, folder_path = "surfaces/cortex_tvb_whitematter")
 
 
 
@@ -154,7 +154,7 @@ class SkinAirData(SurfaceData):
 
     def __init__(self, **kwargs):
         super(SkinAirData, self).__init__(**kwargs)
-        SkinAirData.default.reload(SkinAirData, folder_path = "surfaces/outer_skin_4096")
+        self.default.reload(self.__class__, folder_path = "surfaces/outer_skin_4096")
 
 
 
@@ -174,7 +174,7 @@ class BrainSkullData(SurfaceData):
     
     def __init__(self, **kwargs):
         super(BrainSkullData, self).__init__(**kwargs)
-        BrainSkullData.default.reload(BrainSkullData, folder_path = "surfaces/inner_skull_4096")
+        self.default.reload(self.__class__, folder_path = "surfaces/inner_skull_4096")
     
 
 
@@ -195,7 +195,7 @@ class SkullSkinData(SurfaceData):
     
     def __init__(self, **kwargs):
         super(SkullSkinData, self).__init__(**kwargs)
-        SkullSkinData.default.reload(SkullSkinData, folder_path = "surfaces/outer_skull_4096")
+        self.default.reload(self.__class__, folder_path = "surfaces/outer_skull_4096")
 
 
 ##--------------------- CLOSE SURFACES End Here---------------------------------------##
@@ -419,7 +419,7 @@ class CortexData(CorticalSurfaceData):
 
     def __init__(self, **kwargs):
         super(CortexData, self).__init__(**kwargs)
-        CortexData.default.reload(CortexData, folder_path = "surfaces/cortex_reg13")
+        self.default.reload(self.__class__, folder_path = "surfaces/cortex_reg13")
 
 
     def populate_cortex(self, cortex_surface, cortex_parameters=None):

@@ -243,6 +243,7 @@ class MetaType(abc.ABCMeta):
             if isinstance(attr, MetaType) or isinstance(attr, Type):
                 if isinstance(attr, MetaType):
                     attr = attr()
+                attr = deepcopy(attr)
                 attr.trait.name = key
                 setattr(newcls, key, attr)
                 doc += "\n\t``%s`` (%s)\n" % (key, str(attr.trait.inits.kwd.get('label', "")))

@@ -112,7 +112,7 @@ class PsiTableData(LookUpTableData):
     
     def __init__(self, **kwargs):
         super(PsiTableData, self).__init__(**kwargs)
-        PsiTableData.table.reload(PsiTableData, folder_path = "tables", file_name = "psi.npz")
+        self.table.reload(self.__class__, folder_path = "tables", file_name = "psi.npz")
     
     
 
@@ -126,7 +126,7 @@ class NerfTableData(LookUpTableData):
     
     def __init__(self, **kwargs):
         super(NerfTableData, self).__init__(**kwargs)
-        NerfTableData.table.reload(NerfTableData, folder_path = "tables", file_name = "nerf_int.npz")
+        self.table.reload(self.__class__, folder_path = "tables", file_name = "nerf_int.npz")
         
     
     

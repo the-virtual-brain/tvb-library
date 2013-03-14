@@ -167,6 +167,10 @@ class Table(File):
         This method will more or less replace in end-usage the method from superclass 'read_data'.
         On a table, this is the method calls we want to persist in references.
         """
+        if TVBSettings.TRAITS_CONFIGURATION.use_storage:
+            # We want to avoid reading files when no library-mode is used.
+            return None
+        
         if field is not None:
             self.references[field] = {self.KEY_PARAMETERS : {'dimension_1' : dimension_1,
                                                              'dimension_2': dimension_2 }, 
