@@ -141,7 +141,6 @@ class File(object):
                 
                 if inspect.isclass(target_instance):
                     target_instance.trait[field_name].trait.value = new_value
-                    
             except Exception, excep:
                 self.logger.warning("Could not read data for field " + field_name + " on instance of class "
                                     + target_instance.__class__.__name__ + "\n" + str(excep))
