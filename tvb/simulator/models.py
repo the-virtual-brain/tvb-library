@@ -2124,7 +2124,7 @@ class Generic2dOscillator(Model):
         b = self.b
         c = self.c
         d = self.d
-        d = self.e
+        e = self.e
         f = self.f
         beta  = self.beta
         alpha = self.alpha
