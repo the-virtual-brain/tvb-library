@@ -2136,7 +2136,7 @@ class Generic2dOscillator(Model):
         #    self.derivative = numpy.empty((2,)+V.shape)
         
         ## numexpr       
-        dV = ev('d * tau * (alpha * W - f * V**3 + e * V**2 + Iext + c_0 + lc_0)')
+        dV = ev('d * tau * (alpha * W - f * V**3 + e * V**2 + I + c_0 + lc_0)')
         dW = ev('d * (a + b * V + c * V**2 - beta * W) / tau')
         
         ## regular ndarray operation
