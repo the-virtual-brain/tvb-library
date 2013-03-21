@@ -1870,6 +1870,14 @@ class Generic2dOscillator(Model):
     to generate a wide range of different behaviors. 
 
     See:
+        
+    
+        .. [FH_1961] FitzHugh, R., *Impulses and physiological states in theoretical
+            models of nerve membrane*, Biophysical Journal 1: 445, 1961. 
+    
+        .. [Nagumo_1962] Nagumo et.al, *An Active Pulse Transmission Line Simulating
+            Nerve Axon*, Proceedings of the IRE 50: 2061, 1962.
+        
         .. [SJ_2011] Stefanescu, R., Jirsa, V.K. *Reduced representations of 
             heterogeneous mixed neural networks with synaptic coupling*.  
             Physical Review E, 83, 2011. 
@@ -1888,27 +1896,50 @@ class Generic2dOscillator(Model):
 
     The model with its default parameters exhibits FitzHugh-Nagumo like dynamics.
 
-    EXCITABLE CONFIGURATION:
-
-        a    = -2.0 # limit cylce if a = 2.0
-        b    = -10.0
-        c    =  0.0
-        Iext =  0.0
-
-    BISTABLE CONFIGURATION (similar to Hindmarsh-Rose:)
-
-        a    =  1.0
-        b    =  0.0
-        c    = -5.0
-        Iext =  0.0  # fixed point only if Iext = -2.0  and limit cylce only if Iext =-1.0
-
-    EXCITABLE CONFIGURATION (similar to Morris-Lecar)
-
-        a = 0.5  # excitable regime b = 0.6 and oscillatory if b=0.4
-        b = 0.6
-        c = -4.0
-        Iext = 0.0    
-
+     ---------------------------
+    |  EXCITABLE CONFIGURATION  |
+     ---------------------------
+    |Parameter     |  Value     |
+    -----------------------------
+    | a            |     -2.0   |
+    | b            |    -10.0   |
+    | c            |      0.0   |
+    | d            |      0.1   |
+    | I            |      0.0   |
+    -----------------------------
+    |* limit cylce if a = 2.0   |
+    -----------------------------
+    
+     ---------------------------
+    |   BISTABLE CONFIGURATION  |
+     ---------------------------
+    |Parameter     |  Value     |
+    -----------------------------
+    | a            |      1.0   |
+    | b            |      0.0   |
+    | c            |     -5.0   |
+    | d            |      0.1   |
+    | I            |      0.0   |
+    -----------------------------
+    |* monostable regime:       |
+    |* fixed point if Iext=-2.0 |
+    |* limit cylce if Iext=-1.0 |
+    -----------------------------
+    
+     ---------------------------
+    |  EXCITABLE CONFIGURATION  | (similar to Morris-Lecar)
+     ---------------------------
+    |Parameter     |  Value     |
+    -----------------------------
+    | a            |      0.5   |
+    | b            |      0.6   |
+    | c            |     -4.0   |
+    | d            |      0.1   |
+    | I            |      0.0   |
+    -----------------------------
+    |* excitable regime if b=0.6|
+    |* oscillatory if b=0.4     |
+    -----------------------------
 
 
     .. figure :: img/Generic2dOscillator_01_mode_0_pplane.svg
@@ -1928,7 +1959,7 @@ class Generic2dOscillator(Model):
     """
 
     _ui_name = "Generic 2d Oscillator"
-    ui_configurable_parameters = ['tau', 'a', 'b', 'c', 'Iext']
+    ui_configurable_parameters = ['tau', 'a', 'b', 'c', 'I']
 
     #Define traited attributes for this model, these represent possible kwargs.
     tau = arrays.FloatArray(
@@ -1940,7 +1971,7 @@ class Generic2dOscillator(Model):
         no time-scale hierarchy.""",
         order = 1)
 
-    Iext = arrays.FloatArray(
+    I = arrays.FloatArray(
         label = ":math:`I_{ext}`",
         default = numpy.array([0.0]),
         range = basic.Range(lo = -2.0, hi = 2.0, step = 0.01),
@@ -1972,8 +2003,39 @@ class Generic2dOscillator(Model):
         label = ":math:`d`",
         default = numpy.array([0.1]),
         range = basic.Range(lo = 0.0001, hi = 1.0, step = 0.0001),
-        doc = """Temporal scale tweaking factor. Warning: do not use it unless 
+        doc = """Temporal scale factor. Warning: do not use it unless 
         you know what you are doing and know about time tides.""",
+        order = -1)
+        
+    e = arrays.FloatArray(
+        label = ":math:`d`",
+        default = numpy.array([3.0]),
+        range = basic.Range(lo = -5.0, hi = 5.0, step = 0.0001),
+        doc = """Coefficient of the quadratic term of the cubic nullcline.""",
+        order = -1)
+        
+        
+    f = arrays.FloatArray(
+        label = ":math:`d`",
+        default = numpy.array([1.0]),
+        range = basic.Range(lo = -5.0, hi = 5.0, step = 0.0001),
+        doc = """Coefficient of the cubic term of the cubic nullcline.""",
+        order = -1)
+        
+    alpha = arrays.FloatArray(
+        label = ":math:`d`",
+        default = numpy.array([1.0]),
+        range = basic.Range(lo = -5.0, hi = 5.0, step = 0.0001),
+        doc = """Constant parameter to scale the rate of feedback from the 
+            slow variable to the fast variable.""",
+        order = -1)
+        
+    beta = arrays.FloatArray(
+        label = ":math:`d`",
+        default = numpy.array([1.0]),
+        range = basic.Range(lo = -5.0, hi = 5.0, step = 0.0001),
+        doc = """Constant parameter to scale the rate of feedback from the 
+            slow variable to itself""",
         order = -1)
 
     #Informational attribute, used for phase-plane and initial()
@@ -2039,11 +2101,11 @@ class Generic2dOscillator(Model):
         The equations of the generic 2D population model read
 
         .. math::
-            \dot{V} &= \tau ( W - V^3 +3 V^2 + I_{ext} + I) \\
+            \dot{V} &= \tau ( W - V^3 +3 V^2 + I) \\
             \dot{W} &= -(a\, + b\, V + c\, V^2 - \, W) / \tau
 
-        where external currents :math:`I` provide the entry point for local and
-        long-range connectivity.
+        where external currents :math:`I` provide the entry point for local, 
+        long-range connectivity and stimulation.
 
         """
 
@@ -2054,24 +2116,28 @@ class Generic2dOscillator(Model):
         c_0 = coupling[0, :]
         
         tau = self.tau
-        Iext = self.Iext
+        I = self.I
         a = self.a
         b = self.b
         c = self.c
         d = self.d
+        d = self.e
+        f = self.f
+        beta  = self.beta
+        alpha = self.alpha
 
-        coupling = local_coupling*V
+        lc_0 = local_coupling*V
 
         
         #if not hasattr(self, 'derivative'):
         #    self.derivative = numpy.empty((2,)+V.shape)
         
         ## numexpr       
-        dV = ev('d * tau * (W - 1.0* V**3.0 + 3.0 * V**2 + Iext + c_0 + coupling)')
-        dW = ev('d * (a + b * V + c * V**2 - W) / tau')
+        dV = ev('d * tau * (alpha * W - f * V**3 + e * V**2 + Iext + c_0 + lc_0)')
+        dW = ev('d * (a + b * V + c * V**2 - beta * W) / tau')
         
         ## regular ndarray operation
-        ##dV = tau * (W - 0.5* V**3.0 + 3.0 * V**2 + Iext + c_0 + local_coupling * V)
+        ##dV = tau * (W - 0.5* V**3.0 + 3.0 * V**2 + I + c_0 + lc_0)
         ##dW = d * (a + b * V + c * V**2 - W) / tau
 
         self.derivative = numpy.array([dV, dW])
@@ -2079,7 +2145,7 @@ class Generic2dOscillator(Model):
         return self.derivative
 
     device_info = model_device_info(
-        pars = [tau, a, b, c, Iext],
+        pars = [tau, a, b, c, d, I],
         kernel="""
 
         // read parameters
@@ -2087,7 +2153,8 @@ class Generic2dOscillator(Model):
             , a    = P(1)
             , b    = P(2)
             , c    = P(3)
-            , Iext = P(4)
+            , d    = P(4)
+            , I    = P(5)
 
         // state variables
             , v    = X(0)
@@ -2097,8 +2164,8 @@ class Generic2dOscillator(Model):
             , c_0  = I(0)   ;
 
         // derivatives
-        DX(0) = tau * (w - v*v*v + 3.0*v*v + Iext + c_0);
-        DX(1) = (a + b*v + c*v*v - w) / tau;
+        DX(0) = d * (tau * (w - v*v*v + 3.0*v*v + I + c_0));
+        DX(1) = d * ((a + b*v + c*v*v - w) / tau);
         """
         )
 
