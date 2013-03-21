@@ -659,7 +659,7 @@ class ReducedSetFitzHughNagumo(Model):
     #NOTE: In the Article this modelis called StefanescuJirsa2D
 
     """
-    _ui_name = "Stefanescu-Jirsa 2D (reduced Fitzhugh-Nagumo)"
+    _ui_name = "Stefanescu-Jirsa 2D"
     ui_configurable_parameters = ['tau', 'a', 'b', 'K11', 'K12', 'K21', 'sigma',
                                   'mu']
 
@@ -854,8 +854,11 @@ class ReducedSetFitzHughNagumo(Model):
         alpha = state_variables[2, :]
         beta = state_variables[3, :]
 
-        c_0 = coupling[0, :]
-        c_1 = coupling[1, :]
+        # sum the activity from the modes
+        c_0 = coupling[0, :].sum(axis=1)
+
+        #TODO: generalize coupling variables to a matrix form 
+        #c_1 = coupling[1, :] # this cv represents alpha
 
         #import pdb; pdb.set_trace()
 
@@ -868,7 +871,7 @@ class ReducedSetFitzHughNagumo(Model):
 
         dalpha = (self.tau * (alpha - self.f_i * alpha**3 / 3.0 - beta) +
                   self.K21 * (numpy.dot(xi, self.Cik) - alpha) +
-                  self.tau * (self.II_i + c_1 + local_coupling * alpha))
+                  self.tau * (self.II_i + c_0 + local_coupling * alpha))
 
         dbeta = (alpha - self.b * beta + self.n_i) / self.tau
 
@@ -1071,7 +1074,7 @@ class ReducedSetHindmarshRose(Model):
     #NOTE: In the Article this modelis called StefanescuJirsa3D
 
     """
-    _ui_name = "Stefanescu-Jirsa 3D (reduced Hindmarsh-Rose)"
+    _ui_name = "Stefanescu-Jirsa 3D"
     ui_configurable_parameters = ['r', 'a', 'b', 'c', 'd', 's', 'xo', 'K11',
                                   'K12', 'K21', 'sigma', 'mu']
 
@@ -1308,8 +1311,8 @@ class ReducedSetHindmarshRose(Model):
         beta = state_variables[4, :]
         gamma = state_variables[5, :]
 
-        c_0 = coupling[0, :]
-        c_1 = coupling[1, :]
+        c_0 = coupling[0, :].sum(axis=1)
+        #c_1 = coupling[1, :]
 
         dxi = (eta - self.a_i * xi**3 + self.b_i * xi**2 - tau +
               self.K11 * (numpy.dot(xi, self.A_ik) - xi) -
@@ -1322,7 +1325,7 @@ class ReducedSetHindmarshRose(Model):
 
         dalpha = (beta - self.e_i * alpha**3 + self.f_i * alpha**2 - gamma +
               self.K21 * (numpy.dot(xi, self.C_ik) - alpha) +
-              self.II_i + c_1 + local_coupling * alpha)
+              self.II_i + c_0 + local_coupling * alpha)
 
         dbeta = self.h_i - self.p_i * alpha**2 - beta
 
