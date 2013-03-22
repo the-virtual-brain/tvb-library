@@ -2011,7 +2011,7 @@ class Generic2dOscillator(Model):
         order = -1)
         
     e = arrays.FloatArray(
-        label = ":math:`d`",
+        label = ":math:`e`",
         default = numpy.array([3.0]),
         range = basic.Range(lo = -5.0, hi = 5.0, step = 0.0001),
         doc = """Coefficient of the quadratic term of the cubic nullcline.""",
@@ -2019,14 +2019,14 @@ class Generic2dOscillator(Model):
         
         
     f = arrays.FloatArray(
-        label = ":math:`d`",
+        label = ":math:`f`",
         default = numpy.array([1.0]),
         range = basic.Range(lo = -5.0, hi = 5.0, step = 0.0001),
         doc = """Coefficient of the cubic term of the cubic nullcline.""",
         order = -1)
         
     alpha = arrays.FloatArray(
-        label = ":math:`d`",
+        label = ":math:`\alpha`",
         default = numpy.array([1.0]),
         range = basic.Range(lo = -5.0, hi = 5.0, step = 0.0001),
         doc = """Constant parameter to scale the rate of feedback from the 
@@ -2034,7 +2034,7 @@ class Generic2dOscillator(Model):
         order = -1)
         
     beta = arrays.FloatArray(
-        label = ":math:`d`",
+        label = ":math:`\beta`",
         default = numpy.array([1.0]),
         range = basic.Range(lo = -5.0, hi = 5.0, step = 0.0001),
         doc = """Constant parameter to scale the rate of feedback from the 
