@@ -89,7 +89,16 @@ class TvbProfile():
                 script_argv.remove(selected_profile)
                 script_argv.remove(TvbProfile.SUBPARAM_PROFILE)
             
-       
+    
+    @staticmethod
+    def is_test_environment():
+        """
+        Check if we are in testing environment.
+        """
+        return (TvbProfile.CURRENT_SELECTED_PROFILE == TvbProfile.TEST_POSTGRES_PROFILE or 
+                            TvbProfile.CURRENT_SELECTED_PROFILE == TvbProfile.TEST_SQLITE_PROFILE)
+    
+    
     @staticmethod
     def is_library_mode():
         """
