@@ -89,15 +89,6 @@ class TvbProfile():
             
     
     @staticmethod
-    def is_test_environment():
-        """
-        Check if we are in testing environment.
-        """
-        return (TvbProfile.CURRENT_SELECTED_PROFILE == TvbProfile.TEST_POSTGRES_PROFILE or 
-                            TvbProfile.CURRENT_SELECTED_PROFILE == TvbProfile.TEST_SQLITE_PROFILE)
-    
-    
-    @staticmethod
     def is_library_mode():
         """
         Fall-back to LibraryProfile either if this was the profile passed as argument or if TVB Framework is not present.
