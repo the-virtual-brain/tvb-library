@@ -23,5 +23,7 @@
 We want tvb package to extend over at least 2 folders:
 simulator_library and tvb_framework.
 """
+
 from pkgutil import extend_path
+
 __path__ = extend_path(__path__, __name__)
