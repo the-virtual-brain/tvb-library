@@ -75,9 +75,10 @@ heunint = integrators.HeunDeterministic(dt=2**-4)
 mon_tavg = monitors.TemporalAverage(period=2**-2)
 mon_savg = monitors.SpatialAverage(period=2**-2)
 mon_eeg = monitors.EEG(period=2**-2)
+mon_seeg = monitors.SEEG(period=2**-2)
 
 #Bundle them
-what_to_watch = (mon_tavg, mon_savg, mon_eeg)
+what_to_watch = (mon_tavg, mon_savg, mon_eeg, mon_seeg)
 
 ##TODO: UGLY, FIXME        
 #root_path = os.path.dirname(tvb.simulator.__file__)
@@ -106,7 +107,9 @@ savg_data = []
 savg_time = []
 eeg_data = []
 eeg_time = []
-for tavg, savg, eeg in sim(simulation_length=2**2):
+seeg_data = []
+seeg_time = []
+for tavg, savg, eeg, seeg in sim(simulation_length=2**2):
     if not tavg is None:
         tavg_time.append(tavg[0])
         tavg_data.append(tavg[1])
@@ -118,6 +121,9 @@ for tavg, savg, eeg in sim(simulation_length=2**2):
     if not eeg is None:
         eeg_time.append(eeg[0])
         eeg_data.append(eeg[1])
+    if not seeg is None:
+        seeg_time.append(seeg[0])
+        seeg_data.append(seeg[1])
 
 LOG.info("finished simulation.")
 
@@ -129,6 +135,7 @@ LOG.info("finished simulation.")
 TAVG = numpy.array(tavg_data)
 SAVG = numpy.array(savg_data)
 EEG = numpy.array(eeg_data)
+SEEG = numpy.array(seeg_data)
 
 #Plot region averaged time series
 figure(3)
@@ -141,6 +148,10 @@ figure(4)
 color_idx = numpy.linspace(0, 1, EEG.shape[2])
 for i in color_idx:
     plot(eeg_time, EEG[:, 0, :, 0], color=cm.cool(i), lw=3, alpha=0.2)
+title("EEG")
+color_idx = numpy.linspace(0, 1, SEEG.shape[2])
+for i in color_idx:
+    plot(seeg_time, SEEG[:, 0, :, 0], color=cm.cool(i), lw=3, alpha=0.2)
 title("EEG")
 
 #Show them

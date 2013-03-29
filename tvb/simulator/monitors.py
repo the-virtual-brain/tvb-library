@@ -1450,8 +1450,17 @@ class SEEG(Monitor):
         Equation 12 from sarvas1987basic (point dipole in homogeneous space): 
           V(r) = 1/(4*pi*\sigma)*Q*(r-r_0)/|r-r_0|^3
         """
-        super(SphericalEEG, self).config_for_sim(simulator)
+        super(SEEG, self).config_for_sim(simulator)
 
+        if self.sensors is None:
+            self.sensors = sensors_module.SensorsInternal(
+                label = "Internal brain sensors",
+                default = None,
+                required = True,
+                doc = """The set of SEEG sensors for which the forward solution will be
+                calculated.""")
+
+        
         if simulator.surface is None:
             r_0 = simulator.connectivity.centres
             Q = simulator.connectivity.orientations # * simulator.connectivity.areas
@@ -1463,7 +1472,7 @@ class SEEG(Monitor):
         for sensor_k in numpy.arange(self.sensors.locations.shape[0]):
             a = self.sensors.locations[sensor_k, :] - r_0
             na = numpy.sqrt(numpy.sum(a**2, axis=1))[:, numpy.newaxis]
-            V_r[sensor_k, :] = numpy.sum(Q * (a / na**3), axis=1 ) / (4.0 * numpy.pi * sigma)
+            V_r[sensor_k, :] = numpy.sum(Q * (a / na**3), axis=1 ) / (4.0 * numpy.pi * self.sigma)
 
         self.projection_matrix = V_r
 
