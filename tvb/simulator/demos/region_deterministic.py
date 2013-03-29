@@ -69,10 +69,9 @@ heunint = integrators.HeunDeterministic(dt=2**-6)
 #Initialise some Monitors with period in physical time
 momo = monitors.Raw()
 mama = monitors.TemporalAverage(period=2**-2)
-mon_seeg = monitors.SEEG(period=2**-2)
 
 #Bundle them
-what_to_watch = (momo, mama, mon_seeg)
+what_to_watch = (momo, mama)
 
 #Initialise a Simulator -- Model, Connectivity, Integrator, and Monitors.
 sim = simulator.Simulator(model = oscilator, connectivity = white_matter,
@@ -87,10 +86,8 @@ raw_data = []
 raw_time = []
 tavg_data = []
 tavg_time = []
-seeg_data = []
-seeg_time = []
 
-for raw, tavg, seeg in sim(simulation_length=2**6):
+for raw, tavg in sim(simulation_length=2**6):
     if not raw is None:
         raw_time.append(raw[0])
         raw_data.append(raw[1])
@@ -98,9 +95,6 @@ for raw, tavg, seeg in sim(simulation_length=2**6):
     if not tavg is None:
         tavg_time.append(tavg[0])
         tavg_data.append(tavg[1])
-    if not seeg is None:
-        seeg_time.append(seeg[0])
-        seeg_data.append(seeg[1])
 
 LOG.info("Finished simulation.")
 
@@ -113,7 +107,6 @@ LOG.info("Finished simulation.")
 #Make the lists numpy.arrays for easier use.
 RAW = numpy.array(raw_data)
 TAVG = numpy.array(tavg_data)
-SEEG = numpy.array(seeg_data)
 
 #Plot raw time series
 figure(1)
@@ -129,9 +122,6 @@ figure(3)
 plot(tavg_time, TAVG[:, 0, :, 0])
 title("Temporal average")
 
-figure(3)
-plot(seeg_time, SEEG[:, 0, :, 0])
-title("SEEG measurement")
 #Show them
 show()
 
