@@ -107,6 +107,8 @@ class PsiTableData(LookUpTableData):
     :math:`\\psi(\\nu)` as a function of the presynaptic rates :math:`\\nu` 
     
     """
+    __tablename__ = None
+    
     
     def __init__(self, **kwargs):
         super(PsiTableData, self).__init__(**kwargs)
@@ -121,6 +123,8 @@ class NerfTableData(LookUpTableData):
     defining the statistical properties of the membrane potential in presence of synaptic inputs.
     
     """
+    __tablename__ = None
+    
     
     def __init__(self, **kwargs):
         super(NerfTableData, self).__init__(**kwargs)
