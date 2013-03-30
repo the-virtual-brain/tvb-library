@@ -82,7 +82,8 @@ class Monitor(core.Type):
     .. automethod:: Monitor.record
 
     """
-    _base_classes = ['Monitor']
+    ## Temporary hide monitors from the UI, as these 2 are not functional (at least not with the default parameters).
+    _base_classes = ['Monitor', 'BoldMultithreaded', 'BalloonWindkesselAccordingToKJFristonEtAl2003NeuroImage']
 
     period = basic.Float(
         label = "Sampling period (ms)",
@@ -1201,7 +1202,7 @@ class BoldRegionROI(Bold):
     simulation.
 
     """
-    _ui_name = "BOLD Region ROI"
+    _ui_name = "BOLD Region ROI (only with surface)"
 
     def config_for_sim(self, simulator):
         super(BoldRegionROI, self).config_for_sim(simulator)
