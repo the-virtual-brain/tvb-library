@@ -1416,3 +1416,89 @@ class BalloonWindkesselAccordingToKJFristonEtAl2003NeuroImage(Monitor):
             bold = bold.sum(axis=2)[:,:,numpy.newaxis] #modes
             return [time, bold]
 
+
+class SEEG(Monitor):
+    """
+    Monitors electrophysiological signals from depth electrodes (intended for stereo-EEG).
+    """
+    _ui_name = "stereo-EEG"
+
+    sigma = basic.Float(label = "conductivity",
+                  default = 1.0)
+
+    sensors = sensors_module.SensorsInternal(
+        label = "Internal brain sensors",
+        default = None,
+        required = True,
+        doc = """The set of SEEG sensors for which the forward solution will be
+        calculated.""")
+
+    def __init__(self, **kwargs):
+        """
+        Initialise from the base Monitor class. Setting sampling period.
+
+        """
+        LOG.info("%s: initing..." % str(self))
+        super(SEEG, self).__init__(**kwargs)
+
+        self.projection_matrix = None
+        LOG.debug("%s: inited." % repr(self))
+
+    def config_for_sim(self, simulator):
+        """
+        Compute the projection matrix -- simple distance weight for now.
+        Equation 12 from sarvas1987basic (point dipole in homogeneous space): 
+          V(r) = 1/(4*pi*\sigma)*Q*(r-r_0)/|r-r_0|^3
+        """
+        super(SEEG, self).config_for_sim(simulator)
+
+        if self.sensors is None:
+            self.sensors = sensors_module.SensorsInternal(
+                label = "Internal brain sensors",
+                default = None,
+                required = True,
+                doc = """The set of SEEG sensors for which the forward solution will be
+                calculated.""")
+
+        
+        if simulator.surface is None:
+            r_0 = simulator.connectivity.centres
+            Q = simulator.connectivity.orientations # * simulator.connectivity.areas
+        else:
+            r_0 = simulator.surface.vertices
+            Q = simulator.surface.vertex_normals
+
+        V_r = numpy.zeros((self.sensors.locations.shape[0], r_0.shape[0]))
+        for sensor_k in numpy.arange(self.sensors.locations.shape[0]):
+            a = self.sensors.locations[sensor_k, :] - r_0
+            na = numpy.sqrt(numpy.sum(a**2, axis=1))[:, numpy.newaxis]
+            V_r[sensor_k, :] = numpy.sum(Q * (a / na**3), axis=1 ) / (4.0 * numpy.pi * self.sigma)
+
+        self.projection_matrix = V_r
+
+        util.log_debug_array(LOG, self.projection_matrix, "projection_matrix",
+                             owner=self.__class__.__name__)
+
+        stock_size = (self.istep, self.voi.shape[0],
+                      simulator.number_of_nodes,
+                      simulator.model.number_of_modes)
+        LOG.debug("%s: stock_size is %s" % (str(self), str(stock_size)))
+
+        self._stock = numpy.zeros(stock_size)
+
+
+    def record(self, step, state):
+        """
+        Same as the EEG monitor:
+        """
+        self._stock[((step % self.istep) - 1), :] = state[self.voi, :]
+        if step % self.istep == 0:
+            time = (step - self.istep / 2.0) * self.dt
+            avg_stock = numpy.mean(self._stock, axis=0)
+            #If there are multiple variables or modes we assume they can be 
+            #sensibly summed to form a single source...
+            avg_stock = avg_stock.sum(axis=0)[numpy.newaxis,:,:] #state-variables
+            avg_stock = avg_stock.sum(axis=2)[:,:,numpy.newaxis] #modes
+            eeg = numpy.dot(self.projection_matrix, avg_stock)
+            return [time, eeg.transpose((1, 0, 2))]
+
