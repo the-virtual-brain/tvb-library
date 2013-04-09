@@ -60,6 +60,18 @@ class LibraryProfile():
     ## Name of file where logging configuration is stored.
     LOGGER_CONFIG_FILE_NAME = "library_logger.conf"
     
+    @ClassProperty
+    @staticmethod
+    def TVB_TEMP_FOLDER():
+        """ 
+        Represents a temporary folder, where to store things for a while.
+        Content of this folder can be deleted at any time.
+        """
+        tmp_path = os.path.join(LibraryProfile.TVB_STORAGE, "TEMP")
+        if not os.path.exists(tmp_path):
+            os.makedirs(tmp_path)
+        return tmp_path
+    
     
     @ClassProperty
     @staticmethod
