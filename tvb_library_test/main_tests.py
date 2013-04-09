@@ -19,30 +19,35 @@
 #
 #
 """
-Entry point for all tests.
+Entry point for all unit-tests for TVB Scientific Library.
 
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
+
 import sys
-# Remove anything pointing to the framework
+# Remove anything pointing to the framework, to make sure that only one direct dependency exists
+# TVB-Framework --> TVB Scientific Library
+# We should have nothing inverse.
 sys.path = [path for path in sys.path if not path.endswith('framework_tvb')]
+
 from tvb.basic.profile import TvbProfile as tvb_profile
-#set the current environment to the test setup
+# Set the current environment to the test setup
 tvb_profile.set_profile(["-profile", "LIBRARY_PROFILE"])
 
 # Make sure we are in library mode and are not influenced by framework
 try:
     import tvb.interfaces as int
-    raise Exception("Found framework in library mode testing. Abording.")
+    raise Exception("Found framework in library mode testing. Abort....")
 except ImportError:
     pass
+
 
 import os
 from sys import argv
 from coverage import coverage
-
 from tvb.basic.config.settings import TVBSettings as cfg
+
 
 KEY_CONSOLE = 'console'
 KEY_COVERAGE = 'coverage'
@@ -58,8 +63,7 @@ def generage_excludes(root_folders):
         for root, _, files in os.walk(root):
             for file_n in files:
                 full_path = os.path.join(root, file_n)
-                if (full_path.endswith('__init__.py') or 
-                    os.path.join('tvb', 'simulator') in full_path):
+                if full_path.endswith('__init__.py'):
                     excludes.append(full_path)
     return excludes
 
@@ -103,7 +107,7 @@ if __name__ == "__main__":
         TEST_SUITE = suite()
         TEST_RUNNER.run(TEST_SUITE)
     if KEY_XML in argv:
-        FILE_NAME = "TEST-RESULTS.xml"
+        FILE_NAME = "TEST-LIBRARY-RESULTS.xml"
         STREAM = file(FILE_NAME, "w")
         TEST_RUNNER = XMLTestRunner(STREAM)
         TEST_SUITE = suite()
