@@ -84,6 +84,7 @@ class MappedTypeLight(Type):
         :return: dictionary {label: value} about an attribute of type mapped.Array
                  Generic informations, like Max/Min/Mean/Var are to be retrieved for this array_attr
         """
+        included_info = included_info or {}
         summary = self.__get_summary_info(array_name, included_info)
         ### Before return, prepare names for UI display.                
         result = dict()

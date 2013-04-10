@@ -95,16 +95,3 @@ class StructuralMRI(volumes_scientific.StructuralMRIScientific,
     """
     pass
 
-
-
-if __name__ == '__main__':
-    # Do some stuff that tests or makes use of this module...
-    LOG.info("Testing %s module..." % __file__)
-    
-    # Check that all default Volume datatypes initialize without error.
-    VOLUME = Volume()
-    PARCELLATION_MASK = ParcellationMask()
-    STRUCTURAL_MRI = StructuralMRI()
-    
-    LOG.info("Default Volume datatypes initialized without error...")
-

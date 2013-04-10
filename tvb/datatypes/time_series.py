@@ -161,19 +161,3 @@ class TimeSeriesVolume(time_series_scientific.TimeSeriesVolumeScientific,
     """
     pass
 
-
-
-if __name__ == '__main__':
-    # Do some stuff that tests or makes use of this module...
-    LOG.info("Testing %s module..." % __file__)
-    
-    # Check that all default TimeSeries datatypes initialize without error.
-    TIME_SERIES = TimeSeries()
-    TIME_SERIES_EEG = TimeSeriesEEG()
-    TIME_SERIES_MEG = TimeSeriesMEG()
-    TIME_SERIES_REGION = TimeSeriesRegion()
-    TIME_SERIES_SURFACE = TimeSeriesSurface()
-    TIME_SERIES_VOLUME = TimeSeriesVolume()
-    
-    LOG.info("Default TimeSeries datatypes initialized without error...")
-

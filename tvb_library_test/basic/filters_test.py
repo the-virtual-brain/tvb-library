@@ -22,6 +22,10 @@
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
 .. moduleauthor:: bogdan.neacsa <bogdan.neacsa@codemart.ro>
 """
+if __name__ == "__main__":
+    from tvb_library_test import setup_test_console_env
+    setup_test_console_env()
+    
 import unittest
 from tvb.basic.filters.chain import FilterChain
 from tvb.basic.filters.exceptions import InvalidFilterChainInput, InvalidFilterEntity

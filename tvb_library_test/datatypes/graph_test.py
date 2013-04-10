@@ -23,6 +23,10 @@ Created on Mar 20, 2013
 
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
+if __name__ == "__main__":
+    from tvb_library_test import setup_test_console_env
+    setup_test_console_env()
+    
 import unittest
 
 from tvb.datatypes import graph

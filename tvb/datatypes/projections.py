@@ -93,6 +93,3 @@ class ProjectionSurfaceEEG(framework.ProjectionSurfaceEEGFramework,
     """
     pass
     
-
-
-

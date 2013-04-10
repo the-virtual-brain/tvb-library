@@ -23,9 +23,14 @@ Created on Mar 20, 2013
 
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
-
+if __name__ == "__main__":
+    from tvb_library_test import setup_test_console_env
+    setup_test_console_env()
+    
 import unittest
 from tvb_library_test.basic.traits import data_readers_test
+from tvb_library_test.basic.traits import traits_test
+from tvb_library_test.basic.traits import stand_alone_console
 
 def suite():
     """
@@ -33,6 +38,8 @@ def suite():
     """
     test_suite = unittest.TestSuite()
     test_suite.addTest(data_readers_test.suite())
+    test_suite.addTest(traits_test.suite())
+    test_suite.addTest(stand_alone_console.suite())
     return test_suite
 
 
