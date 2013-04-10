@@ -33,12 +33,6 @@ from tvb.basic.traits.data_readers import File
         
 class DataReadersTest(BaseTestCase):
     
-    def setUp(self):
-        cfg.TRAITS_CONFIGURATION.use_storage = False
-
-    def tearDown(self):
-        cfg.TRAITS_CONFIGURATION.use_storage = True
-        
     def test_read_data_txt(self):
         """
         Test that reading data from numpy txt files works as expected.
@@ -79,7 +73,7 @@ class DataReadersTest(BaseTestCase):
         """
         Test tha specific parameters like lazy_load or field work as expected.
         """
-        self.assertIsNone(file_object.read_data(file_name=data_file_name, lazy_load=True), 
+        self.assertTrue(file_object.read_data(file_name=data_file_name, lazy_load=True) is None, 
                           "Lazy load flag should assure None is returned.")
         self.assertEqual(file_object.references, {}, 
                          "Since no field was passed, references should be empty")

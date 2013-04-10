@@ -19,22 +19,35 @@
 #
 #
 """
-Created on Apr 8, 2013
+Created on Mar 20, 2013
 
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
 import unittest
-from tvb.basic.config.settings import TVBSettings as cfg
 
-class BaseTestCase(unittest.TestCase):
-    """
-        This class should implement basic functionality which 
-        is common to all TVB tests.
-    """
-    def setUp(self):
-        self.assertFalse(cfg.TRAITS_CONFIGURATION.use_storage)
+from tvb.datatypes import temporal_correlations
+from tvb_library_test.base_testcase import BaseTestCase
+        
+class TemporalCorrelationsTest(BaseTestCase):
     
-    def assertEqual(self, expected, actual, message=""):
-        super(BaseTestCase, self).assertEqual(expected, actual, message + " Expected %s but got %s."%(expected, actual))
+    def test_crosscorrelation(self):
+        dt = temporal_correlations.CrossCorrelation()
+        self.assertEqual(dt.labels_ordering, ['Offsets', 'Node', 'Node', 'State Variable', 'Mode'])
+        self.assertTrue(dt.source is None)
+        self.assertEqual(dt.time.shape, (0,))
         
         
+def suite():
+    """
+    Gather all the tests in a test suite.
+    """
+    test_suite = unittest.TestSuite()
+    test_suite.addTest(unittest.makeSuite(TemporalCorrelationsTest))
+    return test_suite
+
+
+if __name__ == "__main__":
+    #So you can run tests from this package individually.
+    TEST_RUNNER = unittest.TextTestRunner()
+    TEST_SUITE = suite()
+    TEST_RUNNER.run(TEST_SUITE) 
