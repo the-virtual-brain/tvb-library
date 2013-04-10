@@ -19,22 +19,41 @@
 #
 #
 """
-Created on Apr 8, 2013
+Created on Mar 20, 2013
 
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
 import unittest
-from tvb.basic.config.settings import TVBSettings as cfg
 
-class BaseTestCase(unittest.TestCase):
-    """
-        This class should implement basic functionality which 
-        is common to all TVB tests.
-    """
-    def setUp(self):
-        self.assertFalse(cfg.TRAITS_CONFIGURATION.use_storage)
+from tvb.datatypes import graph
+from tvb_library_test.base_testcase import BaseTestCase
+        
+class GraphTest(BaseTestCase):
     
-    def assertEqual(self, expected, actual, message=""):
-        super(BaseTestCase, self).assertEqual(expected, actual, message + " Expected %s but got %s."%(expected, actual))
+    def test_covariance(self):
+        dt = graph.Covariance()
+        self.assertEqual(dt.shape, (0,))
+        self.assertEqual(dt.array_data.shape, (0,))
         
         
+    def test_connectivitymeasure(self):
+        dt = graph.ConnectivityMeasure()
+        self.assertEqual(dt.shape, (0,))
+        self.assertTrue(dt.dimensions_labels is None)
+        self.assertTrue(dt.connectivity is None)
+        
+        
+def suite():
+    """
+    Gather all the tests in a test suite.
+    """
+    test_suite = unittest.TestSuite()
+    test_suite.addTest(unittest.makeSuite(GraphTest))
+    return test_suite
+
+
+if __name__ == "__main__":
+    #So you can run tests from this package individually.
+    TEST_RUNNER = unittest.TextTestRunner()
+    TEST_SUITE = suite()
+    TEST_RUNNER.run(TEST_SUITE) 

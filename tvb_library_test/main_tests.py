@@ -63,7 +63,8 @@ def generage_excludes(root_folders):
         for root, _, files in os.walk(root):
             for file_n in files:
                 full_path = os.path.join(root, file_n)
-                if full_path.endswith('__init__.py'):
+                if (full_path.endswith('__init__.py') or 
+                    full_path.endswith('framework.py')):
                     excludes.append(full_path)
     return excludes
 
@@ -86,6 +87,7 @@ if not os.path.exists(cfg.TVB_STORAGE):
     os.makedirs(cfg.TVB_STORAGE)
 
 from tvb_library_test.basic import basic_test_main
+from tvb_library_test.datatypes import datatypes_test_main
 from tvb_library_test.xmlrunner import XMLTestRunner
 
 
@@ -95,6 +97,7 @@ def suite():
     """
     test_suite = unittest.TestSuite()
     test_suite.addTest(basic_test_main.suite())
+    test_suite.addTest(datatypes_test_main.suite())
     return test_suite
 
 
