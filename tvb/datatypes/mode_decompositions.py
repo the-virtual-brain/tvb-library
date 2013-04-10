@@ -75,14 +75,3 @@ class IndependentComponents(mode_decompositions_scientific.IndependentComponents
     """
     pass
 
-
-
-if __name__ == '__main__':
-    # Do some stuff that tests or makes use of this module...
-    LOG.info("Testing %s module..." % __file__)
-    
-    # Check that all default Mode Decomposition datatypes initialize without error.
-    PRINCIPAL_COMPONENTS = PrincipalComponents()
-    INDEPENDENT_COMPONENTS = IndependentComponents()
-    
-    LOG.info("Default Mode Decomposition datatypes initialized without error...")

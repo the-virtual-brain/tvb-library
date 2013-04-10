@@ -118,17 +118,3 @@ class ComplexCoherenceSpectrum(spectral_scientific.ComplexCoherenceSpectrumScien
     """
     pass
 
-
-
-
-if __name__ == '__main__':
-    # Do some stuff that tests or makes use of this module...
-    LOG.info("Testing %s module..." % __file__)
-    
-    # Check that all default Spectral datatypes initialize without error.
-    FOURIER_SPECTRUM           = FourierSpectrum()
-    COHERENCE_SPECTRUM         = CoherenceSpectrum()
-    COMPLEX_COHERENCE_SPECTRUM = ComplexCoherenceSpectrum()
-    WAVELET_COEFFICIENTS       = WaveletCoefficients()
-    
-    LOG.info("Default Spectral datatypes initialized without error...")

@@ -55,14 +55,3 @@ class CrossCorrelation(temporal_correlations_scientific.CrossCorrelationScientif
     """
     pass
 
-
-
-
-if __name__ == '__main__':
-    # Do some stuff that tests or makes use of this module...
-    LOG.info("Testing %s module..." % __file__)
-    
-    # Check that all default Temporal Correlation datatypes initialize without error.
-    CROSS_CORRELATION = CrossCorrelation()
-    
-    LOG.info("Default Temporal Correlation datatypes initialized without error...")

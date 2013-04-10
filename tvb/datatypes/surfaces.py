@@ -312,24 +312,3 @@ class Cortex(surfaces_scientific.CortexScientific,
     """
     pass
 
-
-
-
-if __name__ == '__main__':
-    # Do some stuff that tests or makes use of this module...
-    LOG.info("Testing %s module..." % __file__)
-    
-    # Check that all default Surface DataTypes initialize without error.
-    SURFACE = Surface()
-    CORTICAL_SURFACE = CorticalSurface()
-    SKIN_AIR = SkinAir()
-    BRAIN_SKULL = BrainSkull()
-    SKIN_SKULL = SkullSkin()
-    LOCAL_CONNECTIVITY = LocalConnectivity()
-    CORTEX = Cortex()
-    
-    LOG.info("Default Surface dataTypes initialized without error...")
-
-
-
-

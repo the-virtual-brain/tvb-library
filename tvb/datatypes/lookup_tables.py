@@ -98,11 +98,3 @@ class NerfTable(lookup_tables_scientific.NerfTableScientific,
     """
     pass
 
-if __name__ == '__main__':
-    # Do some stuff that tests or makes use of this module...
-    LOG.info("Testing %s module..." % __file__)
-    
-    # Check that default LookUpTable datatype initializes without error.
-    CONNECTIVITY = LookUpTable()
-    
-    LOG.info("Default LookUpTable datatype initialized without error...")

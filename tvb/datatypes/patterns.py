@@ -134,17 +134,3 @@ class SpatialPatternVolume(patterns_scientific.SpatialPatternVolumeScientific,
         
     
     """
-
-
-if __name__ == '__main__':
-    # Do some stuff that tests or makes use of this module...
-    LOG.info("Testing %s module..." % __file__)
-    
-    # Check that all default Pattern datatypes initialize without error.
-    SPATIAL_PATTERN = SpatialPattern()
-    SPATIOTEMPORAL_PATTERN = SpatioTemporalPattern()
-    SPATIAL_PATTERN_VOLUME = SpatialPatternVolume()
-    STIMULI_REGION = StimuliRegion()
-    STIMULI_SURFACE = StimuliSurface()
-
-    LOG.info("Default Pattern datatypes initialized without error...")

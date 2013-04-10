@@ -98,13 +98,3 @@ class SigmoidalCoupling(coupling_scientific.SigmoidalCouplingScientific,
     """
     pass
     
-    
-if __name__ == '__main__':
-    # Do some stuff that tests or makes use of this module...
-    LOG.info("Testing %s module..." % __file__)
-    
-    # Check that all default Coupling datatypes initialize without error.
-    LINEAR_COUPLING = LinearCoupling()
-    SIGMOIDAL_COUPLING = SigmoidalCoupling()
-
-    LOG.info("Default Coupling datatypes initialized without error...")

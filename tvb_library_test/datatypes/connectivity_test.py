@@ -23,6 +23,10 @@ Created on Mar 20, 2013
 
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
+if __name__ == "__main__":
+    from tvb_library_test import setup_test_console_env
+    setup_test_console_env()
+    
 import os
 import numpy
 import unittest
@@ -66,7 +70,8 @@ class ConnectivityTest(BaseTestCase):
         Reload a connectivity and check that defaults changes accordingly.
         """
         conn = connectivity.Connectivity()
-        conn.default.reload(conn, folder_path = os.path.join("connectivity", "o52r00_irp2008_hemisphere_both_subcortical_true_regions_190"))
+        conn.default.reload(conn, folder_path = os.path.join("connectivity", 
+                                        "o52r00_irp2008_hemisphere_both_subcortical_true_regions_190"))
         self.assertEqual(conn.weights.shape, (190, 190))
         self.assertEqual(conn.weights.max(), 3.0)
         self.assertEqual(conn.weights.min(), 0.0)

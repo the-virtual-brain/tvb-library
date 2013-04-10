@@ -120,17 +120,3 @@ class SensorsInternal(sensors_scientific.SensorsInternalScientific,
     ## TODO try to make this happen behind the scene through Traits.core
     __mapper_args__ = {'polymorphic_identity': sensors_data.INTERNAL_POLYMORPHIC_IDENTITY}
 
-
-
-
-if __name__ == '__main__':
-    # Do some stuff that tests or makes use of this module...
-    LOG.info("Testing %s module..." % __file__)
-    
-    # Check that all default Sensor datatypes initialize without error.
-    SENSORS = Sensors()
-    EEG_SENSORS = SensorsEEG()
-    MEG_SENSORS = SensorsMEG()
-    SENSORS_INTERNAL = SensorsInternal()
-    
-    LOG.info("Default Sensor datatypes initialized without error...")

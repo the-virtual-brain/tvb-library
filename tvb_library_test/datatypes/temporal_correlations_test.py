@@ -23,17 +23,28 @@ Created on Mar 20, 2013
 
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
+if __name__ == "__main__":
+    from tvb_library_test import setup_test_console_env
+    setup_test_console_env()
+    
+import numpy    
 import unittest
 
-from tvb.datatypes import temporal_correlations
+from tvb.datatypes import temporal_correlations, time_series
 from tvb_library_test.base_testcase import BaseTestCase
         
 class TemporalCorrelationsTest(BaseTestCase):
     
     def test_crosscorrelation(self):
-        dt = temporal_correlations.CrossCorrelation()
+        data = numpy.random.random((10, 10))
+        ts = time_series.TimeSeries(data=data)
+        dt = temporal_correlations.CrossCorrelation(source=ts)
+        summary_info = dt.summary_info
+        self.assertEqual(summary_info['Dimensions'], ['Offsets', 'Node', 'Node', 'State Variable', 'Mode'])
+        self.assertEqual(summary_info['Source'], '')
+        self.assertEqual(summary_info['Temporal correlation type'], 'CrossCorrelation')
         self.assertEqual(dt.labels_ordering, ['Offsets', 'Node', 'Node', 'State Variable', 'Mode'])
-        self.assertTrue(dt.source is None)
+        self.assertTrue(dt.source is not None)
         self.assertEqual(dt.time.shape, (0,))
         
         

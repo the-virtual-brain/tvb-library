@@ -23,17 +23,28 @@ Created on Mar 20, 2013
 
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
+if __name__ == "__main__":
+    from tvb_library_test import setup_test_console_env
+    setup_test_console_env()
+    
 import numpy
 import unittest
 
 from tvb.datatypes import time_series
 from tvb_library_test.base_testcase import BaseTestCase
         
-class TemporalCorrelationsTest(BaseTestCase):
+class TimeseriesTest(BaseTestCase):
     
     def test_timeseries(self):
         data = numpy.random.random((10, 10))
         dt = time_series.TimeSeries(data=data)
+        summary_info = dt.summary_info
+        self.assertEqual(summary_info['Dimensions'], ['Time', 'State Variable', 'Space', 'Mode'])
+        self.assertEqual(summary_info['Length'], 10.0)
+        self.assertEqual(summary_info['Sample period'], 1.0)
+        self.assertEqual(summary_info['Time units'], 'ms')
+        self.assertEqual(summary_info['Time-series name'], '')
+        self.assertEqual(summary_info['Time-series type'], 'TimeSeries') 
         self.assertEqual(dt.data.shape, (10, 10))
         self.assertEqual(dt.sample_period, 1.0)
         self.assertEqual(dt.sample_rate, 0.0)
@@ -103,7 +114,7 @@ def suite():
     Gather all the tests in a test suite.
     """
     test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.makeSuite(TemporalCorrelationsTest))
+    test_suite.addTest(unittest.makeSuite(TimeseriesTest))
     return test_suite
 
 

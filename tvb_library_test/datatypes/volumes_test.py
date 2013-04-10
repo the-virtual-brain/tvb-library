@@ -23,6 +23,10 @@ Created on Mar 20, 2013
 
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
+if __name__ == "__main__":
+    from tvb_library_test import setup_test_console_env
+    setup_test_console_env()
+    
 import unittest
 
 from tvb.datatypes import volumes
@@ -32,6 +36,11 @@ class VolumesTest(BaseTestCase):
     
     def test_volume(self):
         dt = volumes.Volume()
+        summary_info = dt.summary_info
+        self.assertEqual(summary_info['Origin'].shape, (0,))
+        self.assertEqual(summary_info['Voxel size'].shape, (0,))
+        self.assertEqual(summary_info['Volume type'], 'Volume')
+        self.assertEqual(summary_info['Units'], 'mm')
         self.assertEqual(dt.origin.shape, (0,))
         self.assertEqual(dt.voxel_size.shape, (0,))
         self.assertEqual(dt.voxel_unit, 'mm')
@@ -39,6 +48,13 @@ class VolumesTest(BaseTestCase):
         
     def test_parcellationmask(self):
         dt = volumes.ParcellationMask()
+        summary_info = dt.summary_info
+        self.assertEqual(summary_info['Number of regions'], 0)
+        self.assertEqual(summary_info['Origin'].shape, (0,))
+        self.assertEqual(summary_info['Voxel size'].shape, (0,))
+        self.assertEqual(summary_info['Volume shape'], (0,))
+        self.assertEqual(summary_info['Volume type'], 'ParcellationMask')
+        self.assertEqual(summary_info['Units'], 'mm')
         self.assertEqual(dt.origin.shape, (0,))
         self.assertEqual(dt.region_labels.shape, (0,))
         self.assertEqual(dt.voxel_size.shape, (0,))

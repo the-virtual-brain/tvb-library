@@ -354,7 +354,3 @@ if __name__ == '__main__':
         pylab.title(str(EQ.__class__.__name__)) #type
     pylab.show()
 
-    
-    
-    
-

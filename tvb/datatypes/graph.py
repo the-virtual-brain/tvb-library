@@ -74,13 +74,3 @@ class ConnectivityMeasure(graph_scientific.ConnectivityMeasureScientific,
     """
     pass
 
-
-
-if __name__ == '__main__':
-    # Do some stuff that tests or makes use of this module...
-    LOG.info("Testing %s module..." % __file__)
-    
-    # Check that all default Graph datatypes initialize without error.
-    COVARIANCE = Covariance()
-    
-    LOG.info("Default Graph datatypes initialized without error...")

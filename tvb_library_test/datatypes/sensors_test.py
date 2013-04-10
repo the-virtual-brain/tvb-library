@@ -23,6 +23,10 @@ Created on Mar 20, 2013
 
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
+if __name__ == "__main__":
+    from tvb_library_test import setup_test_console_env
+    setup_test_console_env()
+    
 import unittest
 
 from tvb.datatypes import sensors
@@ -32,40 +36,47 @@ class SensorsTest(BaseTestCase):
     
     def test_sensors(self):
         dt = sensors.Sensors()
+        dt.configure()
+        summary_info = dt.summary_info
+        self.assertEqual(summary_info['Sensor type'], '')
+        self.assertEqual(summary_info['Number of Sensors'], 62)
         self.assertFalse(dt.has_orientation)
         self.assertEqual(dt.labels.shape, (62,))
         self.assertEqual(dt.locations.shape, (62, 3))
-        self.assertEqual(dt.number_of_sensors, 0)
+        self.assertEqual(dt.number_of_sensors, 62)
         self.assertEqual(dt.orientations.shape, (0,))
         self.assertEqual(dt.sensors_type, '')
 
         
     def test_sensorseeg(self):
         dt = sensors.SensorsEEG()
+        dt.configure()
         self.assertFalse(dt.has_orientation)
         self.assertEqual(dt.labels.shape, (62,))
         self.assertEqual(dt.locations.shape, (62, 3))
-        self.assertEqual(dt.number_of_sensors, 0)
+        self.assertEqual(dt.number_of_sensors, 62)
         self.assertEqual(dt.orientations.shape, (0,))
         self.assertEqual(dt.sensors_type, 'EEG')
         
         
     def test_sensorsmeg(self):
         dt = sensors.SensorsMEG()
+        dt.configure()
         self.assertTrue(dt.has_orientation)
         self.assertEqual(dt.labels.shape, (151,))
         self.assertEqual(dt.locations.shape, (151, 3))
-        self.assertEqual(dt.number_of_sensors, 0)
+        self.assertEqual(dt.number_of_sensors, 151)
         self.assertEqual(dt.orientations.shape, (151, 3))
         self.assertEqual(dt.sensors_type, 'MEG')
         
         
     def test_sensorsinternal(self):
         dt = sensors.SensorsInternal()
+        dt.configure()
         self.assertFalse(dt.has_orientation)
         self.assertEqual(dt.labels.shape, (62,))
         self.assertEqual(dt.locations.shape, (62, 3))
-        self.assertEqual(dt.number_of_sensors, 0)
+        self.assertEqual(dt.number_of_sensors, 62)
         self.assertEqual(dt.orientations.shape, (0,))
         self.assertEqual(dt.sensors_type, 'Internal')
         

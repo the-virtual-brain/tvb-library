@@ -23,6 +23,11 @@ Created on Mar 20, 2013
 
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
+if __name__ == "__main__":
+    from tvb_library_test import setup_test_console_env
+    setup_test_console_env()
+    
+import os
 import unittest
 
 from tvb.datatypes import surfaces
@@ -32,9 +37,36 @@ class SurfacesTest(BaseTestCase):
     
     def test_surface(self):
         dt = surfaces.Surface()
+        dt.configure()
+        summary_info = dt.summary_info
+        self.assertEqual(summary_info['Number of edges'], 49140)
+        self.assertEqual(summary_info['Number of triangles'], 32760)
+        self.assertEqual(summary_info['Number of vertices'], 16384)
+        self.assertEqual(summary_info['Surface type'], 'Surface')
+        self.assertEqual(len(dt.vertex_neighbours), 16384)
+        self.assertTrue(isinstance(dt.vertex_neighbours[0], frozenset))
+        self.assertEqual(len(dt.vertex_triangles), 16384)
+        self.assertTrue(isinstance(dt.vertex_triangles[0], frozenset))
+        self.assertEqual(len(dt.nth_ring(0)), 17)
+        self.assertEqual(dt.triangle_areas.shape, (32760, 1))
+        self.assertEqual(dt.triangle_angles.shape, (32760, 3))
+        self.assertEqual(len(dt.edges), 49140)
+        self.assertTrue(abs(dt.edge_length_mean - 3.97605292887) < 0.00000001)
+        self.assertTrue(abs(dt.edge_length_min - 0.663807567201) < 0.00000001)
+        self.assertTrue(abs(dt.edge_length_max - 7.75671853782) < 0.00000001)
+        self.assertEqual(len(dt.edge_triangles), 49140)
+        self.assertEqual(dt.check(), (True, 4, [], [], []))
         self.assertEqual(dt.get_data_shape('vertices'), (16384, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (16384, 3))
         self.assertEqual(dt.get_data_shape('triangles'), (32760, 3))
+        
+        
+    def test_surface_reload(self):
+        dt = surfaces.Surface()
+        dt.default.reload(dt, folder_path = os.path.join("surfaces", "cortex_tvb_whitematter"))
+        self.assertEqual(dt.get_data_shape('vertices'), (81924, 3))
+        self.assertEqual(dt.get_data_shape('vertex_normals'), (81924, 3))
+        self.assertEqual(dt.get_data_shape('triangles'), (163840, 3))
         
         
     def test_corticalsurface(self):
@@ -91,6 +123,11 @@ class SurfacesTest(BaseTestCase):
         
     def test_cortexdata(self):
         dt = surfaces.Cortex()
+        dt.configure()
+        summary_info = dt.summary_info
+        self.assertEqual(summary_info['Region area, maximum (mm:math:`^2`)'], 9119.4540365252615)
+        self.assertEqual(summary_info['Region area, mean (mm:math:`^2`)'], 3366.2542250541251)
+        self.assertEqual(summary_info['Region area, minimum (mm:math:`^2`)'], 366.48271886512993)
         self.assertEqual(dt.get_data_shape('vertices'), (16384, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (16384, 3))
         self.assertEqual(dt.get_data_shape('triangles'), (32760, 3))

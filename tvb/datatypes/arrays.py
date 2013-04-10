@@ -221,21 +221,3 @@ class MappedArray(arrays_scientific.MappedArrayScientific,
     """
     pass
 
-
-if __name__ == '__main__':
-    # Do some stuff that tests or makes use of this module...
-    LOG.info("Testing %s module..." % __file__)
-    
-    # Check that all default Array datatypes initializes without error.
-    FLOAT_ARRAY = FloatArray()
-    INTEGER_ARRAY = IntegerArray()
-    COMPLEX_ARRAY = ComplexArray()
-    BOOL_ARRAY = BoolArray()
-    STRING_ARRAY = StringArray()
-    POSITION_ARRAY = PositionArray()
-    ORIENTATION_ARRAY = OrientationArray()
-    INDEX_ARRAY = IndexArray()
-    MAPPED_ARRAY = MappedArray()
-    
-    LOG.info("Default Array datatypes initialized without error...")
-

@@ -24,16 +24,8 @@ Entry point for all unit-tests for TVB Scientific Library.
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
-
-import sys
-# Remove anything pointing to the framework, to make sure that only one direct dependency exists
-# TVB-Framework --> TVB Scientific Library
-# We should have nothing inverse.
-sys.path = [path for path in sys.path if not path.endswith('framework_tvb')]
-
-from tvb.basic.profile import TvbProfile as tvb_profile
-# Set the current environment to the test setup
-tvb_profile.set_profile(["-profile", "LIBRARY_PROFILE"])
+from tvb_library_test import setup_test_console_env
+setup_test_console_env()
 
 # Make sure we are in library mode and are not influenced by framework
 try:
@@ -64,7 +56,8 @@ def generage_excludes(root_folders):
             for file_n in files:
                 full_path = os.path.join(root, file_n)
                 if (full_path.endswith('__init__.py') or 
-                    full_path.endswith('framework.py')):
+                    full_path.endswith('framework.py') or 
+                    'tvb/simulator' in full_path):
                     excludes.append(full_path)
     return excludes
 

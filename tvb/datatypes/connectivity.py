@@ -62,13 +62,3 @@ class Connectivity(connectivity_scientific.ConnectivityScientific, connectivity_
     #    tracts connecting reions ... ete,etc, blah, blah"""
     pass
 
-
-
-if __name__ == '__main__':
-    # Do some stuff that tests or makes use of this module...
-    LOG.info("Testing %s module..." % __file__)
-    
-    # Check that default Connectivity datatype initializes without error.
-    CONNECTIVITY = Connectivity()
-    
-    LOG.info("Default Connectivity datatype initialized without error...")
