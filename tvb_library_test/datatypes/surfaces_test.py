@@ -125,9 +125,9 @@ class SurfacesTest(BaseTestCase):
         dt = surfaces.Cortex()
         dt.configure()
         summary_info = dt.summary_info
-        self.assertEqual(summary_info['Region area, maximum (mm:math:`^2`)'], 9119.4540365252615)
-        self.assertEqual(summary_info['Region area, mean (mm:math:`^2`)'], 3366.2542250541251)
-        self.assertEqual(summary_info['Region area, minimum (mm:math:`^2`)'], 366.48271886512993)
+        self.assertEqual(abs(summary_info['Region area, maximum (mm:math:`^2`)']- 9119.4540365252615) < 0.00000001)
+        self.assertEqual(abs(summary_info['Region area, mean (mm:math:`^2`)'] - 3366.2542250541251) < 0.00000001)
+        self.assertEqual(abs(summary_info['Region area, minimum (mm:math:`^2`)'] - 366.48271886512993) < 0.00000001)
         self.assertEqual(dt.get_data_shape('vertices'), (16384, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (16384, 3))
         self.assertEqual(dt.get_data_shape('triangles'), (32760, 3))
@@ -147,3 +147,5 @@ if __name__ == "__main__":
     TEST_RUNNER = unittest.TextTestRunner()
     TEST_SUITE = suite()
     TEST_RUNNER.run(TEST_SUITE) 
+    
+    
