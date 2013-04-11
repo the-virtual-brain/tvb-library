@@ -30,7 +30,7 @@ import shutil
 
 LIBRARY_VERSION = "1.0"
 
-TVB_TEAM = "Stuart Knock, Marmaduke Woodman, Paula Sansz Leon"
+TVB_TEAM = "Stuart Knock, Marmaduke Woodman, Paula Sanz Leon"
 CONTACT_EMAIL = "tvb.admin@thevirtualbrain.org"
 
 TVB_INSTALL_REQUIREMENTS = ["networkx", "nibabel", "numpy", "numexpr", "scikit-learn", "scipy"]
