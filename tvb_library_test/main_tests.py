@@ -55,9 +55,7 @@ def generage_excludes(root_folders):
         for root, _, files in os.walk(root):
             for file_n in files:
                 full_path = os.path.join(root, file_n)
-                if (full_path.endswith('__init__.py') or 
-                    full_path.endswith('framework.py') or 
-                    'tvb/simulator' in full_path):
+                if (full_path.endswith('__init__.py')):
                     excludes.append(full_path)
     return excludes
 

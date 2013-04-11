@@ -28,6 +28,7 @@ if __name__ == "__main__":
     setup_test_console_env()
     
 import os
+import sys
 import unittest
 
 from tvb.datatypes import surfaces
@@ -120,7 +121,8 @@ class SurfacesTest(BaseTestCase):
         dt = surfaces.LocalConnectivity()
         self.assertTrue(dt.surface is None)
         
-        
+    
+    @unittest.skipIf(sys.maxsize <= 2147483647, "Cannot compute local connectivity on 32-bit machine.")    
     def test_cortexdata(self):
         dt = surfaces.Cortex()
         dt.configure()
