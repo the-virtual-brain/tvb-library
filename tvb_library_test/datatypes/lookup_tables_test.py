@@ -47,24 +47,32 @@ class LookupTablesTest(BaseTestCase):
         
     def test_psitable(self):
         dt = lookup_tables.PsiTable()
-        self.assertEqual(dt.data[0].shape, (15000,))
-        self.assertEqual(dt.df[0].shape, (14999,))
-        self.assertEqual(dt.dx.shape, (0,))
-        self.assertEqual(dt.invdx.shape, (0,))
-        self.assertEqual(dt.number_of_values, 0)
+        dt.configure()
+        summary = dt.summary_info
+        self.assertEqual(summary['Number of values'], 15000)
+        self.assertEqual(dt.data.shape, (15000,))
+        self.assertEqual(dt.df.shape, (14999,))
+        self.assertEqual(dt.dx.shape, ())
+        self.assertEqual(dt.invdx.shape, ())
+        self.assertEqual(dt.number_of_values, 15000)
         self.assertEqual(dt.xmax, 0.3)
         self.assertEqual(dt.xmin, 0.0)
+        self.assertTrue(isinstance(dt.search_value(0), float))
         
         
     def test_nerftable(self):
         dt = lookup_tables.NerfTable()
-        self.assertEqual(dt.data[0].shape, (15000,))
-        self.assertEqual(dt.df[0].shape, (14999,))
-        self.assertEqual(dt.dx.shape, (0,))
-        self.assertEqual(dt.invdx.shape, (0,))
-        self.assertEqual(dt.number_of_values, 0)
+        dt.configure()
+        summary = dt.summary_info
+        self.assertEqual(summary['Number of values'], 15000)
+        self.assertEqual(dt.data.shape, (15000,))
+        self.assertEqual(dt.df.shape, (14999,))
+        self.assertEqual(dt.dx.shape, ())
+        self.assertEqual(dt.invdx.shape, ())
+        self.assertEqual(dt.number_of_values, 15000)
         self.assertEqual(dt.xmax, 20)
         self.assertEqual(dt.xmin, -10)
+        self.assertTrue(isinstance(dt.search_value(0), float))
         
         
 def suite():

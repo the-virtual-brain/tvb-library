@@ -29,14 +29,19 @@ if __name__ == "__main__":
     
 import unittest
 
-from tvb.datatypes import sensors
+from tvb.datatypes import sensors, surfaces
 from tvb_library_test.base_testcase import BaseTestCase
         
 class SensorsTest(BaseTestCase):
     
     def test_sensors(self):
+        surf = surfaces.SkinAir()
+        surf.configure()
         dt = sensors.Sensors()
         dt.configure()
+        mapping = dt.sensors_to_surface(surf)
+        self.assertEqual(mapping[0].shape, (62, 1))
+        self.assertEqual(mapping[1].shape, (62, 3))
         summary_info = dt.summary_info
         self.assertEqual(summary_info['Sensor type'], '')
         self.assertEqual(summary_info['Number of Sensors'], 62)

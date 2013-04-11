@@ -27,47 +27,80 @@ if __name__ == "__main__":
     from tvb_library_test import setup_test_console_env
     setup_test_console_env()
     
+import numpy    
 import unittest
 
-from tvb.datatypes import patterns
+from tvb.datatypes import patterns, equations, connectivity, surfaces
 from tvb_library_test.base_testcase import BaseTestCase
         
 class PatternsTest(BaseTestCase):
     
-    def test_principalcomponents(self):
+    def test_spatialpattern(self):
         dt = patterns.SpatialPattern()
-        self.assertTrue(dt.space is None)
-        self.assertTrue(dt.spatial is None)
-        self.assertTrue(dt.spatial_pattern is None)
+        dt.spatial = equations.DoubleGaussian()
+        dt.spatial_pattern = numpy.arange(100).reshape((10, 10))
+        dt.configure_space(numpy.arange(100).reshape((10, 10)))
+        dt.configure()
+        summary = dt.summary_info
+        self.assertEqual(summary['Type'], 'SpatialPattern')
+        self.assertEqual(dt.space.shape, (10, 10))
+        self.assertTrue(isinstance(dt.spatial, equations.DoubleGaussian))
+        self.assertTrue(dt.spatial_pattern.shape, (10, 1))
         
         
     def test_spatiotemporalpattern(self):
         dt = patterns.SpatioTemporalPattern()
-        self.assertTrue(dt.space is None)
-        self.assertTrue(dt.spatial is None)
-        self.assertTrue(dt.spatial_pattern is None)
-        self.assertTrue(dt.temporal is None)
+        dt.spatial = equations.DoubleGaussian()
+        dt.temporal = equations.Gaussian()
+        dt.spatial_pattern = numpy.arange(100).reshape((10, 10))
+        dt.configure_space(numpy.arange(100).reshape((10, 10)))
+        dt.configure()
+        summary = dt.summary_info
+        self.assertEqual(summary['Type'], 'SpatioTemporalPattern')
+        self.assertEqual(dt.space.shape, (10, 10))
+        self.assertTrue(isinstance(dt.spatial, equations.DoubleGaussian))
+        self.assertEqual(dt.spatial_pattern.shape, (10, 1))
+        self.assertTrue(isinstance(dt.temporal, equations.Gaussian))
         self.assertTrue(dt.temporal_pattern is None)
         self.assertTrue(dt.time is None)
         
         
     def test_stimuliregion(self):
+        conn = connectivity.Connectivity()
+        conn.configure()
         dt = patterns.StimuliRegion()
-        self.assertTrue(dt.connectivity is None)
-        self.assertTrue(dt.space is None)
-        self.assertTrue(dt.spatial_pattern is None)
-        self.assertTrue(dt.temporal is None)
+        dt.connectivity = conn
+        dt.spatial = equations.Discrete()
+        dt.temporal = equations.Gaussian()
+        dt.weight = [0 for _ in range(conn.number_of_regions)]
+        dt.configure_space()
+        self.assertEqual(dt.summary_info['Type'], 'StimuliRegion')
+        self.assertTrue(dt.connectivity is not None)
+        self.assertEqual(dt.space.shape, (74, 1))
+        self.assertEqual(dt.spatial_pattern.shape, (74, 1))
+        self.assertTrue(isinstance(dt.temporal, equations.Gaussian))
         self.assertTrue(dt.temporal_pattern is None)
         self.assertTrue(dt.time is None)
         
         
     def test_stimulisurface(self):
+        srf = surfaces.CorticalSurface()
+        srf.configure()
         dt = patterns.StimuliSurface()
-        self.assertTrue(dt.space is None)
-        self.assertTrue(dt.spatial is None)
-        self.assertTrue(dt.spatial_pattern is None)
-        self.assertTrue(dt.surface is None)
-        self.assertTrue(dt.temporal is None)
+        dt.surface = srf
+        dt.spatial = equations.Discrete()
+        dt.temporal = equations.Gaussian()
+        dt.focal_points_surface = [0, 1, 2]
+        dt.focal_points_triangles = [0, 1, 2]
+        dt.configure()
+        dt.configure_space()
+        summary = dt.summary_info
+        self.assertEqual(summary['Type'], "StimuliSurface")
+        self.assertEqual(dt.space.shape, (81924, 3))
+        self.assertTrue(isinstance(dt.spatial, equations.Discrete))
+        self.assertEqual(dt.spatial_pattern.shape, (81924, 1))
+        self.assertTrue(dt.surface is not None)
+        self.assertTrue(isinstance(dt.temporal, equations.Gaussian))
         self.assertTrue(dt.temporal_pattern is None)
         self.assertTrue(dt.time is None)
         

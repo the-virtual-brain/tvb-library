@@ -179,7 +179,7 @@ class Table(File):
         if dimension_2 is not None:
             return numpy.array(self.loaded_table[dimension_1][dimension_2])
     
-        return numpy.array(self.loaded_table[dimension_1]),
+        return numpy.array(self.loaded_table[dimension_1])
     
         
     
