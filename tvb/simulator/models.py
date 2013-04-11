@@ -1941,7 +1941,23 @@ class Generic2dOscillator(Model):
     |* excitable regime if b=0.6|
     |* oscillatory if b=0.4     |
     -----------------------------
-
+    
+    
+     ---------------------------
+    |  SanzLeonetAl  2013       | 
+     ---------------------------
+    |Parameter     |  Value     |
+    -----------------------------
+    | a            |    - 0.5   |
+    | b            |    -15.0   |
+    | c            |      0.0   |
+    | d            |      0.02  |
+    | I            |      0.0   |
+    -----------------------------
+    |* excitable regime if      |
+    |* intrinsic frequency is   |
+    |  approx 10 Hz             |
+    -----------------------------
 
     .. figure :: img/Generic2dOscillator_01_mode_0_pplane.svg
     .. _phase-plane-Generic2D:
@@ -2102,8 +2118,8 @@ class Generic2dOscillator(Model):
         The equations of the generic 2D population model read
 
         .. math::
-            \dot{V} &= \tau ( W - V^3 +3 V^2 + I) \\
-            \dot{W} &= -(a\, + b\, V + c\, V^2 - \, W) / \tau
+            \dot{V} &= \tau (\alpha W - V^3 +3 V^2 + I) \\
+            \dot{W} &= (a\, + b\, V + c\, V^2 - \, beta W) / \tau
 
         where external currents :math:`I` provide the entry point for local, 
         long-range connectivity and stimulation.
