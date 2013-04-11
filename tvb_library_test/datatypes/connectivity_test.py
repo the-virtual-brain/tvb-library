@@ -41,6 +41,7 @@ class ConnectivityTest(BaseTestCase):
         Create a connectivity and see that all defaults are loaded properly.
         """
         conn = connectivity.Connectivity()
+        conn.configure()
         # Check for value from demodata/connectivity/o52r00_irp2008
         self.assertEqual(conn.weights.shape, (74, 74))
         self.assertEqual(conn.weights.max(), 3.0)
@@ -55,14 +56,23 @@ class ConnectivityTest(BaseTestCase):
         self.assertEqual(conn.unidirectional, 0)
         self.assertEqual(conn.speed, numpy.array([3.0]))
         self.assertTrue(conn.cortical.all())
-        self.assertEqual(conn.hemispheres.shape, (0,))
+        self.assertEqual(conn.hemispheres.shape, (74,))
         self.assertEqual(conn.idelays.shape, (0,))
-        self.assertEqual(conn.delays.shape, (0,))
-        self.assertEqual(conn.number_of_regions, 0)
+        self.assertEqual(conn.delays.shape, (74, 74,))
+        self.assertEqual(conn.number_of_regions, 74)
         self.assertTrue(conn.parcellation_mask is None)
         self.assertTrue(conn.nose_correction is None)
         self.assertTrue(conn.saved_selection is None)
         self.assertEqual(conn.parent_connectivity, '')
+        summary = conn.summary_info
+        self.assertEqual(summary['Number of regions'], 74)
+        ## Call connectivity methods and make sure no compilation or runtime erros
+        conn.compute_tract_lengths()
+        conn.compute_region_labels()
+        conn.try_compute_hemispheres()
+        self.assertEqual(conn.normalised_weights().shape, (74, 74))
+        for mode in ['normal', 'shuffle', 'mean', 'empirical', 'analytical']:
+            conn.switch_distribution(mode=mode)
         
         
     def test_connectivity_reload(self):

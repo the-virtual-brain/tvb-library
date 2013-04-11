@@ -71,6 +71,7 @@ class DataReadersTest(BaseTestCase):
                 self.assertEqual(test_array_2[x_idx][y_idx], read_data['array2'][x_idx][y_idx], 
                                  "Loaded data from file is different from data that was saved.")
         self._test_file_object(tvb_file, 'test_data.npz')
+        read_data.close()
         os.remove(test_data_file)
         
     def _test_file_object(self, file_object, data_file_name):

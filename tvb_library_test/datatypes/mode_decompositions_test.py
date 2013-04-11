@@ -26,32 +26,55 @@ Created on Mar 20, 2013
 if __name__ == "__main__":
     from tvb_library_test import setup_test_console_env
     setup_test_console_env()
-    
+ 
+import numpy   
 import unittest
 
-from tvb.datatypes import mode_decompositions
+from tvb.datatypes import mode_decompositions, time_series
 from tvb_library_test.base_testcase import BaseTestCase
         
 class ModeDecompositionsTest(BaseTestCase):
     
     def test_principalcomponents(self):
-        dt = mode_decompositions.PrincipalComponents()
-        self.assertTrue(dt.source is None)
-        self.assertEqual(dt.weights.shape, (0,))
-        self.assertEqual(dt.fractions.shape, (0,))
-        self.assertEqual(dt.norm_source.shape, (0,))
-        self.assertEqual(dt.component_time_series.shape, (0,))
-        self.assertEqual(dt.normalised_component_time_series.shape, (0,))
+        data = numpy.random.random((10, 10, 10, 10))
+        ts = time_series.TimeSeries(data=data)
+        dt = mode_decompositions.PrincipalComponents(source = ts,
+                                                    fractions = numpy.random.random((10, 10, 10)),
+                                                    weights = data)
+        dt.configure()
+        dt.compute_norm_source()
+        dt.compute_component_time_series()
+        dt.compute_normalised_component_time_series()
+        summary = dt.summary_info
+        self.assertEqual(summary['Mode decomposition type'], 'PrincipalComponents')
+        self.assertTrue(dt.source is not None)
+        self.assertEqual(dt.weights.shape, (10, 10, 10, 10))
+        self.assertEqual(dt.fractions.shape, (10, 10, 10))
+        self.assertEqual(dt.norm_source.shape, (10, 10, 10, 10))
+        self.assertEqual(dt.component_time_series.shape, (10, 10, 10, 10))
+        self.assertEqual(dt.normalised_component_time_series.shape, (10, 10, 10, 10))
         
         
     def test_independentcomponents(self):
-        dt = mode_decompositions.IndependentComponents()
-        self.assertTrue(dt.source is None)
+        data = numpy.random.random((10, 10, 10, 10))
+        ts = time_series.TimeSeries(data=data)
+        n_comp = 5
+        dt = mode_decompositions.IndependentComponents(  source = ts,
+                                         component_time_series = numpy.random.random((10, n_comp, 10, 10)), 
+                                         prewhitening_matrix = numpy.random.random((n_comp, 10, 10, 10)),
+                                         unmixing_matrix = numpy.random.random((n_comp, n_comp, 10, 10)),
+                                         n_components = n_comp)
+        dt.compute_norm_source()
+        dt.compute_component_time_series()
+        dt.compute_normalised_component_time_series()
+        summary = dt.summary_info
+        self.assertEqual(summary['Mode decomposition type'], 'IndependentComponents')
+        self.assertTrue(dt.source is not None)
         self.assertEqual(dt.mixing_matrix.shape, (0,))
-        self.assertEqual(dt.unmixing_matrix.shape, (0,))
-        self.assertEqual(dt.prewhitening_matrix.shape, (0,))
-        self.assertEqual(dt.norm_source.shape, (0,))
-        self.assertEqual(dt.component_time_series.shape, (0,))
+        self.assertEqual(dt.unmixing_matrix.shape, (n_comp, n_comp, 10, 10))
+        self.assertEqual(dt.prewhitening_matrix.shape, (n_comp, 10, 10, 10))
+        self.assertEqual(dt.norm_source.shape, (10, 10, 10, 10))
+        self.assertEqual(dt.component_time_series.shape, (10, 10, n_comp, 10))
         
         
 def suite():

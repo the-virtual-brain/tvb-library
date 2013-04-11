@@ -29,6 +29,9 @@ if __name__ == "__main__":
     
 import unittest
 
+# Import just to test for any runtime/syntax erros
+import tvb.datatypes.api_datatypes
+
 from tvb_library_test.datatypes import arrays_test
 from tvb_library_test.datatypes import connectivity_test
 from tvb_library_test.datatypes import coupling_test

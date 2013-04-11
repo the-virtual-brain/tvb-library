@@ -26,34 +26,28 @@ Created on Mar 20, 2013
 if __name__ == "__main__":
     from tvb_library_test import setup_test_console_env
     setup_test_console_env()
-
-import numpy
+ 
+import numpy   
 import unittest
 
-from tvb.datatypes import graph, time_series, connectivity
+from tvb.datatypes import mapped_values, time_series
 from tvb_library_test.base_testcase import BaseTestCase
         
-class GraphTest(BaseTestCase):
+class MappedTest(BaseTestCase):
     
-    def test_covariance(self):
-        data = numpy.random.random((10, 10))
+    def test_valuewrapper(self):
+        dt = mapped_values.ValueWrapper(data_value=10,
+                                         data_type="Integer",
+                                         data_name="TestVale")
+        self.assertEqual(dt.display_name, "Value Wrapper - TestVale : 10 (Integer)")
+        
+        
+    def test_datatypemeasure(self):
+        data = numpy.random.random((10, 10, 10, 10))
         ts = time_series.TimeSeries(data=data)
-        dt = graph.Covariance(source=ts)
-        self.assertEqual(dt.shape, (0,))
-        self.assertEqual(dt.array_data.shape, (0,))
-        summary = dt.summary_info
-        self.assertEqual(summary['Graph type'], "Covariance")
-        self.assertEqual(summary['Shape'], (0,))
-        
-        
-    def test_connectivitymeasure(self):
-        conn = connectivity.Connectivity()
-        dt = graph.ConnectivityMeasure(connectivity=conn)
-        self.assertEqual(dt.shape, (0,))
-        self.assertTrue(dt.dimensions_labels is None)
-        self.assertTrue(dt.connectivity is not None)
-        summary = dt.summary_info
-        self.assertEqual(summary['Graph type'], 'ConnectivityMeasure')
+        dt = mapped_values.DatatypeMeasure(analyzed_datatype=ts,
+                                           metrics={"Dummy" : 1})
+        self.assertEqual(dt.display_name, "\nDummy : 1\n")
         
         
 def suite():
@@ -61,7 +55,7 @@ def suite():
     Gather all the tests in a test suite.
     """
     test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.makeSuite(GraphTest))
+    test_suite.addTest(unittest.makeSuite(MappedTest))
     return test_suite
 
 
