@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 #
 #
-# TheVirtualBrain-Framework Package. This package holds all Data Management, and 
-# Web-UI helpful to run brain-simulations. To use it, you also need do download
-# TheVirtualBrain-Scientific Package (for simulators). See content of the
+#  TheVirtualBrain-Scientific Package. This package holds all simulators, and 
+# analysers necessary to run brain-simulations. You can use it stand alone or
+# in conjunction with TheVirtualBrain-Framework Package. See content of the
 # documentation-folder for more details. See also http://www.thevirtualbrain.org
 #
 # (c) 2012-2013, Baycrest Centre for Geriatric Care ("Baycrest")
@@ -23,7 +23,11 @@ Created on Apr 8, 2013
 
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
-import unittest
+### Try to import extra module when running with Python 2.6 (where unittest2 is not default)
+try:
+    import unittest2 as unittest
+except Exception, _:
+    import unittest
 from tvb.basic.config.settings import TVBSettings as cfg
 
 class BaseTestCase(unittest.TestCase):
