@@ -29,7 +29,10 @@ if __name__ == "__main__":
     
 import os
 import sys
-import unittest
+try:
+    import unittest2 as unittest
+except Exception, _:
+    import unittest
 
 from tvb.datatypes import surfaces
 from tvb_library_test.base_testcase import BaseTestCase
