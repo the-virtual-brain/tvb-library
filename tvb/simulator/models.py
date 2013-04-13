@@ -853,13 +853,10 @@ class ReducedSetFitzHughNagumo(Model):
         beta = state_variables[3, :]
 
         # sum the activity from the modes
-        #c_0 = coupling[0, :].sum(axis=1)
-        c_0 = coupling[0, :]
+        c_0 = coupling[0, :].sum(axis=1, keepdims=True)
 
         #TODO: generalize coupling variables to a matrix form 
         #c_1 = coupling[1, :] # this cv represents alpha
-
-        #import pdb; pdb.set_trace()
 
         dxi = (self.tau * (xi - self.e_i * xi**3 / 3.0 - eta) +
                self.K11 * (numpy.dot(xi, self.Aik) - xi) -
@@ -1310,7 +1307,7 @@ class ReducedSetHindmarshRose(Model):
         beta = state_variables[4, :]
         gamma = state_variables[5, :]
 
-        #c_0 = coupling[0, :].sum(axis=1)
+        c_0 = coupling[0, :].sum(axis=1, keepdims=True)
         #c_1 = coupling[1, :]
 
         c_0 = coupling[0, :]
