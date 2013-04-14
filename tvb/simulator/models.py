@@ -1310,9 +1310,6 @@ class ReducedSetHindmarshRose(Model):
         c_0 = coupling[0, :].sum(axis=1, keepdims=True)
         #c_1 = coupling[1, :]
 
-        c_0 = coupling[0, :]
-        c_1 = coupling[1, :]
-
         dxi = (eta - self.a_i * xi**3 + self.b_i * xi**2 - tau +
               self.K11 * (numpy.dot(xi, self.A_ik) - xi) -
               self.K12 * (numpy.dot(alpha, self.B_ik) - xi) +
