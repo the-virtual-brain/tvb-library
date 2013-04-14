@@ -1422,7 +1422,7 @@ class SEEG(Monitor):
     """
     Monitors electrophysiological signals from depth electrodes (intended for stereo-EEG).
     """
-    _ui_name = "stereo-EEG"
+    _ui_name = "Stereo-EEG"
 
     sigma = basic.Float(label = "conductivity",
                   default = 1.0)
