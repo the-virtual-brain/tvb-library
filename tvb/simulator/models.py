@@ -853,7 +853,7 @@ class ReducedSetFitzHughNagumo(Model):
         beta = state_variables[3, :]
 
         # sum the activity from the modes
-        c_0 = coupling[0, :].sum(axis=1, keepdims=True)
+        c_0 = coupling[0, :].sum(axis=1)[:, numpy.newaxis]
 
         #TODO: generalize coupling variables to a matrix form 
         #c_1 = coupling[1, :] # this cv represents alpha
@@ -1307,7 +1307,7 @@ class ReducedSetHindmarshRose(Model):
         beta = state_variables[4, :]
         gamma = state_variables[5, :]
 
-        c_0 = coupling[0, :].sum(axis=1, keepdims=True)
+        c_0 = coupling[0, :].sum(axis=1)[:, numpy.newaxis]
         #c_1 = coupling[1, :]
 
         dxi = (eta - self.a_i * xi**3 + self.b_i * xi**2 - tau +
