@@ -251,6 +251,12 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
                       corresponding parameters and then randomly samples a new 
                       matrix. 
         """
+        # Empirical seems to fail on some scipy installations. Error is not pinned down
+        # so far, it seems to only happen on some machines. Most relevant related to this:
+        #
+        # http://projects.scipy.org/scipy/ticket/1735
+        # http://comments.gmane.org/gmane.comp.python.scientific.devel/14816
+        # http://permalink.gmane.org/gmane.comp.python.numeric.general/42082
         D = eval("self." + matrix)
         
         msg = "The distribution of the %s matrix will be changed" % matrix
