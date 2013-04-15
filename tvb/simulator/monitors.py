@@ -309,7 +309,7 @@ class SpatialAverage(Monitor):
     default_mask = basic.Enumerate(
                               label = "Default Mask",
                               options = ["cortical", "hemispheres"],
-                              default = ["cortical"],
+                              default = ["hemispheres"],
                               doc = r"""Fallback in case spatial mask is none and no surface provided 
                               to use either connectivity hemispheres or cortical attributes.""",
                               order = 2)
