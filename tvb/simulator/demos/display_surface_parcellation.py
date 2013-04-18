@@ -61,7 +61,7 @@ colour_rgb = {"r": numpy.array([255,   0,   0], dtype=numpy.uint8),
               "Y": numpy.array([128, 128,   0], dtype=numpy.uint8)}
 
 
-(surf_mesh, bpts) = surface_parcellation(CORTEX_BOUNDARIES, colouring, mapping_colours, colour_rgb, white_matter)
+(surf_mesh, bpts) = surface_parcellation(CORTEX_BOUNDARIES, colouring, mapping_colours, colour_rgb, interaction=True)
 
 
 
