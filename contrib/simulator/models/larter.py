@@ -12,18 +12,14 @@ A contributed model: Larter
 
 # Third party python libraries
 import numpy
+import numexpr
 
 #The Virtual Brain
-try:
-    from tvb.basic.logger.builder import get_logger
-    LOG = get_logger(__name__)
-except ImportError:
-    import logging
-    LOG = logging.getLogger(__name__)
+from tvb.simulator.common import psutil, get_logger
+LOG = get_logger(__name__)
 
 import tvb.datatypes.arrays as arrays
-import tvb.basic.traits.types_basic as basic
-
+import tvb.basic.traits.types_basic as basic 
 import tvb.simulator.models as models
 
 

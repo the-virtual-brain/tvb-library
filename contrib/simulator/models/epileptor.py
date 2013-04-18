@@ -9,19 +9,18 @@ The Epileptor model
 
 # Third party python libraries
 import numpy
+import numexpr
 
 #The Virtual Brain
 from tvb.simulator.common import psutil, get_logger
 LOG = get_logger(__name__)
 
-
-from tvb.datatypes.arrays import FloatArray, IntegerArray
-
-from tvb.basic.traits.types_basic import Range, Dict 
+import tvb.datatypes.arrays as arrays
+import tvb.basic.traits.types_basic as basic 
 import tvb.simulator.models as models
 
 
-class HMJEpileptor(Model):
+class HMJEpileptor(models.Model):
     """
     The Epileptor is a composite neural mass model of six dimensions which 
     has be crafted to model the phenomenology of epileptic seizures.
