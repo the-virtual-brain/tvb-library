@@ -120,9 +120,9 @@ nodes     = [35, 36]
 eeg_nodes = [8, 9 ,60]
 
 # discard transients for analysis
-start = (256 + 128 + 64) *2 
+start = 2048 * 2 - 128 # at 1 second
 # for pretty pictures
-stop  = (2048 + 256 ) * 2# 1250 ms
+stop  = 2048 * 5 - 64  # 2.5 second 
 
 ##----------------------------------------------------------------------------##
 ##-                      Set up a simulator  instance                        -##
@@ -147,14 +147,14 @@ def configure_simulation(stimulate):
     pr.projection_data = eeg_projection
     
     #Initialise a Model, Connectivity, Coupling, set speed.
-    oscilator = models.Generic2dOscillator(a=-0.5, b=-10.0, c=0.0, d=0.02)
+    oscilator = models.Generic2dOscillator(a=-0.5, b=-10., c=0.0, d=0.02)
     
     white_matter = connectivity.Connectivity()
     white_matter.speed = numpy.array([4.0])
     white_matter_coupling = coupling.Linear(a=0.042)
     
     #Initialise an Integrator
-    hiss = noise.Additive(nsig = numpy.array([0.015]))
+    hiss = noise.Additive(nsig = numpy.array([0.00])) #nsigm 0.015
     heunint = integrators.HeunStochastic(dt=2**-6, noise=hiss)
     
     # Recording techniques
@@ -210,9 +210,9 @@ def build_stimulus(white_matter):
     weighting[nodes] = numpy.array([3.5, 0.0])[:, numpy.newaxis]
     
     eqn_t = equations.PulseTrain()
-    eqn_t.parameters["onset"] = 250.0 # ms
-    eqn_t.parameters["tau"]   = 5.0   # ms
-    eqn_t.parameters["T"]     = 500.  # ms --> 0.002kHz repetition frequency
+    eqn_t.parameters["onset"] = 1000.0 # ms
+    eqn_t.parameters["tau"]   = 5.0    # ms
+    eqn_t.parameters["T"]     = 750.  # ms --> 0.0015kHz repetition frequency
 
     
     
@@ -234,8 +234,8 @@ def compute_mse(xs_data, ys_data):
     x = numpy.array(xs_data)
     y = numpy.array(ys_data)
     
-    sampen_x = sampen(x[start:, 0, eeg_nodes[2], 0], r=.15, taus=numpy.r_[4:13], qse=False, m=2)
-    sampen_y = sampen(y[start:, 0, eeg_nodes[2], 0], r=.15, taus=numpy.r_[4:13], qse=False, m=2)
+    sampen_x = sampen(x[2048:, 0, eeg_nodes[2], 0], r=.15, taus=numpy.r_[4:13], qse=False, m=2)
+    sampen_y = sampen(y[2048:, 0, eeg_nodes[2], 0], r=.15, taus=numpy.r_[4:13], qse=False, m=2)
                   
     return sampen_x, sampen_y              
 
@@ -322,22 +322,22 @@ def plot_figure(se_x, se_y, eeg_data, tavg_data, rseeg, rstavg, pattern, nodes, 
     """
     
 
-#    fig_width_pt = 1200.0  # Get this from LaTeX using \showthe\columnwidth
-#    inches_per_pt = 1.0/72.27               # Convert pt to inch
-#    golden_mean = (numpy.sqrt(5)+1.0)/2.0         # Aesthetic ratio
-#    fig_width = fig_width_pt*inches_per_pt  # width in inches
-#    fig_height = fig_width * golden_mean      # height in inches
-#    fig_size =  [fig_height, fig_width]
-#    params = {'backend': 'ps',
-#          'axes.labelsize': 26,
-#          'text.fontsize': 20,
-#          'legend.fontsize': 30,
-#          'xtick.labelsize': 24,
-#          'ytick.labelsize': 24,
-#          'text.usetex': True,
-#          'figure.figsize': fig_size}
-#    pyplot.rcParams.update(params)
-#    pyplot.locator_params(axis = 'y', nbins = 4)
+    fig_width_pt = 1200.0  # Get this from LaTeX using \showthe\columnwidth
+    inches_per_pt = 1.0/72.27               # Convert pt to inch
+    golden_mean = (numpy.sqrt(5)+1.0)/2.0         # Aesthetic ratio
+    fig_width = fig_width_pt*inches_per_pt  # width in inches
+    fig_height = fig_width * golden_mean      # height in inches
+    fig_size =  [fig_height, fig_width]
+    params = {'backend': 'ps',
+          'axes.labelsize': 26,
+          'text.fontsize': 20,
+          'legend.fontsize': 30,
+          'xtick.labelsize': 24,
+          'ytick.labelsize': 24,
+          'text.usetex': True,
+          'figure.figsize': fig_size}
+    pyplot.rcParams.update(params)
+    pyplot.locator_params(axis = 'y', nbins = 4)
 
     import matplotlib.gridspec as gridspec
     
@@ -359,12 +359,12 @@ def plot_figure(se_x, se_y, eeg_data, tavg_data, rseeg, rstavg, pattern, nodes, 
         # create a nice subplot layout
         gs = gridspec.GridSpec(6, 4)
         
-        ax1 = subplot(gs[:2, :-1 ])
+        ax1  = subplot(gs[:2, :-1])
         ax1z = subplot(gs[:2, -1 ])
         
-        ax0 = subplot(gs[2 ,  :-1])
-        ax0z = subplot(gs[2 ,  -1])
-        ax2 = subplot(gs[3:5, :-1 ])
+        ax0  = subplot(gs[2 ,  :-1])
+        ax0z = subplot(gs[2 ,  -1 ])
+        ax2  = subplot(gs[3:5, :-1])
         ax2z = subplot(gs[3:5, -1 ])
         
         # ER raw traces + stimulation pattern
@@ -376,6 +376,7 @@ def plot_figure(se_x, se_y, eeg_data, tavg_data, rseeg, rstavg, pattern, nodes, 
         
         temp_v1 /=  abs(temp_v1.max()) 
         temp_v2 /=  abs(temp_v2.max())
+        temp_v2  =   temp_v2 * 0.25
         
         temp_v2 += temp_v1.max() + 0.5 # offset for pretty pictures
         
@@ -413,7 +414,8 @@ def plot_figure(se_x, se_y, eeg_data, tavg_data, rseeg, rstavg, pattern, nodes, 
         ax0.set_ylim([-0.1, 1.25])
         setp(ax0.get_yticklabels(), visible=False)
         ax0.set_ylabel("stimulus")
-        
+
+        ##  Stimulus pattern  - Zoom in 
         ax0z.plot(time[start:stop//2] , 3.5* pattern[start:stop//2], 'r', linewidth=3, alpha=0.4, label="stim")
         ax0z.axes.get_xaxis().set_visible(False)
         ax0z.set_ylim([-0.1, 3.75])
@@ -446,8 +448,11 @@ def plot_figure(se_x, se_y, eeg_data, tavg_data, rseeg, rstavg, pattern, nodes, 
         ax2z.plot(time[start:stop//2], eeg_data[start:stop//2, 0, eeg_nodes[0], 0], color='0.55',lw=2, label="O1")
         ax2z.patch.set_facecolor('red')
         ax2z.patch.set_alpha(0.1)
+        ax2z.set_xticks([1000, 1100, 1200])
         ax2z.set_xlabel("time (ms)")
-        show()
+        #show()
+        savefig("Fig11_sampen_sto.pdf")
+
     
     
     plot_sampen=True
@@ -460,23 +465,23 @@ def plot_figure(se_x, se_y, eeg_data, tavg_data, rseeg, rstavg, pattern, nodes, 
         ax1 = subplot(gs[1,:])
         ax2 = subplot(gs[2,:])
         
-        ax0.plot(time[start:stop*2], rseeg_data[start:stop*2, 0, eeg_nodes[2], 0], 'k', lw=2, label="OZ-RS")
-        ax0.set_xlim([time[start] , time[stop*2] ])
+        ax0.plot(time[start:stop], rseeg_data[start:stop, 0, eeg_nodes[2], 0], 'k', lw=2, label="OZ-RS")
+        ax0.set_xlim([time[start] , time[stop-1] ])
         ax0.set_ylim([-25 , 55 ])
         ax0.axes.get_xaxis().set_visible(False)
         ax0.patch.set_facecolor('green')
-        ax0.legend()
+        ax0.legend(loc=2)
         ax0.patch.set_alpha(0.15)
         
         pattern = (pattern * 8.) - 24.
-        ax1.plot(time[start:stop*2], eeg_data[start:stop*2, 0, eeg_nodes[2], 0], 'k', lw=2, label="OZ-ER")
-        ax1.plot(time[start:stop*2] , pattern[start:stop*2], 'k', linewidth=3, alpha=0.4, label="stim")
-        ax1.set_xlim([time[start] , time[stop*2] ])
+        ax1.plot(time[start:stop], eeg_data[start:stop, 0, eeg_nodes[2], 0], 'k', lw=2, label="OZ-ER")
+        ax1.plot(time[start:stop] , pattern[start:stop], 'k', linewidth=3, alpha=0.4, label="stim")
+        ax1.set_xlim([time[start] , time[stop] ])
         ax1.set_ylim([-25 , 55 ])
         ax1.set_xlabel("time [ms]")
         ax1.patch.set_facecolor('blue')
         ax1.patch.set_alpha(0.15)
-        ax1.legend()
+        ax1.legend(loc=2)
 
         # sample entropy
         ax2.plot(numpy.r_[4:13], se_x, 'k--', label="resting state",   linewidth=3)
@@ -484,9 +489,9 @@ def plot_figure(se_x, se_y, eeg_data, tavg_data, rseeg, rstavg, pattern, nodes, 
         ax2.set_xlim([4, 12])
         ax2.set_ylabel("MSE")
         ax2.set_xlabel("temporal scale")
-        ax2.legend()
-        show()
-        #savefig("samepen.pdf")
+        ax2.legend(loc=2)
+        #show()
+        savefig("Fig12_mse.pdf")
     
 
 def main():
