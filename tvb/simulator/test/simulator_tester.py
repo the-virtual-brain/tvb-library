@@ -29,8 +29,11 @@ the module contains the test of its own main class???
 #TODO: Adapt to use the unittest.TestCase framework...
 
 # From standard python libraries
-##import unittest #NOTE: To use unitest framework meaningfully, reference data
-#                        needs to be created with which results can be compared.
+#import unittest 
+#NOTE: To use unitest framework meaningfully, reference data needs to be created 
+#      with which results can be compared.
+#TODO: TestCase to run (only) all the models (testClassModels)
+#TODO: TestCase to run (only) allt he integration schemes (testClassIntegrators)
 
 
 # Third party python libraries
@@ -38,30 +41,22 @@ import numpy
 from matplotlib.pyplot import figure, plot, title, show
 
 # From "The Virtual Brain"
-try:
-    from tvb.basic.logger.builder import get_logger
-    LOG = get_logger(__name__)
-except ImportError:
-    import logging
-    LOG = logging.getLogger(__name__)
-    LOG.warning("Failed to import tvb.basic.logger.builder, falling back to logging")
-    
+from tvb.simulator.lab import *
+
+"""
+from tvb.basic.logger.builder import get_logger
+LOG = get_logger(__name__)
+
 import tvb.simulator.simulator as simulator
 import tvb.simulator.models as models
 import tvb.simulator.coupling as coupling
-try:
-    import tvb.datatypes.connectivity as connectivity
-except ImportError:
-    msg = "Failed to import tvb.datatypes.connectivity, falling back to "
-    msg = msg + "tvb.simulator.connectivity."
-    LOG.warning(msg)  
-import tvb.simulator.connectivity as connectivity
-    
-    
 import tvb.simulator.monitors as monitors
 import tvb.simulator.integrators as integrators
 import tvb.simulator.noise as noise
+"""
 
+sens_meg = sensors.SensorsMEG()
+sens_eeg = sensors.SensorsEEG()
 
 class TestSimulator(object): #unittest.TestCase
     """
@@ -75,18 +70,18 @@ class TestSimulator(object): #unittest.TestCase
         """
 
         #Initialise some Monitors with period in physical time
-        raw = monitors.Raw()
-        gavg = monitors.GlobalAverage(period=2**-2)
+        raw     = monitors.Raw()
+        gavg    = monitors.GlobalAverage(period=2**-2)
         subsamp = monitors.SubSample(period=2**-2)
-        tavg = monitors.TemporalAverage(period=2**-2)
-        spheeg = monitors.SphericalEEG(period=2**-2)
-        sphmeg = monitors.SphericalMEG(period=2**-2)
+        tavg    = monitors.TemporalAverage(period=2**-2)
+        spheeg  = monitors.SphericalEEG(sensors=sens_eeg, period=2**-2)
+        sphmeg  = monitors.SphericalMEG(period=sens_meg, 2**-2)
         
         self.monitors = (raw, gavg, subsamp, tavg, spheeg, sphmeg) 
         
-        self.model = None
-        self.method = None
-        self.sim = None
+        self.model   = None
+        self.method  = None
+        self.sim     = None
 
 
     def test(self, simulation_length=2**4, display=False, return_data=False):
@@ -129,12 +124,12 @@ class TestSimulator(object): #unittest.TestCase
         #Display results, if requested
         if display:
             #import pdb; pdb.set_trace()
-            display_results(**{"Raw, "+self.model+", "+self.method : numpy.array(raw_data)[:, 0, :, 0], 
-                               "GlobalAverage, "+self.model+", "+self.method : numpy.array(gavg_data)[:, 0, :, 0],
-                               "SubSampled, "+self.model+", "+self.method : numpy.array(subsamp_data)[:, 0, :, 0], 
-                               "TemporalAverage, "+self.model+", "+self.method : numpy.array(tavg_data)[:, 0, :, 0], 
-                               "SphericalEEG, "+self.model+", "+self.method : numpy.array(spheeg_data)[:, 0, :, 0], 
-                               "SphericalMEG, "+self.model+", "+self.method : numpy.array(sphmeg_data)[:, 0, :, 0]})
+            display_results(**{"Raw, " + self.model + ", "+ self.method : numpy.array(raw_data)[:, 0, :, 0], 
+                               "GlobalAverage, " +self.model+", "+self.method : numpy.array(gavg_data)[:, 0, :, 0],
+                               "SubSampled, "+ self.model+", "+self.method : numpy.array(subsamp_data)[:, 0, :, 0], 
+                               "TemporalAverage, "+ self.model+", "+self.method : numpy.array(tavg_data)[:, 0, :, 0], 
+                               "SphericalEEG, "+ self.model+", "+self.method : numpy.array(spheeg_data)[:, 0, :, 0], 
+                               "SphericalMEG, "+ self.model+", "+self.method : numpy.array(sphmeg_data)[:, 0, :, 0]})
 
         #Return results, if requested
         if return_data:
