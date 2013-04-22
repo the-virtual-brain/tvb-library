@@ -47,7 +47,7 @@ class ConnectivityTest(BaseTestCase):
         self.assertEqual(conn.weights.max(), 3.0)
         self.assertEqual(conn.weights.min(), 0.0)
         self.assertEqual(conn.tract_lengths.shape, (74, 74))
-        self.assertEqual(conn.tract_lengths.max(), 142.1458)
+        self.assertEqual(conn.tract_lengths.max(), 153.48574)
         self.assertEqual(conn.tract_lengths.min(), 0.0)
         self.assertEqual(conn.centres.shape, (74, 3))
         self.assertEqual(conn.orientations.shape, (74, 3))
