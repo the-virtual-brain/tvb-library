@@ -1949,7 +1949,7 @@ class Generic2dOscillator(Model):
     |Parameter     |  Value     |
     -----------------------------
     | a            |    - 0.5   |
-    | b            |    -15.0   |
+    | b            |    -10.0   |
     | c            |      0.0   |
     | d            |      0.02  |
     | I            |      0.0   |
@@ -2018,7 +2018,7 @@ class Generic2dOscillator(Model):
 
     d = arrays.FloatArray(
         label=":math:`d`",
-        default=numpy.array([0.1]),
+        default=numpy.array([0.02]),
         range=basic.Range(lo=0.0001, hi=1.0, step=0.0001),
         doc="""Temporal scale factor. Warning: do not use it unless
         you know what you are doing and know about time tides.""",
