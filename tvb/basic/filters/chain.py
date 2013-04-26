@@ -134,7 +134,7 @@ class FilterChain(object):
 
     def __str__(self):
         return self.__class__.__name__ + "(fields=%s, operations=%s, values=%s, operator_between_fields=%s)" % (
-                self.fields, self.operations, self.values, self.operator_between_fields)
+            self.fields, self.operations, self.values, self.operator_between_fields)
 
 
     def to_json(self):
