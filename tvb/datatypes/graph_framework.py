@@ -41,7 +41,7 @@ class CovarianceFramework(graph_data.CovarianceData):
         # Do not call super, because that accesses data not-chunked
         self.nr_dimensions = len(self.read_data_shape())
         for i in range(self.nr_dimensions): 
-            setattr(self, 'length_%dd' % (i+1), int(self.read_data_shape()[i]))
+            setattr(self, 'length_%dd' % (i + 1), int(self.read_data_shape()[i]))
     
     def read_data_shape(self):
         """
@@ -59,8 +59,7 @@ class CovarianceFramework(graph_data.CovarianceData):
         """
         Append chunk.
         """
-        self.store_data_chunk('array_data', partial_result, 
-                              grow_dimension=2, close_file=False)
+        self.store_data_chunk('array_data', partial_result, grow_dimension=2, close_file=False)
 
 
 

@@ -58,7 +58,7 @@ system work:
 
 """
 
-import abc 
+import abc
 from copy import deepcopy, copy
 from tvb.basic.config.settings import TVBSettings as config
 from tvb.basic.traits.util import get, Args, TypeRegister, ispublic
@@ -69,8 +69,8 @@ LOG = get_logger(__name__)
 
 KWARG_CONSOLE_DEFAULT = 'console_default'
 KWARG_SELECT_MULTIPLE = 'select_multiple'
-KWARG_ORDER = 'order'                   ## -1 value means hidden from UI
-KWARG_AVOID_SUBCLASSES = 'fixed_type'   ## When set on a traited attr, no subclasses will be returned
+KWARG_ORDER = 'order'                   # -1 value means hidden from UI
+KWARG_AVOID_SUBCLASSES = 'fixed_type'   # When set on a traited attr, no subclasses will be returned
 KWARG_FILE_STORAGE = 'file_storage'
 KWARG_REQUIRED = 'required'
 KWARG_FILTERS_UI = 'filters_ui'
@@ -82,14 +82,14 @@ FILE_STORAGE_DEFAULT = 'HDF5'
 FILE_STORAGE_EXPAND = 'expandable_HDF5'
 FILE_STORAGE_NONE = 'None'
 
-
 SPECIAL_KWDS = ['bind', 'doc', 'label', 'db', 'default', 'required', KWARG_AVOID_SUBCLASSES,
-                'range', 'locked', KWARG_FILTERS_UI, KWARG_CONSOLE_DEFAULT, KWARG_SELECT_MULTIPLE, 
+                'range', 'locked', KWARG_FILTERS_UI, KWARG_CONSOLE_DEFAULT, KWARG_SELECT_MULTIPLE,
                 KWARG_FILE_STORAGE, KWARG_ORDER, KWARG_OPTIONS, KWARS_USE_STORAGE]
 
 
 ## Module global used by MetaType.
 TYPE_REGISTER = TypeRegister()
+
 
 
 class TraitsInfo(dict):
@@ -112,6 +112,7 @@ class TraitsInfo(dict):
 
     """
 
+
     def __init__(self, trait, name='<no name!>', bound=False, wraps=None,
                  inits=Args((), {}), value=None, wraps_defaults=()):
         self.name = name
@@ -121,11 +122,13 @@ class TraitsInfo(dict):
         self.inits = inits
         self.value = value
 
+
     @property
     def file_storage(self):
         if KWARG_FILE_STORAGE not in self.inits.kwd:
             return FILE_STORAGE_DEFAULT
-        return self.inits.kwd[KWARG_FILE_STORAGE] 
+        return self.inits.kwd[KWARG_FILE_STORAGE]
+
 
     @property
     def order_number(self):
@@ -133,11 +136,13 @@ class TraitsInfo(dict):
             return 0
         return self.inits.kwd[KWARG_ORDER]
 
+
     @property
     def required(self):
         if KWARG_REQUIRED not in self.inits.kwd:
             return True
         return self.inits.kwd[KWARG_REQUIRED]
+
 
     @property
     def use_storage(self):
@@ -145,11 +150,13 @@ class TraitsInfo(dict):
             return True
         return self.inits.kwd[KWARS_USE_STORAGE]
 
+
     @property
     def range_interval(self):
         if 'range' not in self.inits.kwd:
             return None
         return self.inits.kwd['range']
+
 
     @property
     def select_multiple(self):
@@ -157,8 +164,10 @@ class TraitsInfo(dict):
             return self.inits.kwd[KWARG_SELECT_MULTIPLE]
         return False
 
+
     def __repr__(self):
         return 'TraitsInfo(%r)' % (super(TraitsInfo, self).__repr__(), )
+
 
     def copy(self):
         """
@@ -166,7 +175,7 @@ class TraitsInfo(dict):
         """
         new_value = deepcopy(self.value)
         copyed = TraitsInfo(new_value, self.name, self.bound,
-                self.wraps, self.inits, wraps_defaults=self.wraps_defaults)
+                            self.wraps, self.inits, wraps_defaults=self.wraps_defaults)
         for key, value in self.iteritems():
             copyed[key] = copy(value)
         return copyed
@@ -193,6 +202,7 @@ class MetaType(abc.ABCMeta):
     database mapping of Traits classes.
 
     """
+
 
     def __new__(mcs, name, bases, dikt):
         """
@@ -249,7 +259,7 @@ class MetaType(abc.ABCMeta):
                 doc += "\t\t| ``default``:  %s \n" % str(attr.trait.inits.kwd.get('default', None)).replace("\n", " ")
                 specified_range = attr.trait.inits.kwd.get('range', None)
                 if specified_range:
-                    doc += "\t\t| ``range``: low = %s ; high = %s \n\t\t\n" % (str(specified_range.lo), 
+                    doc += "\t\t| ``range``: low = %s ; high = %s \n\t\t\n" % (str(specified_range.lo),
                                                                                str(specified_range.hi))
                 trait[key] = attr
 
@@ -273,7 +283,8 @@ class MetaType(abc.ABCMeta):
         MetaType.__call__ method wraps ncs.__init__(ncs.__new__(*, **), *, **),
         and is implicitly called when the class __init__()s.
 
-        b.Range(*args, **kwds) -> b.Range.__init__(b.Range.__new__(MetaType.__call__(b.Range, *args, **kwds), *, **), *, **)
+        b.Range(*args, **kwds) ->
+        b.Range.__init__(b.Range.__new__(MetaType.__call__(b.Range, *args, **kwds), *, **), *, **)
 
         When creating instances of Traits classes, we
 
@@ -308,7 +319,7 @@ class MetaType(abc.ABCMeta):
         for key in set(kwds.keys()) & set(ncs.trait.keys()):
             kwdtraits[key] = kwds[key]
             del kwds[key]
-            
+
         options = kwds.get(KWARG_OPTIONS, None)
 
         # discard kwds to be passed for instantiation
@@ -325,7 +336,7 @@ class MetaType(abc.ABCMeta):
                 msg = "couldn't create instance of %s with unhandled " % (ncs.__module__ + '.' + ncs.__name__, )
                 msg += "args, %s, " % (args,) if args else ""
                 kwd_advice = " to ignore this kwd, append %s.pop_kwds."
-                kwd_advice %= (MetaType.__module__ + '.' +  MetaType.__name__, )
+                kwd_advice %= (MetaType.__module__ + '.' + MetaType.__name__, )
                 msg += ("kwds, %s." % (kwds,) + kwd_advice) if kwds else ""
                 raise TypeError(msg)
 
@@ -334,7 +345,7 @@ class MetaType(abc.ABCMeta):
         # set all possible options if they were passed in trait instantiation
         inst.trait.options = options
         # set instance's value, inits dict and kwd passed trait values
-        inst.trait.value = deepcopy(value) #if (value is not None) else inst
+        inst.trait.value = deepcopy(value) # if (value is not None) else inst
         inst.trait.inits = inits
         # Set Default attributes from traited class definition
         for name, attr in inst.trait.iteritems():
@@ -342,7 +353,7 @@ class MetaType(abc.ABCMeta):
                 setattr(inst, name, deepcopy(attr.trait.value))
             except Exception, exc:
                 LOG.exception(exc)
-                LOG.error("Could not set attribute '" + name +"' on " + str(inst.__class__.__name__))
+                LOG.error("Could not set attribute '" + name + "' on " + str(inst.__class__.__name__))
                 raise exc
         # Overwrite with attributes passed in the constructor
         for name, attr in kwdtraits.iteritems():
@@ -350,7 +361,7 @@ class MetaType(abc.ABCMeta):
                 setattr(inst, name, attr)
             except Exception, exc:
                 LOG.exception(exc)
-                LOG.error("Could not set kw-given attribute '" + name +"' on " + str(inst.__class__.__name__))
+                LOG.error("Could not set kw-given attribute '" + name + "' on " + str(inst.__class__.__name__))
                 raise exc
 
         # the owner class, if any, will set this to true, see metatype.__new__
@@ -406,7 +417,7 @@ class Type(object):
             else:
                 accepted_types.append(self.trait.wraps)
 
-            if (type(value) in accepted_types or isinstance(value, type(self)) 
+            if (type(value) in accepted_types or isinstance(value, type(self))
                 or (isinstance(value, (list, tuple)) and self.trait.select_multiple)):
                 self._put_value_on_instance(inst, value)
             else:
@@ -431,13 +442,12 @@ class Type(object):
         configured with values in config:
         """
         trait = self.trait
-        rep  = self.__class__.__name__ + "("
+        rep = self.__class__.__name__ + "("
         objstr = object.__repr__(self)
         value = objstr if self is trait.value else trait.value
 
-        reprinfo = {}
-        reprinfo['value'] = repr(value)
-        reprinfo['bound'] = repr(trait.bound)
+        reprinfo = {'value': repr(value),
+                    'bound': repr(trait.bound)}
         if trait.wraps:
             reprinfo['wraps'] = repr(trait.wraps)
         if trait.bound:

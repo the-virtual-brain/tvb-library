@@ -19,26 +19,30 @@
 #
 #
 """
-Created on Apr 8, 2013
-
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
+
 ### Try to import extra module when running with Python 2.6 (where unittest2 is not default)
 try:
     import unittest2 as unittest
-except Exception, _:
+except Exception:
     import unittest
 from tvb.basic.config.settings import TVBSettings as cfg
 
+
+
 class BaseTestCase(unittest.TestCase):
     """
-        This class should implement basic functionality which 
-        is common to all TVB tests.
+    This class should implement basic functionality which is common to all TVB tests.
     """
+
+
     def setUp(self):
         self.assertFalse(cfg.TRAITS_CONFIGURATION.use_storage)
-    
+
+
     def assertEqual(self, expected, actual, message=""):
-        super(BaseTestCase, self).assertEqual(expected, actual, message + " Expected %s but got %s."%(expected, actual))
+        super(BaseTestCase, self).assertEqual(expected, actual,
+                                              message + " Expected %s but got %s." % (expected, actual))
         
         

@@ -46,11 +46,13 @@ from tvb.basic.logger.builder import get_logger
 LOG = get_logger(__name__)
 
 
+
 class String(core.Type):
     """
     Traits type that wraps a Python string.
     """
     wraps = (str, unicode)
+
 
 
 class Bool(core.Type):
@@ -61,11 +63,13 @@ class Bool(core.Type):
     wraps = bool
 
 
+
 class Integer(core.Type):
     """
     Traits type that wraps Numpy's int32.
     """
     wraps = (int, long)
+
 
 
 class Float(core.Type):
@@ -75,6 +79,7 @@ class Float(core.Type):
     wraps = (float, numpy.float32, int)
 
 
+
 class Complex(core.Type):
     """
     Traits type that wraps Numpy's complex64.
@@ -82,11 +87,13 @@ class Complex(core.Type):
     wraps = numpy.complex64
 
 
+
 class MapAsJson():
     """Add functionality of converting from/to JSON"""
 
+
     def __get__(self, inst, cls):
-        if (inst is not None and self.trait.bound and hasattr(inst, '_' + self.trait.name)):
+        if inst is not None and self.trait.bound and hasattr(inst, '_' + self.trait.name):
             string = getattr(inst, '_' + self.trait.name)
             if string is None or (not isinstance(string, (str, unicode))):
                 return string
@@ -97,14 +104,17 @@ class MapAsJson():
             return json_value
         return self
 
+
     @staticmethod
     def to_json(entity):
         return json.dumps(entity)
 
+
     @staticmethod
     def from_json(string):
         return json.loads(string)
-    
+
+
     @staticmethod
     def decode_map_as_json(dct):
         """
@@ -123,18 +133,21 @@ class MapAsJson():
                     loaded_entity = class_entity.from_json(value)
                     dct[key] = loaded_entity
         return dct
-    
+
     class MapAsJsonEncoder(json.JSONEncoder):
         """
         Used before any save to the database to encode Equation type opjects.
         """
+
+
         def default(self, obj):
             if isinstance(obj, MapAsJson):
                 return obj.to_json(obj)
             else:
                 return json.JSONEncoder.default(self, obj)
-                
-                
+
+
+
 class Sequence(MapAsJson, String):
     """
     Traits type base class that wraps python sequence 
@@ -143,19 +156,22 @@ class Sequence(MapAsJson, String):
     wraps = (dict, list, tuple, set, slice, numpy.ndarray)
 
 
+
 class Enumerate(Sequence):
     """
     Traits type that mimics an enumeration.
     """
     wraps = numpy.ndarray
-    
+
+
     def __get__(self, inst, cls):
         if inst is None:
             return self
         if self.trait.bound:
             return numpy.array(super(Enumerate, self).__get__(inst, cls))
         return numpy.array(self.trait.value)
-    
+
+
     def __set__(self, inst, value):
         if not isinstance(value, list):
             # So it works for simple selects aswell as multiple selects
@@ -168,11 +184,13 @@ class Enumerate(Sequence):
             self.trait.value = value
 
 
+
 class Dict(Sequence):
     """
     Traits type that wraps a python dict.
     """
     wraps = dict
+
 
 
 class Set(Sequence):
@@ -182,19 +200,22 @@ class Set(Sequence):
     wraps = set
 
 
+
 class Tuple(Sequence):
     """
     Traits type that wraps a python tuple.
     """
     wraps = tuple
-    
+
+
     def __get__(self, inst, cls):
         list_value = super(Tuple, self).__get__(inst, cls)
-        
+
         if isinstance(list_value, list):
-            return (list_value[0], list_value[1])
-        
+            return list_value[0], list_value[1]
+
         return list_value
+
 
 
 class List(Sequence):
@@ -204,11 +225,13 @@ class List(Sequence):
     wraps = (list, numpy.ndarray)
 
 
+
 class Slice(Sequence):
     """
     Useful of for specifying views or slices of containers.
     """
     wraps = slice
+
 
 
 class Range(core.Type):
@@ -233,12 +256,14 @@ class Range(core.Type):
     lo = Float(doc='start of range')
     hi = Float(doc='end of range')
 
-    step = Float(default = 1.0, doc = 'fixed step size between elements')
+    step = Float(default=1.0, doc='fixed step size between elements')
 
-    base = Float(default = math.e, doc = 'fixed multiplier between elements')
- 
+    base = Float(default=math.e, doc='fixed multiplier between elements')
+
+
     def __iter__(self):
         """ Get valid values in interval"""
+
         def gen():
             val = self.lo
             while val < self.hi:
@@ -248,7 +273,10 @@ class Range(core.Type):
                 else:
                     val *= self.base
                     yield val
+
+
         return gen()
+
 
 
 class ValidationRange(core.Type):
@@ -257,12 +285,14 @@ class ValidationRange(core.Type):
     """
 
 
+
 class JSONType(String):
     """
     Wrapper over a String which holds a serializable object.
     On set/get JSON load/dump will be called.
     """
-    
+
+
     def __get__(self, inst, cls):
         if inst:
             string = super(JSONType, self).__get__(inst, cls)
@@ -272,13 +302,15 @@ class JSONType(String):
                 return None
             return json.loads(string)
         return super(JSONType, self).__get__(inst, cls)
-        
+
+
     def __set__(self, inst, value):
         if not isinstance(value, (str, unicode)):
             value = json.dumps(value)
         super(JSONType, self).__set__(inst, value)
-  
-  
+
+
+
 class DType(String):
     """
     Traits type that wraps a Numpy dType specification.
@@ -286,13 +318,15 @@ class DType(String):
 
     wraps = (numpy.dtype, str)
     defaults = ((numpy.float64, ), {})
-    
+
+
     def __get__(self, inst, cls):
         if inst:
             type_ = super(DType, self).__get__(inst, cls)
             return str(type_).replace("<type '", '').replace("'>", '')
         return super(DType, self).__get__(inst, cls)
-        
+
+
     def __set__(self, inst, value):
         super(DType, self).__set__(inst, str(value))
 
