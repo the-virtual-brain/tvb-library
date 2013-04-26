@@ -38,7 +38,7 @@ from tvb.basic.logger.builder import get_logger
 
 LOG = get_logger(__name__)
 
-try:  #externals.geodesic_distance.
+try:  # externals.geodesic_distance.
     import gdist
     #NO_GEODESIC_DISTANCE = False
 except ImportError:
@@ -242,8 +242,8 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         vertices from rings 1 to n inclusive.
         """
 
-        ring = {vertex}
-        local_vertices = {vertex}
+        ring = set([vertex])
+        local_vertices = set([vertex])
 
         for _ in range(neighbourhood):
             neighbours = [self.vertex_neighbours[indx] for indx in ring]
@@ -350,7 +350,8 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         Calculates the inner angles of all the triangles which make up a surface
         """
         verts = self.vertices
-        #TODO: Should be possible with arrays, ie not nested loops... (this was a direct translation of some old matlab code)
+        # TODO: Should be possible with arrays, ie not nested loops...
+        # (this was a direct translation of some old matlab code)
         angles = numpy.zeros((self.number_of_triangles, 3))
         for tt in range(self.number_of_triangles):
             triangle = self.triangles[tt, :]
@@ -588,6 +589,7 @@ class FaceSurfaceScientific(surfaces_data.FaceSurfaceData, OpenSurfaceScientific
 
 ##--------------------- SURFACES ADJIACENT classes start Here---------------------------------------##
 
+
 class RegionMappingScientific(surfaces_data.RegionMappingData):
     """ 
     Scientific methods regarding RegionMapping DataType.
@@ -676,7 +678,7 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
         self.compute_geodesic_distance_matrix(max_dist=loc_con_cutoff)
 
         self.local_connectivity.matrix = self.geodesic_distance_matrix.copy()
-        self.local_connectivity.compute() #Evaluate equation based distance
+        self.local_connectivity.compute()  # Evaluate equation based distance
         self.local_connectivity.trait["matrix"].log_debug(owner=self.__class__.__name__ + ".local_connectivity")
 
         #HACK FOR DEBUGGING CAUSE TRAITS REPORTS self.local_connectivity.trait["matrix"] AS BEING EMPTY...
@@ -776,8 +778,8 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
         """ 
         Set self._region_average attribute based on region mapping...
         """
-        number_of_nodes = self.region_mapping.shape[0] #TODO: need to support non-cortical regions here
-        number_of_areas = len(numpy.unique(spatial_mask)) #TODO: need to support non-cortical regions here
+        number_of_nodes = self.region_mapping.shape[0]  # TODO: need to support non-cortical regions here
+        number_of_areas = len(numpy.unique(spatial_mask))  # TODO: need to support non-cortical regions here
         #import pdb; pdb.set_trace()
         vertex_mapping = numpy.zeros((number_of_nodes, number_of_areas))
         vertex_mapping[numpy.arange(number_of_nodes), spatial_mask] = 1
