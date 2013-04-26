@@ -1,0 +1,82 @@
+# -*- coding: utf-8 -*-
+#
+#
+# TheVirtualBrain-Scientific Package. This package holds all simulators, and 
+# analysers necessary to run brain-simulations. You can use it stand alone or
+# in conjunction with TheVirtualBrain-Framework Package. See content of the
+# documentation-folder for more details. See also http://www.thevirtualbrain.org
+#
+# (c) 2012-2013, Baycrest Centre for Geriatric Care ("Baycrest")
+#
+# This program is free software; you can redistribute it and/or modify it under 
+# the terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation. This program is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+# License for more details. You should have received a copy of the GNU General 
+# Public License along with this program; if not, you can download it here
+# http://www.gnu.org/licenses/old-licenses/gpl-2.0
+
+""" 
+
+A subject's dataset
+
+
+* volume data -> MRI acquisition -> Registration -> Coordinates transform to MNI space 
+ |
+  \-- voxel-based gray matter parcellation (obtain parcellation mask) -> AAL/anatomical template
+ 
+* surfaces data (cortical, skull, skin surfaces extraction) -> FSL/BET 
+
+* connectivity data (white matter weights, tract-lengths)   -> Diffusion Toolkit + TrackVis
+  	
+* region mapping between parcellation and number of vertices in the cortical surface.
+
++ lead-field matrices (ie, projection matrices) mapping nodes onto EEG/MEG space
+        
+.. moduleauthor:: Paula Sanz Leon <sanzleon.paula@gmail.com>
+
+"""
+
+
+# from TVB
+from tvb.basic.logger.builder import get_logger
+LOG = get_logger(__name__)
+
+from tvb.simulator.lab import *
+import tvb.datatypes.sensors as sensors
+
+
+# Third party python libraries
+from mayavi  import mlab
+
+# From the inside out
+connectome       = connectivity.Connectivity()
+cortical_surface = surfaces.Cortex()
+brain_skull      = surfaces.BrainSkull()
+skull_skin       = surfaces.SkullSkin()
+skin_air		 = surfaces.SkinAir()
+
+
+# Get info
+centres = connectome.centres
+
+fig_tvb = mlab.figure(figure='John Doe', bgcolor=(0.0, 0.0, 0.0))
+
+region_centres = mlab.points3d(centres[:, 0], 
+                               centres[:, 1], 
+                               centres [:, 2], 
+                               color=(1.0, 0.0, 0.0),
+                               scale_factor = 7.,
+                               figure = fig_tvb)
+
+
+plot_surface(cortical_surface, fig=fig_tvb, op=0.9, rep='fancymesh')
+plot_surface(brain_skull, fig=fig_tvb, op=0.2)
+plot_surface(skull_skin, fig=fig_tvb, op=0.15)
+plot_surface(skin_air, fig=fig_tvb, op=0.1)
+
+# Plot them
+mlab.show(stop=True)
+
+#EoF
