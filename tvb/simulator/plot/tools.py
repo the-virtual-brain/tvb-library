@@ -340,15 +340,19 @@ if IMPORTED_MAYAVI:
     #TODO: Make, posssibly with a wrapper function, to work directly with 
     #      SurfacePattern object... Inner function name plot_surface
     
-    def plot_surface(surface, name=None):
+    def plot_surface(surface, fig=None, name=None, op=1.0, rep='surface'):
         """
         """
-        fig = mlab.figure(figure=name, fgcolor=(0.5, 0.5, 0.5))
+        if fig is None:
+            fig = mlab.figure(figure=name, fgcolor=(0.5, 0.5, 0.5))
+
         surf_mesh = mlab.triangular_mesh(surface.vertices[:, 0],
                                          surface.vertices[:, 1],
                                          surface.vertices[:, 2],
                                          surface.triangles, 
                                          color=(0.7, 0.67, 0.67),
+                                         opacity= op,
+                                         representation =rep,
                                          figure=fig)
         
         return surf_mesh
@@ -538,14 +542,14 @@ if IMPORTED_MAYAVI:
         # value of each element.
         
         fig = pyplot.figure(num = fig_name)
-        ax = fig.gca()
+        ax  = fig.gca()
         res = ax.imshow(mat, 
-                         cmap=pyplot.cm.jet, 
-                         interpolation='nearest', 
-                         alpha=0.6)
+                        cmap=pyplot.cm.jet, 
+                        interpolation='nearest', 
+                        alpha=0.6)
         
         if connectivity is not None:
-            order = numpy.arange(connectivity.number_of_regions)
+            order  = numpy.arange(connectivity.number_of_regions)
             labels = connectivity.region_labels
             pyplot.xticks(numpy.arange(connectivity.number_of_regions), list(labels[order]), 
                           fontsize=9, rotation=90)
@@ -553,14 +557,16 @@ if IMPORTED_MAYAVI:
                           fontsize=9)
                           
         fig.colorbar(res)
-        width = mat.shape[0]
+        width  = mat.shape[0]
         height = mat.shape[1]
 
         for x in xrange(width):
             for y in xrange(height):
-                ax.annotate(str(int(mat[x][y])), xy=(y, x), 
+                ax.annotate(str(int(mat[x][y])), 
+                            xy=(y, x), 
                             horizontalalignment='center',
-                            verticalalignment='center', fontsize=7)
+                            verticalalignment='center', 
+                            fontsize=7)
                                     
     
 
