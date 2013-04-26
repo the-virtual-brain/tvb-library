@@ -30,17 +30,19 @@ from logging.handlers import TimedRotatingFileHandler
 from tvb.basic.config.settings import TVBSettings as cfg
 
 
-class SimpleTimedRotatingFileHandler(TimedRotatingFileHandler):  
+
+class SimpleTimedRotatingFileHandler(TimedRotatingFileHandler):
     """
     This is a custom rotating file handler which computes the full path for log file 
     depending on the TVB configuration.
     """
-    
+
+
     def __init__(self, filename, when='h', interval=1, backupCount=0):
         """
         Only set our logging path, and call superclass.
         """
-        log_file =  os.path.join(cfg.TVB_LOG_FOLDER, filename)            
+        log_file = os.path.join(cfg.TVB_LOG_FOLDER, filename)
         TimedRotatingFileHandler.__init__(self, log_file, when, interval, backupCount)
     
     

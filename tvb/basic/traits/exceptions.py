@@ -22,16 +22,22 @@
 .. moduleauthor:: Calin Pavel
 """
 
+
+
 class TVBException(Exception):
     """
     Base class for all TVB exceptions.
     """
+
+
     def __init__(self, message, parent_exception=None):
         Exception.__init__(self, message, parent_exception)
         self.message = message
 
+
     def __repr__(self):
         return self.message
+
 
 
 class ValidationException(TVBException):
@@ -39,8 +45,11 @@ class ValidationException(TVBException):
     Exception class for problems that occurs during MappedType 
     validation before storing it into DB.
     """
+
+
     def __init__(self, message):
         TVBException.__init__(self, message)
+
 
 
 class MissingEntityException(TVBException):
@@ -48,15 +57,20 @@ class MissingEntityException(TVBException):
     Exception class used for cases when trying to load an entity
     from database by id or GID and none found.
     """
+
+
     def __init__(self, message):
         TVBException.__init__(self, message)
-   
-        
+
+
+
 class StorageException(TVBException):
     """
     Exception class used for cases when trying to load an entity
     from database by id or GID and none found.
     """
+
+
     def __init__(self, message):
         TVBException.__init__(self, message)
         

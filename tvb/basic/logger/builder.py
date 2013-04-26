@@ -32,9 +32,10 @@ Singleton logging builder.
 """
 
 import os
-import logging.config 
+import logging.config
 from tvb.basic.profile import TvbProfile
-from tvb.basic.config.settings import TVBSettings  
+from tvb.basic.config.settings import TVBSettings
+
 
 
 class LoggerBuilder(object):
@@ -44,19 +45,20 @@ class LoggerBuilder(object):
     It's purpose is just to offer a common mechanism for initializing all modules in a package.
     """
 
+
     def __init__(self, config_root):
         """
         Prepare Python logger based on a configuration file.
         :param: config_root - current package to configure logger for it.
         """
-        
+
         config_file_name = TVBSettings.LOGGER_CONFIG_FILE_NAME
         package = __import__(config_root, globals(), locals(), ['__init__'], 0)
         package_path = package.__path__[0]
-        
+
         #Specify logging configuration file for current package. 
-        logging.config.fileConfig(os.path.join(package_path, config_file_name), 
-                                  disable_existing_loggers = True)
+        logging.config.fileConfig(os.path.join(package_path, config_file_name), disable_existing_loggers=True)
+
 
     @staticmethod
     def build_logger(parent_module):
@@ -66,18 +68,17 @@ class LoggerBuilder(object):
         return logging.getLogger(parent_module)
 
 
-
 ### We make sure a single instance of logger-builder is created.
 if "GLOBAL_LOGGER_BUILDER" not in globals():
-    
+
     if TvbProfile.is_library_mode():
         GLOBAL_LOGGER_BUILDER = LoggerBuilder('tvb.basic.logger')
     else:
         GLOBAL_LOGGER_BUILDER = LoggerBuilder('tvb.config.logger')
 
- 
- 
-def get_logger(parent_module = ''):
+
+
+def get_logger(parent_module=''):
     """
     Function to retrieve a new Python logger instance for current module.
     

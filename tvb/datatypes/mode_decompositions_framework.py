@@ -42,24 +42,19 @@ class PrincipalComponentsFramework(mode_decompositions_data.PrincipalComponentsD
         """
         Append chunk.
         """
-        self.store_data_chunk('weights', partial_result.weights,
-                              grow_dimension=2, close_file=False)
+        self.store_data_chunk('weights', partial_result.weights, grow_dimension=2, close_file=False)
         
-        self.store_data_chunk('fractions', partial_result.fractions,
-                              grow_dimension=1, close_file=False)
+        self.store_data_chunk('fractions', partial_result.fractions, grow_dimension=1, close_file=False)
         
         partial_result.compute_norm_source()
-        self.store_data_chunk('norm_source', partial_result.norm_source,
-                              grow_dimension=1, close_file=False)
+        self.store_data_chunk('norm_source', partial_result.norm_source, grow_dimension=1, close_file=False)
         
         partial_result.compute_component_time_series()
-        self.store_data_chunk('component_time_series', 
-                              partial_result.component_time_series,
+        self.store_data_chunk('component_time_series', partial_result.component_time_series,
                               grow_dimension=1, close_file=False)
         
         partial_result.compute_normalised_component_time_series()
-        self.store_data_chunk('normalised_component_time_series',
-                              partial_result.normalised_component_time_series,
+        self.store_data_chunk('normalised_component_time_series', partial_result.normalised_component_time_series,
                               grow_dimension=1, close_file=False)
 
 
@@ -75,29 +70,23 @@ class IndependentComponentsFramework(mode_decompositions_data.IndependentCompone
         Append chunk.
         """
         
-        self.store_data_chunk('unmixing_matrix', partial_result.unmixing_matrix,
-                              grow_dimension=2, close_file=False)
+        self.store_data_chunk('unmixing_matrix', partial_result.unmixing_matrix, grow_dimension=2, close_file=False)
                               
         self.store_data_chunk('prewhitening_matrix', partial_result.prewhitening_matrix,
                               grow_dimension=2, close_file=False)
-                              
-        
+
         partial_result.compute_norm_source()
-        self.store_data_chunk('norm_source', partial_result.norm_source,
-                              grow_dimension=1, close_file=False)
+        self.store_data_chunk('norm_source', partial_result.norm_source, grow_dimension=1, close_file=False)
         
         partial_result.compute_component_time_series()
-        self.store_data_chunk('component_time_series', 
-                              partial_result.component_time_series,
+        self.store_data_chunk('component_time_series', partial_result.component_time_series,
                               grow_dimension=1, close_file=False)
         
         partial_result.compute_normalised_component_time_series()
-        self.store_data_chunk('normalised_component_time_series',
-                              partial_result.normalised_component_time_series,
+        self.store_data_chunk('normalised_component_time_series', partial_result.normalised_component_time_series,
                               grow_dimension=1, close_file=False)
         
         partial_result.compute_mixing_matrix()
-        self.store_data_chunk('mixing_matrix', partial_result.mixing_matrix,
-                              grow_dimension=2, close_file=False)
+        self.store_data_chunk('mixing_matrix', partial_result.mixing_matrix, grow_dimension=2, close_file=False)
 
 

@@ -25,6 +25,7 @@
 from tvb.basic.traits.core import TYPE_REGISTER
 
 
+
 def get_traited_subclasses(parent_class):
     """
     :param parent_class: SuperClass, to return valid sub-classes of this (e.g. Model).
@@ -38,7 +39,8 @@ def get_traited_subclasses(parent_class):
     return result
 
 
-def get_traited_instance_for_name(class_name, parent_class, params_dictionary):  
+
+def get_traited_instance_for_name(class_name, parent_class, params_dictionary):
     """
     :param class_name: Short Traited Class name.
     :param parent_class: Traited basic type expected (e.g. Model)

@@ -25,13 +25,15 @@ ENUM used for choosing current TVB Profile.
 Contains functionality which allows a user to set a certain profile for TVB.
 """
 
+
+
 class TvbProfile():
     """
     ENUM-like class with current TVB profile values.
     """
-    
+
     SUBPARAM_PROFILE = "-profile"
-    
+
     # Existing profiles:
     LIBRARY_PROFILE = "LIBRARY_PROFILE"
     DEVELOPMENT_PROFILE = "DEVELOPMENT_PROFILE"
@@ -58,10 +60,10 @@ class TvbProfile():
         """
         if TvbProfile.SUBPARAM_PROFILE in script_argv:
             index = script_argv.index(TvbProfile.SUBPARAM_PROFILE)
-            
+
             if len(script_argv) > index + 1:
                 return script_argv[index + 1]
-            
+
         return None
 
 
@@ -79,30 +81,29 @@ class TvbProfile():
               than the  profile will be set to 'TEST_SQLITE_PROFILE'
         """
         selected_profile = TvbProfile.get_profile(script_argv)
-        
+
         if selected_profile is not None:
             TvbProfile.CURRENT_SELECTED_PROFILE = selected_profile
-        
+
             if remove_from_args:
                 script_argv.remove(selected_profile)
                 script_argv.remove(TvbProfile.SUBPARAM_PROFILE)
-            
-    
+
+
     @staticmethod
     def is_library_mode():
         """
-        Fall-back to LibraryProfile either if this was the profile passed as argument or if TVB Framework is not present.
+        Fall-back to LibraryProfile either if this was the profile passed as argument or if TVB Framework is not found.
         
         :return: True when currently selected profile is LibraryProfile, 
-        or when the framework classes are not present, and we should enforce the library profile.
-        
+                 or when the framework classes are not present, and we should enforce the library profile.
         """
         framework_present = True
         try:
             from tvb.config.settings import FrameworkSettings
         except ImportError:
             framework_present = False
-            
+
         return TvbProfile.CURRENT_SELECTED_PROFILE == TvbProfile.LIBRARY_PROFILE or not framework_present     
             
             

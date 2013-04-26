@@ -42,7 +42,7 @@ class CrossCorrelationFramework(temporal_correlations_data.CrossCorrelationData)
         # Do not call super, because that accesses data not-chunked
         self.nr_dimensions = len(self.read_data_shape())
         for i in range(self.nr_dimensions): 
-            setattr(self, 'length_%dd' % (i+1), int(self.read_data_shape()[i]))
+            setattr(self, 'length_%dd' % (i + 1), int(self.read_data_shape()[i]))
     
     
     def read_data_shape(self):
@@ -63,8 +63,7 @@ class CrossCorrelationFramework(temporal_correlations_data.CrossCorrelationData)
         """
         Append chunk.
         """
-        self.store_data_chunk('array_data', partial_result.array_data,
-                              grow_dimension=3, close_file=False)
+        self.store_data_chunk('array_data', partial_result.array_data, grow_dimension=3, close_file=False)
 
 
 

@@ -35,6 +35,7 @@ import scipy.sparse as sparse
 import tvb.datatypes.surfaces_data as surfaces_data
 import tvb.basic.traits.util as util
 from tvb.basic.logger.builder import get_logger
+
 LOG = get_logger(__name__)
 
 try:  #externals.geodesic_distance.
@@ -44,7 +45,6 @@ except ImportError:
     #NO_GEODESIC_DISTANCE = True
     LOG.error("Failed to import geodesic distance package from externals...")
     LOG.error("Check it's configured, externals/geodesic_distance/setup.py")
-
 
 
 
@@ -75,7 +75,7 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         set during initialization.
         """
         super(SurfaceScientific, self).configure()
-        
+
         self.number_of_vertices = self.vertices.shape[0]
         self.number_of_triangles = self.triangles.shape[0]
 
@@ -95,13 +95,13 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         Gather scientifically interesting summary information from an instance
         of this datatype.
         """
-        summary = {"Surface type": self.__class__.__name__}
-        summary["Number of vertices"] = self.number_of_vertices
-        summary["Number of triangles"] = self.number_of_triangles
-        summary["Number of edges"] = self.number_of_edges
-        summary["Edge lengths, mean (mm)"] = self.edge_length_mean
-        summary["Edge lengths, shortest (mm)"] = self.edge_length_min
-        summary["Edge lengths, longest (mm)"] = self.edge_length_max
+        summary = {"Surface type": self.__class__.__name__,
+                   "Number of vertices": self.number_of_vertices,
+                   "Number of triangles": self.number_of_triangles,
+                   "Number of edges": self.number_of_edges,
+                   "Edge lengths, mean (mm)": self.edge_length_mean,
+                   "Edge lengths, shortest (mm)": self.edge_length_min,
+                   "Edge lengths, longest (mm)": self.edge_length_max}
         return summary
 
 
@@ -134,22 +134,21 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         #    return
 
         if (max_dist is None) and (targets is None):
-            dist = gdist.compute_gdist(self.vertices.astype(numpy.float64), 
-                                 self.triangles.astype(numpy.int32), 
-                                 source_indices = sources.astype(numpy.int32))
+            dist = gdist.compute_gdist(self.vertices.astype(numpy.float64),
+                                       self.triangles.astype(numpy.int32),
+                                       source_indices=sources.astype(numpy.int32))
         elif (max_dist is None) and (targets is not None):
             dist = gdist.compute_gdist(self.vertices.astype(numpy.float64),
-                                 self.triangles.astype(numpy.int32), 
-                                 source_indices = sources.astype(numpy.int32), 
-                                 target_indices = targets.astype(numpy.int32))
+                                       self.triangles.astype(numpy.int32),
+                                       source_indices=sources.astype(numpy.int32),
+                                       target_indices=targets.astype(numpy.int32))
         elif (max_dist is not None) and (targets is None):
-            dist = gdist.compute_gdist(self.vertices.astype(numpy.float64), 
-                                 self.triangles.astype(numpy.int32), 
-                                 source_indices = sources.astype(numpy.int32),
-                                 max_distance = max_dist)
+            dist = gdist.compute_gdist(self.vertices.astype(numpy.float64),
+                                       self.triangles.astype(numpy.int32),
+                                       source_indices=sources.astype(numpy.int32),
+                                       max_distance=max_dist)
         else:
-            msg = "%s: Specifying both targets and max_dist doesn't work." 
-            LOG.error(msg % str(self))
+            LOG.error("%s: Specifying both targets and max_dist doesn't work." % str(self))
             dist = None
 
         return dist
@@ -175,8 +174,8 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         #    return
 
         dist = gdist.local_gdist_matrix(self.vertices.astype(numpy.float64),
-                                  self.triangles.astype(numpy.int32),
-                                  max_distance = max_dist)
+                                        self.triangles.astype(numpy.int32),
+                                        max_distance=max_dist)
 
         self.geodesic_distance_matrix = dist
 
@@ -238,13 +237,13 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         """
         Return the vertices of the nth ring around a given vertex, defaults to 
         neighbourhood=2. NOTE: if you want neighbourhood=1 then you should 
-        directlly access the property vertex_neighbours, ie use 
+        directly access the property vertex_neighbours, ie use
         surf_obj.vertex_neighbours[vertex] setting contains=True returns all 
         vertices from rings 1 to n inclusive.
         """
 
-        ring = set([vertex])
-        local_vertices = set([vertex])
+        ring = {vertex}
+        local_vertices = {vertex}
 
         for _ in range(neighbourhood):
             neighbours = [self.vertex_neighbours[indx] for indx in ring]
@@ -264,15 +263,14 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         tri_v = self.vertices[self.triangles[:, 2], :] - self.vertices[self.triangles[:, 0], :]
 
         tri_norm = numpy.cross(tri_u, tri_v)
-        
+
         try:
-            self.triangle_normals = tri_norm / numpy.sqrt(numpy.sum(tri_norm**2 , axis = 1))[:, numpy.newaxis]
+            self.triangle_normals = tri_norm / numpy.sqrt(numpy.sum(tri_norm ** 2, axis=1))[:, numpy.newaxis]
         except FloatingPointError:
             #TODO: NaN generation would stop execution, however for normals this case could maybe be 
             # handled in a better way.
             self.triangle_normals = tri_norm
-        util.log_debug_array(LOG, self.triangle_normals, "triangle_normals",
-                             owner=self.__class__.__name__)
+        util.log_debug_array(LOG, self.triangle_normals, "triangle_normals", owner=self.__class__.__name__)
 
 
     def compute_vertex_normals(self):
@@ -284,17 +282,15 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         for k in range(self.number_of_vertices):
             tri_list = list(self.vertex_triangles[k])
             angle_mask = self.triangles[tri_list, :] == k
-            #util.log_debug_array(LOG, angle_mask, "comp_vert_norms_angleMask")
             angles = self.triangle_angles[tri_list, :]
-            #util.log_debug_array(LOG, angles, "comp_vert_norms_angles")
             angles = angles[angle_mask][:, numpy.newaxis]
-            #util.log_debug_array(LOG, angles, "comp_vert_norms_angles")
             angle_scaling = angles / numpy.sum(angles, axis=0)
-            vert_norms[k, :] = numpy.mean(angle_scaling * self.triangle_normals[tri_list, :], axis=0) #Scale by angle subtended. 
-            vert_norms[k, :] = vert_norms[k, :] / numpy.sqrt(numpy.sum(vert_norms[k, :]**2, axis=0)) #Normalise to unit vectors.
+            vert_norms[k, :] = numpy.mean(angle_scaling * self.triangle_normals[tri_list, :], axis=0)
+            #Scale by angle subtended.
+            vert_norms[k, :] = vert_norms[k, :] / numpy.sqrt(numpy.sum(vert_norms[k, :] ** 2, axis=0))
+            #Normalise to unit vectors.
 
-        util.log_debug_array(LOG, vert_norms, "vertex_normals",
-                             owner=self.__class__.__name__)
+        util.log_debug_array(LOG, vert_norms, "vertex_normals", owner=self.__class__.__name__)
         self.vertex_normals = vert_norms
 
 
@@ -305,16 +301,16 @@ class SurfaceScientific(surfaces_data.SurfaceData):
             self._triangle_areas = self._find_triangle_areas()
         return self._triangle_areas
 
+
     def _find_triangle_areas(self):
         """Calculates the area of triangles making up a surface."""
         tri_u = self.vertices[self.triangles[:, 1], :] - self.vertices[self.triangles[:, 0], :]
         tri_v = self.vertices[self.triangles[:, 2], :] - self.vertices[self.triangles[:, 0], :]
 
         tri_norm = numpy.cross(tri_u, tri_v)
-        triangle_areas = numpy.sqrt(numpy.sum(tri_norm**2, axis = 1)) / 2.0
+        triangle_areas = numpy.sqrt(numpy.sum(tri_norm ** 2, axis=1)) / 2.0
         triangle_areas = triangle_areas[:, numpy.newaxis]
-        util.log_debug_array(LOG, triangle_areas, "triangle_areas",
-                             owner=self.__class__.__name__)
+        util.log_debug_array(LOG, triangle_areas, "triangle_areas", owner=self.__class__.__name__)
 
         return triangle_areas
 
@@ -328,12 +324,12 @@ class SurfaceScientific(surfaces_data.SurfaceData):
             self._triangle_centres = self._find_triangle_centres()
         return self._triangle_centres
 
+
     def _find_triangle_centres(self):
         """
-        Calculate the location of the centre of all triangles comprising the 
-        mesh surface.
+        Calculate the location of the centre of all triangles comprising the mesh surface.
         """
-        tri_verts  = self.vertices[self.triangles, :]
+        tri_verts = self.vertices[self.triangles, :]
         tri_centres = numpy.mean(tri_verts, axis=1)
         util.log_debug_array(LOG, tri_centres, "tri_centres")
         return tri_centres
@@ -342,12 +338,12 @@ class SurfaceScientific(surfaces_data.SurfaceData):
     @property
     def triangle_angles(self):
         """
-        An array containing the inner angles for each triangle, saame shape as
-        triangles 
+        An array containing the inner angles for each triangle, same shape as triangles.
         """
         if self._triangle_angles is None:
             self._triangle_angles = self._find_triangle_angles()
         return self._triangle_angles
+
 
     def _find_triangle_angles(self):
         """
@@ -362,12 +358,11 @@ class SurfaceScientific(surfaces_data.SurfaceData):
                 ang = numpy.roll(triangle, -ta)
                 angles[tt, ta] = numpy.arccos(numpy.dot(
                     (verts[ang[1], :] - verts[ang[0], :]) /
-                    numpy.sqrt(numpy.sum((verts[ang[1], :] - verts[ang[0], :])**2, axis=0)),
+                    numpy.sqrt(numpy.sum((verts[ang[1], :] - verts[ang[0], :]) ** 2, axis=0)),
                     (verts[ang[2], :] - verts[ang[0], :]) /
-                    numpy.sqrt(numpy.sum((verts[ang[2], :] - verts[ang[0], :])**2, axis=0))))
+                    numpy.sqrt(numpy.sum((verts[ang[2], :] - verts[ang[0], :]) ** 2, axis=0))))
 
-        util.log_debug_array(LOG, angles, "triangle_angles",
-                             owner=self.__class__.__name__)
+        util.log_debug_array(LOG, angles, "triangle_angles", owner=self.__class__.__name__)
         return angles
 
 
@@ -378,14 +373,14 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         the edges of the mesh.
         """
         if self._edges is None:
-            self._edges= self._find_edges()
+            self._edges = self._find_edges()
         return self._edges
 
 
     def _find_edges(self):
         """
         Find all the edges of the mesh surface, return them sorted as a list of
-        two element tuples, where the elements are vertex indices. 
+        two element tuple, where the elements are vertex indices.
         """
         v0 = numpy.vstack((self.triangles[:, 0][:, numpy.newaxis],
                            self.triangles[:, 0][:, numpy.newaxis],
@@ -408,7 +403,7 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         The number of edges making up the mesh surface.
         """
         if self._number_of_edges is None:
-            self._number_of_edges= len(self.edges)
+            self._number_of_edges = len(self.edges)
         return self._number_of_edges
 
 
@@ -418,7 +413,7 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         The length of the edges defined in the ``edges`` attribute.
         """
         if self._edge_lengths is None:
-            self._edge_lengths= self._find_edge_lengths()
+            self._edge_lengths = self._find_edge_lengths()
         return self._edge_lengths
 
 
@@ -428,9 +423,9 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         define the edges in the ``edges`` attribute.
         """
         #TODO: Would a Sparse matrix be a more useful data structure for these??? 
-        elen = numpy.sqrt(((self.vertices[self.edges, :][:,0,:] -
-                            self.vertices[self.edges, :][:,1,:])**2).sum(axis=1))
-        return elen
+        elem = numpy.sqrt(((self.vertices[self.edges, :][:, 0, :] -
+                            self.vertices[self.edges, :][:, 1, :]) ** 2).sum(axis=1))
+        return elem
 
 
     @property
@@ -512,7 +507,7 @@ class SurfaceScientific(surfaces_data.SurfaceData):
             LOG.error("There are triangles that index nonexistent vertices.")
             is_good = False
 
-        triangles_per_vertex =  numpy.array(map(len, self.vertex_triangles))
+        triangles_per_vertex = numpy.array(map(len, self.vertex_triangles))
         if numpy.any(triangles_per_vertex < 3):
             LOG.error("The surface contains isolated vertices.")
             is_good = False
@@ -529,7 +524,7 @@ class SurfaceScientific(surfaces_data.SurfaceData):
             is_good = False
             holes = numpy.nonzero(triangles_per_edge < 2)
 
-        return (is_good, euler, isolated, pinched_off, holes)
+        return is_good, euler, isolated, pinched_off, holes
 
 
     def compute_equation(self, focal_points, equation):
@@ -544,6 +539,7 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         return equation.pattern
 
 
+
 class CorticalSurfaceScientific(surfaces_data.CorticalSurfaceData, SurfaceScientific):
     """ This class exists to add scientific methods to CorticalSurface """
     pass
@@ -556,9 +552,11 @@ class SkinAirScientific(surfaces_data.SkinAirData, SurfaceScientific):
     __tablename__ = None
 
 
+
 class BrainSkullScientific(surfaces_data.BrainSkullData, SurfaceScientific):
     """ This class exists to add scientific methods to BrainSkull """
     pass
+
 
 
 class SkullSkinScientific(surfaces_data.SkullSkinData, SurfaceScientific):
@@ -569,17 +567,22 @@ class SkullSkinScientific(surfaces_data.SkullSkinData, SurfaceScientific):
 
 ##--------------------- OPEN SURFACES Start Here---------------------------------------##
 
+
 class OpenSurfaceScientific(surfaces_data.OpenSurfaceData, SurfaceScientific):
     """ This class exists to add scientific methods to OpenSurface """
     pass
+
+
 
 class EEGCapScientific(surfaces_data.EEGCapData, OpenSurfaceScientific):
     """ This class exists to add scientific methods to EEGCap """
     pass
 
+
+
 class FaceSurfaceScientific(surfaces_data.FaceSurfaceData, OpenSurfaceScientific):
     """ This class exists to add scientific methods to FaceSurface """
-    pass 
+    pass
 
 ##--------------------- OPEN SURFACES End Here---------------------------------------##
 
@@ -592,9 +595,11 @@ class RegionMappingScientific(surfaces_data.RegionMappingData):
     __tablename__ = None
 
 
+
 class LocalConnectivityScientific(surfaces_data.LocalConnectivityData):
     """ This class exists to add scientific methods to LocalConnectivity """
     __tablename__ = None
+
 
     def compute_sparse_matrix(self):
         """
@@ -604,14 +609,13 @@ class LocalConnectivityScientific(surfaces_data.LocalConnectivityData):
         Computes the sparse matrix for this local connectivity.
         """
         if self.surface is None:
-            msg = " ".join(("Before calling 'compute_sparse_matrix' method,",
-                            "the surface field should already be set."))
+            msg = " Before calling 'compute_sparse_matrix' method, the surface field should already be set."
             LOG.error(msg)
             raise Exception(msg)
 
         self.matrix = gdist.local_gdist_matrix(self.surface.vertices.astype(numpy.float64),
-                           self.surface.triangles.astype(numpy.int32),
-                           max_distance=self.cutoff)
+                                               self.surface.triangles.astype(numpy.int32), max_distance=self.cutoff)
+
 
 
 class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
@@ -631,19 +635,23 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
         super(CortexScientific, self).configure()
         self.region_average = self.region_mapping
 
-        if self.region_orientation is None: #.size == 0
+        if self.region_orientation is None:
             self.compute_region_orientation()
 
-        if self.region_areas is None: #.size == 0
+        if self.region_areas is None:
             self.compute_region_areas()
 
-        if (self.local_connectivity is None): #TODO: Switch to degree weighted nearest neighbour, or store a default, computing this every time I want a confgured Cortex is a pain...
-            self.local_connectivity = surfaces_data.LocalConnectivityData(cutoff=40.0, use_storage=False) #TODO: Temporary hack
+        if self.local_connectivity is None:
+            # TODO: Switch to degree weighted nearest neighbour, or store a default,
+            # computing this every time I want a configured Cortex is a pain...
+            self.local_connectivity = surfaces_data.LocalConnectivityData(cutoff=40.0, use_storage=False)
+            #TODO: Temporary hack
 
-        if (self.local_connectivity.cutoff == 0): #:
-            self.local_connectivity.cutoff = 40.0 #TODO: Temporary hack
+        if self.local_connectivity.cutoff == 0:
+            self.local_connectivity.cutoff = 40.0
+            #TODO: Temporary hack
 
-        if (self.local_connectivity.matrix.size == 0):
+        if self.local_connectivity.matrix.size == 0:
             self.compute_local_connectivity()
 
 
@@ -665,16 +673,16 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
         LOG.info("Computing local connectivity matrix")
         #TODO: Better to put this in configure, then callers job, if change cutoff, to explicit call compute...matrix 
         loc_con_cutoff = self.local_connectivity.cutoff
-        self.compute_geodesic_distance_matrix(max_dist = loc_con_cutoff)
+        self.compute_geodesic_distance_matrix(max_dist=loc_con_cutoff)
 
         self.local_connectivity.matrix = self.geodesic_distance_matrix.copy()
         self.local_connectivity.compute() #Evaluate equation based distance
-        self.local_connectivity.trait["matrix"].log_debug(owner=self.__class__.__name__+".local_connectivity")
+        self.local_connectivity.trait["matrix"].log_debug(owner=self.__class__.__name__ + ".local_connectivity")
 
         #HACK FOR DEBUGGING CAUSE TRAITS REPORTS self.local_connectivity.trait["matrix"] AS BEING EMPTY...
         lcmat = self.local_connectivity.matrix
         sts = str(lcmat.__class__)
-        name = ".".join((self.__class__.__name__+".local_connectivity", self.local_connectivity.trait.name))
+        name = ".".join((self.__class__.__name__ + ".local_connectivity", self.local_connectivity.trait.name))
         shape = str(lcmat.shape)
         sparse_format = str(lcmat.format)
         nnz = str(lcmat.nnz)
@@ -695,17 +703,13 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
         # are included in the long range connectivity...
         if self.local_connectivity.matrix.shape[0] < self.region_mapping.shape[0]:
             LOG.info("There are non-cortical regions, will pad local connectivity")
-            padding = sparse.csc_matrix((self.local_connectivity.matrix.shape[0], 
-                                         self.region_mapping.shape[0] - 
-                                         self.local_connectivity.matrix.shape[0]))
-            self.local_connectivity.matrix = sparse.hstack([self.local_connectivity.matrix,
-                                                            padding])
+            padding = sparse.csc_matrix((self.local_connectivity.matrix.shape[0],
+                                         self.region_mapping.shape[0] - self.local_connectivity.matrix.shape[0]))
+            self.local_connectivity.matrix = sparse.hstack([self.local_connectivity.matrix, padding])
 
-            padding = sparse.csc_matrix((self.region_mapping.shape[0] - 
-                                         self.local_connectivity.matrix.shape[0], 
+            padding = sparse.csc_matrix((self.region_mapping.shape[0] - self.local_connectivity.matrix.shape[0],
                                          self.local_connectivity.matrix.shape[1]))
-            self.local_connectivity.matrix = sparse.vstack([self.local_connectivity.matrix,
-                                                            padding])
+            self.local_connectivity.matrix = sparse.vstack([self.local_connectivity.matrix, padding])
 
 
     #----------------------------- region_average -----------------------------#
@@ -715,22 +719,22 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
         """
         return self._region_average
 
+
     def _set_region_average(self, spatial_mask):
         """ 
         .d..
         """
 
-        self.region_sum =  spatial_mask
+        self.region_sum = spatial_mask
 
         nodes_per_area = numpy.sum(self.region_sum, axis=1)[:, numpy.newaxis]
-        self._region_average =  self.region_sum / nodes_per_area
+        self._region_average = self.region_sum / nodes_per_area
         #import pdb; pdb.set_trace()
 
-        util.log_debug_array(LOG, self._region_average, "region_average",
-                             owner=self.__class__.__name__)
+        util.log_debug_array(LOG, self._region_average, "region_average", owner=self.__class__.__name__)
 
-    region_average = property(fget=_get_region_average, 
-                              fset=_set_region_average)
+
+    region_average = property(fget=_get_region_average, fset=_set_region_average)
     #--------------------------------------------------------------------------#
 
 
@@ -741,6 +745,7 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
         """
         return self._region_sum
 
+
     def _set_region_sum(self, spatial_mask):
         """ 
          Set self._region_average attribute based on region mapping...
@@ -750,11 +755,10 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
 
         self._region_sum = self.vertex_mapping.T
 
-        util.log_debug_array(LOG, self._region_sum, "region_sum",
-                             owner=self.__class__.__name__)
+        util.log_debug_array(LOG, self._region_sum, "region_sum", owner=self.__class__.__name__)
 
-    region_sum = property(fget=_get_region_sum, 
-                          fset=_set_region_sum)
+
+    region_sum = property(fget=_get_region_sum, fset=_set_region_sum)
     #--------------------------------------------------------------------------#
 
 
@@ -766,6 +770,7 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
         number_of_vertices.
         """
         return self._vertex_mapping
+
 
     def _set_vertex_mapping(self, spatial_mask):
         """ 
@@ -779,11 +784,10 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
 
         self._vertex_mapping = vertex_mapping
 
-        util.log_debug_array(LOG, self._vertex_mapping, "vertex_mapping",
-                             owner=self.__class__.__name__)
+        util.log_debug_array(LOG, self._vertex_mapping, "vertex_mapping", owner=self.__class__.__name__)
 
-    vertex_mapping = property(fget=_get_vertex_mapping, 
-                              fset=_set_vertex_mapping)
+
+    vertex_mapping = property(fget=_get_vertex_mapping, fset=_set_vertex_mapping)
     #--------------------------------------------------------------------------#
 
     #TODO: May be better to have these return values for assignment to the
@@ -802,8 +806,7 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
             region_triangles = set.union(*regs)
             region_surface_area[k] = self.triangle_areas[list(region_triangles)].sum()
 
-        util.log_debug_array(LOG, region_surface_area, "region_areas",
-                             owner=self.__class__.__name__)
+        util.log_debug_array(LOG, region_surface_area, "region_areas", owner=self.__class__.__name__)
         self.region_areas = region_surface_area
 
 
@@ -816,10 +819,9 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
         for k in regions:
             orient = self.vertex_normals[self.region_mapping == k, :]
             avg_orient = numpy.mean(orient, axis=0)
-            average_orientation[k, :] =  avg_orient / numpy.sqrt(numpy.sum(avg_orient**2))
+            average_orientation[k, :] = avg_orient / numpy.sqrt(numpy.sum(avg_orient ** 2))
 
-        util.log_debug_array(LOG, average_orientation, "region_orientation",
-                             owner=self.__class__.__name__)
+        util.log_debug_array(LOG, average_orientation, "region_orientation", owner=self.__class__.__name__)
         self.region_orientation = average_orientation
 
 
