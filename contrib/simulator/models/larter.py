@@ -214,10 +214,21 @@ class Larter(models.Model):
         it is also provides the default range of phase-plane plots.""",
         order = 20)
     
-    variables_of_interest = arrays.IntegerArray(
+    # variables_of_interest = arrays.IntegerArray(
+    #     label = "Variables watched by Monitors",
+    #     range = basic.Range(lo = 0, hi = 3, step=1),
+    #     default = numpy.array([0, 2], dtype=numpy.int32),
+    #     doc = """This represents the default state-variables of this Model to be
+    #     monitored. It can be overridden for each Monitor if desired. The 
+    #     corresponding state-variable indices for this model are :math:`V = 0`,
+    #     :math:`W = 1`, and :math:`Z = 2`.""",
+    #     order = 21)
+
+    variables_of_interest = basic.Enumerate(
         label = "Variables watched by Monitors",
-        range = basic.Range(lo = 0, hi = 3, step=1),
-        default = numpy.array([0, 2], dtype=numpy.int32),
+        options = ["V", "W", "Z"],
+        default = ["V", "W", "Z"],
+        select_multiple = True,
         doc = """This represents the default state-variables of this Model to be
         monitored. It can be overridden for each Monitor if desired. The 
         corresponding state-variable indices for this model are :math:`V = 0`,
@@ -234,10 +245,10 @@ class Larter(models.Model):
         LOG.info('%s: initing...' % str(self))
         super(Larter, self).__init__(**kwargs)
         
-        self._state_variables = ["V", "W", "Z"]
+        #self._state_variables = ["V", "W", "Z"]
         self._nvar = 3
         
-        self.cvar = numpy.array([0, 2], dtype=numpy.int32)
+        self.cvar = numpy.array([0], dtype=numpy.int32)
         
         LOG.debug('%s: inited.' % repr(self))
     
