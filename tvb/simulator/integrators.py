@@ -28,6 +28,8 @@ Using an integration step size ``dt`` from the following list:
 
 will be consistent with Monitor periods corresponding to any of [4096, 2048, 1024, 512, 256, 128] Hz
 
+# TODO: error analysis
+
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 .. moduleauthor:: Marmaduke Woodman <mw@eml.cc>
 .. moduleauthor:: Noelia Montejo <Noelia@tvb.invalid>
