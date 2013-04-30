@@ -79,6 +79,8 @@ if not os.path.exists(cfg.TVB_STORAGE):
 
 from tvb_library_test.basic import basic_test_main
 from tvb_library_test.datatypes import datatypes_test_main
+from tvb_library_test.simulator import simulator_test_main
+
 from tvb_library_test.xmlrunner import XMLTestRunner
 
 
@@ -89,6 +91,7 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(basic_test_main.suite())
     test_suite.addTest(datatypes_test_main.suite())
+    test_suite.addTest(simulator_test_main.suite())
     return test_suite
 
 
