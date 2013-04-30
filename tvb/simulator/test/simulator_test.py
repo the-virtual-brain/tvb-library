@@ -179,7 +179,6 @@ def display_results(**kwargs):
 
 if __name__ == '__main__':
     
-    
     import itertools
     from tvb.basic.traits.parameters_factory import get_traited_subclasses
     
