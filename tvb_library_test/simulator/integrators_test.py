@@ -21,6 +21,7 @@
 
 """
 Test for tvb.simulator.coupling module
+# TODO: evaluate equations?
 
 .. moduleauthor:: Paula Sanz Leon <sanzleon.paula@gmail.com>
 
@@ -33,42 +34,55 @@ if __name__ == "__main__":
 import unittest
 
 from tvb_library_test.base_testcase import BaseTestCase
-from tvb.simulator import coupling
+from tvb.simulator import integrators
+from tvb.simulator import noise
 
+# For the moment all integrators inherit dt from the base class
+dt = 0.01220703125
 
-class CouplingTest(BaseTestCase):
+class IntegratorsTest(BaseTestCase):
     """
     Define test cases for coupling:
         - initialise each class
-        - check functionality
+        - check default parameters
+        - change parameters 
         
     """
     
-    def test_linear_coupling(self):
-        k = coupling.Linear()
-        self.assertEqual(k.a, 0.00390625)
-        self.assertEqual(k.b, 0.0)
+    def test_integrator_base_class(self):
+        integrator = integrators.Integrator()
+        self.assertEqual(integrator.dt, dt)
+        
+        
+    def test_heun(self):
+        heun_det = integrators.HeunDeterministic()
+        heun_sto = integrators.HeunStochastic()
+        self.assertEqual(heun_det.dt, dt)
+        self.assertEqual(heun_sto.dt, dt)
+        self.assertIsInstance(heun_sto.noise, noise.Additive)
+        self.assertEqual(heun_sto.noise.nsig, 1.0)
+        self.assertEqual(heun_sto.noise.ntau, 0.0)
+        
+    def test_euler(self):
+        euler_det = integrators.EulerDeterministic()
+        euler_sto = integrators.EulerStochastic()
+        self.assertEqual(euler_det.dt, dt)
+        self.assertEqual(euler_sto.dt, dt)
+        self.assertIsInstance(euler_sto.noise, noise.Additive)
+        self.assertEqual(euler_sto.noise.nsig, 1.0)
+        self.assertEqual(euler_sto.noise.ntau, 0.0)
+ 
 
-
-    def test_scaling_coupling(self):
-        k = coupling.Scaling()
-        self.assertEqual(k.scaling_factor, 0.00390625)
-
-
-    def test_sigmoidal_coupling(self):
-        k = coupling.Sigmoidal()
-        self.assertEqual(k.cmin,    -1.0)
-        self.assertEqual(k.cmax,     1.0)
-        self.assertEqual(k.midpoint, 0.0)
-        self.assertEqual(k.sigma,    230.)
-
-
+    def test_rk4(self):
+        rk4 = integrators.RungeKutta4thOrderDeterministic()
+        self.assertEqual(rk4.dt, dt)
+    
 def suite():
     """
     Gather all the tests in a test suite.
     """
     test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.makeSuite(CouplingTest))
+    test_suite.addTest(unittest.makeSuite(IntegratorsTest))
     return test_suite
 
 

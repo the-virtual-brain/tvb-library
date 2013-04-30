@@ -18,30 +18,68 @@
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0
 #
 #
+
 """
-Gather the tests of the simulator module
+Test for tvb.simulator.common module
 
 .. moduleauthor:: Paula Sanz Leon <sanzleon.paula@gmail.com>
+
 """
+
 if __name__ == "__main__":
     from tvb_library_test import setup_test_console_env
     setup_test_console_env()
     
 import unittest
 
-from tvb_library_test.simulator import coupling_test
-from tvb_library_test.simulator import common_test
-from tvb_library_test.simulator import integrators_test
+from tvb_library_test.base_testcase import BaseTestCase
+from tvb.simulator import common
 
 
+class CommonTest(BaseTestCase):
+    """
+    Define test cases for common:
+        - initialise each class
+        - check default parameters 
+        
+    """
+    def test_struct(self):
+        st = common.Struct(x =42.0, y=33.0)
+        self.assertEqual(st.x, 42.0)
+        self.assertEqual(st.y, 33.0)
+        
+    
+    def test_linear_interpolation(self):
+        t_start = 0.0
+        t_end   = 1.0 
+        y_start = 4.0
+        y_end   = 8.0
+        t_mid   = 0.5
+        val = common.linear_interp1d(t_start, t_end, y_start, y_end, t_mid)
+        self.assertEqual(val, 6.0)
+        
+        
+    def test_unravel_history(self):
+        """
+        This class does not work and it's not used ... maybe should tag it as
+        deprecated
+        """
+        pass
+        
+        
+    def test_Buffer(self):
+        """
+        It seems to be unused as well ... maybe should tag it as
+        deprecated
+        """
+        pass
+        
 def suite():
     """
     Gather all the tests in a test suite.
     """
     test_suite = unittest.TestSuite()
-    test_suite.addTest(coupling_test.suite())
-    test_suite.addTest(common_test.suite())
-    test_suite.addTest(integrators_test.suite())
+    test_suite.addTest(unittest.makeSuite(CommonTest))
     return test_suite
 
 
@@ -49,4 +87,4 @@ if __name__ == "__main__":
     #So you can run tests from this package individually.
     TEST_RUNNER = unittest.TextTestRunner()
     TEST_SUITE = suite()
-    TEST_RUNNER.run(TEST_SUITE)
+    TEST_RUNNER.run(TEST_SUITE) 
