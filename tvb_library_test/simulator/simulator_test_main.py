@@ -32,6 +32,8 @@ import unittest
 from tvb_library_test.simulator import coupling_test
 from tvb_library_test.simulator import common_test
 from tvb_library_test.simulator import integrators_test
+from tvb_library_test.simulator import monitors_test
+from tvb_library_test.simulator import simulator_test
 
 
 def suite():
@@ -42,6 +44,8 @@ def suite():
     test_suite.addTest(coupling_test.suite())
     test_suite.addTest(common_test.suite())
     test_suite.addTest(integrators_test.suite())
+    test_suite.addTest(monitors_test.suite())
+    test_suite.addTest(simulator_test.suite())
     return test_suite
 
 
