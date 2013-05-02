@@ -119,7 +119,7 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
             step = int(step)
         slices = []
         overall_shape = self.read_data_shape()
-        for i in range(len(overall_shape)):
+        for i in xrange(len(overall_shape)):
             if i == 0:
                 ## Time slice
                 slices.append(slice(from_idx, min(to_idx, overall_shape[0]), step))

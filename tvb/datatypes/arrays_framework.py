@@ -154,7 +154,7 @@ class MappedArrayFramework(arrays_data.MappedArrayData):
         result = self.array_data
         full = slice(0, None)
         cut_dimensions = 0
-        for i in range(len(self.shape)):
+        for i in xrange(len(self.shape)):
             if i in dimensions.keys():
                 my_slice = [full for _ in range(i - cut_dimensions)]
                 if len(dimensions[i]) == 1:
@@ -171,7 +171,7 @@ class MappedArrayFramework(arrays_data.MappedArrayData):
 
         #check that the shape for the resulted array respects given conditions
         result_shape = result.shape
-        for i in range(len(result_shape)):
+        for i in xrange(len(result_shape)):
             if i in shape_restrictions:
                 flag = eval(str(result_shape[i]) +
                            shape_restrictions[i][self.KEY_OPERATION] +
@@ -248,7 +248,7 @@ class MappedArrayFramework(arrays_data.MappedArrayData):
         op_array = str(operations_str).split(",")
 
         operations = self._get_operations()
-        for i in range(len(shape_array)):
+        for i in xrange(len(shape_array)):
             if (str(shape_array[i]).isdigit() and i < len(op_array) 
                 and op_array[i] in operations):
                 result[i] = {self.KEY_SIZE : int(shape_array[i]),

@@ -63,7 +63,7 @@ class DataReadersTest(BaseTestCase):
         tvb_file = File(cfg.TVB_TEMP_FOLDER)
         numpy.savez(test_data_file, array1=test_array_1, array2=test_array_2)
         read_data = tvb_file.read_data(file_name='test_data.npz')
-        for idx in range(len(test_array_1)):
+        for idx in xrange(len(test_array_1)):
             self.assertEqual(test_array_1[idx], read_data['array1'][idx], 
                              "Loaded data from file is different from data that was saved.")
         for x_idx in range(test_array_2.shape[0]):

@@ -222,7 +222,7 @@ class FilterChain(object):
         self.algorithm_category_replacement = 'algocategory_to_check'
         self.operation_replacement = 'operation_to_check'
 
-        for i in range(len(self.fields)):
+        for i in xrange(len(self.fields)):
             #### Any filter validations checks start here #####
             if self.operations[i] in ('in', 'not in'):
                 try:
