@@ -45,16 +45,16 @@ class ConnectivityFramework(connectivity_data.ConnectivityData):
             new_weights = eval(new_weights)
             interest_areas = eval(interest_areas)
         
-        for i in range(len(new_weights)):
-            for j in range(len(new_weights)):
+        for i in xrange(len(new_weights)):
+            for j in xrange(len(new_weights)):
                 new_weights[i][j] = numpy.float(new_weights[i][j])
-        for i in range(len(interest_areas)):
+        for i in xrange(len(interest_areas)):
             interest_areas[i] = int(interest_areas[i]) 
                      
         final_weights = []
-        for i in range(len(self.weights)):
+        for i in xrange(len(self.weights)):
             weight_line = []
-            for j in range(len(self.weights)):
+            for j in xrange(len(self.weights)):
                 if (interest_areas and i in interest_areas and j in interest_areas):
                     weight_line.append(new_weights[i][j])
                 else:
