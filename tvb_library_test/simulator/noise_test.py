@@ -18,14 +18,13 @@
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0
 #
 #
+
 """
-Gather the tests of the simulator module
+Test for tvb.simulator.noise module
 
 .. moduleauthor:: Paula Sanz Leon <sanzleon.paula@gmail.com>
-"""
 
-# NOTE: for the moment test cases are not relevant (except for the on running all the simulations). 
-# They are more like placeholders, but we defintely need to add more exhaustive tests.
+"""
 
 if __name__ == "__main__":
     from tvb_library_test import setup_test_console_env
@@ -33,28 +32,32 @@ if __name__ == "__main__":
     
 import unittest
 
-from tvb_library_test.simulator import common_test
-from tvb_library_test.simulator import coupling_test
-from tvb_library_test.simulator import integrators_test
-from tvb_library_test.simulator import models_test
-from tvb_library_test.simulator import monitors_test
-from tvb_library_test.simulator import noise_test
-from tvb_library_test.simulator import simulator_test
+from tvb_library_test.base_testcase import BaseTestCase
+from tvb.simulator import noise
+from tvb.datatypes import equations
+
+class NoiseTest(BaseTestCase):
+    def test_stream(self):
+        noise_stream = noise.RandomStream()
+        self.assertEqual(noise_stream.init_seed, 42)
 
 
+    def test_additive(self):
+        noise_additive = noise.Additive()
+        self.assertEqual(noise_additive.ntau,  0.0)
+        
+        
+    def test_multiplicative(self):
+        noise_multiplicative = noise.Multiplicative()
+        self.assertEqual(noise_multiplicative.ntau,  0.0)
+        self.assertIsInstance(noise_multiplicative.b, equations.Linear)
+    
 def suite():
     """
     Gather all the tests in a test suite.
     """
     test_suite = unittest.TestSuite()
-    test_suite.addTest(coupling_test.suite())
-    test_suite.addTest(common_test.suite())
-    test_suite.addTest(integrators_test.suite())
-    test_suite.addTest(models_test.suite())
-    test_suite.addTest(monitors_test.suite())
-    test_suite.addTest(noise_test.suite())
-    test_suite.addTest(simulator_test.suite())
-
+    test_suite.addTest(unittest.makeSuite(NoiseTest))
     return test_suite
 
 
@@ -62,4 +65,4 @@ if __name__ == "__main__":
     #So you can run tests from this package individually.
     TEST_RUNNER = unittest.TextTestRunner()
     TEST_SUITE = suite()
-    TEST_RUNNER.run(TEST_SUITE)
+    TEST_RUNNER.run(TEST_SUITE) 
