@@ -18,14 +18,13 @@
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0
 #
 #
+
 """
-Gather the tests of the simulator module
+Test for tvb.simulator.region_boundaries module
 
 .. moduleauthor:: Paula Sanz Leon <sanzleon.paula@gmail.com>
-"""
 
-# NOTE: for the moment test cases are not relevant (except for the on running all the simulations). 
-# They are more like placeholders, but we defintely need to add more exhaustive tests.
+"""
 
 if __name__ == "__main__":
     from tvb_library_test import setup_test_console_env
@@ -33,30 +32,31 @@ if __name__ == "__main__":
     
 import unittest
 
-from tvb_library_test.simulator import common_test
-from tvb_library_test.simulator import coupling_test
-from tvb_library_test.simulator import integrators_test
-from tvb_library_test.simulator import models_test
-from tvb_library_test.simulator import monitors_test
-from tvb_library_test.simulator import noise_test
-from tvb_library_test.simulator import simulator_test
-from tvb_library_test.simulator import region_boundaries_test
+from tvb_library_test.base_testcase import BaseTestCase
+from tvb.simulator import region_boundaries
+from tvb.datatypes import connectivity
+from tvb.datatypes import surfaces
 
 
+class RegionBoundariesTest(BaseTestCase):
+    """
+    This test is checking correspondance between cortical surface and connectivity.
+    """
+    def test_region_boundaries(self):
+        cortex = surfaces.Cortex()
+        white_matter = connectivity.Connectivity()
+        white_matter.configure()
+        rb = region_boundaries.RegionBoundaries(cortex)
+        self.assertEqual(len(rb.region_neighbours.keys()), 
+                        white_matter.number_of_regions)
+
+    
 def suite():
     """
     Gather all the tests in a test suite.
     """
     test_suite = unittest.TestSuite()
-    test_suite.addTest(coupling_test.suite())
-    test_suite.addTest(common_test.suite())
-    test_suite.addTest(integrators_test.suite())
-    test_suite.addTest(models_test.suite())
-    test_suite.addTest(monitors_test.suite())
-    test_suite.addTest(noise_test.suite())
-    test_suite.addTest(simulator_test.suite())
-    test_suite.addTest(region_boundaries_test.suite())
-
+    test_suite.addTest(unittest.makeSuite(RegionBoundariesTest))
     return test_suite
 
 
@@ -64,4 +64,4 @@ if __name__ == "__main__":
     #So you can run tests from this package individually.
     TEST_RUNNER = unittest.TextTestRunner()
     TEST_SUITE = suite()
-    TEST_RUNNER.run(TEST_SUITE)
+    TEST_RUNNER.run(TEST_SUITE) 
