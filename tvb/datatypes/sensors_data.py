@@ -51,31 +51,31 @@ class SensorsData(MappedType):
     Base Sensors class.
     All sensors have locations. 
     Some will have orientations, e.g. MEG.
-    
     """
-    _ui_name = "Unknown sensors" 
-    
+
+    _ui_name = "Unknown sensors"
+
     sensors_type = basic.String
-    
+
     __mapper_args__ = {'polymorphic_on': 'sensors_type'}
-    
-    default = readers.File(folder_path = "sensors", file_name = 'EEG_unit_vectors_BrainProducts_62.txt.bz2')
-    
+
+    default = readers.File(folder_path="sensors", file_name='EEG_unit_vectors_BrainProducts_62.txt.bz2')
+
     labels = arrays.StringArray(
-        label = "Sensor labels",
-        console_default = default.read_data(usecols = (0,), dtype = "string", field = "labels"))
-    
+        label="Sensor labels",
+        console_default=default.read_data(usecols=(0,), dtype="string", field="labels"))
+
     locations = arrays.PositionArray(
-        label = "Sensor locations",
-        console_default = default.read_data(usecols = (1,2,3), field = "locations"))
-    
-    has_orientation = basic.Bool(default = False)
-    
-    orientations = arrays.OrientationArray(required = False)
-    
+        label="Sensor locations",
+        console_default=default.read_data(usecols=(1, 2, 3), field="locations"))
+
+    has_orientation = basic.Bool(default=False)
+
+    orientations = arrays.OrientationArray(required=False)
+
     number_of_sensors = basic.Integer(
-        label = "Number of sensors",
-        doc = """The number of sensors described by these Sensors.""")
+        label="Number of sensors",
+        doc="""The number of sensors described by these Sensors.""")
 
 
 
@@ -93,20 +93,20 @@ class SensorsEEGData(SensorsData):
         
     """
     _ui_name = "EEG Sensors"
-    
+
     __tablename__ = None
-    
+
     __mapper_args__ = {'polymorphic_identity': EEG_POLYMORPHIC_IDENTITY}
-    
-    sensors_type = basic.String(default = EEG_POLYMORPHIC_IDENTITY)
-    
-    has_orientation = basic.Bool(default = False, order = -1)
+
+    sensors_type = basic.String(default=EEG_POLYMORPHIC_IDENTITY)
+
+    has_orientation = basic.Bool(default=False, order=-1)
 
 
     def __init__(self, **kwargs):
         super(SensorsEEGData, self).__init__(**kwargs)
-        self.default.reload(self.__class__, folder_path = "sensors", 
-                            file_name = "EEG_unit_vectors_BrainProducts_62.txt.bz2")
+        self.default.reload(self.__class__, folder_path="sensors",
+                            file_name="EEG_unit_vectors_BrainProducts_62.txt.bz2")
 
 
 
@@ -124,23 +124,24 @@ class SensorsMEGData(SensorsData):
         
     """
     _ui_name = "MEG sensors"
-    
+
     __tablename__ = None
-    
+
     __mapper_args__ = {'polymorphic_identity': MEG_POLYMORPHIC_IDENTITY}
-    
-    sensors_type = basic.String(default = MEG_POLYMORPHIC_IDENTITY)
-    
+
+    sensors_type = basic.String(default=MEG_POLYMORPHIC_IDENTITY)
+
     orientations = arrays.OrientationArray(
-        label = "Sensor orientations",
-        console_default = SensorsData.default.read_data(usecols = (4,5,6), field = "orientations", lazy_load = True),
-        doc = "An array representing the orientation of the MEG SQUIDs")
-    
-    has_orientation = basic.Bool(default = True, order = -1)
+        label="Sensor orientations",
+        console_default=SensorsData.default.read_data(usecols=(4, 5, 6), field="orientations", lazy_load=True),
+        doc="An array representing the orientation of the MEG SQUIDs")
+
+    has_orientation = basic.Bool(default=True, order=-1)
+
 
     def __init__(self, **kwargs):
         super(SensorsMEGData, self).__init__(**kwargs)
-        self.default.reload(self.__class__, folder_path = "sensors", file_name = "meg_channels_reg13.txt.bz2")
+        self.default.reload(self.__class__, folder_path="sensors", file_name="meg_channels_reg13.txt.bz2")
 
 
 
@@ -149,12 +150,12 @@ class SensorsInternalData(SensorsData):
     Sensors inside the brain...
     """
     _ui_name = "Internal Sensors"
-    
+
     __tablename__ = None
-    
+
     __mapper_args__ = {'polymorphic_identity': INTERNAL_POLYMORPHIC_IDENTITY}
-    
-    sensors_type = basic.String(default = INTERNAL_POLYMORPHIC_IDENTITY)
+
+    sensors_type = basic.String(default=INTERNAL_POLYMORPHIC_IDENTITY)
 
 
 

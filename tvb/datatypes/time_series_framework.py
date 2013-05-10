@@ -36,12 +36,16 @@ import tvb.datatypes.time_series_data as time_series_data
 
 
 class TimeSeriesFramework(time_series_data.TimeSeriesData):
-    """ This class exists to add framework methods to TimeSeriesData. """
+    """
+    This class exists to add framework methods to TimeSeriesData.
+    """
     __tablename__ = None
 
 
     def configure(self):
-        """After populating few fields, compute the rest of the fields"""
+        """
+        After populating few fields, compute the rest of the fields
+        """
         super(TimeSeriesFramework, self).configure()
         data_shape = self.read_data_shape()
         self.nr_dimensions = len(data_shape)
@@ -51,12 +55,16 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
 
 
     def read_data_shape(self):
-        """Expose shape read on field data'"""
+        """
+        Expose shape read on field data.
+        """
         return self.get_data_shape('data')
 
 
     def read_data_slice(self, data_slice):
-        """Expose chunked-data access """
+        """
+        Expose chunked-data access.
+        """
         return self.get_data('data', data_slice)
 
 
@@ -69,7 +77,9 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
 
 
     def read_time_page(self, current_page, page_size, max_size=None):
-        """Compute time for current page."""
+        """
+        Compute time for current page.
+        """
         current_page = int(current_page)
         page_size = int(page_size)
         if max_size is None:
@@ -86,11 +96,11 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
         """
         Read and return only the data page for the specified channels list.
         
-        @param from_idx: the starting time idx from which to read data
-        @param to_idx: the end time idx up until to which you read data
-        @param step: increments in which to read the data. Optional, default to 1.
-        @param specific_slices: optional parameter. If speficied slices the data accordingly.
-        @param channels_list: the list of channels for which we want data 
+        :param from_idx: the starting time idx from which to read data
+        :param to_idx: the end time idx up until to which you read data
+        :param step: increments in which to read the data. Optional, default to 1.
+        :param specific_slices: optional parameter. If speficied slices the data accordingly.
+        :param channels_list: the list of channels for which we want data
         """
         channels_list = json.loads(channels_list)
         if channels_list:
@@ -143,19 +153,23 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
 
 
     def write_time_slice(self, partial_result):
-        """Append a new value to the ``time`` attribute"""
+        """
+        Append a new value to the ``time`` attribute.
+        """
         self.store_data_chunk("time", partial_result, grow_dimension=0, close_file=False)
 
 
     def write_data_slice(self, partial_result):
-        """Append a chunk of time-series data to the ``data`` attribute."""
+        """
+        Append a chunk of time-series data to the ``data`` attribute.
+        """
         self.store_data_chunk("data", partial_result, grow_dimension=0, close_file=False)
 
 
     def get_min_max_values(self, page_size=500, specific_slices=None):
         """
         Compute a good approximation for MIN and MAX values of the current array.
-        Will be taken in consideration only the 
+        Will be taken in consideration only the first page of data.
         """
         first_page = self.read_data_page(0, page_size, specific_slices)
         return numpy.min(first_page), numpy.max(first_page)
@@ -177,20 +191,23 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
 
 
 class TimeSeriesEEGFramework(time_series_data.TimeSeriesEEGData, TimeSeriesFramework):
-    """ This class exists to add framework methods to TimeSeriesEEGData. """
-    pass
+    """
+    This class exists to add framework methods to TimeSeriesEEGData.
+    """
 
 
 
 class TimeSeriesMEGFramework(time_series_data.TimeSeriesMEGData, TimeSeriesFramework):
-    """ This class exists to add framework methods to TimeSeriesMEGData. """
-    pass
+    """
+    This class exists to add framework methods to TimeSeriesMEGData.
+    """
 
 
 
 class TimeSeriesRegionFramework(time_series_data.TimeSeriesRegionData, TimeSeriesFramework):
-    """ This class exists to add framework methods to TimeSeriesRegionData. """
-    pass
+    """
+    This class exists to add framework methods to TimeSeriesRegionData.
+    """
 
 
 
@@ -203,6 +220,5 @@ class TimeSeriesSurfaceFramework(time_series_data.TimeSeriesSurfaceData, TimeSer
 class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSeriesFramework):
     """ This class exists to add framework methods to TimeSeriesVolumeData. """
     pass
-
 
 
