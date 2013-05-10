@@ -18,15 +18,12 @@
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0
 #
 #
+
 """
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
 
-### Try to import extra module when running with Python 2.6 (where unittest2 is not default)
-try:
-    import unittest2 as unittest
-except Exception:
-    import unittest
+import unittest
 from tvb.basic.config.settings import TVBSettings as cfg
 
 

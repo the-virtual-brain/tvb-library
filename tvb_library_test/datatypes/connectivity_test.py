@@ -30,10 +30,10 @@ if __name__ == "__main__":
 import os
 import numpy
 import unittest
-
 from tvb.datatypes import connectivity
 from tvb_library_test.base_testcase import BaseTestCase
-        
+
+
 class ConnectivityTest(BaseTestCase):
     
     def test_connectivity_defaults(self):
@@ -86,8 +86,9 @@ class ConnectivityTest(BaseTestCase):
         Reload a connectivity and check that defaults changes accordingly.
         """
         conn = connectivity.Connectivity()
-        conn.default.reload(conn, folder_path = os.path.join("connectivity", 
-                                        "o52r00_irp2008_hemisphere_both_subcortical_true_regions_190"))
+        conn.default.reload(conn,
+                            folder_path=os.path.join("connectivity",
+                                                     "o52r00_irp2008_hemisphere_both_subcortical_true_regions_190"))
         self.assertEqual(conn.weights.shape, (190, 190))
         self.assertEqual(conn.weights.max(), 3.0)
         self.assertEqual(conn.weights.min(), 0.0)
@@ -109,7 +110,9 @@ class ConnectivityTest(BaseTestCase):
         self.assertTrue(conn.nose_correction is None)
         self.assertTrue(conn.saved_selection is None)
         self.assertEqual(conn.parent_connectivity, '')
-        
+
+
+
 def suite():
     """
     Gather all the tests in a test suite.
