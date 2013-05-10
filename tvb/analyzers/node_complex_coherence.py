@@ -53,14 +53,12 @@ class NodeComplexCoherence(core.Type):
     a ComplexCoherenceSpectrum datatype.
    
   
-    This algorithm is based on the matlab function data2cs_event.m 
-    written by Guido Nolte:
-            
-    .. [Freyer_2012] Freyer, F.; Reinacher, M.; Nolte, G.; Dinse, H. R. and 
-    Ritter, P. ** Repetitive tactile stimulation changes resting-state 
-    functional connectivity-implications for treatment of sensorimotor decline.** 
-    Front Hum Neurosci, Bernstein Focus State Dependencies of Learning and 
-    Bernstein Center for Computational Neuroscience Berlin, Germany., 2012, 6, 144 
+    This algorithm is based on the matlab function data2cs_event.m written by Guido Nolte:
+        .. [Freyer_2012] Freyer, F.; Reinacher, M.; Nolte, G.; Dinse, H. R. and
+            Ritter, P. * Repetitive tactile stimulation changes resting-state
+            functional connectivity-implications for treatment of sensorimotor decline.*
+            Front Hum Neurosci, Bernstein Focus State Dependencies of Learning and
+            Bernstein Center for Computational Neuroscience Berlin, Germany., 2012, 6, 144
     
     Input: 
     originally the input could be 2D (tpts x nodes/channels), and it was possible
