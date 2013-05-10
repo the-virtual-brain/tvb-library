@@ -33,80 +33,82 @@ import tvb.datatypes.time_series as time_series
 from tvb.basic.traits.types_mapped import MappedType
 
 
+
 class PrincipalComponentsData(MappedType):
     """
     Result of a Principal Component Analysis (PCA).
     """
-    
+
     source = time_series.TimeSeries(
-        label = "Source time-series",
-        doc = "Links to the time-series on which the PCA is applied.")
-    
+        label="Source time-series",
+        doc="Links to the time-series on which the PCA is applied.")
+
     weights = arrays.FloatArray(
-        label = "Principal vectors",
-        doc = """The vectors of the 'weights' with which each time-series is
+        label="Principal vectors",
+        doc="""The vectors of the 'weights' with which each time-series is
             represented in each component.""",
-        file_storage = core.FILE_STORAGE_EXPAND)
-    
+        file_storage=core.FILE_STORAGE_EXPAND)
+
     fractions = arrays.FloatArray(
-        label = "Fraction explained",
-        doc = """A vector or collection of vectors representin the fraction of
+        label="Fraction explained",
+        doc="""A vector or collection of vectors representing the fraction of
             the variance explained by each principal component.""",
-        file_storage = core.FILE_STORAGE_EXPAND)
-    
+        file_storage=core.FILE_STORAGE_EXPAND)
+
     norm_source = arrays.FloatArray(
-        label = "Normalised source time series",
-        file_storage = core.FILE_STORAGE_EXPAND)
-    
+        label="Normalised source time series",
+        file_storage=core.FILE_STORAGE_EXPAND)
+
     component_time_series = arrays.FloatArray(
-        label = "Component time series",
-        file_storage = core.FILE_STORAGE_EXPAND)
-    
+        label="Component time series",
+        file_storage=core.FILE_STORAGE_EXPAND)
+
     normalised_component_time_series = arrays.FloatArray(
-        label = "Normalised component time series",
-        file_storage = core.FILE_STORAGE_EXPAND)
-    
+        label="Normalised component time series",
+        file_storage=core.FILE_STORAGE_EXPAND)
+
     __generate_table__ = True
+
 
 
 class IndependentComponentsData(MappedType):
     """
     Result of TEMPORAL (Fast) Independent Component Analysis
     """
-    
+
     source = time_series.TimeSeries(
-        label = "Source time-series",
-        doc = "Links to the time-series on which the ICA is applied.")
-    
+        label="Source time-series",
+        doc="Links to the time-series on which the ICA is applied.")
+
     mixing_matrix = arrays.FloatArray(
-        label = "Mixing matrix - Spatial Maps",
-        doc = """The linear mixing matrix (Mixing matrix) """)
-            
+        label="Mixing matrix - Spatial Maps",
+        doc="""The linear mixing matrix (Mixing matrix) """)
+
     unmixing_matrix = arrays.FloatArray(
-        label = "Unmixing matrix - Spatial maps",
-        doc = """The estimated unmixing matrix used to obtain the unmixed 
+        label="Unmixing matrix - Spatial maps",
+        doc="""The estimated unmixing matrix used to obtain the unmixed
             sources from the data""")
-    
+
     prewhitening_matrix = arrays.FloatArray(
-        label = "Pre-whitening matrix",
-        doc = """ """)
-            
+        label="Pre-whitening matrix",
+        doc=""" """)
+
     n_components = basic.Integer(
-        label = "Number of independent components",
-        doc = """ Observed data matrix is considered to be a linear combination 
+        label="Number of independent components",
+        doc=""" Observed data matrix is considered to be a linear combination
         of :math:`n` non-Gaussian independent components""")
-            
+
     norm_source = arrays.FloatArray(
-        label = "Normalised source time series. Zero centered and whitened.",
+        label="Normalised source time series. Zero centered and whitened.",
         file_storage=core.FILE_STORAGE_EXPAND)
-    
+
     component_time_series = arrays.FloatArray(
-        label = "Component time series. Unmixed sources.",
+        label="Component time series. Unmixed sources.",
         file_storage=core.FILE_STORAGE_EXPAND)
-    
+
     normalised_component_time_series = arrays.FloatArray(
-        label = "Normalised component time series",
+        label="Normalised component time series",
         file_storage=core.FILE_STORAGE_EXPAND)
-    
+
     __generate_table__ = True
 
