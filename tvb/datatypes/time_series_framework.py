@@ -175,6 +175,13 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
         return numpy.min(first_page), numpy.max(first_page)
 
 
+    def get_space_labels(self):
+        """
+        :return An array of strings. Default empty.
+        """
+        return []
+
+
     @staticmethod
     def accepted_filters():
         filters = time_series_data.TimeSeriesData.accepted_filters()
@@ -196,6 +203,15 @@ class TimeSeriesEEGFramework(time_series_data.TimeSeriesEEGData, TimeSeriesFrame
     """
 
 
+    def get_space_labels(self):
+        """
+        :return An array of strings with the sensors labels.
+        """
+        if self.sensors is not None:
+            return list(self.sensors.labels)
+        return []
+
+
 
 class TimeSeriesMEGFramework(time_series_data.TimeSeriesMEGData, TimeSeriesFramework):
     """
@@ -203,11 +219,29 @@ class TimeSeriesMEGFramework(time_series_data.TimeSeriesMEGData, TimeSeriesFrame
     """
 
 
+    def get_space_labels(self):
+        """
+        :return An array of strings with the sensors labels.
+        """
+        if self.sensors is not None:
+            return list(self.sensors.labels)
+        return []
+
+
 
 class TimeSeriesRegionFramework(time_series_data.TimeSeriesRegionData, TimeSeriesFramework):
     """
     This class exists to add framework methods to TimeSeriesRegionData.
     """
+
+
+    def get_space_labels(self):
+        """
+        :return An array of strings with the connectivity node labels.
+        """
+        if self.connectivity is not None:
+            return list(self.connectivity.region_labels)
+        return []
 
 
 
