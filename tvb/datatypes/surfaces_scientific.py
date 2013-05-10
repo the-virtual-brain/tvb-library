@@ -194,7 +194,7 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         """
         .
         """
-        neighbours = [[] for k in range(self.number_of_vertices)]
+        neighbours = [[] for _ in range(self.number_of_vertices)]
         for k in range(self.number_of_triangles):
             neighbours[self.triangles[k, 0]].append(self.triangles[k, 1])
             neighbours[self.triangles[k, 0]].append(self.triangles[k, 2])
@@ -222,7 +222,7 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         """
         .
         """
-        triangles = [[] for k in range(self.number_of_vertices)]
+        triangles = [[] for _ in range(self.number_of_vertices)]
         for k in range(self.number_of_triangles):
             triangles[self.triangles[k, 0]].append(k)
             triangles[self.triangles[k, 1]].append(k)
@@ -467,7 +467,7 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         """
         .
         """
-        triangles = [[] for k in range(self.number_of_edges)]
+        triangles = [[] for _ in range(self.number_of_edges)]
         for k in range(self.number_of_edges):
             tris = set.intersection(set(self.vertex_triangles[self.edges[k][0]]),
                                     set(self.vertex_triangles[self.edges[k][1]]))
@@ -647,7 +647,6 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
             # TODO: Switch to degree weighted nearest neighbour, or store a default,
             # computing this every time I want a configured Cortex is a pain...
             self.local_connectivity = surfaces_data.LocalConnectivityData(cutoff=40.0, use_storage=False)
-            #TODO: Temporary hack
 
         if self.local_connectivity.cutoff == 0:
             self.local_connectivity.cutoff = 40.0
