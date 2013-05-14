@@ -40,6 +40,7 @@ import tvb.datatypes.equations as equations
 from tvb.datatypes.connectivity import Connectivity
 from tvb.basic.logger.builder import get_logger
 from tvb.basic.traits.types_mapped import MappedType, SparseMatrix
+from tvb.basic.traits.core import FILE_STORAGE_NONE
 
 LOG = get_logger(__name__)
 
@@ -89,6 +90,7 @@ class SurfaceData(MappedType):
         label="Geodesic distance matrix",
         order=-1,
         required=False,
+        file_storage=FILE_STORAGE_NONE,
         doc="""A sparse matrix of truncated geodesic distances""")  # 'CS'
 
     number_of_vertices = basic.Integer(
