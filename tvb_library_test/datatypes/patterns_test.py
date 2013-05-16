@@ -84,7 +84,6 @@ class PatternsTest(BaseTestCase):
         self.assertTrue(dt.time is None)
         
      
-    @unittest.skipIf(sys.maxsize <= 2147483647, "Cannot compute local connectivity on 32-bit machine.")   
     def test_stimulisurface(self):
         srf = surfaces.CorticalSurface()
         srf.configure()
