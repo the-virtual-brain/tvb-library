@@ -18,38 +18,37 @@
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0
 #
 #
-"""
-Created on Mar 20, 2013
 
+"""
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
+
 if __name__ == "__main__":
     from tvb_library_test import setup_test_console_env
     setup_test_console_env()
- 
-import numpy   
-import unittest
 
+import numpy
+import unittest
 from tvb.datatypes import mapped_values, time_series
 from tvb_library_test.base_testcase import BaseTestCase
-        
+
+
+
 class MappedTest(BaseTestCase):
-    
+
     def test_valuewrapper(self):
-        dt = mapped_values.ValueWrapper(data_value=10,
-                                         data_type="Integer",
-                                         data_name="TestVale")
+        dt = mapped_values.ValueWrapper(data_value=10, data_type="Integer", data_name="TestVale")
         self.assertEqual(dt.display_name, "Value Wrapper - TestVale : 10 (Integer)")
-        
-        
+
+
     def test_datatypemeasure(self):
         data = numpy.random.random((10, 10, 10, 10))
         ts = time_series.TimeSeries(data=data)
-        dt = mapped_values.DatatypeMeasure(analyzed_datatype=ts,
-                                           metrics={"Dummy" : 1})
+        dt = mapped_values.DatatypeMeasure(analyzed_datatype=ts, metrics={"Dummy": 1})
         self.assertEqual(dt.display_name, "\nDummy : 1\n")
-        
-        
+
+
+
 def suite():
     """
     Gather all the tests in a test suite.
@@ -57,6 +56,7 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(unittest.makeSuite(MappedTest))
     return test_suite
+
 
 
 if __name__ == "__main__":

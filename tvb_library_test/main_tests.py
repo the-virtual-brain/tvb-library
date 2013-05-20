@@ -18,18 +18,20 @@
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0
 #
 #
+
 """
 Entry point for all unit-tests for TVB Scientific Library.
 
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
+
 from tvb_library_test import setup_test_console_env
 setup_test_console_env()
 
 # Make sure we are in library mode and are not influenced by framework
 try:
-    import tvb.interfaces as int
+    import tvb.interfaces
     raise Exception("Found framework in library mode testing. Abort....")
 except ImportError:
     pass
@@ -46,7 +48,7 @@ KEY_COVERAGE = 'coverage'
 KEY_XML = 'xml'
 
 
-def generage_excludes(root_folders):
+def generate_excludes(root_folders):
     """
     Specify excludes for Coverage.
     """
@@ -55,32 +57,30 @@ def generage_excludes(root_folders):
         for root, _, files in os.walk(root):
             for file_n in files:
                 full_path = os.path.join(root, file_n)
-                if (full_path.endswith('__init__.py')):
+                if full_path.endswith('__init__.py'):
                     excludes.append(full_path)
     return excludes
+
 
 
 if __name__ == "__main__":
     #Start all TVB tests (if in Coverage mode)
     if KEY_COVERAGE in argv:
         import tvb.simulator as sim
+
         SOURCE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(sim.__file__)))
-        COVERAGE = coverage(source = [SOURCE_DIR], omit = generage_excludes([SOURCE_DIR]), cover_pylib=False)
+        COVERAGE = coverage(source=[SOURCE_DIR], omit=generate_excludes([SOURCE_DIR]), cover_pylib=False)
         COVERAGE.start()
         ## This needs to be executed before any TVB import.
 
-
-import unittest 
-import datetime 
-   
+import unittest
+import datetime
 # Make sure folder for Logging exists.   
 if not os.path.exists(cfg.TVB_STORAGE):
     os.makedirs(cfg.TVB_STORAGE)
-
 from tvb_library_test.basic import basic_test_main
 from tvb_library_test.datatypes import datatypes_test_main
 from tvb_library_test.simulator import simulator_test_main
-
 from tvb_library_test.xmlrunner import XMLTestRunner
 
 
@@ -111,7 +111,7 @@ if __name__ == "__main__":
         TEST_RUNNER.run(TEST_SUITE) 
         STREAM.close()
         
-    print 'It run tests for %d sec.' % ((datetime.datetime.now() - START_TIME).seconds)
+    print 'It run tests for %d sec.' % (datetime.datetime.now() - START_TIME).seconds
     
     if KEY_COVERAGE in argv:
         COVERAGE.stop()
