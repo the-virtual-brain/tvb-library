@@ -18,6 +18,7 @@
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0
 #
 #
+
 """
 Gather the tests of the simulator module
 
@@ -25,14 +26,14 @@ Gather the tests of the simulator module
 """
 
 # NOTE: for the moment test cases are not relevant (except for the on running all the simulations). 
-# They are more like placeholders, but we defintely need to add more exhaustive tests.
+# They are more like placeholders, but we definitely need to add more exhaustive tests.
 
 if __name__ == "__main__":
     from tvb_library_test import setup_test_console_env
     setup_test_console_env()
-    
-import unittest
 
+
+import unittest
 from tvb_library_test.simulator import common_test
 from tvb_library_test.simulator import coupling_test
 from tvb_library_test.simulator import integrators_test
@@ -48,14 +49,14 @@ def suite():
     Gather all the tests in a test suite.
     """
     test_suite = unittest.TestSuite()
-    test_suite.addTest(coupling_test.suite())
     test_suite.addTest(common_test.suite())
+    test_suite.addTest(coupling_test.suite())
     test_suite.addTest(integrators_test.suite())
     test_suite.addTest(models_test.suite())
     test_suite.addTest(monitors_test.suite())
     test_suite.addTest(noise_test.suite())
-    test_suite.addTest(simulator_test.suite())
     test_suite.addTest(region_boundaries_test.suite())
+    test_suite.addTest(simulator_test.suite())
 
     return test_suite
 

@@ -18,15 +18,16 @@
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0
 #
 #
+
 """
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
 """
+
 if __name__ == "__main__":
     from tvb_library_test import setup_test_console_env
     setup_test_console_env()
-    
-import unittest
 
+import unittest
 import tvb.datatypes.surfaces as surfaces
 import tvb.datatypes.connectivity as connectivity
 from tvb_library_test.base_testcase import BaseTestCase
@@ -66,8 +67,8 @@ class ConsoleTraitedTest(BaseTestCase):
         """
         Test scientific methods are executed
         """
-        local_coupling_strength = 0.0121 #2**-10
-        grey_matter = surfaces.LocalConnectivity(cutoff = 10.0)
+        local_coupling_strength = 0.0121
+        grey_matter = surfaces.LocalConnectivity(cutoff=10.0)
         default_cortex = surfaces.Cortex(coupling_strength=local_coupling_strength)
         #self.assertTrue(default_cortex.local_connectivity is None)
         default_cortex.local_connectivity = grey_matter
