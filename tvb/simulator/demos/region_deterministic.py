@@ -18,6 +18,15 @@
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0
 #
 #
+#   CITATION:
+# When using The Virtual Brain for scientific publications, please cite it as follows:
+#
+#   Paula Sanz Leon, Stuart A. Knock, M. Marmaduke Woodman, Lia Domide,
+#   Jochen Mersmann, Anthony R. McIntosh, Viktor Jirsa (2013)
+#       The Virtual Brain: a simulator of primate brain network dynamics.
+#   Frontiers in Neuroinformatics (in press)
+#
+#
 
 """
 Demonstrate using the simulator at the region level, deterministic interation.
@@ -31,23 +40,11 @@ Demonstrate using the simulator at the region level, deterministic interation.
 
 # Third party python libraries
 import numpy
+import datetime
+#from tvb_library_test import setup_test_console_env
+#setup_test_console_env()
 
-"""
-# Try and import from "The Virtual Brain"
-from tvb.simulator.common import get_logger
-LOG = get_logger(__name__)
-
-#Import from tvb.simulator modules:
-import tvb.simulator.simulator as simulator
-import tvb.simulator.models as models
-import tvb.simulator.coupling as coupling
-import tvb.simulator.integrators as integrators
-import tvb.simulator.monitors as monitors
-
-import tvb.datatypes.connectivity as connectivity
-
-from matplotlib.pyplot import *
-"""
+START_TIME = datetime.datetime.now()
 
 from tvb.simulator.lab import *
 
@@ -59,24 +56,23 @@ LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
 oscilator = models.Generic2dOscillator()
 white_matter = connectivity.Connectivity()
-white_matter.speed = numpy.array([4.0])
-
-white_matter_coupling = coupling.Linear(a=0.0154)
+white_matter.speed = numpy.array([3.0])
+white_matter_coupling = coupling.Linear()
 
 #Initialise an Integrator
-heunint = integrators.HeunDeterministic(dt=2**-6)
+heunint = integrators.HeunDeterministic()
 
 #Initialise some Monitors with period in physical time
 momo = monitors.Raw()
-mama = monitors.TemporalAverage(period=2**-2)
+mama = monitors.TemporalAverage()
 
 #Bundle them
 what_to_watch = (momo, mama)
 
 #Initialise a Simulator -- Model, Connectivity, Integrator, and Monitors.
-sim = simulator.Simulator(model = oscilator, connectivity = white_matter,
-                          coupling = white_matter_coupling, 
-                          integrator = heunint, monitors = what_to_watch)
+sim = simulator.Simulator(model=oscilator, connectivity=white_matter,
+                          coupling=white_matter_coupling,
+                          integrator=heunint, monitors=what_to_watch)
 
 sim.configure()
 
@@ -87,7 +83,7 @@ raw_time = []
 tavg_data = []
 tavg_time = []
 
-for raw, tavg in sim(simulation_length=2**6):
+for raw, tavg in sim(simulation_length=1000):
     if not raw is None:
         raw_time.append(raw[0])
         raw_data.append(raw[1])
@@ -97,6 +93,8 @@ for raw, tavg in sim(simulation_length=2**6):
         tavg_data.append(tavg[1])
 
 LOG.info("Finished simulation.")
+
+print 'It run for %d sec.' % (datetime.datetime.now() - START_TIME).seconds
 
 ##----------------------------------------------------------------------------##
 ##-               Plot pretty pictures of what we just did                   -##
