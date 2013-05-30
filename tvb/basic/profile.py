@@ -33,7 +33,8 @@ ENUM used for choosing current TVB Profile.
 
 Contains functionality which allows a user to set a certain profile for TVB.
 """
-
+import os
+import sys
 
 
 class TvbProfile():
@@ -97,6 +98,14 @@ class TvbProfile():
             if remove_from_args:
                 script_argv.remove(selected_profile)
                 script_argv.remove(TvbProfile.SUBPARAM_PROFILE)
+        # To make sure in case of contributor setup the externam TVB is the one
+        # we get, we need to reload all tvb related modules, since any call done
+        # python -m will always consider the current folder as the first to search in
+        sys.path = os.environ.get("PYTHONPATH", "").split(os.pathsep) + sys.path
+        for key in sys.modules.keys():
+            if key.startswith("tvb"):
+                if sys.modules[key]:
+                    reload(sys.modules[key])
 
 
     @staticmethod
