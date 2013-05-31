@@ -37,32 +37,23 @@ work easier by importing all the simulator pieces at once.
 """
 
 import os
-from time import time
 import pdb
-
+from time import time
 from numpy import * # for load & save not available in pylab
 import numpy as np
 
-import tvb.basic.config.settings
-tvb.basic.config.settings.TVBSettings.TRAITS_CONFIGURATION.use_storage = 0
-from tvb.simulator import (
-        simulator, models, coupling, integrators, monitors, noise
-        )
+from tvb.basic.profile import TvbProfile
+TvbProfile.set_profile(["-profile", "LIBRARY_PROFILE"], try_reload=False)
+
+from tvb.simulator import (simulator, models, coupling, integrators, monitors, noise)
 from tvb.datatypes import connectivity, surfaces, equations, patterns
 
 from tvb.simulator.common import get_logger
 LOG = get_logger(__name__)
 
 
-"""
-As an alternative, we change the profile as follows:
+PDB = lambda: pdb.set_trace()
 
-    from tvb.basic.profile import TvbProfile as tvb_profile
-    tvb_profile.set_profile("CONSOLE_PROFILE")
-
-"""
-
-PDB = lambda : pdb.set_trace()
 
 def file_exists(fname):
     """
