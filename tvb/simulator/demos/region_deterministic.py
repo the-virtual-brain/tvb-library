@@ -41,8 +41,6 @@ Demonstrate using the simulator at the region level, deterministic interation.
 # Third party python libraries
 import numpy
 import datetime
-#from tvb_library_test import setup_test_console_env
-#setup_test_console_env()
 
 START_TIME = datetime.datetime.now()
 
