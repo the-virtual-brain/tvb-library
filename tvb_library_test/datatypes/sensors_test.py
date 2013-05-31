@@ -34,15 +34,16 @@ Created on Mar 20, 2013
 """
 if __name__ == "__main__":
     from tvb_library_test import setup_test_console_env
-    setup_test_console_env()
-    
-import unittest
 
+    setup_test_console_env()
+
+import unittest
 from tvb.datatypes import sensors, surfaces
 from tvb_library_test.base_testcase import BaseTestCase
-        
+
+
+
 class SensorsTest(BaseTestCase):
-    
     def test_sensors(self):
         surf = surfaces.SkinAir()
         surf.configure()
@@ -61,7 +62,7 @@ class SensorsTest(BaseTestCase):
         self.assertEqual(dt.orientations.shape, (0,))
         self.assertEqual(dt.sensors_type, '')
 
-        
+
     def test_sensorseeg(self):
         dt = sensors.SensorsEEG()
         dt.configure()
@@ -71,8 +72,8 @@ class SensorsTest(BaseTestCase):
         self.assertEqual(dt.number_of_sensors, 62)
         self.assertEqual(dt.orientations.shape, (0,))
         self.assertEqual(dt.sensors_type, 'EEG')
-        
-        
+
+
     def test_sensorsmeg(self):
         dt = sensors.SensorsMEG()
         dt.configure()
@@ -82,20 +83,20 @@ class SensorsTest(BaseTestCase):
         self.assertEqual(dt.number_of_sensors, 151)
         self.assertEqual(dt.orientations.shape, (151, 3))
         self.assertEqual(dt.sensors_type, 'MEG')
-        
-        
+
+
     def test_sensorsinternal(self):
         dt = sensors.SensorsInternal()
         dt.configure()
         self.assertFalse(dt.has_orientation)
-        self.assertEqual(dt.labels.shape, (62,))
-        self.assertEqual(dt.locations.shape, (62, 3))
-        self.assertEqual(dt.number_of_sensors, 62)
+        self.assertEqual(dt.labels.shape, (103,))
+        self.assertEqual(dt.locations.shape, (103, 3))
+        self.assertEqual(dt.number_of_sensors, 103)
         self.assertEqual(dt.orientations.shape, (0,))
         self.assertEqual(dt.sensors_type, 'Internal')
-        
-        
-        
+
+
+
 def suite():
     """
     Gather all the tests in a test suite.
@@ -103,6 +104,7 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(unittest.makeSuite(SensorsTest))
     return test_suite
+
 
 
 if __name__ == "__main__":
