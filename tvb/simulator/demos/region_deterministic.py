@@ -31,7 +31,7 @@
 """
 Demonstrate using the simulator at the region level, deterministic interation.
 
-``Run time``: approximately 2 seconds (workstation circa 2010)
+``Run time``: approximately 140 seconds (workstation circa 2012)
 ``Memory requirement``: < 1GB
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
