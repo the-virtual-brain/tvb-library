@@ -29,15 +29,11 @@
 #
 
 """
-
 The Data component of Spatiotemporal pattern datatypes.
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
-
 """
-#TODO: Reconsider the class hierarchy... Seems it could be more efficient.
-#NOTE: Definetely we need to change the hierarchy, it's a pain this way...
-#      For example, we need a base Stimulus class...
+
 
 import tvb.basic.traits.types_basic as basic
 import tvb.datatypes.arrays as arrays
@@ -48,26 +44,25 @@ import tvb.datatypes.equations as equations
 from tvb.basic.traits.types_mapped import MappedType
 
 
+
 class SpatialPatternData(MappedType):
     """
     Equation for space variation.
     """
-    #NOTE; includes eqn, parameters, and pattern (i.e. discrete representation of equation on space)
-    spatial = equations.FiniteSupportEquation(
-        label = "Spatial Equation",
-        order = 2)
-    
-    #NOTE: the specifics depend on region vs surface...
-    #space = FloatArray() #+ {numpy.ndarray(shape=(x, 1))} # column vector
+
+    spatial = equations.FiniteSupportEquation(label="Spatial Equation", order=2)
+
 
 
 class SpatioTemporalPatternData(SpatialPatternData):
     """
     Combine space and time equations.
     """
-    temporal = equations.Equation(label = "Temporal Equation", order=3)
+
+    temporal = equations.Equation(label="Temporal Equation", order=3)
     #space must be shape (x, 1); time must be shape (1, t)
-    #pattern = self.spatial.pattern * self.temporal.pattern # FloatArray() #{numpy.ndarray(shape=(x, t))}
+
+
 
 
 class StimuliRegionData(SpatioTemporalPatternData):
@@ -75,49 +70,35 @@ class StimuliRegionData(SpatioTemporalPatternData):
     A class that bundles the temporal profile of the stimulus, together with the 
     list of scaling weights of the regions where it will applied.
     """
-    # when applied to a simulation we need to specify which state-variable it
-    # applies to, and possibly how (multiplicative|additive)... but maybe this
-    # should live with the model???
-    connectivity = connectivity_module.Connectivity(label = "Connectivity", order=1)
-    
-    spatial = equations.Discrete(
-        label = "Spatial Equation", 
-        default = equations.Discrete,
-        fixed_type = True,
-        order = -1)
-    
-    weight = basic.List(label = "scaling", locked = True, order=4) #,
-                        #default = numpy.zeros((util.Self.connectivity.number_of_regions, 1))) #?ones?
+
+    connectivity = connectivity_module.Connectivity(label="Connectivity", order=1)
+
+    spatial = equations.Discrete(label="Spatial Equation", default=equations.Discrete,
+                                 fixed_type=True, order=-1)
+
+    weight = basic.List(label="scaling", locked=True, order=4)
+
 
 
 class StimuliSurfaceData(SpatioTemporalPatternData):
     """
-    A spatiotemporal pattern defined in a surface datatype. It includes the list 
-    of focal points. 
+    A spatio-temporal pattern defined in a Surface DataType.
+    It includes the list of focal points.
     """
-    # when applied to a simulation we need to specify which state-variable it
-    # applies to, and possibly how (multiplicative|additive)... but maybe this
-    # should live with the model???
-    surface = surfaces.CorticalSurface(label = "Surface", order=1)
-    
-    focal_points_surface = basic.List(
-        label = "Focal points",
-        locked = True,
-        order = 4)
-        
-    focal_points_triangles = basic.List(
-        label = "Focal points triangles",
-        locked = True,
-        order = 4)
+
+    surface = surfaces.CorticalSurface(label="Surface", order=1)
+
+    focal_points_surface = basic.List(label="Focal points", locked=True, order=4)
+
+    focal_points_triangles = basic.List(label="Focal points triangles", locked=True, order=4)
+
 
 
 class SpatialPatternVolumeData(SpatialPatternData):
-    """ A spatiotemporal pattern defined in a volume. """
-    volume = volumes.Volume(label = "Volume")
-    
-    focal_points_volume = arrays.IndexArray(
-        label = "Focal points",
-        target = volume
-        )
+    """ A spatio-temporal pattern defined in a volume. """
+
+    volume = volumes.Volume(label="Volume")
+
+    focal_points_volume = arrays.IndexArray(label="Focal points", target=volume)
 
 
