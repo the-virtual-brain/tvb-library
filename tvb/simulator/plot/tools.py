@@ -432,8 +432,13 @@ if IMPORTED_MAYAVI:
         """
         Plot a surface and colour it based on a vector of length number of 
         vertices (vertex_colours).
+
+        * How to obtain a pretty picture (from Mayavi's gui): 
+          - set surf_mesh color to rgb(237, 217, 221)
+          - add a surface module derived from surf_mesh; set 'Actor' 
+            representation to wireframe; colour 'gray'.
+          - enable contours of scalar_surf  
         """
-        #TODO: so far, haven't figured out how to overide color with scalars
         #surf_mesh = plot_surface(surface, name="surface pattern")
         fig = mlab.figure(figure="surface pattern", fgcolor=(0.5, 0.5, 0.5))
         surf_mesh = mlab.triangular_mesh(surface.vertices[:, 0],
@@ -442,9 +447,13 @@ if IMPORTED_MAYAVI:
                                          surface.triangles,
                                          figure=fig)
         sm_obj = surf_mesh.mlab_source
-        #sm_obj.set(color=None)
-        sm_obj.set(scalars=vertex_colours)
-        mlab.colorbar(object=surf_mesh, orientation="vertical")
+        scalar_data = surf_mesh.mlab_source.dataset.point_data
+        scalar_data.scalars = vertex_colours
+        scalar_data.scalars.name = 'Scalar data'
+        scalar_data.update()
+        scalar_mesh = mlab.pipeline.set_active_attribute(surf_mesh, point_scalars='Scalar data')
+        scalar_surf = mlab.pipeline.surface(scalar_mesh)
+        mlab.show(stop=True)
         return sm_obj
     
     
@@ -516,8 +525,9 @@ if IMPORTED_MAYAVI:
             edge_cutoff = minW
             
         # colourmap to emphasise large numbers
-        MAP = numpy.loadtxt('colourmaps/BlackToBlue')
-        mapstep = 1. / MAP.shape[0]    
+        MAP = numpy.loadtxt('../plot/colourmaps/BlackToBlue')
+        mapstep = 1. / MAP.shape[0]
+        #lil_connectivity = connectivity[0:N+1, 0:N+1]
     
         # TODO: create a single data source to use mlab scene decorations
         # Loop over connectivity matrix, colouring and one cube per matrix element
@@ -529,11 +539,13 @@ if IMPORTED_MAYAVI:
                         #not self connection (diagonal)
                         if connectivity.weights[k, m] > edge_cutoff:
                             ci = int(max(numpy.floor(nlc / mapstep), 1))
-                            visual.box(x=k + 0.5, 
-                                       y=connectivity.delays[k,m] + stepD, 
-                                       z=m + 0.5,
-                                       color=tuple(MAP[ci-1, 0:3]))               
-        #mlab.show(stop=True)
+                            import pdb; pdb.set_trace()
+                            mlab.points3d(k + 0.5, 
+                                       connectivity.delays[k,m] + stepD, 
+                                       m + 0.5)
+                                       #1.0,
+                                       #color=tuple(MAP[ci-1, 0:3]))               
+        mlab.show(stop=True)
         
         
     #--------------------------------------------------------------------------#
