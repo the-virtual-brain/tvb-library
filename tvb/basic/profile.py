@@ -91,14 +91,7 @@ class TvbProfile():
               than the  profile will be set to 'TEST_SQLITE_PROFILE'
         """
         selected_profile = TvbProfile.get_profile(script_argv)
-
-        if selected_profile is not None:
-            TvbProfile.CURRENT_SELECTED_PROFILE = selected_profile
-
-            if remove_from_args:
-                script_argv.remove(selected_profile)
-                script_argv.remove(TvbProfile.SUBPARAM_PROFILE)
-
+        
         if try_reload:
             # To make sure in case of contributor setup the external TVB is the one
             # we get, we need to reload all tvb related modules, since any call done
@@ -108,6 +101,13 @@ class TvbProfile():
                 if key.startswith("tvb") and  sys.modules[key]:
                     reload(sys.modules[key])
 
+        if selected_profile is not None:
+            TvbProfile.CURRENT_SELECTED_PROFILE = selected_profile
+
+            if remove_from_args:
+                script_argv.remove(selected_profile)
+                script_argv.remove(TvbProfile.SUBPARAM_PROFILE)
+        
 
     @staticmethod
     def is_library_mode():
