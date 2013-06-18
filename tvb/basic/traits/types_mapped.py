@@ -50,6 +50,3 @@ else:
     Array = mapped.Array
     SparseMatrix = mapped.SparseMatrix
     
-   
-   
-    

@@ -344,7 +344,7 @@ class Additive(Noise):
     """
 
     nsig = arrays.FloatArray(
-        noise_config = True,
+        configurable_noise = True,
         label = ":math:`D`",
         required = True,
         default = numpy.array([1.0,]),
@@ -407,7 +407,7 @@ class Multiplicative(Noise):
     """
 
     nsig = arrays.FloatArray(
-        noise_config = True,
+        configurable_noise = True,
         label = ":math:`D`",
         required = True,
         default = numpy.array([1.0,]),
