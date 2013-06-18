@@ -133,7 +133,28 @@ class Model(core.Type):
     def nvar(self):
         """ The number of state variables in this model. """
         return self._nvar
-
+        
+        
+#    @property
+#    def distal_coupling(self):
+#        """ Heterogeneous coupling given by the connectivity matrix"""
+#        return self._distal_coupling
+#        
+#    @property
+#    def local_coupling(self):
+#        """ Homogeneous connectivity given by a local connectivity kernel"""
+#        return self._local_coupling
+#        
+#    @property
+#    def internal_coupling(self):
+#        """ Internal connectivity between neural masses of a model"""
+#        return self._internal_coupling
+#        
+#    @property
+#    def state_coupling(self):
+#        """ State operator: A matrix where each elemeent represents a parameter of the model """
+#        return self._state_coupling
+        
 
     def update_derived_parameters(self):
         """
@@ -244,7 +265,8 @@ class Model(core.Type):
                 out.append(state.copy())
 
         return numpy.r_[0:dt * n_step:1j * len(out)], numpy.array(out)
-
+        
+        
 
 #TODO: both coupling/connectivity and local_coupling should be generalised to 
 #      couplings and local_couplings that can be set to independantly on each 
@@ -373,10 +395,25 @@ class WilsonCowan(Model):
     .. [WC_1972] Wilson, H.R. and Cowan, J.D. *Excitatory and inhibitory 
         interactions in localized populations of model neurons*, Biophysical
         journal, 12: 1-24, 1972.
+    .. [WC_1973] Wilson, H.R. and Cowan, J.D  *A Mathematical Theory of the 
+    Functional Dynamics of Cortical and Thalamic Nervous Tissue*
 
-    Eqns 11 and 12 with P and Q were replaced by our long range and local couplings.
+    Used Eqns 11 and 12 from [WC_1972]_ in ``dfun''.  P and Q represent external inputs,
+    which when exploring the phase portrait of the local model are set to
+    constant values. However in the case of a full network, P and Q are the
+    entry point to our long range and local couplings, that is, the  activity
+    from all other nodes is the external input to the local population.
 
     The default parameters are taken from figure 4 of [WC_1972]_, pag. 10
+
+    In [WC_1973]_ they present a model of neural tissue on the pial surface is.
+    See Fig. 1 in page 58. The following local couplings (lateral interactions)
+    occur given a region i and a region j: 
+      E_i-> E_j 
+      E_i-> I_j 
+      I_i-> I_j  
+      I_i-> E_j
+ 
 
     The models (:math:`E`, :math:`I`) phase-plane, including a representation of
     the vector field as well as its nullclines, using default parameters, can be
@@ -554,7 +591,7 @@ class WilsonCowan(Model):
         super(WilsonCowan, self).__init__(**kwargs)
         #self._state_variables = ["E", "I"]
         self._nvar = 2
-        self.cvar = numpy.array([0], dtype=numpy.int32)
+        self.cvar = numpy.array([0, 1], dtype=numpy.int32)
         LOG.debug('%s: inited.' % repr(self))
 
 
@@ -570,10 +607,15 @@ class WilsonCowan(Model):
         E = state_variables[0, :]
         I = state_variables[1, :]
 
+        # long-range coupling
         c_0 = coupling[0, :]
 
-        x_e = self.c_1 * E - self.c_2 * I + c_0 + local_coupling * E
-        x_i = self.c_3 * E - self.c_4 * I
+        # short-range (local) coupling
+        lc_0 = local_coupling * E
+        lc_1 = local_coupling * I 
+
+        x_e = self.c_1 * E - self.c_2 * I + c_0 + lc_0 + lc_1
+        x_i = self.c_3 * E - self.c_4 * I + c_0 + lc_0 + lc_1
 
         s_e = 1.0 / (1.0 + numpy.exp(-self.a_e * (x_e - self.theta_e)))
         s_i = 1.0 / (1.0 + numpy.exp(-self.a_i * (x_i - self.theta_i)))
@@ -810,8 +852,8 @@ class ReducedSetFitzHughNagumo(Model):
         #      meaningfully anyway adnd nu and nv just need to be "large enough"
         #      so chaning them is only really an optimisation thing...
         self.number_of_modes = 3
-        self.nu = 1500
-        self.nv = 1500
+        self.nu = 15000
+        self.nv = 15000
 
         #Derived parameters
         self.Aik = None
@@ -1569,14 +1611,14 @@ class JansenRit(Model):
         label=":math:`A`",
         default=numpy.array([3.25]),
         range=basic.Range(lo=2.6, hi=9.75, step=0.05),
-        doc="""Maximum amplitude of EPSP [mV].""",
+        doc="""Maximum amplitude of EPSP [mV]. Also called average synaptic gain.""",
         order=1)
 
     B = arrays.FloatArray(
         label=":math:`B`",
         default=numpy.array([22.0]),
         range=basic.Range(lo=17.6, hi=110.0, step=0.2),
-        doc="""Maximum amplitude of IPSP [mV].""",
+        doc="""Maximum amplitude of IPSP [mV]. Also called average synaptic gain.""",
         order=2)
 
     a = arrays.FloatArray(
@@ -1584,7 +1626,8 @@ class JansenRit(Model):
         default=numpy.array([0.1]),
         range=basic.Range(lo=0.05, hi=0.15, step=0.01),
         doc="""Reciprocal of the time constant of passive membrane and all
-        other spatially distributed delays in the dendritic network [ms^-1].""",
+        other spatially distributed delays in the dendritic network [ms^-1].
+        Also called average synaptic time constant.""",
         order=3)
 
     b = arrays.FloatArray(
@@ -1592,7 +1635,8 @@ class JansenRit(Model):
         default=numpy.array([0.05]),
         range=basic.Range(lo=0.025, hi=0.075, step=0.005),
         doc="""Reciprocal of the time constant of passive membrane and all
-        other spatially distributed delays in the dendritic network [ms^-1].""",
+        other spatially distributed delays in the dendritic network [ms^-1].
+        Also called average synaptic time constant.""",
         order=4)
 
     v0 = arrays.FloatArray(
@@ -1914,7 +1958,7 @@ class Generic2dOscillator(Model):
     | a            |     -2.0   |
     | b            |    -10.0   |
     | c            |      0.0   |
-    | d            |      0.1   |
+    | d            |      0.02  |
     | I            |      0.0   |
     -----------------------------
     |* limit cylce if a = 2.0   |
@@ -2799,60 +2843,26 @@ class BrunelWang(Model):
                         (self.gm_i * self.taum_i) ** 2
 
 
-class WongWang(Model):
+
+class ReducedWongWang(Model):
     """
     .. [WW_2006] Kong-Fatt Wong and Xiao-Jing Wang,  *A Recurrent Network 
                 Mechanism of Time Integration in Perceptual Decisions*. 
                 Journal of Neuroscience 26(4), 1314-1328, 2006.
+    
+    DOC ME
+    There is a new paper by Gustavo Deco et al. using this reduced model.
+    First equation in the Appendix of [WW_2006]_, page 1327
 
-    .. [WW_2006_SI] Supplementary Information
+    Cubic nullcline
+    ---------------
+    Oh Lord won't you buy me a brain? What to do with the phase line of this model....? 
 
-    A reduced model by Wong and Wang: A reduced two-variable neural model 
-    that offers a simple yet biophysically plausible framework for studying 
-    perceptual decision making in general.
-
-    S is the NMDA gating variable. Since its decay time is much longer that those
-    corresponding to AMPA and GABA gating variables, it is assumed that is 
-    :math:`S_{NMDA}` that dominates the time evolution of the system.
-
-    The model (:math:`S1`, :math:`S2`) phase-plane, including a representation 
-    of the vector field as well as its nullclines, using default parameters, 
-    can be seen below:
-
-    .. figure :: img/WongWang_01_mode_0_pplane.svg
-    .. _phase-plane-WongWang:
-        :alt: Phase plane of the reduced model by Wong and Wang (S1, S2)
-
-    To reproduce the phase plane in Figure 4A, page 1319 (five steady states):
-        J11 = 0.54
-        J22 = 0.18
-        J12 = 0.08
-        J21 = 0.58
-        J_ext = 0.0
-        I_o = 0.34
-        sigma_noise = 0.02
-        mu_o = 0.00
-        c = 100.0
-
-    To reproduce the phase plane in Figure 4B, page 1319 (saddle-type point):
-        b = 0.108
-        d = 121.0
-        gamma = 0.11
-        tau_s = 100.
-        J11 = 0.78
-        J22 = 0.59
-        J12 = 0.72
-        J21 = 0.67
-        J_ext = 0.52
-        I_o = 0.3255
-        sigma_noise = 0.02
-        mu_o = 0.35
-        c = 0.0
 
     .. automethod:: __init__
 
     """
-    _ui_name = "Wong-Wang model"
+    _ui_name = "Reduced Wong-Wang"
 
     #Define traited attributes for this model, these represent possible kwargs.
     a = arrays.FloatArray(
@@ -2875,9 +2885,9 @@ class WongWang(Model):
 
     gamma = arrays.FloatArray(
         label=r":math:`\gamma`",
-        default=numpy.array([0.0641, ]),
+        default=numpy.array([0.0641/1000., ]),
         range=basic.Range(lo=0.0, hi=1.0),
-        doc="""Kinetic parameter""")
+        doc="""Kinetic parameter divided by 1000 to set the time scale in ms""")
 
     tau_s = arrays.FloatArray(
         label=r":math:`\tau_S`",
@@ -2885,42 +2895,6 @@ class WongWang(Model):
         range=basic.Range(lo=50.0, hi=150.0),
         doc="""Kinetic parameter. NMDA decay time constant.""")
 
-    tau_ampa = arrays.FloatArray(
-        label=r":math:`\tau_{ampa}`",
-        default=numpy.array([2., ]),
-        range=basic.Range(lo=1.0, hi=10.0),
-        doc="""Kinetic parameter. AMPA decay time constant.""",
-        order=-1)
-
-    J11 = arrays.FloatArray(
-        label=":math:`J_{11}`",
-        default=numpy.array([0.2609, ]),
-        range=basic.Range(lo=0.0, hi=1.0),
-        doc="""Synaptic coupling""")
-
-    J22 = arrays.FloatArray(
-        label=":math:`J_{22}`",
-        default=numpy.array([0.2609, ]),
-        range=basic.Range(lo=0.0, hi=1.0),
-        doc="""Synaptic coupling""")
-
-    J12 = arrays.FloatArray(
-        label=":math:`J_{12}`",
-        default=numpy.array([0.0497, ]),
-        range=basic.Range(lo=0.0, hi=1.0),
-        doc="""Synaptic coupling""")
-
-    J21 = arrays.FloatArray(
-        label=":math:`J_{21}`",
-        default=numpy.array([0.0497, ]),
-        range=basic.Range(lo=0.0, hi=1.0),
-        doc="""Synaptic coupling""")
-
-    J_ext = arrays.FloatArray(
-        label=":math:`J_{ext}`",
-        default=numpy.array([0.52, ]),
-        range=basic.Range(lo=0.0, hi=1.0),
-        doc="""Synaptic coupling""")
 
     I_o = arrays.FloatArray(
         label=":math:`I_{o}`",
@@ -2935,31 +2909,17 @@ class WongWang(Model):
         doc="""Noise amplitude. Take this value into account for stochatic
         integration schemes.""")
 
-    mu_o = arrays.FloatArray(
-        label=r":math:`\mu_{0}`",
-        default=numpy.array([0.03, ]),
-        range=basic.Range(lo=0.0, hi=1.0),
-        doc="""Stimulus amplitude""")
-
-    c = arrays.FloatArray(
-        label=":math:`c`",
-        default=numpy.array([51.0, ]),
-        range=basic.Range(lo=0.0, hi=100.0),
-        doc="""[%].  Percentage coherence or motion strength. This parameter
-        comes from experiments in MT cells.""")
-
     state_variable_range = basic.Dict(
         label="State variable ranges [lo, hi]",
-        default={"S1": numpy.array([0.0, 0.3]),
-                 "S2": numpy.array([0.0, 0.3])},
+        default={"S": numpy.array([0.0, 1.0])},
         doc="n/a",
         order=-1
     )
 
     variables_of_interest = basic.Enumerate(
         label="Variables watched by Monitors",
-        options=["S1", "S2"],
-        default=["S1"],
+        options=["S"],
+        default=["S"],
         select_multiple=True,
         doc="""default state variables to be monitored""",
         order=10)
@@ -2980,103 +2940,43 @@ class WongWang(Model):
 
         #LOG.info('%s: initing...' % str(self))
 
-        super(WongWang, self).__init__(**kwargs)
+        super(ReducedWongWang, self).__init__(**kwargs)
 
-        #self._state_variables = ["S1", "S2"]
-        self._nvar = 2
+        #self._state_variables = ["S1"]
+        self._nvar = 1
         self.cvar = numpy.array([0], dtype=numpy.int32)
-
-        #derived parameters
-        self.I_1 = None
-        self.I_2 = None
 
         LOG.debug('%s: inited.' % repr(self))
 
     def configure(self):
         """  """
-        super(WongWang, self).configure()
+        super(ReducedWongWang, self).configure()
         self.update_derived_parameters()
 
 
     def dfun(self, state_variables, coupling, local_coupling=0.0):
         r"""
-        These dynamic equations, taken from [WW_2006]_, ...
 
         ..math::
 
-            \frac{dS_{i}}{dt} &= - \frac{S_{i}}{\tau_{S}} + (1 - S_{i})\gamma H_{i} \\
-            H_{i} &= \frac{a x_{i} - b}{1- \exp[-d (a x_{i} - b)]} \\
-            x_{1} &= J11  S_{1} - J_{12}S_{2} + I_{0} + I_{1} \\
-            x_{2} &= J22  S_{2} - J_{21}S_{1} + I_{0} + I_{2} \\
-            I_{i} &= J_{ext} \mu_{0} \left( 1 \pm \frac{c}{100}\right)
-
-        where :math:`i=` 1, 2 labels the selective population.
-
+            \frac{dS_{i}}{dt} &= - \frac{S_{1}}{\tau_{S}} + (1 - S_{1})\gamma H_{1} \\
+            H_{1} &= \frac{a x_{1} - b}{1- \exp[-d (a x_{1} - b)]} \\
+            x_{1} &= J11  S_{1} + I_{0} + I_{1} \\
+            I_{1} &= J_{ext} \mu_{0} \left( 1 \pm \frac{c}{100}\right)
         """
-        # add global coupling?
 
-        s1 = state_variables[0, :]
-        s2 = state_variables[1, :]
+        S   = state_variables[0, :]
+        c_0 = coupling[0, :]
+        
+        # if applicable
+        #lc_0 = local_coupling * S
+        # NOTE: note sure about 'x'. The self connection weight (J_11) should be still included.
+        x = S + self.I_o + c_0
+        H = (self.a * x - self.b) / (1 - numpy.exp(-self.d * (self.a * x -  self.b)))
+        dS = - (S / self.tau_s) + (1 - S) * H * self.gamma
 
-        c_0 = coupling[0]
-
-        x1 = self.J11 * s1 - self.J12 * s2 + self.I_o + self.I_1
-        x2 = self.J21 * s2 - self.J22 * s1 + self.I_o + self.I_2
-
-        H1 = (self.a * x1 - self.b) / (1 - numpy.exp(-self.d * (self.a * x1 - \
-                                                                self.b)))
-        H2 = (self.a * x2 - self.b) / (1 - numpy.exp(-self.d * (self.a * x2 - \
-                                                                self.b)))
-
-        ds1 = - (s1 / self.tau_s) + (1 - s1) * H1 * self.gamma
-        ds2 = - (s2 / self.tau_s) + (1 - s2) * H2 * self.gamma
-
-        derivative = numpy.array([ds1, ds2])
-
+        derivative = numpy.array([dS])
         return derivative
-
-
-    def update_derived_parameters(self):
-        """
-        Derived parameters
-        """
-
-        self.I_1 = self.J_ext * self.mu_o * (1 + self.c / 100)
-        self.I_2 = self.J_ext * self.mu_o * (1 - self.c / 100)
-
-    """
-    device_info = model_device_info(
-        pars = [ a , b , d , gamma , tau_s , tau_ampa , J11 , J22 , J12 , 
-                    J21 , J_ext , I_o , sigma_noise , mu_o , c, 'I_1', 'I_2' ],
-        kernel = " ""
-
-        // read parameters
-        float a = P(0)
-            , b = P(1)
-            , d = P(2)
-            , gamma = P(3)
-            , tau_s = P(4)
-            , tau_ampa = P(5)
-            , J11 = P(6)
-            , J22 = P(7)
-            , J12 = P(8)
-            , J21 = P(9)
-            , J_ext = P(10)
-            , I_o = P(11)
-            , sigma_noise = P(12)
-            , mu_o = P(13)
-            , c = P(14)
-            , I_1 = P(15)
-            , I_2 = P(16)
-
-        // state variables
-            , s1 = X(0)
-            , s2 = X(1)
-
-        // aux variables
-            , 
-      //#  "" ")
-    """
 
 
 class Kuramoto(Model):
