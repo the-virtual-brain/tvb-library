@@ -193,4 +193,3 @@ class Table(File):
         return numpy.array(self.loaded_table[dimension_1])
     
         
-    

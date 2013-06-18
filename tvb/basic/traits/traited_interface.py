@@ -81,7 +81,7 @@ class TraitedInterfaceGenerator(object):
             intr['maxValue'] = range_value.hi
             intr['stepValue'] = range_value.step
             
-        noise_configurable = obj.trait.inits.kwd.get('noise_config', None)
+        noise_configurable = obj.trait.inits.kwd.get('configurable_noise', None)
         if noise_configurable is not None:
             intr['configurableNoise'] = noise_configurable
 
