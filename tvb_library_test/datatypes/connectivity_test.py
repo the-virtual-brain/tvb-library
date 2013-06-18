@@ -119,6 +119,30 @@ class ConnectivityTest(BaseTestCase):
         self.assertTrue(conn.nose_correction is None)
         self.assertTrue(conn.saved_selection is None)
         self.assertEqual(conn.parent_connectivity, '')
+        
+        
+    def test_connectivity_h5py_reload(self):
+        """
+        Reload a connectivity and check that defaults changes accordingly.
+        """
+        conn = connectivity.Connectivity()
+        conn.default.reload(conn,
+                            folder_path=os.path.join(os.path.dirname(os.path.abspath(__file__))),
+                            file_name="Edited_Connectivity.h5")
+        self.assertEqual(conn.weights.shape, (74, 74))
+        self.assertEqual(conn.weights[0][0], 9.0)   # Edit set first weight to 9
+        self.assertEqual(conn.weights.max(), 9.0)   # Edit has a weight of value 9
+        self.assertEqual(conn.weights.min(), 0.0)
+        self.assertEqual(conn.unidirectional, 0)
+        self.assertEqual(conn.speed, numpy.array([3.0]))
+        self.assertEqual(conn.hemispheres.shape, (0,))
+        self.assertEqual(conn.idelays.shape, (0,))
+        self.assertEqual(conn.delays.shape, (0,))
+        self.assertEqual(conn.number_of_regions, 0)
+        self.assertTrue(conn.parcellation_mask is None)
+        self.assertTrue(conn.nose_correction is None)
+        self.assertTrue(conn.saved_selection is None)
+        self.assertEqual(conn.parent_connectivity, '')
 
 
 
