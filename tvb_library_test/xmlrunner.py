@@ -14,7 +14,10 @@ import os.path
 import sys
 import time
 import traceback
-import unittest
+try:
+    import unittest2 as unittest
+except Exception:
+    import unittest
 from xml.sax.saxutils import escape
 try:
     from StringIO import StringIO
