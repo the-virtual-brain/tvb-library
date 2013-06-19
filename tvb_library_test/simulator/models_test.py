@@ -154,12 +154,11 @@ class ModelsTest(BaseTestCase):
     def test_wong_wang(self):
         """
         """
-        model = models.WongWang()
+        model = models.ReducedWongWang()
         history_shape = (1, model._nvar, 1, model.number_of_modes)
         model_ic = model.initial(dt, history_shape)
-        self.assertEqual(model._nvar, 2)
-        self.assertIsNone(ArrayAlmostEqual(model_ic, numpy.array([[[[ 0.30707481]],
-                                                 [[ 0.19372301]]]])))
+        self.assertEqual(model._nvar, 1)
+        self.assertIsNone(ArrayAlmostEqual(model_ic, numpy.array([[[[ 0.78677805]]]])))
                                         
 
 def suite():
