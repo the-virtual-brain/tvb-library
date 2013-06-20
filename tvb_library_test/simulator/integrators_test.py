@@ -68,7 +68,7 @@ class IntegratorsTest(BaseTestCase):
         heun_sto = integrators.HeunStochastic()
         self.assertEqual(heun_det.dt, dt)
         self.assertEqual(heun_sto.dt, dt)
-        self.assertIsInstance(heun_sto.noise, noise.Additive)
+        self.assertTrue(isinstance(heun_sto.noise, noise.Additive))
         self.assertEqual(heun_sto.noise.nsig, 1.0)
         self.assertEqual(heun_sto.noise.ntau, 0.0)
         
@@ -77,7 +77,7 @@ class IntegratorsTest(BaseTestCase):
         euler_sto = integrators.EulerStochastic()
         self.assertEqual(euler_det.dt, dt)
         self.assertEqual(euler_sto.dt, dt)
-        self.assertIsInstance(euler_sto.noise, noise.Additive)
+        self.assertTrue(isinstance(euler_sto.noise, noise.Additive))
         self.assertEqual(euler_sto.noise.nsig, 1.0)
         self.assertEqual(euler_sto.noise.ntau, 0.0)
  
