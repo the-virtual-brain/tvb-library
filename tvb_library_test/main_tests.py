@@ -82,10 +82,7 @@ if __name__ == "__main__":
         COVERAGE.start()
         ## This needs to be executed before any TVB import.
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 import datetime
 # Make sure folder for Logging exists.   
 if not os.path.exists(cfg.TVB_STORAGE):
