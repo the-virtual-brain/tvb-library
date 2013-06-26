@@ -143,6 +143,12 @@ class EquationFramework(equations_data.EquationData):
 
     @staticmethod
     def from_json(string):
+        """
+        Retrieves an instance to an equation represented as JSON.
+
+        :param string: the JSON representation of the equation
+        :returns: a `tvb.datatypes.equations_data` equation instance
+        """
         loaded_dict = json.loads(string)
         if loaded_dict is None:
             return None

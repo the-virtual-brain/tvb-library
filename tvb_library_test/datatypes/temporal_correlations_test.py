@@ -43,6 +43,9 @@ from tvb.datatypes import temporal_correlations, time_series
 from tvb_library_test.base_testcase import BaseTestCase
         
 class TemporalCorrelationsTest(BaseTestCase):
+    """
+    Tests the defaults for `tvb.datatypes.temporal_correlations` module.
+    """
     
     def test_crosscorrelation(self):
         data = numpy.random.random((10, 10))

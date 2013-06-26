@@ -38,7 +38,7 @@ from tvb.basic.traits.core import TYPE_REGISTER
 def get_traited_subclasses(parent_class):
     """
     :param parent_class: SuperClass, to return valid sub-classes of this (e.g. Model).
-    :return {class_name: sub_class_instance}
+    :return: {class_name: sub_class_instance}
         e.g. {'WilsonCowan': WilsonCowan, ....}
     """
     classes_list = TYPE_REGISTER.subclasses(parent_class)
@@ -54,7 +54,7 @@ def get_traited_instance_for_name(class_name, parent_class, params_dictionary):
     :param class_name: Short Traited Class name.
     :param parent_class: Traited basic type expected (e.g. Model)
     :param params_dictionary: dictionary of parameters to be passed to the constructor of the class.
-    :return: Class instanciated corresponding to the given name (e.g. FHN() )
+    :return: Class instantiated corresponding to the given name (e.g. FHN() )
     """
     available_subclasses = get_traited_subclasses(parent_class)
     if class_name not in available_subclasses:

@@ -42,6 +42,9 @@ from tvb.datatypes import volumes
 from tvb_library_test.base_testcase import BaseTestCase
         
 class VolumesTest(BaseTestCase):
+    """
+    Tests the defaults for `tvb.datatypes.volumes` module.
+    """
     
     def test_volume(self):
         dt = volumes.Volume()

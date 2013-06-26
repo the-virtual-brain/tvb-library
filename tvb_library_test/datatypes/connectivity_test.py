@@ -44,6 +44,9 @@ from tvb_library_test.base_testcase import BaseTestCase
 
 
 class ConnectivityTest(BaseTestCase):
+    """
+    Tests the defaults for `tvb.datatypes.connectivity` module.
+    """
     
     def test_connectivity_defaults(self):
         """
