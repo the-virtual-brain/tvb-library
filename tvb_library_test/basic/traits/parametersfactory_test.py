@@ -46,6 +46,9 @@ from tvb_library_test.base_testcase import BaseTestCase
 class ParametersFactoryTest(BaseTestCase):
     
     def test_traitedsubclassed(self):
+        """
+        Tests successful creation of traited classes.
+        """
         # We imported array so we should have all these traited classes registered
         expected = ['PositionArrayScientific', 'FloatArrayScientific', 'StringArrayScientific', 
                     'IntegerArray', 'IntegerArrayFramework', 'OrientationArrayScientific', 

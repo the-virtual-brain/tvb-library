@@ -145,12 +145,15 @@ class TraitsTest(BaseTestCase):
         
         
     def test_json_dumps_loads(self):
+        """
+        Tests class `MapAsJson.MapAsJsonEncoder` loads parameters correctly from JSON.
+        """
         input_parameters = {'a':1, 'b':1.0, 'c':'d'}
         test_dict = {'1' : 1, 'a' : {'1' : 'b'}, '2' : {'a' : Equation(parameters=input_parameters)}}
         json_string = json.dumps(test_dict, cls=MapAsJson.MapAsJsonEncoder)
         loaded_dict =  json.loads(json_string, object_hook=MapAsJson.decode_map_as_json)
         eq_parameters = loaded_dict['2']['a']
-        self.assertEqual(input_parameters, eq_parameters.parameters, "parameters not loaded properyl from json")
+        self.assertEqual(input_parameters, eq_parameters.parameters, "parameters not loaded properly from json")
         
         
 def suite():

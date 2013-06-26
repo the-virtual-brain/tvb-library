@@ -169,7 +169,7 @@ class Array(Type):
         :param inst: It is a MappedType instance
         :param cls: MappedType subclass. When 'inst' is None and only 'cls' is passed, we do not read from storage,
                     but return traited attribute.
-        :return value of type self.wraps
+        :return: value of type self.wraps
         :raise Exception: when read could not be executed, Or when used GET with incompatible attributes (e.g. chunks).
         """
         if inst is None:
@@ -186,7 +186,7 @@ class Array(Type):
         This is called when an attribute of type Array is set on another class instance.
         :param inst: It is a MappedType instance
         :param value: expected to be of type self.wraps
-        @raise Exception: When incompatible type of value is set
+        :raise Exception: When incompatible type of value is set
         """
         self._put_value_on_instance(inst, self.array_path)
         if isinstance(value, list):
