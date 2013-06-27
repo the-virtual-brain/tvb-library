@@ -42,6 +42,9 @@ from tvb.datatypes import lookup_tables
 from tvb_library_test.base_testcase import BaseTestCase
         
 class LookupTablesTest(BaseTestCase):
+    """
+    Tests the defaults for `tvb.datatypes.lookup_tables` module.
+    """
     
     def test_lookuptable(self):
         dt = lookup_tables.LookUpTable()

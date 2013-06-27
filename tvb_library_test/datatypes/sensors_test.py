@@ -42,6 +42,9 @@ from tvb.datatypes import sensors, surfaces
 from tvb_library_test.base_testcase import BaseTestCase
         
 class SensorsTest(BaseTestCase):
+    """
+    Tests the defaults for `tvb.datatypes.sensors` module.
+    """
     
     def test_sensors(self):
         surf = surfaces.SkinAir()

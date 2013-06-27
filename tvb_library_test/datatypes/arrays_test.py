@@ -121,6 +121,9 @@ class ArraysTest(BaseTestCase):
         
         
     def test_index_array(self):
+        """
+        Create an index array, check that shape is correct.
+        """
         target_data = numpy.random.random((10, 3))
         target_array = arrays.FloatArray()
         target_array.data = target_data

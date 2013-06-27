@@ -42,6 +42,9 @@ from tvb.datatypes import equations
 from tvb_library_test.base_testcase import BaseTestCase
         
 class EquationsTest(BaseTestCase):
+    """
+    Tests the defaults for `tvb.datatypes.equations` module.
+    """
     
     def test_equation(self):
         dt = equations.Equation()

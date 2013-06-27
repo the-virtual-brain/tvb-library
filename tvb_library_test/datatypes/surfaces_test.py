@@ -47,6 +47,9 @@ from tvb_library_test.base_testcase import BaseTestCase
 
 
 class SurfacesTest(BaseTestCase):
+    """
+    Tests the defaults for `tvb.datatypes.surfaces` module.
+    """
 
     def test_surface(self):
         dt = surfaces.Surface()

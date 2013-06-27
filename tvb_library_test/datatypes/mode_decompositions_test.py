@@ -43,6 +43,9 @@ from tvb.datatypes import mode_decompositions, time_series
 from tvb_library_test.base_testcase import BaseTestCase
         
 class ModeDecompositionsTest(BaseTestCase):
+    """
+    Tests the defaults for `tvb.datatypes.mode_decompositions` module.
+    """
     
     def test_principalcomponents(self):
         data = numpy.random.random((10, 10, 10, 10))

@@ -46,6 +46,9 @@ from tvb_library_test.base_testcase import BaseTestCase
 class CoreTest(BaseTestCase):
     
     def test_traits_default(self):
+        """
+        Tests for default values upon creation of a FloatArray traited class.
+        """
         array_dt = arrays.FloatArray()
         self.assertEqual(array_dt.trait.file_storage, FILE_STORAGE_DEFAULT)
         self.assertEqual(array_dt.trait.order_number, 0)
@@ -55,6 +58,9 @@ class CoreTest(BaseTestCase):
      
      
     def test_traits_specific(self):
+        """
+        Tests for correct creation of a FloatArray traited class with initial values specified.
+        """
         array_dt = arrays.FloatArray(file_storage = "txt",
                                      order = 6,
                                      required = False,
@@ -68,6 +74,9 @@ class CoreTest(BaseTestCase):
     
     
     def test_str_class_name(self):
+        """
+        Tests method `tvb.basic.traits.util.str_class_name` works as expected with the FloatArray class
+        """
         self.assertEqual(str_class_name(arrays.FloatArray), 'tvb.datatypes.arrays.FloatArray')
         self.assertEqual(str_class_name(arrays.FloatArray, True), 'FloatArray')
         self.assertEqual(str_class_name(1), '1')

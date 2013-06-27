@@ -43,6 +43,9 @@ from tvb.datatypes import graph, time_series, connectivity
 from tvb_library_test.base_testcase import BaseTestCase
         
 class GraphTest(BaseTestCase):
+    """
+    Tests the defaults for `tvb.datatypes.graph` module.
+    """
     
     def test_covariance(self):
         data = numpy.random.random((10, 10))
