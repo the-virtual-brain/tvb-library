@@ -145,7 +145,7 @@ class MapAsJson():
 
     class MapAsJsonEncoder(json.JSONEncoder):
         """
-        Used before any save to the database to encode Equation type opjects.
+        Used before any save to the database to encode Equation type objects.
         """
 
 

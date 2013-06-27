@@ -61,7 +61,7 @@ class TvbProfile():
         """
         Returns the user given profile or None if the user didn't specify a profile.
 
-        :param: script_argv - represents a list of string arguments. 
+        :param script_argv: represents a list of string arguments.
                 If the script_argv contains the string '-profile',
                 than TVB profile will be set to the next element.
 
@@ -82,10 +82,10 @@ class TvbProfile():
         """
         Sets TVB profile from script_argv.
 
-        :param: script_argv - represents a list of string arguments. 
+        :param script_argv: represents a list of string arguments.
                       If the script_argv contains the string '-profile' 
                       than the TVB profile will be set to the next element.
-        :param: remove_from_args - when True, script_argv will get stripped of profile strings.
+        :param remove_from_args: when True, script_argv will get stripped of profile strings.
         
         E.g.: if script_argv = ['$param1', ..., '-profile', 'TEST_SQLITE_PROFILE', ...] 
               than the  profile will be set to 'TEST_SQLITE_PROFILE'

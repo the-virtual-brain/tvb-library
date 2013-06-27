@@ -43,6 +43,9 @@ from tvb.datatypes import spectral, time_series
 from tvb_library_test.base_testcase import BaseTestCase
         
 class SpectralTest(BaseTestCase):
+    """
+    Tests the defaults for `tvb.datatypes.spectral` module.
+    """
     
     def test_fourierspectrum(self):
         data = numpy.random.random((10, 10))
