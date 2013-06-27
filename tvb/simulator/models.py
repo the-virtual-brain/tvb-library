@@ -1839,6 +1839,15 @@ class JansenRit(Model):
 
         c_0 = coupling[0, :]
 
+        # NOTE: for local couplings
+        # 0: pyramidal cells
+        # 1: excitatory interneurons
+        # 2: inhibitory interneurons
+        # 0 -> 1,
+        # 0 -> 2,  
+        # 1 -> 0,
+        # 2 -> 0,
+
         #p_min = self.p_min
         #p_max = self.p_max
         #p = p_min + (p_max - p_min) * numpy.random.uniform()
