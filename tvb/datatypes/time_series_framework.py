@@ -186,7 +186,7 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
 
     def get_space_labels(self):
         """
-        :return An array of strings. Default empty.
+        :return: An array of strings. Default empty.
         """
         return []
 
@@ -214,7 +214,7 @@ class TimeSeriesEEGFramework(time_series_data.TimeSeriesEEGData, TimeSeriesFrame
 
     def get_space_labels(self):
         """
-        :return An array of strings with the sensors labels.
+        :return: An array of strings with the sensors labels.
         """
         if self.sensors is not None:
             return list(self.sensors.labels)
@@ -230,7 +230,7 @@ class TimeSeriesMEGFramework(time_series_data.TimeSeriesMEGData, TimeSeriesFrame
 
     def get_space_labels(self):
         """
-        :return An array of strings with the sensors labels.
+        :return: An array of strings with the sensors labels.
         """
         if self.sensors is not None:
             return list(self.sensors.labels)
@@ -246,7 +246,7 @@ class TimeSeriesRegionFramework(time_series_data.TimeSeriesRegionData, TimeSerie
 
     def get_space_labels(self):
         """
-        :return An array of strings with the connectivity node labels.
+        :return: An array of strings with the connectivity node labels.
         """
         if self.connectivity is not None:
             return list(self.connectivity.region_labels)

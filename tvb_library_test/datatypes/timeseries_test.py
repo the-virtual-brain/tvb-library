@@ -43,6 +43,9 @@ from tvb.datatypes import time_series
 from tvb_library_test.base_testcase import BaseTestCase
         
 class TimeseriesTest(BaseTestCase):
+    """
+    Tests the defaults for `tvb.datatypes.time_series` module.
+    """
     
     def test_timeseries(self):
         data = numpy.random.random((10, 10))

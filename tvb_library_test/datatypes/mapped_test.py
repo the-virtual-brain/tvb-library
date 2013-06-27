@@ -44,6 +44,9 @@ from tvb_library_test.base_testcase import BaseTestCase
 
 
 class MappedTest(BaseTestCase):
+    """
+    Tests the defaults for `tvb.datatypes.mapped_values` module.
+    """
 
     def test_valuewrapper(self):
         dt = mapped_values.ValueWrapper(data_value=10, data_type="Integer", data_name="TestVale")

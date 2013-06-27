@@ -42,6 +42,9 @@ from tvb.datatypes import coupling
 from tvb_library_test.base_testcase import BaseTestCase
         
 class CouplingTest(BaseTestCase):
+    """
+    Tests the defaults for `tvb.datatypes.coupling` module.
+    """
     
     def test_coupling(self):
         dt = coupling.Coupling()

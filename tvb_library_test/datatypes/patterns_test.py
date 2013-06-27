@@ -44,7 +44,10 @@ from tvb.datatypes import patterns, equations, connectivity, surfaces
 from tvb_library_test.base_testcase import BaseTestCase
         
 class PatternsTest(BaseTestCase):
-    
+    """
+    Tests the defaults for `tvb.datatypes.patterns` module.
+    """
+
     def test_spatialpattern(self):
         dt = patterns.SpatialPattern()
         dt.spatial = equations.DoubleGaussian()

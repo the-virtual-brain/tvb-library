@@ -42,6 +42,9 @@ from tvb.datatypes import projections
 from tvb_library_test.base_testcase import BaseTestCase
         
 class PatternsTest(BaseTestCase):
+    """
+    Tests the defaults for `tvb.datatypes.projections` module.
+    """
     
     def test_projectionmatrix(self):
         dt = projections.ProjectionMatrix()
