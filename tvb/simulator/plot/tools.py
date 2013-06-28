@@ -496,16 +496,15 @@ if IMPORTED_MAYAVI:
         """
         Plots a 3D representation of the delayed-connectivity structure.
         See Fig. 3 in (Knock et al 2009)
+
+        [Nodes x Nodes x Delays]
         
         Original script can be found at: 
         BrainNetworkModels_3.1/PlottingTools/PlotConnectivity3D.m
         
         """
-        
-        from enthought.tvtk.tools import visual
-        
+                
         fig = mlab.figure(figure="Connectivity 3D", bgcolor=(0.0, 0.0, 0.0))
-        visual.set_viewer(fig)
         
         N = connectivity.number_of_regions // 2
         minW = connectivity.weights.min()
@@ -516,7 +515,7 @@ if IMPORTED_MAYAVI:
         
         minD = connectivity.delays.min()
         maxD = connectivity.delays.max()
-        stepD = (maxD - minD) / 100
+        stepD = (maxD - minD) / 10.
         
         if order is None:
             order = numpy.arange(0, N)
@@ -525,26 +524,26 @@ if IMPORTED_MAYAVI:
             edge_cutoff = minW
             
         # colourmap to emphasise large numbers
-        MAP = numpy.loadtxt('../plot/colourmaps/BlackToBlue')
-        mapstep = 1. / MAP.shape[0]
-        #lil_connectivity = connectivity[0:N+1, 0:N+1]
+        #MAP = numpy.loadtxt('../plot/colourmaps/BlackToBlue')
+        #mapstep = 1. / MAP.shape[0]
+       
     
-        # TODO: create a single data source to use mlab scene decorations
         # Loop over connectivity matrix, colouring and one cube per matrix element
+        K = []
+        D = []
+        M = []
+        S = []
         for k in range(N):
             for m in range(N):
                 if connectivity.weights[k,m] != 0:
-                    nlc = (connectivity.weights[k, m] - minW ) / (maxW - minW)
                     if k!=m:
                         #not self connection (diagonal)
                         if connectivity.weights[k, m] > edge_cutoff:
-                            ci = int(max(numpy.floor(nlc / mapstep), 1))
-                            import pdb; pdb.set_trace()
-                            mlab.points3d(k + 0.5, 
-                                       connectivity.delays[k,m] + stepD, 
-                                       m + 0.5)
-                                       #1.0,
-                                       #color=tuple(MAP[ci-1, 0:3]))               
+                            K.append(k+2.)
+                            D.append(connectivity.delays[k,m] + stepD)
+                            M.append(m + 2.0)
+                            S.append(connectivity.weights[k,m])
+        mlab.points3d(K, D, M, S, mode='cube')               
         mlab.show(stop=True)
         
         
