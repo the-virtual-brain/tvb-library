@@ -196,7 +196,7 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
     def normalised_weights(self, mode='tract'):
         """
         Normalise the connection strengths (weights) and return normalized matrix. 
-        Two simple types of normalisation are supported. 
+        Three simple types of normalisation are supported. 
         The ``normalisation_mode`` of normalisation is one of the following:
             
             'tract': Normalise such that the maximum abssolute value of a single
@@ -238,6 +238,15 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         result = copy(self.weights)
         result[mask] = self.weights[mask] / normalisation_factor
         return result
+
+    def compute_adjacency_matrix(self):
+        """
+        Transforms the weights matrix into the binary (adjaceny) matrix 
+        """
+        LOG.info("Transforming weighted matrix into binary matrix")
+        
+        result = copy(self.weights)
+        result = numpy.where(results > 0, 1, result)
         
         
     def switch_distribution(self, matrix='tract_lengths', mode='none'):
