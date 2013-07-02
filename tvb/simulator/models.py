@@ -1981,7 +1981,7 @@ class Generic2dOscillator(Model):
     | a            |      1.0   |
     | b            |      0.0   |
     | c            |     -5.0   |
-    | d            |      0.1   |
+    | d            |      0.02  |
     | I            |      0.0   |
     -----------------------------
     |* monostable regime:       |
@@ -1997,7 +1997,7 @@ class Generic2dOscillator(Model):
     | a            |      0.5   |
     | b            |      0.6   |
     | c            |     -4.0   |
-    | d            |      0.1   |
+    | d            |      0.02  |
     | I            |      0.0   |
     -----------------------------
     |* excitable regime if b=0.6|
@@ -2044,7 +2044,7 @@ class Generic2dOscillator(Model):
     tau = arrays.FloatArray(
         label=r":math:`\tau`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=0.00001, hi=5.0, step=0.01),
+        range=basic.Range(lo=1.0, hi=5.0, step=0.01),
         doc="""A time-scale hierarchy can be introduced for the state
         variables :math:`V` and :math:`W`. Default parameter is 1, which means
         no time-scale hierarchy.""",
