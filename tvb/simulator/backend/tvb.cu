@@ -16,7 +16,7 @@
 
    CONTENTS
 
-   - global constant variables (irony noted)
+   - global constant variables (irony noted thx)
    - globals' getter & setter functions
    - wrap function
    - model_dfun
