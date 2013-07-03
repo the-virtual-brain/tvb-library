@@ -79,7 +79,7 @@ from numpy import *
 
 from tvb.simulator import lab
 from tvb.simulator.backend import driver_conf
-driver_conf.using_gpu = 0
+driver_conf.using_gpu = 1
 from tvb.simulator.backend import driver
 reload(driver)
 
@@ -95,8 +95,11 @@ sim.configure()
 
 # then build device handler and pack it iwht simulation
 dh = driver.device_handler.init_like(sim)
-dh.n_thr = 1
+dh.n_thr = 512
+dh.n_rthr = dh.n_thr
 dh.fill_with(0, sim)
+for i in range(1, dh.n_thr):
+    dh.fill_with(i, sim)
 
 
 # run both with raw monitoring, compare output
@@ -109,8 +112,8 @@ while cont:
     # simulator output
     try:
         # history & indicies
-        histidx = ((sim.current_step - 1 - sim.connectivity.idelays)%sim.horizon)[:4, :4].flat[:]*74 + r_[:4, :4, :4, :4]
-        histval = [sim.history[(sim.current_step - 1 - sim.connectivity.idelays[10,j])%sim.horizon, 0, j, 0] for j in range(dh.n_node)]
+        #histidx = ((sim.current_step - 1 - sim.connectivity.idelays)%sim.horizon)[:4, :4].flat[:]*74 + r_[:4, :4, :4, :4]
+        #histval = [sim.history[(sim.current_step - 1 - sim.connectivity.idelays[10,j])%sim.horizon, 0, j, 0] for j in range(dh.n_node)]
         #print 'histidx', histidx
         #print 'hist[idx]', histval
 
@@ -136,6 +139,11 @@ while cont:
     
     t2 = dh.i_step*dh.inpr.value[0]
     y2 = dh.x.value.reshape((dh.n_node, -1, dh.n_mode)).transpose((1, 0, 2))
+
+    # in this case where our simulations are all identical, the easiest
+    # comparison, esp. to check that all threads on device behave, is to
+    # randomly sample one of the threads at each step (right?)
+    y2 = y2[randint(y2.shape[0]/2)]
     ys2.append(y2)
 
     if dh.i_step % 100 == 0:
@@ -145,8 +153,8 @@ while cont:
 ys1 = array(ys1)
 ys2 = array(ys2)
 
-print ys1.flat[::450]
-print ys2.flat[::450]
+#print ys1.flat[::450]
+#print ys2.flat[::450]
 
 savez('debug.npz', ys1=ys1, ys2=ys2)
 
@@ -155,7 +163,7 @@ from matplotlib import pyplot as pl
 pl.figure(2)
 pl.clf()
 pl.subplot(311), pl.imshow(ys1[:, 0, :, 0].T, aspect='auto', interpolation='nearest'), pl.colorbar()
-pl.subplot(312), pl.imshow(ys2[:, 0, :, 0].T, aspect='auto', interpolation='nearest'), pl.colorbar()
-pl.subplot(313), pl.imshow(((ys1 - ys2)/ys1.ptp())[:, 0, :, 0].T, aspect='auto', interpolation='nearest'), pl.colorbar()
+pl.subplot(312), pl.imshow(ys2[:,    :, 0].T, aspect='auto', interpolation='nearest'), pl.colorbar()
+pl.subplot(313), pl.imshow(100*((ys1[:, 0] - ys2)/ys1.ptp())[..., 0].T, aspect='auto', interpolation='nearest'), pl.colorbar()
 
 pl.show()
