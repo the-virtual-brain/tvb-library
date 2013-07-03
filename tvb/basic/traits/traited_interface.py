@@ -80,6 +80,10 @@ class TraitedInterfaceGenerator(object):
             intr['minValue'] = range_value.lo
             intr['maxValue'] = range_value.hi
             intr['stepValue'] = range_value.step
+            
+        noise_configurable = obj.trait.inits.kwd.get('configurable_noise', None)
+        if noise_configurable is not None:
+            intr['configurableNoise'] = noise_configurable
 
         if KWARG_FILTERS_UI in obj.trait.inits.kwd:
             intr[KWARG_FILTERS_UI] = json.dumps([ui_filter.to_dict() for ui_filter in

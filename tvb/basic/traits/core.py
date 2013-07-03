@@ -91,7 +91,7 @@ FILE_STORAGE_DEFAULT = 'HDF5'
 FILE_STORAGE_EXPAND = 'expandable_HDF5'
 FILE_STORAGE_NONE = 'None'
 
-SPECIAL_KWDS = ['bind', 'doc', 'label', 'db', 'default', 'required', KWARG_AVOID_SUBCLASSES,
+SPECIAL_KWDS = ['bind', 'doc', 'label', 'db', 'default', 'required', 'configurable_noise', KWARG_AVOID_SUBCLASSES,
                 'range', 'locked', KWARG_FILTERS_UI, KWARG_CONSOLE_DEFAULT, KWARG_SELECT_MULTIPLE,
                 KWARG_FILE_STORAGE, KWARG_ORDER, KWARG_OPTIONS, KWARS_USE_STORAGE]
 

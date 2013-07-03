@@ -35,6 +35,12 @@
 import os
 import numpy
 import inspect
+try:
+    H5PY_SUPPORT = True
+    import h5py as hdf5
+except Exception:
+    H5PY_SUPPORT = False
+    
 import tvb.simulator
 from scipy import io as scipy_io
 from tvb.basic.logger.builder import get_logger
@@ -78,11 +84,22 @@ class File(object):
                                                             'matlab_data_name': matlab_data_name,
                                                             'dtype': dtype,
                                                             'skiprows': skiprows,
-                                                            'usecols': usecols},
+                                                            'usecols': usecols,
+                                                            'field' : field},
                                       self.KEY_METHOD: 'read_data'}
         if lazy_load:
             ## Do not read now, just keep the reference. It will be used on "reload" later.
             return None
+        
+        # If we are reloading from a h5py we will need to skip check for file_name
+        # since a 'non' h5py read will always pass a filename, which will overwrite
+        # self.file_name (which is the h5py file in this reload case)
+        if self.file_name is not None and self.file_name.endswith('.h5'):
+            if H5PY_SUPPORT:
+                full_path = os.path.join(self.folder_path, self.file_name)
+                return self._read_h5py(full_path, field)
+            else:
+                self.logger.warning("You need h5py properly installed in order to load from a HDF5 file.")
 
         if file_name is None:
             file_name = self.file_name
@@ -98,6 +115,11 @@ class File(object):
         # Try to read Matlab format
         return self._read_matlab(full_path, matlab_data_name)
 
+    
+    def _read_h5py(self, path, field):
+        hfd5_file = hdf5.File(path, 'r', libver='latest')
+        return hfd5_file['/' + field][()]
+    
 
     def _read_matlab(self, path, matlab_data_name=None):
         """
@@ -193,4 +215,3 @@ class Table(File):
         return numpy.array(self.loaded_table[dimension_1])
     
         
-    

@@ -59,7 +59,7 @@ class NoiseTest(BaseTestCase):
     def test_multiplicative(self):
         noise_multiplicative = noise.Multiplicative()
         self.assertEqual(noise_multiplicative.ntau,  0.0)
-        self.assertIsInstance(noise_multiplicative.b, equations.Linear)
+        self.assertTrue(isinstance(noise_multiplicative.b, equations.Linear))
     
 def suite():
     """

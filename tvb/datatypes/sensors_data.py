@@ -167,4 +167,7 @@ class SensorsInternalData(SensorsData):
     sensors_type = basic.String(default=INTERNAL_POLYMORPHIC_IDENTITY)
 
 
+    def __init__(self, **kwargs):
+        super(SensorsInternalData, self).__init__(**kwargs)
+        self.default.reload(self.__class__, folder_path="sensors", file_name='internal_39.txt.bz2')
 

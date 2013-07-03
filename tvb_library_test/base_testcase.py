@@ -31,8 +31,10 @@
 """
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
-
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 from tvb.basic.config.settings import TVBSettings as cfg
 
 

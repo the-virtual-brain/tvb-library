@@ -31,7 +31,7 @@
 """
 Demonstrate using the simulator at the region level, deterministic interation.
 
-``Run time``: approximately 2 seconds (workstation circa 2010)
+``Run time``: approximately 140 seconds (workstation circa 2012)
 ``Memory requirement``: < 1GB
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
@@ -41,8 +41,6 @@ Demonstrate using the simulator at the region level, deterministic interation.
 # Third party python libraries
 import numpy
 import datetime
-#from tvb_library_test import setup_test_console_env
-#setup_test_console_env()
 
 START_TIME = datetime.datetime.now()
 

@@ -332,10 +332,16 @@ class HeunStochastic(IntegratorStochastic):
         """
 
         noise = self.noise.generate(X.shape)
+        noise_gfun = self.noise.gfun(X)
+        if (noise_gfun.shape != (1,) and noise.shape[0] != noise_gfun.shape[0]):
+            msg = str("Got shape %s for noise but require %s."
+                      " You need to reconfigure noise after you have changed your model."%(
+                       noise_gfun.shape, (noise.shape[0], noise.shape[1])))
+            raise Exception(msg)
 
         #import pdb; pdb.set_trace()
         inter = (X + self.dt * dfun(X, coupling, local_coupling) +
-                 self.noise.gfun(X) * noise + self.dt * stimulus)
+                 noise_gfun * noise + self.dt * stimulus)
 
         dX = (dfun(X, coupling, local_coupling) + 
               dfun(inter, coupling, local_coupling)) * self.dt / 2.0
@@ -468,8 +474,14 @@ class EulerStochastic(IntegratorStochastic):
         noise = self.noise.generate(X.shape)
 
         dX = dfun(X, coupling, local_coupling) * self.dt 
+        noise_gfun = self.noise.gfun(X)
+        if (noise_gfun.shape != (1,) and noise.shape[0] != noise_gfun.shape[0]):
+            msg = str("Got shape %s for noise but require %s."
+                      " You need to reconfigure noise after you have changed your model."%(
+                       noise_gfun.shape, (noise.shape[0], noise.shape[1])))
+            raise Exception(msg)
 
-        return X + dX + self.noise.gfun(X) * noise + self.dt * stimulus
+        return X + dX + noise_gfun * noise + self.dt * stimulus
 
     device_info = integrator_device_info(
         pars = ['dt'],

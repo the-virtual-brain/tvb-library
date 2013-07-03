@@ -36,10 +36,13 @@ if __name__ == "__main__":
     from tvb_library_test import setup_test_console_env
     setup_test_console_env()
 
+try:
+    import unittest2 as unittest
+except Exception:
+    import unittest
 
 import os
 import sys
-import unittest
 import tvb.datatypes.surfaces as surfaces
 import tvb.basic.traits.data_readers as readers
 from tvb_library_test.base_testcase import BaseTestCase

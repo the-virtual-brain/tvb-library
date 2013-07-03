@@ -37,7 +37,7 @@ methods that are associated with the surfaces data.
 
 """
 
-import tvb.datatypes.surfaces_scientific  as surfaces_scientific
+import tvb.datatypes.surfaces_scientific as surfaces_scientific
 import tvb.datatypes.surfaces_framework as surfaces_framework
 import tvb.datatypes.surfaces_data as surfaces_data
 import tvb.basic.traits.exceptions as exceptions
@@ -54,8 +54,8 @@ EEG_CAP = surfaces_data.EEG_CAP
 FACE = surfaces_data.FACE
 
 
-class Surface(surfaces_scientific.SurfaceScientific,
-              surfaces_framework.SurfaceFramework):
+
+class Surface(surfaces_scientific.SurfaceScientific, surfaces_framework.SurfaceFramework):
     """
     This class brings together the scientific and framework methods that are
     associated with the Surface DataType.
@@ -72,14 +72,16 @@ class Surface(surfaces_scientific.SurfaceScientific,
         
     
     """
+
+
     def configure(self):
         """
         Make sure both Scientific and Framework configure methods are called.
         """
         surfaces_scientific.SurfaceScientific.configure(self)
         surfaces_framework.SurfaceFramework.configure(self)
-    
-    
+
+
     def validate(self):
         """
         This method checks if the data stored into this entity is valid, and ready to be stored in DB.
@@ -88,23 +90,22 @@ class Surface(surfaces_scientific.SurfaceScientific,
         We implement this method here, because the "check" method is in scientific class.
         """
         super(Surface, self).validate()
-        
+
         # First check if the surface has a valid number of vertices
         if self.number_of_vertices > cfg.MAX_SURFACE_VERTICES_NUMBER:
-            msg = "This surface has too many vertices (max allowed: %d)."%cfg.MAX_SURFACE_VERTICES_NUMBER
+            msg = "This surface has too many vertices (max allowed: %d)." % cfg.MAX_SURFACE_VERTICES_NUMBER
             msg += " Please upload a new surface or change max number in application settings."
-            raise exceptions.ValidationException(msg) 
-        
-        # Now check if the surface is closed
+            raise exceptions.ValidationException(msg)
+
+            # Now check if the surface is closed
         is_closed, _, _, _, _ = self.check()
         if not is_closed:
-            msg = " ".join(("Could not import surface because it's not closed.",
-                            "Please correct the problem and upload again."))
+            msg = "Could not import surface because it's not closed.Please correct the problem and upload again."
             raise exceptions.ValidationException(msg)
 
 
 
-class CorticalSurface(surfaces_scientific.CorticalSurfaceScientific, 
+class CorticalSurface(surfaces_scientific.CorticalSurfaceScientific,
                       surfaces_framework.CorticalSurfaceFramework, Surface):
     """
     This class brings together the scientific and framework methods that are
@@ -125,8 +126,8 @@ class CorticalSurface(surfaces_scientific.CorticalSurfaceScientific,
     __mapper_args__ = {'polymorphic_identity': CORTICAL}
 
 
-class SkinAir(surfaces_scientific.SkinAirScientific,
-              surfaces_framework.SkinAirFramework, Surface):
+
+class SkinAir(surfaces_scientific.SkinAirScientific, surfaces_framework.SkinAirFramework, Surface):
     """
     This class brings together the scientific and framework methods that are
     associated with the SkinAir DataType.
@@ -146,8 +147,8 @@ class SkinAir(surfaces_scientific.SkinAirScientific,
     __mapper_args__ = {'polymorphic_identity': OUTER_SKIN}
 
 
-class BrainSkull(surfaces_scientific.BrainSkullScientific,
-                 surfaces_framework.BrainSkullFramework, Surface):
+
+class BrainSkull(surfaces_scientific.BrainSkullScientific, surfaces_framework.BrainSkullFramework, Surface):
     """ 
     This class brings together the scientific and framework methods that are
     associated with the BrainSkull dataType.
@@ -165,10 +166,10 @@ class BrainSkull(surfaces_scientific.BrainSkullScientific,
     
     """
     __mapper_args__ = {'polymorphic_identity': INNER_SKULL}
- 
- 
-class SkullSkin(surfaces_scientific.SkullSkinScientific,
-                surfaces_framework.SkullSkinFramework, Surface):
+
+
+
+class SkullSkin(surfaces_scientific.SkullSkinScientific, surfaces_framework.SkullSkinFramework, Surface):
     """
     This class brings together the scientific and framework methods that are
     associated with the SkullSkin dataType.
@@ -186,16 +187,15 @@ class SkullSkin(surfaces_scientific.SkullSkinScientific,
     
     """
     __mapper_args__ = {'polymorphic_identity': OUTER_SKULL}
-    
 
 
 ##--------------------- CLOSE SURFACES End Here---------------------------------------##
 
+
 ##--------------------- OPEN SURFACES Start Here---------------------------------------##
-       
-       
-class OpenSurface(surfaces_scientific.OpenSurfaceScientific,
-                  surfaces_framework.OpenSurfaceFramework, Surface):
+
+
+class OpenSurface(surfaces_scientific.OpenSurfaceScientific, surfaces_framework.OpenSurfaceFramework, Surface):
     """ 
     This class brings together the scientific and framework methods that are
     associated with the OpenSurface dataType.
@@ -213,9 +213,10 @@ class OpenSurface(surfaces_scientific.OpenSurfaceScientific,
     
     """
     pass
-    
-class EEGCap(surfaces_scientific.EEGCapScientific,
-             surfaces_framework.EEGCapFramework, OpenSurface):
+
+
+
+class EEGCap(surfaces_scientific.EEGCapScientific, surfaces_framework.EEGCapFramework, OpenSurface):
     """ 
     This class brings together the scientific and framework methods that are
     associated with the EEGCap dataType.
@@ -232,11 +233,11 @@ class EEGCap(surfaces_scientific.EEGCapScientific,
         
     
     """
-    __mapper_args__ = {'polymorphic_identity' : EEG_CAP}
-    
-    
-class FaceSurface(surfaces_scientific.FaceSurfaceScientific,
-                  surfaces_framework.FaceSurfaceFramework, OpenSurface):
+    __mapper_args__ = {'polymorphic_identity': EEG_CAP}
+
+
+
+class FaceSurface(surfaces_scientific.FaceSurfaceScientific, surfaces_framework.FaceSurfaceFramework, OpenSurface):
     """ 
     This class brings together the scientific and framework methods that are
     associated with the FaceSurface dataType.
@@ -253,14 +254,15 @@ class FaceSurface(surfaces_scientific.FaceSurfaceScientific,
         
     
     """
-    __mapper_args__ = {'polymorphic_identity' : FACE}
-    
+    __mapper_args__ = {'polymorphic_identity': FACE}
+
 ##--------------------- OPEN SURFACES End Here---------------------------------------##
+
 
 ##--------------------- SURFACES ADJIACENT classes start Here---------------------------------------##
 
-class RegionMapping(surfaces_framework.RegionMappingFramework,
-                    surfaces_scientific.RegionMappingScientific):
+
+class RegionMapping(surfaces_framework.RegionMappingFramework, surfaces_scientific.RegionMappingScientific):
     """ 
     This class brings together the scientific and framework methods that are
     associated with the RegionMapping dataType.
@@ -280,8 +282,8 @@ class RegionMapping(surfaces_framework.RegionMappingFramework,
     pass
 
 
-class LocalConnectivity(surfaces_scientific.LocalConnectivityScientific,
-                        surfaces_framework.LocalConnectivityFramework):
+
+class LocalConnectivity(surfaces_scientific.LocalConnectivityScientific, surfaces_framework.LocalConnectivityFramework):
     """ 
     This class brings together the scientific and framework methods that are
     associated with the LocalConnectivity dataType.
@@ -301,8 +303,8 @@ class LocalConnectivity(surfaces_scientific.LocalConnectivityScientific,
     pass
 
 
-class Cortex(surfaces_scientific.CortexScientific,
-             surfaces_framework.CortexFramework):
+
+class Cortex(surfaces_scientific.CortexScientific, surfaces_framework.CortexFramework, CorticalSurface):
     """ 
     This class brings together the scientific and framework methods that are
     associated with the Cortex dataType.

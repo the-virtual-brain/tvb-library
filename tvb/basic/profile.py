@@ -78,7 +78,7 @@ class TvbProfile():
 
 
     @staticmethod
-    def set_profile(script_argv, remove_from_args=False):
+    def set_profile(script_argv, remove_from_args=False, try_reload=True):
         """
         Sets TVB profile from script_argv.
 
@@ -91,6 +91,15 @@ class TvbProfile():
               than the  profile will be set to 'TEST_SQLITE_PROFILE'
         """
         selected_profile = TvbProfile.get_profile(script_argv)
+        
+        if try_reload:
+            # To make sure in case of contributor setup the external TVB is the one
+            # we get, we need to reload all tvb related modules, since any call done
+            # python -m will always consider the current folder as the first to search in.
+            sys.path = os.environ.get("PYTHONPATH", "").split(os.pathsep) + sys.path
+            for key in sys.modules.keys():
+                if key.startswith("tvb") and  sys.modules[key]:
+                    reload(sys.modules[key])
 
         if selected_profile is not None:
             TvbProfile.CURRENT_SELECTED_PROFILE = selected_profile
@@ -98,15 +107,7 @@ class TvbProfile():
             if remove_from_args:
                 script_argv.remove(selected_profile)
                 script_argv.remove(TvbProfile.SUBPARAM_PROFILE)
-        # To make sure in case of contributor setup the externam TVB is the one
-        # we get, we need to reload all tvb related modules, since any call done
-        # python -m will always consider the current folder as the first to search in
-        sys.path = os.environ.get("PYTHONPATH", "").split(os.pathsep) + sys.path
-        for key in sys.modules.keys():
-            if key.startswith("tvb"):
-                if sys.modules[key]:
-                    reload(sys.modules[key])
-
+        
 
     @staticmethod
     def is_library_mode():
