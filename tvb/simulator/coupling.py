@@ -198,7 +198,7 @@ class Linear(Coupling):
         return self.a * input + self.b
 
     device_info = coupling_device_info(
-        pars = [a, b],
+        pars = ['a', 'b'],
         kernel = """
 
         // parameters
@@ -251,7 +251,7 @@ class Scaling(Coupling):
         return self.scaling_factor * input
 
     device_info = coupling_device_info(
-        pars = [scaling_factor],
+        pars = ['scaling_factor'],
         kernel = """
 
         // parameters
@@ -333,7 +333,7 @@ class Sigmoidal(Coupling):
         return sig
 
     device_info = coupling_device_info(
-        pars = [cmin, cmax, midpoint, sigma],
+        pars = ['cmin', 'cmax', 'midpoint', 'sigma'],
         kernel = """
         // load parameters
         float cmin     = P(0)
@@ -376,7 +376,7 @@ class Difference(Coupling):
         return self.a*(g_ij*(x_j - x_i)).sum(axis=0)
 
     device_info = coupling_device_info(
-        pars = [a],
+        pars = ['a'],
         kernel = """
         // load parameters
         float a = P(0);
@@ -410,7 +410,7 @@ class Kuramoto(Coupling):
         return self.a*(g_ij*sin(x_j - x_i)).sum(axis=0)
 
     device_info = coupling_device_info(
-        pars = [a],
+        pars = ['a'],
         kernel = """
         // load parameters
         float a = P(0);

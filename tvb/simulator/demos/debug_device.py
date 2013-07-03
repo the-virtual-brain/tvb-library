@@ -64,6 +64,10 @@ ugly
 HeunStoch doesn't like ReducedHMR, makes lots of NaaN.
 
 
+debugging (july/2013)
+---------------------
+
+
 .. moduleauthor:: marmaduke woodman <mw@eml.cc>
 
 """
