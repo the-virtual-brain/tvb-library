@@ -1,0 +1,9 @@
+TODO
+
+x  pass double precision data
+x  arbitrary code execution in Python
+x  interactive Python repl
+
+o  linalg monkey patch
+o  no copy data conversion
+o  support other data types
