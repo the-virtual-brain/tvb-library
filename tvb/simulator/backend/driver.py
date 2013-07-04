@@ -28,69 +28,39 @@
 #
 #
 
+"""
+tvb.simulator.backend.driver
+============================
+
+This modules defines several classes that are informally base
+or abstract classes for various actual backends. Backend specific
+code is provided by subclassing the classes in this module, and in
+most cases, the classes here don't function at all, so the user 
+should e.g. import backend.cee directly.
+
+class dcode -       Setup and load template code on device
+class dglobal -     Setup & access global variables in code
+class darray -      Alloc, free, set, get main data storage
+class dhandler -    Coordinate code & data on device
+
+"""
+
 import sys
 import os.path
 import string
 import glob
 import subprocess
-
-
 from numpy import *
-
-import driver_conf as dc
-
-using_gpu = getattr(dc, 'using_gpu', 0)
-if __name__ == "__main__":
-    using_gpu = int(sys.argv[1]) if len(sys.argv)>1 else using_gpu
-
-if using_gpu:
-    import pycuda.driver as cuda
-    import pycuda.autoinit
-    from pycuda.compiler import SourceModule as CUDASourceModule
-    from pycuda import gpuarray
-    import pycuda.tools
-
-    class OccupancyRecord(pycuda.tools.OccupancyRecord):
-        def __repr__(self):
-            ret = "Occupancy(tb_per_mp=%d, limited_by=%r, warps_per_mp=%d, occupancy=%0.3f)"
-            return ret % (self.tb_per_mp, self.limited_by, self.warps_per_mp, self.occupancy)
-
-    _, total_mem = cuda.mem_get_info()
-
-    from pycuda.curandom import XORWOWRandomNumberGenerator as XWRNG
-    rng = XWRNG()
-
-    # FIXME should be on the noise objects, but has different interface
-    # FIXME this is additive white noise
-    def gen_noise_into(devary, dt):
-        gary = devary.device
-        rng.fill_normal(gary)
-        gary.set(gary.get()*sqrt(dt))
-
-else: # using Cpu
-    import psutil
-    import ctypes
-
-    total_mem = psutil.phymem_usage().total
-
-    # FIXME this is additive white noise
-    def gen_noise_into(devary, dt):
-        devary.cpu[:] = random.normal(size=devary.shape)
-        devary.cpu[:] *= sqrt(dt)
-
 from tvb.simulator.lab import *
-
-import cee
 
 def cpp(filename):
     proc = subprocess.Popen(['cpp', filename], stdout=subprocess.PIPE)
     return proc.stdout.read()
 
-
-class device_code(object):
+class Code(object):
 
     # use different module b/c pycuda.debug overwrites __file__
-    here = os.path.dirname(os.path.abspath(cee.__file__)) + os.path.sep 
+    here = os.path.dirname(os.path.abspath(__file__)) + os.path.sep 
 
     @classmethod
     def sources(cls):
@@ -104,8 +74,7 @@ class device_code(object):
             #srcs[key+'-debug'] = cpp(name)
         return srcs
 
-    @classmethod
-    def build(cls, fns=[], T=string.Template, **kwds):
+    def __init__(self, fns=[], T=string.Template, **kwds):
         """
         Build a device code object based on code template and arguments. You
         may provide the following keyword arguments to customize the template:
@@ -128,15 +97,11 @@ class device_code(object):
         for k in cls.defaults.keys():
             args[k] = kwds.get(k, cls.defaults[k])
 
-        source = T(cls.sources()['tvb.cu']).substitute(**args) 
+        self.source = T(cls.sources()['tvb.cu']).substitute(**args) 
         with open('temp.cu', 'w') as fd:
-            fd.write(source)
+            fd.write(self.source)
 
-        if using_gpu:
-            cls.mod = CUDASourceModule("#define TVBGPU\n" + source, 
-                                       options=["--ptxas-options=-v"])
-        else:
-            cls.mod = cee.srcmod("#include <math.h>\n" + source, fns)
+        self.fns = fns
 
     # default template filler
     defaults = {
@@ -180,8 +145,7 @@ class device_code(object):
         """
         }
 
-
-class device_global(object):
+class Global(object):
     """
     Encapsulates a source module device global in a Python data descriptor
     for easy handling
@@ -225,7 +189,7 @@ class device_global(object):
             self._cset(ctype(val))
         
 
-class device_array(object):
+class Array(object):
     """
     Encapsulates an array that is on the device
 
@@ -238,35 +202,6 @@ class device_array(object):
         return self._cpu
 
     @property
-    def device(self):
-        if not hasattr(self, '_device'):
-            if using_gpu:
-                if self.pagelocked:
-                    raise NotImplementedError
-                self._device = gpuarray.to_gpu(self.cpu)
-            else:
-                ctype = ctypes.c_float if self.type==float32 else ctypes.c_int32
-                ptrtype = ctypes.POINTER(ctype)
-                self._device = ascontiguousarray(self.cpu).ctypes.data_as(ptrtype)
-        return self._device
-
-    def set(self, ary):
-        """
-        In place update the device array.
-        """
-        _ = self.device
-        if using_gpu:
-            self._device.set(ary)
-        else:
-            delattr(self, '_device')
-            self._cpu[:] = ary
-            _ = self.cpu
-
-    @property
-    def value(self):
-        return self.device.get() if using_gpu else self.cpu.copy()
-
-    @property
     def shape(self):
         return tuple(getattr(self.parent, k) for k in self.dimensions)
 
@@ -275,19 +210,14 @@ class device_array(object):
         bytes_per_elem = empty((1,), dtype=self.type).nbytes
         return prod(self.shape)*bytes_per_elem
 
-    def __init__(self, name, type, dimensions, pagelocked=False):
+    def __init__(self, name, type, dimensions):
         self.parent = None
         self.name = name
         self.type = type
         self.dimensions = dimensions
-        if using_gpu:
-            self.pagelocked = pagelocked
-        else:
-            if pagelocked:
-                print 'ignoring pagelocked on CPU'
 
 
-class device_handler(object):
+class Handler(object):
     """
     The device_handler class is a convenience class designed around the
     kernel functions implemented in the tvb.cu file.
@@ -423,12 +353,6 @@ class device_handler(object):
 
         for k in self.device_state:
             getattr(self, k).parent = self
-        
-        if using_gpu:
-            updatefn = device_code.mod.get_function('update')
-        else:
-            updatefn = device_code.mod.update
-        self._device_update = updatefn
 
         self.i_step = 0
 
@@ -480,7 +404,7 @@ class device_handler(object):
                 'n_cfpr' : sim.coupling         .device_info.n_cfpr,
                 'n_mmpr' : sim.model            .device_info.n_mmpr,
                 'n_inpr' : sim.integrator       .device_info.n_inpr,
-                'n_nspr' : sim.integrator.noise .device_info.n_nspr if stoch else 0,
+                'n_nspr' : sim.integrator.noise .device_info.n_nspr if stoch else 1,
                 'n_mode' : sim.model            .device_info.n_mode,
 
                 'n_tavg' : n_tavg, 'n_msik' : n_msik }
@@ -497,23 +421,13 @@ class device_handler(object):
 
     @property
     def nbytes(self):
-
         memuse = sum([getattr(self, k).nbytes for k in self.device_state])
-
-        if using_gpu:
-            free, total = cuda.mem_get_info()
-        elif psutil:
-            phymem = psutil.phymem_usage()
-            free, total = phymem.free, phymem.total
-        else:
-            free, total = None, None
-
+        free, total = self.mem_info
         if free and total: # are not None
             if memuse > free:
                 print '%r: nbytes=%d exceeds free device memory' % (self, memuse)
             if memuse > total:
                 raise MemoryError('%r: nbytes=%d exceeds total device memory' % (self, memuse))
-
         return memuse
 
     @property
@@ -524,76 +438,13 @@ class device_handler(object):
         self.n_thr = old_n_thr 
         return nbs
 
-    @property
-    def occupancy(self):
-        if using_gpu:
-            try:
-                return OccupancyRecord(pycuda.tools.DeviceData(), self.n_thr)
-            except Exception as exc:
-                return exc
 
-    @property
-    def extra_args(self):
-        if using_gpu:
-            bs = int(self.n_thr)%1024
-            gs = int(self.n_thr)/1024
-            if bs == 0:
-                bs = 1024
-            if gs == 0:
-                gs = 1
-            return {'block': (bs, 1, 1),
-                    'grid' : (gs, 1)}
-        else:
-            return {}
-
-    def __call__(self, extra=None, step_type=int32 if using_gpu else ctypes.c_int32):
-        args  = [step_type(self.i_step)]
+    def __call__(self, extra=None):
+        args  = [self.i_step_type(self.i_step)]
         for k in self.device_state:
             args.append(getattr(self, k).device)
-        try:
-            kwds = extra or self.extra_args
-            self._device_update(*args, **kwds)
-        except cuda.LogicError as e:
-            print 0, 'i_step', type(args[0])
-            for i, k in enumerate(self.device_state):
-                attr = getattr(self, k).device
-                print i+1, k, type(attr), attr.dtype
-            print kwds
-            raise e
+        kwds = extra or self.extra_args
+        self._device_update(*args, **kwds)
         self.i_step += self.n_msik
-        if using_gpu:
-            cuda.Context.synchronize()
 
-
-if __name__ == '__main__':
-
-    import time
-
-    # default keywords
-    kwds = dict(horizon=400, n_node=72, n_cvar=1, n_nspr=2, n_cfpr=1,
-                n_svar=2, n_mmpr=3, n_inpr=1, n_tavg=10, n_msik=10)
-
-    dh = device_handler(n_thr=256*4  if using_gpu else 1, **kwds)
-    dh.horizon = dh.idel.cpu.max() + 100
-    dh.cvars.cpu[0] = 0
-    dh.inpr.cpu[0] = 0.01
-    print 'n_thr=%d, nMB=%.2f' % (dh.n_thr, dh.nbytes/2**20.0)
-    print  dh.occupancy
-    if using_gpu:
-        extra = {'block': (256, 1, 1), 'grid': (4, 1)}
-    tic = time.time()
-    ys = []
-    for i in xrange(100):
-        print dh.i_step
-        dh(extra if using_gpu else {})
-        print dh.i_step
-        if dh.i_step % dh.n_tavg == 0:
-            if using_gpu:
-                ys.append(dh.tavg.device.get().copy())
-            else:
-                ys.append(dh.tavg.cpu.copy())
-    toc = time.time()
-    print '1000 iters took %.2f s' % (toc-tic, )
-
-    y = array(ys)
 
