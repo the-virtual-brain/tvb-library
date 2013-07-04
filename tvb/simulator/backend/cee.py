@@ -39,6 +39,19 @@ import tempfile
 import subprocess
 import ctypes
 
+import psutil
+import ctypes
+
+import driver
+
+total_mem = psutil.phymem_usage().total
+
+# FIXME this is additive white noise
+def gen_noise_into(devary, dt):
+    devary.cpu[:] = random.normal(size=devary.shape)
+    devary.cpu[:] *= sqrt(dt)
+
+
 def dll(src, libname,
         args=['gcc', '-std=c99', '-fPIC', '-shared', '-lm'],
         debug=False):
@@ -94,5 +107,81 @@ class srcmod(object):
                 fn_ = fn
             setattr(self, f, fn_)
 
-        
+
+class Code(driver.Code):
+    def __init__(self, *args, **kwds):
+        super(device_code_cee, self).__init__(*args, **kwds)
+        self.mod = cee.srcmod("#include <math.h>\n" + self.source, self.fns)
+
+
+class Global(driver.Global):
+    """
+    Encapsulates a source module C static in a Python data descriptor
+    for easy handling
+
+    """
+
+    def post_init(self):
+        if self.__post_init:
+            self._cget = getattr(self.code.mod, 'get_'+self.name)
+            self._cset = getattr(self.code.mod, 'set_'+self.name)
+            self.__post_init = False
+
+    def __get__(self, inst, ownr):
+        self.post_init()
+        return self._cget()
+
+    def __set__(self, inst, val):
+        self.post_init()
+        ctype = ctypes.c_int32 if self.dtype==int32 else ctypes.c_float
+        self._cset(ctype(val))
+
+ 
+class Array(driver.Array):
+    """
+    Encapsulates an array that is on the device
+
+    """
+
+    @property
+    def device(self):
+        if not hasattr(self, '_device'):
+            ctype = ctypes.c_float if self.type==float32 else ctypes.c_int32
+            ptrtype = ctypes.POINTER(ctype)
+            self._device = ascontiguousarray(self.cpu).ctypes.data_as(ptrtype)
+        return self._device
+
+    def set(self, ary):
+        """
+        In place update the device array.
+        """
+        _ = self.device
+        delattr(self, '_device')
+        self._cpu[:] = ary
+        _ = self.cpu
+
+    @property
+    def value(self):
+        return self.cpu.copy()
+
+
+class Handler(driver.Handler):
+    i_step_type = ctypes.c_int32
+    def __init__(self, *args, **kwds):
+        super(device_handler_cuda, self).__init__(*args, **kwds)
+        self._device_update = self.device_code.mod.update
+    @property
+    def mem_info(self):
+        if psutil:
+            phymem = psutil.phymem_usage()
+            return phymem.free, phymem.total
+        else:
+            return None, None
+    @property
+    def occupancy(self):
+        pass
+    @property
+    def extra_args(self):
+        return {}
+
 
