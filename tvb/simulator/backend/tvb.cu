@@ -155,7 +155,7 @@ void integrate(
 #define NS(i)   ns   [n_thr*i]
 #define STIM(i) stim [n_thr*i]
 
-    // begin (Euler stochastic) scheme code
+    // begin integration scheme code
 $integrate
     // end scheme code
 
@@ -309,7 +309,7 @@ void update(
         for (int i_node=0; i_node<n_node; i_node++)
         {   // C77, cousin of F77
             coupling(input_, _x, _idel, _conn, hist_, cfpr, cvars, i_step, i_node);
-            integrate(_x, dx1, dx2, gx, _ns, inpr, _nspr, _mmpr, input, _stim);
+            integrate(_x, dx1_, dx2_, gx_, _ns, inpr, _nspr, _mmpr, input, _stim);
 
             // certain arrays must be arg'd w/ offset because other functions
             // don't index w.r.t. i_node:

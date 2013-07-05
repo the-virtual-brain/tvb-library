@@ -38,36 +38,43 @@ This module enables execution of generated C code.
 import tempfile
 import subprocess
 import ctypes
-
 import psutil
 import ctypes
+import numpy as np
 
 import driver
 
 total_mem = psutil.phymem_usage().total
 
-# FIXME this is additive white noise
+compilers = {
+    'gcc': 'gcc -std=c99 -fPIC -shared -lm'.split(' '),
+}
+default_compiler = 'gcc'
+
 def gen_noise_into(devary, dt):
-    devary.cpu[:] = random.normal(size=devary.shape)
+    """
+    Generate additive white noise into arrays.
+
+    """
+    devary.cpu[:] = np.random.normal(size=devary.shape)
     devary.cpu[:] *= sqrt(dt)
 
+def dll(src, libname, compiler=None, debug=False):
+    """
+    Write src to a temporary file and compile as shared
+    library that can be loaded afterwards.
 
-def dll(src, libname,
-        args=['gcc', '-std=c99', '-fPIC', '-shared', '-lm'],
-        debug=False):
-
+    """
+    args = compilers[compiler or default_compiler][:]
     if debug:
         file = open('temp.c', 'w')
     else:
         file = tempfile.NamedTemporaryFile(suffix='.c')
-
+    
     with file as fd:
         fd.write(src)
         fd.flush()
-        if debug:
-            args.append('-g')
-        else:
-            args.append('-O3')
+        arg.append('-g' if debug else '-O3')
         ret = subprocess.call(args + [fd.name, '-o', libname])
 
     return ret
@@ -76,15 +83,12 @@ class srcmod(object):
 
     def __init__(self, src, fns, debug=False, printsrc=False):
 
-        if src.__class__.__module__ == 'cgen':
-            self.src = '\n'.join(src.generate())
-        else:
-            self.src = src
-
-        if printsrc:
-            print "srcmod: source is \n%s" % (self.src,)
+        self.src = src
+        if self.src.__class__.__module__ == 'cgen':
+            self.src = '\n'.join(self.src.generate())
 
         if debug:
+            print "backend.cee.srcmod:\n%s" % (self.src,)
             dll(self.src, 'temp.so', debug=debug)
             self._module = ctypes.CDLL('temp.so')
         else:
@@ -110,8 +114,8 @@ class srcmod(object):
 
 class Code(driver.Code):
     def __init__(self, *args, **kwds):
-        super(device_code_cee, self).__init__(*args, **kwds)
-        self.mod = cee.srcmod("#include <math.h>\n" + self.source, self.fns)
+        super(Code, self).__init__(*args, **kwds)
+        self.mod = srcmod("#include <math.h>\n" + self.source, self.fns)
 
 
 class Global(driver.Global):
@@ -168,8 +172,9 @@ class Array(driver.Array):
 class Handler(driver.Handler):
     i_step_type = ctypes.c_int32
     def __init__(self, *args, **kwds):
-        super(device_handler_cuda, self).__init__(*args, **kwds)
-        self._device_update = self.device_code.mod.update
+        kwds.update({'Code': Code, 'Global': Global, 'Array': Array})
+        super(Handler, self).__init__(*args, **kwds)
+        self._device_update = self.code.mod.update
     @property
     def mem_info(self):
         if psutil:

@@ -39,6 +39,7 @@ Pycuda interop patterns
 import time
 import os
 import string
+import numpy
 
 import driver
 
@@ -53,30 +54,6 @@ import pycuda.driver
 import pycuda.gpuarray as gary
 from pycuda.compiler import SourceModule
 from pycuda.tools import DeviceData, OccupancyRecord
-
-# FIXME was in driver.py, mix of names
-import pycuda.driver as cuda
-import pycuda.autoinit
-from pycuda.compiler import SourceModule as CUDASourceModule
-from pycuda import gpuarray
-import pycuda.tools
-
-class OccupancyRecord(pycuda.tools.OccupancyRecord):
-    def __repr__(self):
-        ret = "Occupancy(tb_per_mp=%d, limited_by=%r, warps_per_mp=%d, occupancy=%0.3f)"
-        return ret % (self.tb_per_mp, self.limited_by, self.warps_per_mp, self.occupancy)
-
-_, total_mem = cuda.mem_get_info()
-print 'GPU memory ', total_mem/2**30.
-from pycuda.curandom import XORWOWRandomNumberGenerator as XWRNG
-rng = XWRNG(pycuda.curandom.seed_getter_unique, 2000)
-
-# FIXME should be on the noise objects, but has different interface
-# FIXME this is additive white noise
-def gen_noise_into(devary, dt):
-    gary = devary.device
-    rng.fill_normal(gary)
-    gary.set(gary.get()*sqrt(dt))
 
 def orinfo(n):
     orec = OccupancyRecord(DeviceData(), n)
@@ -152,13 +129,36 @@ class srcmod(object):
                 fn_ = fn
             setattr(self, f, fn_)
 
+# FIXME was in driver.py, mix of names
+import pycuda.driver as cuda
+import pycuda.autoinit
+from pycuda.compiler import SourceModule as CUDASourceModule
+from pycuda import gpuarray
+import pycuda.tools
 
+class OccupancyRecord(pycuda.tools.OccupancyRecord):
+    def __repr__(self):
+        ret = "Occupancy(tb_per_mp=%d, limited_by=%r, warps_per_mp=%d, occupancy=%0.3f)"
+        return ret % (self.tb_per_mp, self.limited_by, self.warps_per_mp, self.occupancy)
+
+_, total_mem = cuda.mem_get_info()
+print 'GPU memory ', total_mem/2**30.
+from pycuda.curandom import XORWOWRandomNumberGenerator as XWRNG
+rng = XWRNG(pycuda.curandom.seed_getter_unique, 2000)
+
+# FIXME should be on the noise objects, but has different interface
+# FIXME this is additive white noise
+def gen_noise_into(devary, dt):
+    gary = devary.device
+    rng.fill_normal(gary)
+    gary.set(gary.get()*numpy.sqrt(dt))
 
 class Code(driver.Code):
     def __init__(self, *args, **kwds):
-        super(device_code_cuda, self).__init__(*args, **kwds)
+        super(Code, self).__init__(*args, **kwds)
         self.mod = CUDASourceModule("#define TVBGPU\n" + self.source, 
-                                    options=["--ptxas-options=-v"])
+                                    options=["--ptxas-options=-v"], keep=True,
+                                    cache_dir=False)
 
 class Global(driver.Global):
     """
@@ -211,15 +211,15 @@ class Array(driver.Array):
         return self.device.get()
 
     def __init__(self, *args, **kwds):
-        super(device_array_cuda, self).__init__(*args)
+        super(Array, self).__init__(*args)
         self.pagelocked = kwds.get('pagelocked', False)
 
-
 class Handler(driver.Handler):
-    i_step_type = int32
+    i_step_type = numpy.int32
     def __init__(self, *args, **kwds):
-        super(device_handler_cuda, self).__init__(*args, **kwds)
-        self._device_update = self.device_code.mod.get_function('update')
+        kwds.update({'Code': Code, 'Global': Global, 'Array': Array})
+        super(Handler, self).__init__(*args, **kwds)
+        self._device_update = self.code.mod.get_function('update')
     @property
     def mem_info(self):
         return cuda.mem_get_info()
@@ -245,8 +245,10 @@ class Handler(driver.Handler):
         for k in self.device_state:
             args.append(getattr(self, k).device)
         kwds = extra or self.extra_args
-        try:
-            self._device_update(*args, **kwds)
+        #try:
+        import pdb; pdb.set_trace()
+        self._device_update(*args, **kwds)
+        """
         except cuda.LogicError as e:
             print 0, 'i_step', type(args[0])
             for i, k in enumerate(self.device_state):
@@ -254,6 +256,7 @@ class Handler(driver.Handler):
                 print i+1, k, type(attr), attr.dtype
             print kwds
             raise e
+        """
         self.i_step += self.n_msik
         cuda.Context.synchronize()
 
