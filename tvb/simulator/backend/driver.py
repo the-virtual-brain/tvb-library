@@ -38,10 +38,10 @@ code is provided by subclassing the classes in this module, and in
 most cases, the classes here don't function at all, so the user 
 should e.g. import backend.cee directly.
 
-class dcode -       Setup and load template code on device
-class dglobal -     Setup & access global variables in code
-class darray -      Alloc, free, set, get main data storage
-class dhandler -    Coordinate code & data on device
+class Code -       Setup and load template code on device
+class Global -     Setup & access global variables in code
+class Array -      Alloc, free, set, get main data storage
+class Handler -    Coordinate code & data on device
 
 """
 
@@ -58,20 +58,13 @@ def cpp(filename):
     return proc.stdout.read()
 
 class Code(object):
-
-    # use different module b/c pycuda.debug overwrites __file__
     here = os.path.dirname(os.path.abspath(__file__)) + os.path.sep 
-
-    @classmethod
-    def sources(cls):
+    def sources(self):
         srcs = {}
-        for name in glob.glob(cls.here + '*.cu'):
-            print 'found', name
+        for name in glob.glob(self.here + '*.cu'):
             key = os.path.basename(name)
-            print 'key name is ', key
             with open(name, 'r') as fd:
                 srcs[key] = fd.read()
-            #srcs[key+'-debug'] = cpp(name)
         return srcs
 
     def __init__(self, fns=[], T=string.Template, **kwds):
@@ -94,10 +87,10 @@ class Code(object):
         """
 
         args = dict()
-        for k in cls.defaults.keys():
-            args[k] = kwds.get(k, cls.defaults[k])
+        for k in self.defaults.keys():
+            args[k] = kwds.get(k, self.defaults[k])
 
-        self.source = T(cls.sources()['tvb.cu']).substitute(**args) 
+        self.source = T(self.sources()['tvb.cu']).substitute(**args) 
         with open('temp.cu', 'w') as fd:
             fd.write(self.source)
 
@@ -152,42 +145,12 @@ class Global(object):
 
     """
 
-    def __init__(self, name, dtype):
-        self.code  = device_code
+    def __init__(self, name, dtype, code):
+        self.code  = code
         self.name  = name
         self.dtype = dtype
         self.__post_init = True
-
-    def post_init(self):
-        if self.__post_init:
-            if using_gpu:
-                self.ptr   = self.code.mod.get_global(self.name)[0]
-            else:
-                self._cget = getattr(self.code.mod, 'get_'+self.name)
-                self._cset = getattr(self.code.mod, 'set_'+self.name)
-            self.__post_init = False
-
-    def __get__(self, inst, ownr):
-        self.post_init()
-        if using_gpu:
-            buff = array([0]).astype(self.dtype)
-            cuda.memcpy_dtoh(buff, self.ptr)
-            return buff[0]
-        else:
-            ret = self._cget()
-            return ret
-
-
-    def __set__(self, inst, val):
-        self.post_init()
-        if using_gpu:
-            cuda.memcpy_htod(self.ptr, self.dtype(val))
-            buff = empty((1,)).astype(self.dtype)
-            cuda.memcpy_dtoh(buff, self.ptr)
-        else:
-            ctype = ctypes.c_int32 if self.dtype==int32 else ctypes.c_float
-            self._cset(ctype(val))
-        
+       
 
 class Array(object):
     """
@@ -230,21 +193,12 @@ class Handler(object):
                        'n_cvar', 'n_cfpr', 'n_mmpr', 'n_nspr', 'n_inpr', 
                        'n_tavg', 'n_msik', 'n_mode'])
 
-    # generate accessors for global constants
-    horizon = device_global('horizon', int32)
-    n_node  = device_global('n_node', int32)
-    n_thr   = device_global('n_thr', int32)
-    n_rthr  = device_global('n_rthr', int32)
-    n_svar  = device_global('n_svar', int32)
-    n_cvar  = device_global('n_cvar', int32)
-    n_cfpr  = device_global('n_cfpr', int32)
-    n_mmpr  = device_global('n_mmpr', int32)
-    n_nspr  = device_global('n_nspr', int32)
-    n_inpr  = device_global('n_inpr', int32)
-    n_tavg  = device_global('n_tavg', int32)
-    n_msik  = device_global('n_msik', int32)
-    n_mode  = device_global('n_mode', int32)
-
+    def init_globals(self, Global=Global):
+        "generate accessors for global constants"
+        for const in ['horizon', 'n_node', 'n_thr' , 'n_rthr', 'n_svar',
+                'n_cvar', 'n_cfpr', 'n_mmpr', 'n_nspr', 'n_inpr', 'n_tavg',
+                'n_msik', 'n_mode']:
+            setattr(self, const, Global(const, int32, self.code))
 
     ##########################################################
     # simulation workspace arrays, also an ORDERED list of the arguments
@@ -252,29 +206,31 @@ class Handler(object):
     device_state = ['idel', 'cvars', 'inpr', 'conn', 'cfpr', 'nspr', 'mmpr',
         'input', 'x', 'hist', 'dx1', 'dx2', 'gx', 'ns', 'stim', 'tavg']
 
-    # thread invariant, call invariant
-    idel  = device_array('idel',    int32, ('n_node', 'n_node'))
-    cvars = device_array('cvars',   int32, ('n_cvar', ))
-    inpr  = device_array('inpr',  float32, ('n_inpr', ))
+    def init_arrays(self, Array=Array):
+        "initialize arrays"
+        # thread invariant, call invariant
+        self.idel  = Array('idel',    int32, ('n_node', 'n_node'))
+        self.cvars = Array('cvars',   int32, ('n_cvar', ))
+        self.inpr  = Array('inpr',  float32, ('n_inpr', ))
 
-    # possibly but not currently thread varying, call invariant
-    conn  = device_array('conn',  float32, ('n_node', 'n_node'))
-    cfpr  = device_array('cfpr',  float32, ('n_cfpr', ))
+        # possibly but not currently thread varying, call invariant
+        self.conn  = Array('conn',  float32, ('n_node', 'n_node'))
+        self.cfpr  = Array('cfpr',  float32, ('n_cfpr', ))
 
-    # thread varying, call invariant
-    nspr  = device_array('nspr',  float32, ('n_node', 'n_nspr', 'n_thr'))
-    mmpr  = device_array('mmpr',  float32, ('n_node', 'n_mmpr', 'n_thr'))
+        # thread varying, call invariant
+        self.nspr  = Array('nspr',  float32, ('n_node', 'n_nspr', 'n_thr'))
+        self.mmpr  = Array('mmpr',  float32, ('n_node', 'n_mmpr', 'n_thr'))
 
-    # thread varying, call varying
-    input = device_array('input', float32, (                     'n_cvar', 'n_thr'))
-    x     = device_array('x',     float32, (           'n_node', 'n_svar', 'n_thr'))
-    hist  = device_array('hist',  float32, ('horizon', 'n_node', 'n_cvar', 'n_thr'))
-    dx1   = device_array('dx1',   float32, (                     'n_svar', 'n_thr'))
-    dx2   = device_array('dx2',   float32, (                     'n_svar', 'n_thr'))
-    gx    = device_array('gx',    float32, (                     'n_svar', 'n_thr'))
-    ns    = device_array('ns',    float32, (           'n_node', 'n_svar', 'n_thr'))
-    stim  = device_array('stim',  float32, (           'n_node', 'n_svar', 'n_thr'))
-    tavg  = device_array('tavg',  float32, (           'n_node', 'n_svar', 'n_thr'))
+        # thread varying, call varying
+        self.input = Array('input', float32, (                     'n_cvar', 'n_thr'))
+        self.x     = Array('x',     float32, (           'n_node', 'n_svar', 'n_thr'))
+        self.hist  = Array('hist',  float32, ('horizon', 'n_node', 'n_cvar', 'n_thr'))
+        self.dx1   = Array('dx1',   float32, (                     'n_svar', 'n_thr'))
+        self.dx2   = Array('dx2',   float32, (                     'n_svar', 'n_thr'))
+        self.gx    = Array('gx',    float32, (                     'n_svar', 'n_thr'))
+        self.ns    = Array('ns',    float32, (           'n_node', 'n_svar', 'n_thr'))
+        self.stim  = Array('stim',  float32, (           'n_node', 'n_svar', 'n_thr'))
+        self.tavg  = Array('tavg',  float32, (           'n_node', 'n_svar', 'n_thr'))
 
     def fill_with(self, idx, sim):
         """
@@ -301,6 +257,8 @@ class Handler(object):
         # assignments should fail with a shape error
         if hasattr(sim.integrator, 'noise'):
             self.nspr  .cpu[..., idx] = sim.integrator.noise.device_info.nspr
+
+        # mass model parameters
         self.mmpr  .cpu[..., idx] = sim.model.device_info.mmpr
 
         # sim's history shape is (horizon, n_svars, n_nodes, n_modes)
@@ -335,12 +293,14 @@ class Handler(object):
 
     block_dim = property(lambda s: 256)
 
-    def __init__(self, code_args={}, **kwds):
+    def __init__(self, code_args={}, Code=Code, Global=Global, Array=Array, **kwds):
 
         fns = ['update'] + [f+d for d in self._dimensions 
                                 for f in ['set_', 'get_']]
 
-        device_code.build(fns, **code_args)
+        self.code = Code(fns, **code_args)
+        self.init_globals(Global)
+        self.init_arrays(Array)
 
         for k in self._dimensions:
             if k in kwds:
@@ -348,7 +308,7 @@ class Handler(object):
             else:
                 missing = self._dimensions - set(kwds.keys())
                 if missing:
-                    msg = 'device_handler requires the keyword value %r' % missing
+                    msg = 'Handler requires the keyword value %r' % missing
                     raise TypeError(msg)
 
         for k in self.device_state:
@@ -410,10 +370,10 @@ class Handler(object):
                 'n_tavg' : n_tavg, 'n_msik' : n_msik }
 
         # extract code from simulator components
-        code = {'model_dfun': sim.model.device_info.kernel,
-                'integrate':  sim.integrator.device_info.kernel,
+        code = {'model_dfun': sim.model           .device_info.kernel,
+                'integrate':  sim.integrator      .device_info.kernel,
                 'noise_gfun': sim.integrator.noise.device_info.kernel if stoch else "",
-                'coupling':   sim.coupling.device_info.kernel}
+                'coupling':   sim.coupling        .device_info.kernel}
 
         dh = cls(code_args=code, **dims)
         return dh
@@ -425,9 +385,9 @@ class Handler(object):
         free, total = self.mem_info
         if free and total: # are not None
             if memuse > free:
-                print '%r: nbytes=%d exceeds free device memory' % (self, memuse)
+                print '%r: nbytes=%d exceeds free memory' % (self, memuse)
             if memuse > total:
-                raise MemoryError('%r: nbytes=%d exceeds total device memory' % (self, memuse))
+                raise MemoryError('%r: nbytes=%d exceeds total memory' % (self, memuse))
         return memuse
 
     @property
