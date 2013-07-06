@@ -28,22 +28,18 @@
 #
 #
 """
-Created on Mar 20, 2013
+Tests the defaults for `tvb.datatypes.sensors` module.
 
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
+
 if __name__ == "__main__":
     from tvb_library_test import setup_test_console_env
-
     setup_test_console_env()
 
 import unittest
 from tvb.datatypes import sensors, surfaces
 from tvb_library_test.base_testcase import BaseTestCase
-
-    """
-    Tests the defaults for `tvb.datatypes.sensors` module.
-    """
 
 
 class SensorsTest(BaseTestCase):
