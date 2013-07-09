@@ -44,9 +44,9 @@ core:
     Type                base traited class 
 
 mapped:
-    MappedType          basic class for traited class mapped to db
-    *(Type)             traits mapped to columns
-    *(MappedType)       traits mapped to column(foreignkey) -> table 
+    MappedType             basic class for traited class mapped to db
+      * (Type)             traits mapped to columns
+      * (MappedType)       traits mapped to column(foreignkey) -> table
 
 
 Traits metadata
