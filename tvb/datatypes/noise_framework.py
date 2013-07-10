@@ -53,9 +53,10 @@ PARAMS_EQUATION = "b_parameters"
 def build_noise(parent_parameters):
     """
     Build Noise entity from dictionary of parameters.
-    :param parent_parameters: dictionary of parameters for the entity having Noise as attribute.
+    :param parent_parameters: dictionary of parameters for the entity having Noise as attribute. \
                               The dictionary is after UI form-submit and framework pre-process.
     :return: Noise entity.
+
     """
 
     if KEY_NOISE not in parent_parameters:
