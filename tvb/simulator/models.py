@@ -408,7 +408,8 @@ class WilsonCowan(Model):
 
     In [WC_1973]_ they present a model of neural tissue on the pial surface is.
     See Fig. 1 in page 58. The following local couplings (lateral interactions)
-    occur given a region i and a region j: 
+    occur given a region i and a region j:
+
       E_i-> E_j 
       E_i-> I_j 
       I_i-> I_j  

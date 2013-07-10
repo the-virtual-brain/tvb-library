@@ -33,6 +33,7 @@ TVB-Simulator-Library global configurations are defined here.
 
 Also the generic TVB-Configuration gets set from this point 
 (dependent on the previously user-specified profile).
+
 """
 
 import os
