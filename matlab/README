@@ -1,0 +1,50 @@
+README
+======
+
+This folder contains a preliminary MATLAB interface to Python, but
+it isn't yet ready for all users. In particular, some experimentation
+is to be expected. Please start with tvb_demo.m, and contributions
+welcome. 
+
+Libraries
+---------
+
+It is necessary to redirect MATLAB's libgfortran link as found in 
+$MATLAB/sys/os/glnxa64/libgfortran.so.3 to the one to which your NumPy's
+extension module was linked, if it's a newer version than MATLAB's.
+You might also try starting MATLAB like so
+
+    LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libgfortran.so.3.0.0 matlab
+
+Before compiling, you may need to mex -setup, and add to the end of the 
+resulting mexopts.sh
+
+    LDFLAGS="$LDFLAGS -Xlinker -export-dynamic"
+
+Finally, to actually compile, 
+
+    cython cymex.pyx
+    mex cymex.c -I/usr/include/python2.7 -lpython2.7 -ldl
+
+If you are using Octave, the second step is 
+
+    mkoctfile --mex cymex.c -I/usr/include/python2.7 -lpython2.7 -ldl
+
+Linear algebra (via numpy.linalg) may be tricky: routines like SVD call 
+linked libraries like lapack; because NumPy might be built against a 
+different underlying lapack implementation that MATLAB's, calls might
+fail with MKL errors. In principle, we can resolve this by monkey 
+patching numpy.linalg with our own version that's linked to MATLAB's
+LAPACK.
+
+Callbacks
+---------
+
+Calling MATLAB functions from Python works fine, so provided we
+have Python classes in TVB that represent a MATLAB function to 
+call, the MATLAB user could provide hand-coded model, coupling
+function, monitor definitions that are used by the TVB simulator.
+
+For the moment, this has not been implemented, but would be a
+small amount of work.
+
