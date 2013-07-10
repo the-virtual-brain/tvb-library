@@ -31,8 +31,6 @@
 """
 Demonstrate using the simulator at the region level, deterministic integration, stereo-EEG
 
-``Run time``: approximately 2 seconds (workstation circa 2010)
-``Memory requirement``: < 1GB
 
 .. moduleauthor:: Jan Fousek <izaak@mail.muni.cz>
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
@@ -41,6 +39,7 @@ Demonstrate using the simulator at the region level, deterministic integration, 
 import numpy
 from tvb.simulator.lab import *
 import tvb.datatypes.sensors as sensors
+
 
 
 ##----------------------------------------------------------------------------##
@@ -131,5 +130,3 @@ title("SEEG measurement")
 
 #Show them
 show()
-
-###EoF###
