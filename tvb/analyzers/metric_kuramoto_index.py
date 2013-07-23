@@ -56,7 +56,7 @@ class KuramotoIndex(metrics_base.BaseTimeseriesMetricAlgorithm):
     The *order* parameters are :math:`r` and :math:`Psi`.
     
     .. math::
-        r \\e^{i * \\psi} = \\frac{1}{N}\\,\\sum_{k=1}^N(\\e^{i*\\theta_j})
+        r e^{i * \\psi} = \\frac{1}{N}\\,\\sum_{k=1}^N(e^{i*\\theta_k})
     
     The first is the phase coherence of the population of oscillators (KSI) 
     and the second is the average phase.
