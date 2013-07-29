@@ -122,7 +122,7 @@ class Monitor(core.Type):
         LOG.debug(str(kwargs))
 
         self.istep = None #Monitor period in integration time-steps (integer).
-        self.dt = None #Integration time-step in "physical" units.
+        self.dt = None  #Integration time-step in "physical" units.
         self.voi = None
 
         self._stock = numpy.array([], dtype=numpy.float64)
@@ -909,7 +909,7 @@ class SphericalMEG(Monitor):
         super(SphericalMEG, self).config_for_sim(simulator)
 
         #the magnetic constant = 1.25663706 × 10-6 m kg s-2 A-2  (H/m)
-        mu_0 = 1.25663706 #mH/mm #TODO: Think units are wrong, should still be × 10-6
+        mu_0 = 1.25663706e-6 #mH/mm
 
         #parameter to
         #sigma = 1.0
@@ -926,7 +926,7 @@ class SphericalMEG(Monitor):
             Q = simulator.surface.vertex_normals
 
         centre = numpy.mean(r_0, axis=0)[numpy.newaxis, :]
-        radius = 1.25 * max(numpy.sqrt(numpy.sum((r_0 - centre)**2, axis=1)))
+        radius = 1.01 * max(numpy.sqrt(numpy.sum((r_0 - centre)**2, axis=1)))
 
         #Stick sensors on a sphere enclosing the sources...
         # use local to avoid modifying H5 data file
@@ -1019,6 +1019,7 @@ class Bold(Monitor):
 
     .. note:: CONSIDERATIONS: It is  sensible to use this monitor if your 
               simulation length is > 30s (30000ms)
+    .. note:: why aren't we using a difference of two gamma pdfs for the hrf? (see nipy, spm and fmristat)
 
     .. warning:: Not yet tested, debugged, generalised etc...
     .. wisdom and plagiarism
@@ -1058,6 +1059,7 @@ class Bold(Monitor):
         default = 0.02,
         order = -1)
 
+    
 
 
     def __init__(self, **kwargs):
@@ -1079,6 +1081,7 @@ class Bold(Monitor):
         self._interim_istep = None
         self._interim_stock = None #I hate bold.
         self._stock_steps = None
+        self._stock_time = None    # Me too
 
         self.hemodynamic_response_function = None
 
@@ -1107,27 +1110,29 @@ class Bold(Monitor):
 
         #Typical scanner TR is 2s, means Bold period 2000ms
 
-        #downsample avereage over simulator steps to give fixed sr (256Hz)
-           #then (18.75 * tau_s) * 256  ==> 3840 required length of _stock
+        #downsample average over simulator steps to give fixed sr (256Hz)
+        #then (18.75 * tau_s) * 256  ==> 3840 required length of _stock
 
-         # simulation in ms therefore 1000.0/256.0 ==> 3.90625 _interim_period in ms
+        # simulation in ms therefore 1000.0/256.0 ==> 3.90625 _interim_period in ms
         LOG.warning("%s: Needs testing, debugging, etc..." % repr(self))
 
         magic_sample_rate = 2.0**-2 #/ms #NOTE: An integral multiple of dt
         magic_number = 19200.0 * self.tau_s #truncates G, see below, once ~zero 
 
-        #Length of history needed for convolution in ms
-        required_history_length = magic_sample_rate * magic_number 
+        #Length of history needed for convolution in ms [steps??]
+        required_history_length = magic_sample_rate * magic_number # 3840 for tau_s=0.8
         self._stock_steps = numpy.ceil(required_history_length).astype(int)
-        stock_time = numpy.arange(0.0, magic_number/1000.0, magic_number/1000.0/self._stock_steps) #TODO: neaten
+        stock_time_max = magic_number/1000.0                            # [s]
+        stock_time_step = stock_time_max / self._stock_steps            # [s]
+        self._stock_time = numpy.arange(0.0, stock_time_max, stock_time_step) 
 
         # The Heamodynamic response function.
         sqrt_tfts = numpy.sqrt(1.0/self.tau_f - 1.0/(4.0*self.tau_s**2))
-        exp_ts = numpy.exp(-0.5*(stock_time/self.tau_s))
-        G = exp_ts * (numpy.sin(sqrt_tfts * stock_time) / sqrt_tfts)
+        exp_ts = numpy.exp(-0.5*(self._stock_time/self.tau_s))
+        G = exp_ts * (numpy.sin(sqrt_tfts * self._stock_time) / sqrt_tfts)
 
         #Reverse it, need it into the past for matrix-multiply of stock
-        G = G[::-1]
+        G = G[::-1]  / 3.
         self.hemodynamic_response_function = G[numpy.newaxis, :]
 
         util.log_debug_array(LOG, self.hemodynamic_response_function,
@@ -1136,8 +1141,7 @@ class Bold(Monitor):
 
         #Interim stock configuration
         self._interim_period = 1.0 / magic_sample_rate #period in ms
-        self._interim_istep = int(round(self._interim_period / self.dt))
-
+        self._interim_istep = int(round(self._interim_period / self.dt)) # interim period in integration time steps
 
 
     def config_for_sim(self, simulator):
@@ -1167,7 +1171,7 @@ class Bold(Monitor):
         self._stock = mean_history[numpy.newaxis,:] * numpy.ones(stock_size)
         #NOTE: BOLD can have a long (~15s) transient that is mainly due to the
         #      initial dynamic transient from simulations that are started with 
-        #      imperfect initlial conditions.
+        #      imperfect initial conditions.
         #import pdb; pdb.set_trace()
 
 
@@ -1194,7 +1198,7 @@ class Bold(Monitor):
             hrf = numpy.roll(self.hemodynamic_response_function,
                              ((step/self._interim_istep % self._stock_steps) - 1),
                              axis=1)
-            bold = (numpy.dot(hrf, self._stock.transpose((1, 2, 0, 3))) - 1.0) * (self.k1 * self.V0 / 3.0)
+            bold = (numpy.dot(hrf, self._stock.transpose((1, 2, 0, 3))) - 1.0) * (self.k1 * self.V0)
             bold = bold.reshape(self._stock.shape[1:])
             bold = bold.sum(axis=0)[numpy.newaxis,:,:] #state-variables
             bold = bold.sum(axis=2)[:,:,numpy.newaxis] #modes
