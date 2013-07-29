@@ -794,41 +794,27 @@ class Simulator(core.Type):
 
     def _guesstimate_runtime(self):
         """
-        Guestimate the runtime for this simulator.
+        Estimate the runtime for this simulator.
 
-        Automatic parallelisation of larger arrays means this will be an over
-        estimate, or rather a sinle threaded estimate...
-        Different choice of interators and monitors has an additional effect,
+        Spread in parallel executions of larger arrays means this will be an over-estimation,
+        or rather a single threaded estimation...
+        Different choice of integrators and monitors has an additional effect,
         on the magic number though relatively minor
 
         """
-#        day = 86400 # seconds
-#        week = 604800 # seconds
-
-        #TODO: in the longer run we should generate the magic number used here
-        #      for the local platform, perhaps as part of installation/setup.
-        #      currently this is the approximate value for my system.
-        magic_number = 6.57e-06 # seconds
-
-        self._runtime = (magic_number * self.number_of_nodes * self.model.nvar *
-                         self.model.number_of_modes * self.simulation_length /
-                         self.integrator.dt)
-
-#        if self._runtime > week:
-#            LOG.error()
-#        elif self._runtime > day:
-#            LOG.warning()
-#        else:
-        msg = "Single-threaded runtime should be about %s seconds"
+        magic_number = 6.57e-06  # seconds
+        self._runtime = (magic_number * self.number_of_nodes * self.model.nvar * self.model.number_of_modes *
+                         self.simulation_length / self.integrator.dt)
+        msg = "Simulation single-threaded runtime should be about %s seconds!"
         LOG.info(msg % str(int(self._runtime)))
 
 
     def _calculate_storage_requirement(self):
         """
-        Calculate the storage requirement for the simulator, cofigured with 
+        Calculate the storage requirement for the simulator, configured with
         models, monitors, etc being run for a particular simulation length. 
-        While this is only approximate, it is far more reliable/acurate than 
-        the memory and runtime guestimates.
+        While this is only approximate, it is far more reliable/accurate than
+        the memory and runtime guesstimates.
         """
         LOG.info("Calculating storage requirement for ...")
         strgreq = 0
