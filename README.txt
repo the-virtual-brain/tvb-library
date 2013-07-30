@@ -1,16 +1,23 @@
-
 THE VIRTUAL BRAIN SCIENTIFIC LIBRARY
 
 
-The Virtual Brain project (TVB project) has the purpose of offering some modern tools to the Neurosciences community, for computing, simulating and analyzing functional and structural data of human brains.
+The Virtual Brain Project (TVB Project) has the purpose of offering some modern tools to the Neurosciences community, for computing, simulating and analyzing functional and structural data of human brains.
 
-TVB comes in two major forms for code-contributors: as a light-weight Python library, or plugged in a framework (including Web interface and Persistence of data). Depending on your needs and resources, you could use any of the two available options for contributing and testing new code.
-"The Virtual Brain Scientific Library" is a light-weight, stand-alone Python library that contains all the needed packages in order to run simulations and analysis on data without the need for the entire TVB Framework. This implies that no storage will be provided so data from each session will be lost on close. You need to either persist it yourself in some manner or use the full TVBFramework where HDF5 / database storage is provided as default. 
-The full TVBFramework (Web and Console interface, including contribution scripts) is available at http://www.thevirtualbrain.org/ 
+"TVB Scientific Library" is the most important scientific contribution of TVB Project, but only a part of our code. In order to use this TVB Python Library (modify/run/test), you are advised to follow the steps described here: 
+https://github.com/the-virtual-brain/docs/blob/trunk/README.md
 
-The interaction with TVB-source-code is recommended for advanced users only, for which the concepts proposed by TVB are known and understood, and which also have some programming knowledge.
+The interaction with TVB source code is recommended for advanced users only, for which the concepts proposed by TVB are known and understood, and which also have some programming knowledge.
 
-The library contains the following packages: basic, datatypes, simulator and analyzers. The dependencies between these packages can be seen in tvb-package-diagram.jpg . Following is a short description of each of these packages:
+"TVB Scientific Library" comes in two major forms for code-contributors: as a light-weight Python library, or plugged into TVB framework (including Web interface and Persistence of data layers). Depending on your needs and resources, you could use any of the two available options for contributing and testing new code.
+
+"TVB Scientific Library" is a light-weight, stand-alone Python library that contains all the needed packages in order to run simulations and analysis on data without the need for the entire TVB Framework. This implies that no storage will be provided so data from each session will be lost on close. You need to either persist it yourself in some manner or use the full TVBFramework where HDF5 / database storage is provided as default. 
+
+
+For more details, check: http://www.thevirtualbrain.org/ 
+
+
+
+"TVB Scientific Library" contains the following packages: basic, datatypes, simulator and analyzers. The dependencies between these packages can be seen in tvb-package-diagram.jpg . Following is a short description of each of these packages:
 
 
 * tvb.basic 
