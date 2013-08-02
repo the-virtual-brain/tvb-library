@@ -50,6 +50,10 @@ Exploring A Model:
     investigate the dynamic properties of a Model and at the same time set the
     parameters of a specific instance for use in a simulation.
 
+Exploring The Bold Monitor:
+    This tutotrial covers the basic overview of the Bold monitor to investigate
+    its parameters and the influence on the HRF (Haemodynamic Response Function)
+
 Looking At Longer TimeSeries:
     This tutorial covers the use of two interactive visualisers that become 
     useful when looking at time-series produced by longer simulation runs, ie.,
