@@ -106,6 +106,20 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         return self.get_data('split_triangles', slice(start_idx, end_idx, 1))
     
     
+    def get_lines_slice(self, slice_number= 0):
+        """
+        Read the gl lines values for the current slice number.
+        """
+        return self._triangles_to_lines(self.get_triangles_slice(slice_number))
+    
+    
+    def _triangles_to_lines(self, triangles):
+        lines_array = []
+        for triangle in triangles:
+            lines_array.extend([triangle[0], triangle[1], triangle[1], triangle[2], triangle[2], triangle[0]])
+        return numpy.array(lines_array)
+    
+    
     def get_flatten_triangles(self):
         """
         Return a flatten list of all the triangles to be used for stimulus view.
@@ -175,12 +189,14 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         url_vertices = []
         url_triangles = []
         url_normals = []
+        url_lines = []
         alphas = []
         alphas_indices = []
         for i in range(self.number_of_split_slices):
             param = "slice_number=" + str(i)
             url_vertices.append(paths2url(self, 'get_vertices_slice', parameter=param, flatten=True))
             url_triangles.append(paths2url(self, 'get_triangles_slice', parameter=param, flatten =True))
+            url_lines.append(paths2url(self, 'get_lines_slice', parameter=param, flatten =True))
             url_normals.append(paths2url(self, 'get_vertex_normals_slice', parameter=param, flatten=True))
             if not include_alphas or region_mapping is None:
                 continue
@@ -194,8 +210,8 @@ class SurfaceFramework(surfaces_data.SurfaceData):
                                                                       str(start_idx) +";end_idx="+ str(end_idx)))
           
         if include_alphas:  
-            return url_vertices, url_normals, url_triangles, alphas, alphas_indices
-        return url_vertices, url_normals, url_triangles
+            return url_vertices, url_normals, url_lines, url_triangles, alphas, alphas_indices
+        return url_vertices, url_normals, url_lines, url_triangles
 
 
     ####################################### Split for Picking
