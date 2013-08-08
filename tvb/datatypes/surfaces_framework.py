@@ -35,6 +35,7 @@ Framework methods for the Surface DataTypes.
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 """
 
+import json
 import numpy
 import tvb.datatypes.surfaces_data as surfaces_data
 import tvb.basic.traits.exceptions as exceptions
@@ -47,14 +48,14 @@ LOG = get_logger(__name__)
 
 # TODO: This is just a temporary solution placed here to remove dependency from tvb.basic to tvb framework.
 # As soon as we implement a better solution to the datatype framework diamond problem this should be removed.
-def paths2url(datatype_entity, attribute_name, flatten=False, parameter=None):
+def paths2url(datatype_entity, attribute_name, flatten=False, parameter=None, datatype_kwargs=None):
     """
     Prepare a File System Path for passing into an URL.
     """
     if parameter is None:
-        return cfg.WEB_VISUALIZERS_URL_PREFIX + datatype_entity.gid + '/'+ attribute_name + '/' + str(flatten)
+        return cfg.WEB_VISUALIZERS_URL_PREFIX + datatype_entity.gid + '/'+ attribute_name + '/' + str(flatten) + '/' + json.dumps(datatype_kwargs)
     return (cfg.WEB_VISUALIZERS_URL_PREFIX + datatype_entity.gid + '/' + attribute_name + 
-            '/' + str(flatten) + "?" + str(parameter))
+            '/' + str(flatten) + '/' + json.dumps(datatype_kwargs) + "?" + str(parameter))
 
 ##--------------------- CLOSE SURFACES Start Here---------------------------------------##
 
@@ -278,11 +279,129 @@ class SurfaceFramework(surfaces_data.SurfaceData):
             
         return vertices, normals, triangles
     
+    
+    def get_url_for_region_boundaries(self, region_mapping):
+        return paths2url(self, 'generate_region_boundaries', datatype_kwargs={'region_mapping' : region_mapping.gid})
+    
+    
     def center(self):
         """
         Compute the center of the surface as the median spot on all the three axes.
         """
         return [float(numpy.mean(self.vertices[:, 0])), float(numpy.mean(self.vertices[:, 1])), float(numpy.mean(self.vertices[:, 2]))]
+    
+    
+    def generate_region_boundaries(self, region_mapping):
+        """
+        Return the full region boundaries, including: vertices, normals and lines indices.
+        """
+        boundary_vertices = []
+        boundary_lines = []
+        boundary_normals = []
+        for slice_idx in xrange(self.number_of_split_slices):
+            # Generate the boundaries sliced for the off case where we might overflow the buffer capacity
+            slice_triangles = self.get_triangles_slice(slice_idx)
+            slice_vertices = self.get_vertices_slice(slice_idx)
+            slice_normals = self.get_vertex_normals_slice(slice_idx)
+            first_index_in_slice = self.SPLIT_MAX_SIZE * slice_idx
+            # These will keep track of the vertices / triangles / normals for this slice that have
+            # been processed and were found as a part of the boundary
+            processed_vertices = []
+            processed_triangles = []
+            processed_normals = []
+            for triangle in slice_triangles:
+                triangle[0] += first_index_in_slice
+                triangle[1] += first_index_in_slice
+                triangle[2] += first_index_in_slice
+                # Check if there are two points from a triangles that are in separate regions
+                # then send this to further processing that will generate the coresponding
+                # region separation lines depending on the 3rd point from the triangle
+                if region_mapping.array_data[triangle[0]] - region_mapping.array_data[triangle[1]]:
+                    lines_vert, lines_ind, lines_norm = self._process_triangle(triangle, 0, 1, 2, first_index_in_slice, 
+                                                                   region_mapping, slice_vertices, slice_normals)
+                elif region_mapping.array_data[triangle[1]] - region_mapping.array_data[triangle[2]]:
+                    lines_vert, lines_ind, lines_norm = self._process_triangle(triangle, 1, 2, 0, first_index_in_slice, 
+                                                                   region_mapping, slice_vertices, slice_normals)
+                elif region_mapping.array_data[triangle[2]] - region_mapping.array_data[triangle[0]]:
+                    lines_vert, lines_ind, lines_norm = self._process_triangle(triangle, 2, 0, 1, first_index_in_slice, 
+                                                                   region_mapping, slice_vertices, slice_normals)
+                else:
+                    continue
+                ind_offset = len(processed_vertices) / 3
+                processed_vertices.extend(lines_vert)
+                processed_normals.extend(lines_norm)
+                for ind in lines_ind:
+                    processed_triangles.append(ind + ind_offset)
+            boundary_vertices.append(processed_vertices)
+            boundary_lines.append(processed_triangles)
+            boundary_normals.append(processed_normals)
+        return numpy.array([boundary_vertices, boundary_lines, boundary_normals])
+                    
+                    
+            
+    def _process_triangle(self, triangle, reg_idx1, reg_idx2, dangling_idx, indices_offset, region_mapping, vertices, normals):
+        """
+        Process a triangle and generate the required data for a region separation.
+        :param triangle: the actual triangle as a 3 element vector
+        :param reg_idx1: the first vertex that is in a 'conflicting' region
+        :param reg_idx2: the second vertex that is in a 'conflicting' region
+        :param dangling_idx: the third vector for which we know nothing yet. Depening on this we might generate a line, or a 3 star centered
+                             in the triangle
+        :param indices_offset: to take into account the slicing
+        :param region_mapping: the region mapping for which the regions are computed
+        :param vertices: the current vertex slice
+        :param normals: the current normals slice
+        """
+        def _star_triangle(point0, point1, point2, result_array):
+            """
+            Helper function that for a given triangle generates a 3-way star centered in the triangle center
+            """
+            center_vertex = [(point0[i] + point1[i] + point2[i]) / 3 for i in xrange(3)]
+            mid_line1 = [(point0[i] + point1[i]) / 2 for i in xrange(3)]
+            mid_line2 = [(point1[i] + point2[i]) / 2 for i in xrange(3)]
+            mid_line3 = [(point2[i] + point0[i]) / 2 for i in xrange(3)]
+            result_array.extend(center_vertex)
+            result_array.extend(mid_line1)
+            result_array.extend(mid_line2)
+            result_array.extend(mid_line3)
+            
+        def _slice_triangle(point0, point1, point2, result_array):
+            """
+            Helper function that for a given triangle generates a line cutting thtough the middle of two edges.
+            """
+            mid_line1 = [(point0[i] + point1[i]) / 2 for i in xrange(3)]
+            mid_line2 = [(point0[i] + point2[i]) / 2 for i in xrange(3)]
+            result_array.extend(mid_line1)
+            result_array.extend(mid_line2)
+        
+        p0 = vertices[triangle[reg_idx1] - indices_offset]
+        p1 = vertices[triangle[reg_idx2] - indices_offset]
+        p2 = vertices[triangle[dangling_idx] - indices_offset]
+        n0 = normals[triangle[reg_idx1] - indices_offset]
+        n1 = normals[triangle[reg_idx2] - indices_offset]
+        n2 = normals[triangle[dangling_idx] - indices_offset]
+        result_vertices = []
+        result_normals = []
+        result_lines = []
+        if (region_mapping.array_data[triangle[dangling_idx]] != region_mapping.array_data[triangle[reg_idx1]]
+            and region_mapping.array_data[triangle[dangling_idx]] != region_mapping.array_data[triangle[reg_idx2]]):
+            # Triangle is actually spanning 3 regions. Create a vertex in the center of the triangle, which connects to
+            # the middle of each edge
+            _star_triangle(p0, p1, p2, result_vertices)
+            _star_triangle(n0, n1, n2, result_normals)
+            result_lines = [0, 1, 0, 2, 0, 3]
+        elif (region_mapping.array_data[triangle[dangling_idx]] == region_mapping.array_data[triangle[reg_idx1]]):
+            # Triangle spanning only 2 regions, draw a line through the middle of the triangle
+            _slice_triangle(p1, p0, p2, result_vertices)
+            _slice_triangle(n1, n0, n2, result_normals)
+            result_lines = [0, 1]
+        else:
+            # Triangle spanning only 2 regions, draw a line through the middle of the triangle
+            _slice_triangle(p0, p1, p2, result_vertices)
+            _slice_triangle(n0, n1, n2, result_normals)
+            result_lines = [0, 1]
+        return result_vertices, result_lines, result_normals
+    
         
 
 class CorticalSurfaceFramework(surfaces_data.CorticalSurfaceData, SurfaceFramework):
