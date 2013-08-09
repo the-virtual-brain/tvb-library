@@ -45,18 +45,20 @@ class ConnectivityFramework(connectivity_data.ConnectivityData):
     __tablename__ = None
     
 
-    def generate_new_connectivity(self, new_weights, interest_areas, storage_path):
+    def generate_new_connectivity(self, new_weights, interest_areas, storage_path, new_tracts=None):
         """
         Generate new Connectivity object based on current one, by changing
         weights (e.g. simulate leasion).
         """
         if isinstance(new_weights, str) or isinstance(new_weights, unicode):
             new_weights = eval(new_weights)
+            new_tracts = eval(new_tracts)
             interest_areas = eval(interest_areas)
         
         for i in xrange(len(new_weights)):
             for j in xrange(len(new_weights)):
                 new_weights[i][j] = numpy.float(new_weights[i][j])
+                new_tracts[i][j] = numpy.float(new_tracts[i][j])
         for i in xrange(len(interest_areas)):
             interest_areas[i] = int(interest_areas[i]) 
                      
@@ -80,7 +82,7 @@ class ConnectivityFramework(connectivity_data.ConnectivityData):
         final_conn.cortical = self.cortical
         final_conn.hemispheres = self.hemispheres
         final_conn.areas = self.areas
-        final_conn.tract_lengths = self.tract_lengths
+        final_conn.tract_lengths = new_tracts or self.tract_lengths
         final_conn.saved_selection = interest_areas
         final_conn.subject = self.subject
         return final_conn
