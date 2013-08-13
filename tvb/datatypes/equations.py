@@ -339,3 +339,24 @@ class Gamma(equations_scientific.GammaScientific,
     """
     pass
 
+
+class DoubleExponential(equations_scientific.DoubleExponentialScientific,
+            equations_framework.DoubleExponentialFramework, Equation):
+    """
+    This class brings together the scientific and framework methods that are
+    associated with the DoubleExponential datatypes.
+    
+    ::
+        
+                             DoubleExponentialData
+                                 |
+                                / \\
+      DoubleExponentialFramework   DoubleExponentialScientific
+                                \ /
+                                 |
+                             DoubleExponential
+        
+    
+    """
+    pass
+

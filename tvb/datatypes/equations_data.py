@@ -49,6 +49,7 @@ import tvb.basic.traits.types_basic as basic
 import tvb.basic.traits.core as core
 from tvb.basic.logger.builder import get_logger
 
+import numpy
 
 LOG = get_logger(__name__)
 
@@ -307,6 +308,7 @@ class GammaData(EquationData):
         :math:`\\tau`      : Exponential time constant of the gamma function [seconds].
         :math:`n`          : The phase delay of the gamma function.
         :math: `factorial` : (n-1)!. numexpr does not support factorial yet. 
+        :math: `a`         : Amplitude factor after normalization.
 
 
     Reference:
@@ -321,13 +323,53 @@ class GammaData(EquationData):
 
     # TODO: Introduce a time delay in the equation (shifts the hrf onset)
     # """:math:`h(t) = \frac{(\frac{t-\delta}{\tau})^{(n-1)} e^{-(\frac{t-\delta}{\tau})}}{\tau(n-1)!}"""
+    # delta = 2.05 seconds -- Additional delay in seconds from the onset of the
+    # time-series to the beginning of the gamma hrf.
+    # delay cannot be negative or greater than the hrf duration. 
     
     equation = basic.String( 
         label = "Gamma Equation",
         default = "((var / tau) ** (n - 1) * exp(-(var / tau)) )/ (tau * factorial)",
         locked = True,
-        doc = """:math:`h(t) = \frac{(\frac{t}{\tau})^{(n-1)} e^{-(\frac{t}{\tau})}}{\tau(n-1)!}""")
+        doc = """:math:`h(var) = \\frac{(\\frac{var}{\\tau})^{(n-1)}\\exp{-(\\frac{var}{\\tau})}}{\\tau(n-1)!}""")
     
     parameters = basic.Dict( 
         label = "Gamma Parameters",
-        default = {"tau": 1.08, "n": 3.0, "factorial": 2.0})
+        default = {"tau": 1.08, "n": 3.0, "factorial": 2.0, "amp": 0.01})
+
+
+class DoubleExponentialData(EquationData):
+    """
+    A difference of two exponential functions to define a kernel for the bold monitor.
+
+    Parameters:
+    ----------
+
+        :math:`\\tau_1`: Time constant of the second exponential function [s]
+        :math:`\\tau_2`: Time constant of the first exponential function [s].
+        :math:`f_1`  : Frequency of the first sine function [Hz].
+        :math:`f_2`  : Frequency of the second sine function [Hz].
+        :math:`amp_1`: Amplitude of the first exponential function.
+        :math:`amp_2`: Amplitude of the second exponential function.
+        :math:`a`    : Amplitude factor after normalization.
+    
+    
+    Reference:
+    ---------
+
+    .. [P_2000] Alex Polonsky, Randolph Blake, Jochen Braun and David J. Heeger
+        (2000). Neuronal activity in human primary visual cortex correlates with
+        perception during binocular rivalry. Nature Neuroscience 3: 1153-1159
+
+    """
+
+    equation = basic.String( 
+        label = "Double Exponential Equation",
+        default = "a * ((amp_1 * exp(-var/tau_1) * sin(2.*pi*f_1*var)) - (amp_2 * exp(-var/ tau_2) * sin(2.*pi*f_2*var)))",
+        locked = True,
+        doc = """:math:`h(var) = amp_1\\exp(\\frac{-var}{\tau_1}) \\sin(2\\cdot\\pi f_1 \\cdot var) - amp_2\\cdot 
+             \\exp(-\\frac{var}{\\tau_2})*\\sin(2\\pi f_2 var)""")
+
+    parameters = basic.Dict( 
+        label = "Double Exponential Parameters",
+        default = {"tau_1": 7.22, "tau_2": 7.4, "f_1": 0.03, "f_2": 0.12, "amp_1": 0.1, "amp_2": 0.1, "a": 0.01, "pi": numpy.pi})

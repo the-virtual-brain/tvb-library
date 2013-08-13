@@ -245,11 +245,19 @@ class PulseTrainFramework(equations_data.PulseTrainData, EquationFramework):
     def ui_equation(self):
         return "amp if (var % T) < tau else 0.0 * var"
 
+
 class GammaFramework(equations_data.GammaData, EquationFramework):
     """ This class exists to add framework methods to GammaData """
     @property
     def ui_equation(self):
         return "((var / tau) ** (n - 1) * exp(-(var / tau)) )/ (tau * factorial(n - 1))"
+
+
+class DoubleExponentialFramework(equations_data.DoubleExponentialData, EquationFramework):
+    """ This class exists to add framework methods to GammaData """
+    @property
+    def ui_equation(self):
+        return "a * ((amp_1 * exp(-var/tau_1) * sin(2.*pi*f_1*var)) - (amp_2 * exp(-var/ tau_2) * sin(2.*pi*f_2*var)))"
     
     
     

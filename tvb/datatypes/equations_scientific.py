@@ -207,8 +207,40 @@ class GammaScientific(equations_data.GammaData, EquationScientific):
             product = product * (i + 1)
         
         self.parameters["factorial"] = product
+        
         self._pattern = numexpr.evaluate(self.equation,
                                          global_dict = self.parameters)
+        self._pattern /= max(self._pattern) 
+
+        self._pattern *= self.parameters["a"] 
+    
+    pattern = property(fget=_get_pattern, fset=_set_pattern)
+    #--------------------------------------------------------------------------#
+
+
+class DoubleExponentialScientific(equations_data.DoubleExponentialData, EquationScientific):
+    """ This class exists to add scientific methods to DoubleExponentialData """
+
+    #------------------------------ pattern -----------------------------------#
+
+    def _get_pattern(self):
+        """
+        Return a discrete representation of the equation.
+        """
+        return self._pattern
+        
+    def _set_pattern(self, var):
+        """
+        Generate a discrete representation of the equation for the space
+        represented by ``var``.
+        
+        """
+       
+        self._pattern = numexpr.evaluate(self.equation,
+                                         global_dict = self.parameters)
+        self._pattern /= max(self._pattern) 
+
+        self._pattern *= self.parameters["a"] 
     
     pattern = property(fget=_get_pattern, fset=_set_pattern)
     #--------------------------------------------------------------------------#
