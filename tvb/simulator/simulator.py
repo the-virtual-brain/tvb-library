@@ -731,7 +731,7 @@ class Simulator(core.Type):
                         memreq += number_of_nodes * 62.0 * bits_64
 
             else:
-                stock_shape = (19200.0 * monitor.tau_s * 2.0**-2, 
+                stock_shape = (monitor.hrf_length * 0.8 * monitor._stock_sample_rate,
                                self.model.variables_of_interest.shape[0],
                                number_of_nodes,
                                self.model.number_of_modes)
