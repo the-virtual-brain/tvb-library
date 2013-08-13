@@ -172,13 +172,44 @@ class PulseTrainScientific(equations_data.PulseTrainData, EquationScientific):
         onset = self.parameters["onset"]
         off = var < onset 
         var = numpy.roll(var, int(off.sum()+1))
-        var[:,0:off.sum()] = 0.0
+        var[:, 0:off.sum()] = 0.0
         self._pattern = numexpr.evaluate(self.equation,
                                          global_dict = self.parameters)
         self._pattern[:,0:off.sum()] = 0.0
     
     pattern = property(fget=_get_pattern, fset=_set_pattern)
         
+
+class GammaScientific(equations_data.GammaData, EquationScientific):
+    """ This class exists to add scientific methods to GammaData """
+
+    #------------------------------ pattern -----------------------------------#
+
+    def _get_pattern(self):
+        """
+        Return a discrete representation of the equation.
+        """
+        return self._pattern
+        
+    def _set_pattern(self, var):
+        """
+        Generate a discrete representation of the equation for the space
+        represented by ``var``.
+        
+        .. note: numexpr doesn't support factorial yet
+        
+        """
+       
+        # compute the factorial  
+        n = int(self.parameters["n"])
+        product = 1
+        for i in range(n-1):
+            product = product * (i + 1)
+        
+        self.parameters["factorial"] = product
+        self._pattern = numexpr.evaluate(self.equation,
+                                         global_dict = self.parameters)
     
-    pass
+    pattern = property(fget=_get_pattern, fset=_set_pattern)
+    #--------------------------------------------------------------------------#
 
