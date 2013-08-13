@@ -257,7 +257,13 @@ class DoubleExponentialFramework(equations_data.DoubleExponentialData, EquationF
     """ This class exists to add framework methods to GammaData """
     @property
     def ui_equation(self):
-        return "a * ((amp_1 * exp(-var/tau_1) * sin(2.*pi*f_1*var)) - (amp_2 * exp(-var/ tau_2) * sin(2.*pi*f_2*var)))"
-    
+        return "((amp_1 * exp(-var/tau_1) * sin(2.*pi*f_1*var)) - (amp_2 * exp(-var/ tau_2) * sin(2.*pi*f_2*var)))"
+
+
+class FirstOrderVolterraFramework(equations_data.DoubleExponentialData, EquationFramework):
+    """ This class exists to add framework methods to GammaData """
+    @property
+    def ui_equation(self):
+        return "1/3. * exp(-0.5*(var / tau_s)) * (sin(sqrt(1./tau_f - 1./(4.*tau_s**2)) * var)) / (sqrt(1./tau_f - 1./(4.*tau_s**2)))"    
     
     
