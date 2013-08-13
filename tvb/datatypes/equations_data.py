@@ -270,6 +270,7 @@ class PulseTrainData(EquationData):
     A pulse train , offseted with respect to the time axis.
     
     Parameters:
+    ----------
         :math:`\\tau` :  pulse width or pulse duration
         :math:`T`     :  pulse repetition period
         :math:`f`     :  pulse repetition frequency (1/T)
@@ -294,8 +295,39 @@ class PulseTrainData(EquationData):
     parameters = basic.Dict(
         default = {"T": 42.0, "tau": 13.0, "amp": 1.0, "onset": 30.0},   
         label = "Pulse Train Parameters")
+
+
+class GammaData(EquationData):
+    """
+    A Gamma function for the bold monitor. It belongs to the family of Exponential functions.
     
+    Parameters:
+    ----------
+    
+        :math:`\\tau`      : Exponential time constant of the gamma function [seconds].
+        :math:`n`          : The phase delay of the gamma function.
+        :math: `factorial` : (n-1)!. numexpr does not support factorial yet. 
 
-        
 
+    Reference:
+    --------- 
+    .. [B_1996] Geoffrey M. Boynton, Stephen A. Engel, Gary H. Glover and David 
+        J. Heeger (1996). Linear Systems Analysis of Functional Magnetic Resonance 
+        Imaging in Human V1. J Neurosci 16: 4207-4221
 
+    .. note:: might be filtered from the equations used in Stimulus and Local Connectivity.
+
+    """
+
+    # TODO: Introduce a time delay in the equation (shifts the hrf onset)
+    # """:math:`h(t) = \frac{(\frac{t-\delta}{\tau})^{(n-1)} e^{-(\frac{t-\delta}{\tau})}}{\tau(n-1)!}"""
+    
+    equation = basic.String( 
+        label = "Gamma Equation",
+        default = "((var / tau) ** (n - 1) * exp(-(var / tau)) )/ (tau * factorial)",
+        locked = True,
+        doc = """:math:`h(t) = \frac{(\frac{t}{\tau})^{(n-1)} e^{-(\frac{t}{\tau})}}{\tau(n-1)!}""")
+    
+    parameters = basic.Dict( 
+        label = "Gamma Parameters",
+        default = {"tau": 1.08, "n": 3.0, "factorial": 2.0})

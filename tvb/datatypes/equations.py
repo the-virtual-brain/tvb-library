@@ -318,3 +318,24 @@ class PulseTrain(equations_scientific.PulseTrainScientific,
     """
     pass
 
+
+class Gamma(equations_scientific.GammaScientific,
+            equations_framework.GammaFramework, Equation):
+    """
+    This class brings together the scientific and framework methods that are
+    associated with the Gamma datatypes.
+    
+    ::
+        
+                             GammaData
+                                 |
+                                / \\
+                  GammaFramework   GammaScientific
+                                \ /
+                                 |
+                               Gamma
+        
+    
+    """
+    pass
+
