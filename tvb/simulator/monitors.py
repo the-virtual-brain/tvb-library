@@ -47,9 +47,9 @@ Conversion of power of 2 sample-rates(Hz) to Monitor periods(ms)
 
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
+.. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
 .. moduleauthor:: Noelia Montejo <Noelia@tvb.invalid>
 .. moduleauthor:: Marmaduke Woodman <mw@eml.cc>
-.. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
 .. moduleauthor:: Jan Fousek <izaak@mail.muni.cz>
 
 """
@@ -66,6 +66,7 @@ LOG = get_logger(__name__)
 import tvb.datatypes.sensors as sensors_module
 import tvb.datatypes.arrays as arrays
 import tvb.datatypes.projections as projections
+import tvb.datatypes.equations as equations
 
 import tvb.basic.traits.util as util
 import tvb.basic.traits.types_basic as basic
@@ -994,7 +995,6 @@ class SphericalMEG(Monitor):
             return [time, meg.transpose((1, 0, 2))]
 
 
-
 #NOTE: It's probably best to do voxelisation as an offline "analysis" style
 #      process, returning region or surface timeseries for BOLD based on the
 #      simulation. The voxelisation only really makes sense for surface anyway,
@@ -1003,7 +1003,19 @@ class SphericalMEG(Monitor):
 class Bold(Monitor):
     """
 
-    A Ballon-Windkessel like model  
+    Base class for the Bold monitor.
+
+    Attributes
+    ----------
+        hrf_kernel: the haemodynamic response function (HRF) used to compute 
+                    the BOLD (Blood Oxygenation Level Dependent) signal.
+
+        length    : duration of the hrf in seconds.
+
+        period    : the monitor's period
+
+    References
+    ----------  
 
     .. [B_1997] Buxton, R. and Frank, L., *A Model for the Coupling between 
         Cerebral Blood Flow and Oxygen Metabolism During Neural Stimulation*,
@@ -1028,8 +1040,10 @@ class Bold(Monitor):
 
     .. note:: CONSIDERATIONS: It is  sensible to use this monitor if your 
               simulation length is > 30s (30000ms)
-    .. note:: why aren't we using a difference of two gamma pdfs for the hrf? (see nipy, spm and fmristat)
-    .. note:: gamma and polonsky are based on the nitime implementation.
+    .. note:: gamma and polonsky are based on the nitime implementation
+              http://nipy.org/nitime/api/generated/nitime.fmri.hrf.html
+
+    .. note:: see Tutorial_Exploring_The_Bold_Monitor
 
     .. warning:: Not yet tested, debugged, generalised etc...
     .. wisdom and plagiarism
@@ -1050,83 +1064,20 @@ class Bold(Monitor):
         default = 2000.0,
         doc = """For the BOLD monitor, sampling period in milliseconds must be
         an integral multiple of 500. Typical measurment interval (repetition 
-        time) is between 1-3 s.""")
+        time TR) is between 1-3 s. If TR is 2s, then Bold period is 2000ms.""")
 
-    tau_s = basic.Float(
-        label = "Dimensionless? exponential decay parameter. Oscillator hrf.",
-        default = 0.8)
+    hrf_kernel = equations.Equation(
+        label = "Haemodynamic Response Function",
+        default = equations.FirstOrderVolterra,
+        required = True,
+        doc = """A tvb.datatypes.equation object which describe the haemodynamic
+        response function used to compute the BOLD signal.""") 
 
-    tau_f = basic.Float(
-        label = "Dimensionless? oscillatory parameter. Oscillator hrf.",
-        default = 0.4)
-        
-    k1 = basic.Float(
-        label = "First Volterra kernel coefficient. Oscillator hrf.",
-        default = 5.6,
-        order = -1)
-        
-    V0 = basic.Float(
-        label = "resting blood volume fraction. Oscillator hrf.",
-        default = 0.02,
-        order = -1)
-
-    delta = basic.Float(
-        label="delta",
-        default = 2.05,
-        doc = """Additional delay in seconds from the onset of the
-        time-series to the beginning of the gamma hrf. Gamma hrf""",
+    hrf_length = basic.Float(
+        label = "Duration (ms)",
+        default = 19200.,
+        doc= """Duration of the hrf kernel""",
         order=-1)
-
-    tau_gamma = basic.Float(
-        label = "Exponential time constant of the gamma hrf. Gamma hrf.",
-        default = 1.08,
-        order=-1)
-
-    n = basic.Integer(
-        label="n",
-        default = 3,
-        doc="""The phase delay of the gamma function. Gamma hrf.""",
-        order=-1)
-
-    tau_1 = basic.Float(
-        label = ":math:`\tau_1`",
-        default = 7.22,
-        doc = """Time constant of the second exponential function [s]. Exponential hrf.""",
-        order=-1)
-
-    tau_2 = basic.Float(
-        label = ":math:`\tau_2`",
-        default = 7.4,
-        doc = """Time constant of the first exponential function [s]. Exponential hrf.""",
-        order=-1)
-
-    f_1 = basic.Float(
-        label = ":math:`f_1`",
-        default = 0.03,
-        doc = """Frequency of the first sine function [Hz]. Exponential hrf""",
-        order=-1)
-
-    f_2 = basic.Float(
-        label = ":math:`f_2",
-        default = 0.12,
-        doc = """Frequency of the second sine function [Hz]. Exponential hrf""",
-        order=-1)
-
-    B = basic.Float(
-        label = ":math:`f_2",
-        default = 0.1,
-        doc = """Amplitude of the second exp function. Exponential hrf""",
-        order=-1)
-        
-
-    hrf_kernel = basic.Enumerate(
-        label="Haemodynamic Response Function",
-        options=["Oscillator", "Gamma", 'Exponential'],
-        default=["Oscillator"],
-        doc="""The names for each kernel for a convolution-based model of the BOLD signal.""",
-        order=15)
-
-    
 
 
     def __init__(self, **kwargs):
@@ -1149,6 +1100,7 @@ class Bold(Monitor):
         self._interim_stock = None #I hate bold.
         self._stock_steps = None
         self._stock_time = None    # Me too
+        self._stock_sample_rate = 2**-2
 
         self.hemodynamic_response_function = None
 
@@ -1156,32 +1108,7 @@ class Bold(Monitor):
 
     def compute_hrf(self):
         r"""
-        Compute the heamodynamic response function based on (upcoming publication).
-
-        Damped Oscillator Kernel
-
-        .. math::
-            G(t - t^{\prime}) &= 
-             e^{\frac{1}{2} \left(\frac{t - t^{\prime}}{\tau_s} \right)}
-             \frac{\sin\left((t - t^{\prime})
-             \sqrt{\frac{1}{\tau_f} - \frac{1}{4 \tau_s^2}}\right)} 
-             {\sqrt{\frac{1}{\tau_f} - \frac{1}{4 \tau_s^2}}}
-             \; \; \; \; \; \;  for \; \; \; t \geq t^{\prime} \\
-             &= 0 \; \; \; \; \; \;  for \; \; \;  t < t^{\prime}
-
-        
-        Gamma kernel (Boynton 1996)
-        
-        .. math::
-            h(t) = \frac{(\frac{t-\delta}{\tau})^{(n-1)} e^{-(\frac{t-\delta}
-             {\tau})}}{\tau(n-1)!}
-
-        Exponential kernel (Polonsky 2000)
-        
-        .. math::
-            h(t) = e^(\frac{-t}{\tau_1}) sin(2\cdot\pi f_1 \cdot t) -B\cdot 
-             e^(-\frac{t}{\tau_2})*sin(2\pi f_2 t)
-
+        Compute the heamodynamic response function.
 
         """
 
@@ -1190,83 +1117,35 @@ class Bold(Monitor):
             msg = "%s: BOLD.period must be a multiple of 500.0, period = %s"
             LOG.error(msg % (str(self), str(self.period)))
 
-        #Typical scanner TR is 2s, means Bold period 2000ms
+        
 
-        #downsample average over simulator steps to give fixed sr (256Hz)
+        #downsample average over simulator steps to give a fixed sampling rate (256Hz)
         #then (18.75 * tau_s) * 256  ==> 3840 required length of _stock
 
         # simulation in ms therefore 1000.0/256.0 ==> 3.90625 _interim_period in ms
         LOG.warning("%s: Needs testing, debugging, etc..." % repr(self))
 
-        magic_sample_rate = 2.0**-2 #/ms    # NOTE: An integral multiple of dt
-        magic_number = 19200.0 * self.tau_s # truncates G, see below, once ~zero 
+        self._stock_sample_rate = 2.0**-2 #/ms    # NOTE: An integral multiple of dt
+        magic_number = self.hrf_length * 0.8      # truncates G, volterra kernel, once ~zero 
 
-        #Length of history needed for convolution in ms [steps??]
-        required_history_length = magic_sample_rate * magic_number # 3840 for tau_s=0.8
+        #Length of history needed for convolution in steps @ _stock_sample_rate
+        required_history_length = self._stock_sample_rate * magic_number # 3840 for tau_s=0.8
         self._stock_steps = numpy.ceil(required_history_length).astype(int)
-        stock_time_max    = magic_number/1000.0                            # [s]
-        stock_time_step   = stock_time_max / self._stock_steps            # [s]
-        self._stock_time  = numpy.arange(0.0, stock_time_max, stock_time_step) 
+        stock_time_max    = magic_number/1000.0                                # [s]
+        stock_time_step   = stock_time_max / self._stock_steps                 # [s]
+        self._stock_time  = numpy.arange(0.0, stock_time_max, stock_time_step) # [s]
 
-        if self.hrf_kernel[0] == "Oscillator":
-            # The Oscillator Heamodynamic response function.
-            sqrt_tfts = numpy.sqrt(1.0/self.tau_f - 1.0/(4.0*self.tau_s**2))
-            exp_ts    = numpy.exp(-0.5*(self._stock_time/self.tau_s))
-            G         = exp_ts * (numpy.sin(sqrt_tfts * self._stock_time) / sqrt_tfts)
-
-            #Reverse it, need it into the past for matrix-multiply of stock
-            G = G[::-1] / 3.
-            self.hemodynamic_response_function = G[numpy.newaxis, :]
-        
-        elif self.hrf_kernel[0] == "Gamma":
-            
-
-            hrf_length = 19200. # [ms]
-
-            #Length of history needed for convolution 
-            required_history_length = magic_sample_rate * hrf_length
-            self._stock_steps = numpy.ceil(required_history_length).astype(int)
-            
-            LOG.debug("%s: Required history length for performing convolution = %s" % 
+        LOG.debug("%s: Required history length for performing convolution = %s" % 
                 (str(self), self._stock_steps))
 
-            stock_time_max = hrf_length/1000.0 # [s]
+        
+        #Compute the HRF kernel
+        self.hrf_kernel.pattern = self._stock_time
+        G = self.hrf_kernel.pattern
 
-            #
-            if self.delta < 0:
-                msg = "The time delay in the gamma hrf cannot be negative"
-                LOG.error(msg)
-                raise Exception(msg)
-
-            if self.delta > stock_time_max:
-                LOG.debug("%s: time delay (delta) = %s, hrf length= %s" % (str(self), 
-                    self.delta, stock_time_max))
-                msg = "The time delay should be shorter than the hrf duration."
-                LOG.error(msg)
-                raise Exception(msg)
-
-            stock_time_max -= self.delta
-            stock_time_step = stock_time_max / self._stock_steps 
-            stock_delay_steps =  self.delta * 250.  
-            #FIXME: if stock_delays_steps=0, it fails. 
-            self._stock_time = numpy.hstack([numpy.zeros(stock_delay_steps+1), 
-                               numpy.linspace(0.0, stock_time_max, int(self._stock_steps - stock_delay_steps))])
-            t_tau = self._stock_time / self.tau_gamma
-            # The Gamma HRF
-            h = (t_tau ** (self.n - 1) * numpy.exp(-t_tau) )/ (self.tau_gamma * factorial(self.n - 1))  
-            h = 0.01 * h[::-1]
-            self.hemodynamic_response_function = h[numpy.newaxis, :]
-
-        elif self.hrf_kernel[0] == "Exponential":
-
-            # The (diff) Exponential hrf
-            h = (numpy.exp(-self._stock_time / self.tau_1) * \
-                numpy.sin(2. * numpy.pi * self.f_1 * self._stock_time) -
-                (self.B * numpy.exp(-self._stock_time / self.tau_2) \
-                    * numpy.sin(2. * numpy.pi * self.f_2 * self._stock_time)))
-            h /= max(h)
-            h = 0.01 * h[::-1]
-            self.hemodynamic_response_function = h[numpy.newaxis, :]
+        #Reverse it, need it into the past for matrix-multiply of stock
+        G = G[::-1]
+        self.hemodynamic_response_function = G[numpy.newaxis, :]
 
 
         util.log_debug_array(LOG, self.hemodynamic_response_function,
@@ -1274,7 +1153,7 @@ class Bold(Monitor):
                              owner=self.__class__.__name__)
 
         #Interim stock configuration
-        self._interim_period = 1.0 / magic_sample_rate #period in ms
+        self._interim_period = 1.0 / self._stock_sample_rate #period in ms
         self._interim_istep = int(round(self._interim_period / self.dt)) # interim period in integration time steps
 
 
@@ -1300,7 +1179,7 @@ class Bold(Monitor):
                       simulator.model.number_of_modes)
         LOG.debug("%s: stock_size is %s" % (str(self), str(stock_size)))
 
-        #Set the inital _stock based on simulator.history
+        #Set the initingal _stock based on simulator.history
         mean_history = numpy.mean(simulator.history[:, self.voi, :, :], axis=0)
         self._stock = mean_history[numpy.newaxis,:] * numpy.ones(stock_size)
         #NOTE: BOLD can have a long (~15s) transient that is mainly due to the
@@ -1332,8 +1211,9 @@ class Bold(Monitor):
             hrf = numpy.roll(self.hemodynamic_response_function,
                              ((step/self._interim_istep % self._stock_steps) - 1),
                              axis=1)
-            if self.hrf_kernel == 'Oscillator':
-                bold = (numpy.dot(hrf, self._stock.transpose((1, 2, 0, 3))) - 1.0) * (self.k1 * self.V0)
+            if isinstance(self.hrf_kernel, equations.FirstOrderVolterra):
+                k1_V0 = self.hrf_kernel.parameters["k_1"] * self.hrf_kernel.parameters["V_0"]
+                bold = (numpy.dot(hrf, self._stock.transpose((1, 2, 0, 3))) - 1.0) * k1_V0
             else:
                 #import pdb; pdb.set_trace()
                 bold = numpy.dot(hrf, self._stock.transpose((1, 2, 0, 3)))
@@ -1368,6 +1248,7 @@ class BoldRegionROI(Bold):
                               for i in xrange(self.region_mapping.max())])]
         else:
             return None
+
 
 class BoldMultithreaded(Bold):
     """
