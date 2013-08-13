@@ -207,7 +207,7 @@ class GammaScientific(equations_data.GammaData, EquationScientific):
             product = product * (i + 1)
         
         self.parameters["factorial"] = product
-        
+
         self._pattern = numexpr.evaluate(self.equation,
                                          global_dict = self.parameters)
         self._pattern /= max(self._pattern) 
@@ -245,3 +245,7 @@ class DoubleExponentialScientific(equations_data.DoubleExponentialData, Equation
     pattern = property(fget=_get_pattern, fset=_set_pattern)
     #--------------------------------------------------------------------------#
 
+
+class FirstOrderVolterraScientific(equations_data.FirstOrderVolterraData, EquationScientific):
+    """ This class exists to add scientific methods to FirstOrderVolterraData """
+    pass

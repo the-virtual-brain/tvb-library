@@ -365,11 +365,55 @@ class DoubleExponentialData(EquationData):
 
     equation = basic.String( 
         label = "Double Exponential Equation",
-        default = "a * ((amp_1 * exp(-var/tau_1) * sin(2.*pi*f_1*var)) - (amp_2 * exp(-var/ tau_2) * sin(2.*pi*f_2*var)))",
+        default = "((amp_1 * exp(-var/tau_1) * sin(2.*pi*f_1*var)) - (amp_2 * exp(-var/ tau_2) * sin(2.*pi*f_2*var)))",
         locked = True,
-        doc = """:math:`h(var) = amp_1\\exp(\\frac{-var}{\tau_1}) \\sin(2\\cdot\\pi f_1 \\cdot var) - amp_2\\cdot 
-             \\exp(-\\frac{var}{\\tau_2})*\\sin(2\\pi f_2 var)""")
+        doc = """:math:`h(var) = amp_1\\exp(\\frac{-var}{\tau_1}) 
+        \\sin(2\\cdot\\pi f_1 \\cdot var) - amp_2\\cdot \\exp(-\\frac{var}
+        {\\tau_2})*\\sin(2\\pi f_2 var)""")
 
     parameters = basic.Dict( 
         label = "Double Exponential Parameters",
-        default = {"tau_1": 7.22, "tau_2": 7.4, "f_1": 0.03, "f_2": 0.12, "amp_1": 0.1, "amp_2": 0.1, "a": 0.01, "pi": numpy.pi})
+        default = {"tau_1": 7.22, "f_1": 0.03, "amp_1": 0.1, 
+                   "tau_2": 7.4,  "f_2": 0.12, "amp_2": 0.1, 
+                   "a": 0.01, "pi": numpy.pi})
+
+
+class FirstOrderVolterraData(EquationData):
+    """
+    Integral form of the first Volterra kernel of the three used in the 
+    Ballon Windekessel model for computing the Bold signal. 
+    This function describes a damped Oscillator.
+
+    Parameters:
+    ----------
+
+    :math:`\\tau_s`: Dimensionless? exponential decay parameter.
+    :math:`\\tau_f`: Dimensionless? oscillatory parameter. 
+    :math:`k_1`    : First Volterra kernel coefficient. 
+    :math:`V_0 : Resting blood volume fraction. 
+
+
+    Reference:
+    ---------- 
+    .. [F_2000] Friston, K., Mechelli, A., Turner, R., and Price, C., *Nonlinear 
+        Responses in fMRI: The Balloon Model, Volterra Kernels, and Other 
+        Hemodynamics*, NeuroImage, 12, 466 - 477, 2000.
+
+
+    """
+
+    equation = basic.String( 
+        label = "First Order Volterra Kernel",
+        default = "1/3. * exp(-0.5*(var / tau_s)) * (sin(sqrt(1./tau_f - 1./(4.*tau_s**2)) * var)) / (sqrt(1./tau_f - 1./(4.*tau_s**2)))",
+        locked = True,
+        doc = """:math:`G(t - t^{\prime}) &= 
+             e^{\\frac{1}{2} \left(\frac{t - t^{\prime}}{\tau_s} \right)}
+             \frac{\sin\left((t - t^{\prime})
+             \sqrt{\frac{1}{\tau_f} - \frac{1}{4 \tau_s^2}}\right)} 
+             {\sqrt{\frac{1}{\tau_f} - \frac{1}{4 \tau_s^2}}}
+             \; \; \; \; \; \;  for \; \; \; t \geq t^{\prime} \\
+             &= 0 \; \; \; \; \; \;  for \; \; \;  t < t^{\prime}""")
+
+    parameters = basic.Dict( 
+        label = "Double Exponential Parameters",
+        default = {"tau_s": 0.8, "tau_f": 0.4, "k_1": 5.6, "V_0": 0.02})

@@ -360,3 +360,24 @@ class DoubleExponential(equations_scientific.DoubleExponentialScientific,
     """
     pass
 
+
+class FirstOrderVolterra(equations_scientific.FirstOrderVolterraScientific,
+            equations_framework.FirstOrderVolterraFramework, Equation):
+    """
+    This class brings together the scientific and framework methods that are
+    associated with the DoubleExponential datatypes.
+    
+    ::
+        
+                             FirstOrderVolterraData
+                                 |
+                                / \\
+      FirstOrderVolterraFramework   FirstOrderVolterraScientific
+                                \ /
+                                 |
+                             FirstOrderVolterra
+        
+    
+    """
+    pass
+
