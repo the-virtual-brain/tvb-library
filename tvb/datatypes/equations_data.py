@@ -282,7 +282,7 @@ class PulseTrainData(EquationData):
         default = "where((var % T) < tau, amp, 0)",
         locked = True,
         doc = """:math:`\\frac{\\tau}{T} 
-        +\sum_{n=1}^{\\infty}\\frac{2}{n\\pi}
+        +\\sum_{n=1}^{\\infty}\\frac{2}{n\\pi}
         \\sin\\left(\\frac{\\pin\\tau}{T}\\right)
         \\cos\\left(\\frac{2\\pi\\,n}{T} var\\right)`. 
         The starting time is halfway through the first pulse. 
