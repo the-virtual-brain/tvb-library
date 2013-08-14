@@ -335,7 +335,7 @@ class GammaData(EquationData):
     
     parameters = basic.Dict( 
         label = "Gamma Parameters",
-        default = {"tau": 1.08, "n": 3.0, "factorial": 2.0, "amp": 0.01})
+        default = {"tau": 1.08, "n": 3.0, "factorial": 2.0, "a": 0.01})
 
 
 class DoubleExponentialData(EquationData):
