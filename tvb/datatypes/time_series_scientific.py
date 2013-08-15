@@ -79,6 +79,12 @@ class TimeSeriesMEGScientific(time_series_data.TimeSeriesMEGData,
     pass
 
 
+class TimeSeriesSEEGScientific(time_series_data.TimeSeriesSEEGData, 
+                              TimeSeriesScientific):
+    """ This class exists to add scientific methods to TimeSeriesMEGData. """
+    pass
+
+
 class TimeSeriesRegionScientific(time_series_data.TimeSeriesRegionData, 
                                  TimeSeriesScientific):
     """

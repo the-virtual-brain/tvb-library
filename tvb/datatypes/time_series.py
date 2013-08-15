@@ -108,6 +108,27 @@ class TimeSeriesMEG(time_series_scientific.TimeSeriesMEGScientific,
     pass
 
 
+class TimeSeriesSEEG(time_series_scientific.TimeSeriesSEEGScientific,
+                    time_series_framework.TimeSeriesSEEGFramework, TimeSeries):
+    """
+    This class brings together the scientific and framework methods that are
+    associated with the TimeSeriesMEG datatype.
+    
+    ::
+        
+                         TimeSeriesMEGData
+                                 |
+                                / \\
+          TimeSeriesMEGFramework   TimeSeriesMEGScientific
+                                \ /
+                                 |
+                           TimeSeriesMEG
+        
+    
+    """
+    pass
+
+
 class TimeSeriesRegion(time_series_scientific.TimeSeriesRegionScientific,
                        time_series_framework.TimeSeriesRegionFramework, TimeSeries):
     """
