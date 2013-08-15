@@ -321,6 +321,8 @@ class GammaData(EquationData):
 
     """
 
+    _ui_name = "HRF kernel: Gamma kernel"
+
     # TODO: Introduce a time delay in the equation (shifts the hrf onset)
     # """:math:`h(t) = \frac{(\frac{t-\delta}{\tau})^{(n-1)} e^{-(\frac{t-\delta}{\tau})}}{\tau(n-1)!}"""
     # delta = 2.05 seconds -- Additional delay in seconds from the onset of the
@@ -363,6 +365,8 @@ class DoubleExponentialData(EquationData):
 
     """
 
+     _ui_name = "HRF kernel: Difference of Exponentials"
+
     equation = basic.String( 
         label = "Double Exponential Equation",
         default = "((amp_1 * exp(-var/tau_1) * sin(2.*pi*f_1*var)) - (amp_2 * exp(-var/ tau_2) * sin(2.*pi*f_2*var)))",
@@ -401,6 +405,8 @@ class FirstOrderVolterraData(EquationData):
 
 
     """
+
+    _ui_name = "HRF kernel: Volterra Kernel"
 
     equation = basic.String( 
         label = "First Order Volterra Kernel",
