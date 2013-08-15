@@ -365,7 +365,7 @@ class DoubleExponentialData(EquationData):
 
     """
 
-     _ui_name = "HRF kernel: Difference of Exponentials"
+    _ui_name = "HRF kernel: Difference of Exponentials"
 
     equation = basic.String( 
         label = "Double Exponential Equation",
