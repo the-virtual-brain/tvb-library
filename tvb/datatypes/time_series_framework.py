@@ -235,6 +235,21 @@ class TimeSeriesMEGFramework(time_series_data.TimeSeriesMEGData, TimeSeriesFrame
         if self.sensors is not None:
             return list(self.sensors.labels)
         return []
+    
+    
+class TimeSeriesSEEGFramework(time_series_data.TimeSeriesSEEGData, TimeSeriesFramework):
+    """
+    This class exists to add framework methods to TimeSeriesMEGData.
+    """
+
+
+    def get_space_labels(self):
+        """
+        :return: An array of strings with the sensors labels.
+        """
+        if self.sensors is not None:
+            return list(self.sensors.labels)
+        return []
 
 
 

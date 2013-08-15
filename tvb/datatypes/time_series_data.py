@@ -109,6 +109,13 @@ class TimeSeriesMEGData(TimeSeriesData):
     _ui_name = "MEG time-series"
     sensors = sensors_module.SensorsMEG
     labels_ordering = basic.List(default=["Time", "MEG Sensor"])
+    
+    
+class TimeSeriesSEEGData(TimeSeriesData):
+    """ A time series associated with a set of Internal sensors. """
+    _ui_name = "Stereo-EEG time-series"
+    sensors = sensors_module.SensorsInternal
+    labels_ordering = basic.List(default=["Time", "sEEG Sensor"])
 
 
 
