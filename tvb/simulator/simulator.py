@@ -373,8 +373,10 @@ class Simulator(core.Type):
         self._calculate_storage_requirement()
 
         if random_state is not None:
-            if self.integrator is integrators_module.IntegratorStochastic:
+            if isinstance(self.integrator, integrators_module.IntegratorStochastic):
                 self.integrator.noise.random_stream.set_state(random_state)
+                #msg = "%s: random_state supplied. Seed is: %s"
+                #LOG.info(msg % str(self, self.integrator.noise.random_stream.get_state()[1][0]))
             else:
                 msg = "%s: random_state supplied for non-stochastic integration"
                 LOG.warn(msg % str(self))
@@ -559,7 +561,7 @@ class Simulator(core.Type):
 
         """
 
-        noise = self.integrator.noise
+        noise = self.integrator.noise        
 
         if self.integrator.noise.ntau > 0.0:
             self.integrator.noise.configure_coloured(self.integrator.dt,
@@ -592,6 +594,7 @@ class Simulator(core.Type):
 
         LOG.debug("Simulator.integrator.noise.nsig shape: %s" % str(nsig.shape))
         self.integrator.noise.nsig = nsig
+        LOG.debug("Simulator.integrator.noise.random_stream seed is: %s" % str(heunint.noise.random_stream.trait.value.get_state()[1][0]))
 
 
     def configure_monitors(self):
