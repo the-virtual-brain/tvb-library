@@ -594,7 +594,7 @@ class Simulator(core.Type):
 
         LOG.debug("Simulator.integrator.noise.nsig shape: %s" % str(nsig.shape))
         self.integrator.noise.nsig = nsig
-        LOG.debug("Simulator.integrator.noise.random_stream seed is: %s" % str(heunint.noise.random_stream.trait.value.get_state()[1][0]))
+        #LOG.debug("Simulator.integrator.noise.random_stream seed is: %s" % str(self.integrator.noise.random_stream.trait.value.get_state()[1][0]))
 
 
     def configure_monitors(self):
