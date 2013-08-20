@@ -100,7 +100,7 @@ def plot_connectivity(connectivity, num="weights", order_by=None,
     A 2D plot for visualizing the Connectivity.weights matrix
     """
     labels = connectivity.region_labels
-    plot_title = connectivity.display_name
+    plot_title = connectivity.__class__.__name__
     
     if order_by is None:
         order = numpy.arange(connectivity.number_of_regions)
@@ -301,10 +301,12 @@ def show_me_the_colours():
 ##-                   mayavi based plotting functions                        -##
 ##----------------------------------------------------------------------------##
 try:
-    from mayavi import mlab
+    from mayavi1 import mlab
     IMPORTED_MAYAVI = True
 except ImportError:
-    LOG.error("Couldn't import mayavi, mayavi based plots won't be defined.")
+    LOG.error("Mayavi is needed for this demo but due to sizing and packaging constraints we are not distributing it. "
+              "If you want to see the actual plot you should use the github version and just install all the required "
+              "dependencies as described here: https://github.com/the-virtual-brain/docs/blob/trunk/InstallationManual/InstallationManual.rst")
     IMPORTED_MAYAVI = False
     #raise
     

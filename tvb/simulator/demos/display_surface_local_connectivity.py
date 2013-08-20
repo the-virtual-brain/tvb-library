@@ -83,7 +83,7 @@ default_cortex = surfaces.Cortex(local_connectivity=grey_matter,
 default_cortex.configure()
 
 # define scalar data to colour the surface 
-lc = default_cortex.local_connectivity.matrixdata[:, 0].todense()
+lc = default_cortex.local_connectivity.matrix[:, 0].todense()
 surface_pattern(default_cortex, lc)
 #Show them
 show()
