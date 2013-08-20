@@ -32,15 +32,12 @@ Created on Mar 20, 2013
 
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
-if __name__ == "__main__":
-    from tvb_library_test import setup_test_console_env
-    setup_test_console_env()
     
 import unittest
-
 from tvb.datatypes import equations
 from tvb_library_test.base_testcase import BaseTestCase
-        
+
+
 class EquationsTest(BaseTestCase):
     """
     Tests the defaults for `tvb.datatypes.equations` module.
@@ -50,16 +47,16 @@ class EquationsTest(BaseTestCase):
         dt = equations.Equation()
         self.assertEqual(dt.parameters, {})
         self.assertEqual(dt.ui_equation, '')
-        
+
         
     def test_finitesupportequation(self):
         dt = equations.FiniteSupportEquation()
         self.assertEqual(dt.parameters, {})
         self.assertEqual(dt.ui_equation, '')
-        
-        
+
+
     def test_discrete(self):
-        dt = equations.Discrete()
+        dt = equations.DiscreteEquation()
         self.assertEqual(dt.parameters, {})
         self.assertEqual(dt.ui_equation, 'var')
         

@@ -32,17 +32,13 @@ Created on Mar 20, 2013
 
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
-if __name__ == "__main__":
-    from tvb_library_test import setup_test_console_env
-    setup_test_console_env()
 
-import sys
 import numpy    
 import unittest
-
 from tvb.datatypes import patterns, equations, connectivity, surfaces
 from tvb_library_test.base_testcase import BaseTestCase
-        
+
+
 class PatternsTest(BaseTestCase):
     """
     Tests the defaults for `tvb.datatypes.patterns` module.
@@ -83,7 +79,7 @@ class PatternsTest(BaseTestCase):
         conn.configure()
         dt = patterns.StimuliRegion()
         dt.connectivity = conn
-        dt.spatial = equations.Discrete()
+        dt.spatial = equations.DiscreteEquation()
         dt.temporal = equations.Gaussian()
         dt.weight = [0 for _ in range(conn.number_of_regions)]
         dt.configure_space()
@@ -101,7 +97,7 @@ class PatternsTest(BaseTestCase):
         srf.configure()
         dt = patterns.StimuliSurface()
         dt.surface = srf
-        dt.spatial = equations.Discrete()
+        dt.spatial = equations.DiscreteEquation()
         dt.temporal = equations.Gaussian()
         dt.focal_points_surface = [0, 1, 2]
         dt.focal_points_triangles = [0, 1, 2]
@@ -110,7 +106,7 @@ class PatternsTest(BaseTestCase):
         summary = dt.summary_info
         self.assertEqual(summary['Type'], "StimuliSurface")
         self.assertEqual(dt.space.shape, (81924, 3))
-        self.assertTrue(isinstance(dt.spatial, equations.Discrete))
+        self.assertTrue(isinstance(dt.spatial, equations.DiscreteEquation))
         self.assertEqual(dt.spatial_pattern.shape, (81924, 1))
         self.assertTrue(dt.surface is not None)
         self.assertTrue(isinstance(dt.temporal, equations.Gaussian))
