@@ -57,10 +57,6 @@ LOG = get_logger(__name__)
 from tvb.simulator.lab import *
 import tvb.datatypes.sensors as sensors
 
-
-# Third party python libraries
-from mayavi  import mlab
-
 # From the inside out
 connectome       = connectivity.Connectivity()
 cortical_surface = surfaces.Cortex()
@@ -72,22 +68,26 @@ skin_air		 = surfaces.SkinAir()
 # Get info
 centres = connectome.centres
 
-fig_tvb = mlab.figure(figure='John Doe', bgcolor=(0.0, 0.0, 0.0))
-
-region_centres = mlab.points3d(centres[:, 0], 
-                               centres[:, 1], 
-                               centres [:, 2], 
-                               color=(1.0, 0.0, 0.0),
-                               scale_factor = 7.,
-                               figure = fig_tvb)
-
-
-plot_surface(cortical_surface, fig=fig_tvb, op=0.9, rep='fancymesh')
-plot_surface(brain_skull, fig=fig_tvb, op=0.2)
-plot_surface(skull_skin, fig=fig_tvb, op=0.15)
-plot_surface(skin_air, fig=fig_tvb, op=0.1)
-
-# Plot them
-mlab.show(stop=True)
+try:
+    from tvb.simulator.plot.tools  import mlab
+    fig_tvb = mlab.figure(figure='John Doe', bgcolor=(0.0, 0.0, 0.0))
+    
+    region_centres = mlab.points3d(centres[:, 0], 
+                                   centres[:, 1], 
+                                   centres [:, 2], 
+                                   color=(1.0, 0.0, 0.0),
+                                   scale_factor = 7.,
+                                   figure = fig_tvb)
+    
+    
+    plot_surface(cortical_surface, fig=fig_tvb, op=0.9, rep='fancymesh')
+    plot_surface(brain_skull, fig=fig_tvb, op=0.2)
+    plot_surface(skull_skin, fig=fig_tvb, op=0.15)
+    plot_surface(skin_air, fig=fig_tvb, op=0.1)
+    
+    # Plot them
+    mlab.show(stop=True)
+except ImportError:
+    pass
 
 #EoF
