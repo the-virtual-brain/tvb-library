@@ -37,14 +37,15 @@ Framework methods for the Equation datatypes.
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 
 """
+
 import re
 import json
 import parser
-
 import numpy
 import tvb.datatypes.equations_data as equations_data
 import tvb.basic.traits.parameters_factory as parameters_factory
 from tvb.basic.logger.builder import get_logger
+
 
 LOG = get_logger(__name__)
 
@@ -53,9 +54,11 @@ LOG = get_logger(__name__)
 DEFAULT_PLOT_GRANULARITY = 1024
 
 
+
 class EquationFramework(equations_data.EquationData):
     """ This class exists to add framework methods to EquationData. """
     __tablename__ = None
+
 
     @property
     def ui_equation(self):
@@ -80,15 +83,16 @@ class EquationFramework(equations_data.EquationData):
         return equation_str
 
 
-    def get_series_data(self, min_range = 0, max_range = 100, step = None):
+    def get_series_data(self, min_range=0, max_range=100, step=None):
         """
         NOTE: The symbol from the equation which varies should be named: var
         Returns the series data needed for plotting this equation.
         """
         if step is None:
             step = float(max_range - min_range) / DEFAULT_PLOT_GRANULARITY
-            
-        from math import sin, cos, sqrt
+
+        from math import sin, cos, sqrt, exp
+
         result = []
         parsed_equation = self.get_parsed_equation()
         parsed_equation = parser.expr(parsed_equation).compile()
@@ -110,7 +114,7 @@ class EquationFramework(equations_data.EquationData):
 
 
     @staticmethod
-    def build_equation_from_dict(equation_field_name, submitted_data_dict):
+    def build_equation_from_dict(equation_field_name, submitted_data_dict, alter_submitted_dictionary=False):
         """
         Builds from the given data dictionary the equation for the specified field name.
         The dictionary should have the data collapsed.
@@ -120,10 +124,17 @@ class EquationFramework(equations_data.EquationData):
             equation_type = submitted_data_dict[equation_field_name]
             equation_parameters = {}
             eq_param_str = equation_field_name + '_parameters'
+
+            if eq_param_str in submitted_data_dict and 'parameters' in submitted_data_dict[eq_param_str]:
+                equation_parameters = submitted_data_dict[eq_param_str]['parameters']
             if eq_param_str in submitted_data_dict and 'parameters_parameters' in submitted_data_dict[eq_param_str]:
                 equation_parameters = submitted_data_dict[eq_param_str]['parameters_parameters']
             equation = parameters_factory.get_traited_instance_for_name(equation_type, equations_data.EquationData,
-                    {'parameters': equation_parameters})
+                                                                        {'parameters': equation_parameters})
+            if alter_submitted_dictionary:
+                del submitted_data_dict[eq_param_str]
+                submitted_data_dict[equation_field_name] = equation
+
         return equation
 
 
@@ -136,7 +147,9 @@ class EquationFramework(equations_data.EquationData):
         {'equation_type': '$equation_type', 'parameters': {'$param_name': '$param_value', ...}}
         """
         if entity is not None:
-            result = {'__mapped_module' : entity.__class__.__module__, '__mapped_class': entity.__class__.__name__, 'parameters': entity.parameters}
+            result = {'__mapped_module': entity.__class__.__module__,
+                      '__mapped_class': entity.__class__.__name__,
+                      'parameters': entity.parameters}
             return json.dumps(result)
         return None
 
@@ -159,28 +172,13 @@ class EquationFramework(equations_data.EquationData):
         loaded_instance = class_entity()
         loaded_instance.parameters = loaded_dict['parameters']
         return loaded_instance
-        
-        
 
 
 
-class FiniteSupportEquationFramework(equations_data.FiniteSupportEquationData,
-                                     EquationFramework):
-    """
-    This class exists to add framework methods to FiniteSupportEquationData
-    """
-    pass
-
-
-class DiscreteFramework(equations_data.DiscreteData,
-                        FiniteSupportEquationFramework):
+class DiscreteEquationFramework(equations_data.DiscreteEquationData, EquationFramework):
     """ This class exists to add framework methods to DiscreteData """
     pass
 
-
-#class ScalingFramework(equations_data.ScalingData, EquationFramework):
-#    """ This class exists to add framework methods to ScalingData """
-#    pass
 
 
 class LinearFramework(equations_data.LinearData, EquationFramework):
@@ -188,34 +186,41 @@ class LinearFramework(equations_data.LinearData, EquationFramework):
     pass
 
 
-class GaussianFramework(equations_data.GaussianData,
-                        FiniteSupportEquationFramework):
+
+class GaussianFramework(equations_data.GaussianData, EquationFramework):
     """ This class exists to add framework methods to GaussianData """
+
 
     @property
     def ui_equation(self):
         return "amp * 2.71**(-((var-midpoint)**2 / (2.0 * sigma**2)))"
 
 
-class DoubleGaussianFramework(equations_data.DoubleGaussianData,
-                              FiniteSupportEquationFramework):
+
+class DoubleGaussianFramework(equations_data.DoubleGaussianData, EquationFramework):
     """ This class exists to add framework methods to DoubleGaussianData """
+
+
     @property
     def ui_equation(self):
         return "(amp_1 * 2.71**(-((var-midpoint_1)**2 / (2.0 * sigma_1**2)))) - (amp_2 * 2.71**(-((var-midpoint_2)**2 / (2.0 * sigma_2**2))))"
 
 
-class SigmoidFramework(equations_data.SigmoidData,
-                       FiniteSupportEquationFramework):
+
+class SigmoidFramework(equations_data.SigmoidData, EquationFramework):
     """ This class exists to add framework methods to SigmoidData """
+
+
     @property
     def ui_equation(self):
         return "amp / (1.0 + 2.71**(-1.8137993642342178 * (radius-var)/sigma))"
 
 
-class GeneralizedSigmoidFramework(equations_data.GeneralizedSigmoidData,
-                                  EquationFramework):
+
+class GeneralizedSigmoidFramework(equations_data.GeneralizedSigmoidData, EquationFramework):
     """ This class exists to add framework methods to GeneralizedSigmoidData """
+
+
     @property
     def ui_equation(self):
         return "low + (high - low) / (1.0 + 2.71**(-1.8137993642342178 * (var-midpoint)/sigma))"
@@ -227,43 +232,47 @@ class SinusoidFramework(equations_data.SinusoidData, EquationFramework):
     pass
 
 
+
 class CosineFramework(equations_data.CosineData, EquationFramework):
     """ This class exists to add framework methods to CosineData """
     pass
 
 
+
 class AlphaFramework(equations_data.AlphaData, EquationFramework):
     """ This class exists to add framework methods to AlphaData """
+
+
     @property
     def ui_equation(self):
         return "(alpha * beta) / (beta - alpha) * (2.71**(-alpha * (var-onset)) - 2.71**(-beta * (var-onset))) if (var-onset) > 0 else  0.0 * var"
-        
-        
+
+
+
 class PulseTrainFramework(equations_data.PulseTrainData, EquationFramework):
     """ This class exists to add framework methods to PulseTrainData """
+
+
     @property
     def ui_equation(self):
         return "amp if (var % T) < tau else 0.0 * var"
 
 
+
 class GammaFramework(equations_data.GammaData, EquationFramework):
     """ This class exists to add framework methods to GammaData """
-    @property
-    def ui_equation(self):
-        return "((var / tau) ** (n - 1) * exp(-(var / tau)) )/ (tau * factorial(n - 1))"
+    pass
+
 
 
 class DoubleExponentialFramework(equations_data.DoubleExponentialData, EquationFramework):
     """ This class exists to add framework methods to GammaData """
-    @property
-    def ui_equation(self):
-        return "((amp_1 * exp(-var/tau_1) * sin(2.*pi*f_1*var)) - (amp_2 * exp(-var/ tau_2) * sin(2.*pi*f_2*var)))"
+    pass
+
 
 
 class FirstOrderVolterraFramework(equations_data.DoubleExponentialData, EquationFramework):
     """ This class exists to add framework methods to GammaData """
-    @property
-    def ui_equation(self):
-        return "1/3. * exp(-0.5*(var / tau_s)) * (sin(sqrt(1./tau_f - 1./(4.*tau_s**2)) * var)) / (sqrt(1./tau_f - 1./(4.*tau_s**2)))"    
+    pass
     
     

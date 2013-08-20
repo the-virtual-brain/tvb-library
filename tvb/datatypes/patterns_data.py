@@ -73,8 +73,8 @@ class StimuliRegionData(SpatioTemporalPatternData):
 
     connectivity = connectivity_module.Connectivity(label="Connectivity", order=1)
 
-    spatial = equations.Discrete(label="Spatial Equation", default=equations.Discrete,
-                                 fixed_type=True, order=-1)
+    spatial = equations.DiscreteEquation(label="Spatial Equation", default=equations.DiscreteEquation,
+                                         fixed_type=True, order=-1)
 
     weight = basic.List(label="scaling", locked=True, order=4)
 

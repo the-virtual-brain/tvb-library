@@ -44,6 +44,7 @@ from tvb.basic.logger.builder import get_logger
 LOG = get_logger(__name__)
 
 
+
 class Equation(equations_scientific.EquationScientific, equations_framework.EquationFramework):
     """
     This class brings together the scientific and framework methods that are
@@ -64,33 +65,29 @@ class Equation(equations_scientific.EquationScientific, equations_framework.Equa
     pass
 
 
-class FiniteSupportEquation(equations_scientific.FiniteSupportEquationScientific,
-                            equations_framework.FiniteSupportEquationFramework,
-                            Equation):
+
+class FiniteSupportEquation(Equation):
     """
-    This class brings together the scientific and framework methods that are
-    associated with the FiniteSupportEquation dataTypes.
-    
-    ::
-        
-                           FiniteSupportEquationData
-                                       |
-                                      / \\
-        FiniteSupportEquationFramework   FiniteSupportEquationScientific
-                                      \ /
-                                       |
-                              FiniteSupportEquation
-        
-    
+    Equations that decay to zero as the variable moves away from zero. It is
+    necessary to restrict spatial equation evaluated on a surface to this
+    class, are . The main purpose of this class is to facilitate filtering in the UI,
+    for patters on surface (stimuli surface and localConnectivity).
     """
     pass
+
+
 
 class SpatialApplicableEquation(Equation):
+    """
+    Abstract class introduced just for filtering what equations to be displayed in UI,
+    for setting model parameters on the Surface level.
+    """
     pass
 
 
-class Discrete(equations_scientific.DiscreteScientific,
-               equations_framework.DiscreteFramework, FiniteSupportEquation):
+
+class DiscreteEquation(equations_scientific.DiscreteEquationScientific,
+                       equations_framework.DiscreteEquationFramework, FiniteSupportEquation):
     """
     This class brings together the scientific and framework methods that are
     associated with the Discrete datatypes.
@@ -110,29 +107,9 @@ class Discrete(equations_scientific.DiscreteScientific,
     pass
 
 
-#class Scaling(equations_scientific.ScalingScientific,
-#            equations_framework.ScalingFramework, Equation):
-#    """
-#    This class brings together the scientific and framework methods that are
-#    associated with the Scaling datatypes.
-#    
-#    ::
-#        
-#                            ScalingData
-#                                 |
-#                                / \\
-#                ScalingFramework   ScalingScientific
-#                                \ /
-#                                 |
-#                              Scaling
-#        
-#    
-#    """
-#    pass
-
 
 class Linear(equations_scientific.LinearScientific,
-            equations_framework.LinearFramework, Equation):
+             equations_framework.LinearFramework, Equation):
     """
     This class brings together the scientific and framework methods that are
     associated with the Linear datatypes.
@@ -150,6 +127,7 @@ class Linear(equations_scientific.LinearScientific,
     
     """
     pass
+
 
 
 class Gaussian(equations_scientific.GaussianScientific,
@@ -173,8 +151,9 @@ class Gaussian(equations_scientific.GaussianScientific,
     pass
 
 
+
 class DoubleGaussian(equations_scientific.DoubleGaussianScientific,
-               equations_framework.DoubleGaussianFramework, FiniteSupportEquation):
+                     equations_framework.DoubleGaussianFramework, FiniteSupportEquation):
     """
     This class brings together the scientific and framework methods that are
     associated with the DoubleGaussian datatypes.
@@ -194,8 +173,9 @@ class DoubleGaussian(equations_scientific.DoubleGaussianScientific,
     pass
 
 
+
 class Sigmoid(equations_scientific.SigmoidScientific,
-               equations_framework.SigmoidFramework, SpatialApplicableEquation, FiniteSupportEquation):
+              equations_framework.SigmoidFramework, SpatialApplicableEquation, FiniteSupportEquation):
     """
     This class brings together the scientific and framework methods that are
     associated with the Sigmoid datatypes.
@@ -215,8 +195,9 @@ class Sigmoid(equations_scientific.SigmoidScientific,
     pass
 
 
+
 class GeneralizedSigmoid(equations_scientific.GeneralizedSigmoidScientific,
-               equations_framework.GeneralizedSigmoidFramework, Equation):
+                         equations_framework.GeneralizedSigmoidFramework, Equation):
     """
     This class brings together the scientific and framework methods that are
     associated with the Generalized Sigmoid datatypes.
@@ -234,6 +215,8 @@ class GeneralizedSigmoid(equations_scientific.GeneralizedSigmoidScientific,
     
     """
     pass
+
+
 
 class Sinusoid(equations_scientific.SinusoidScientific,
                equations_framework.SinusoidFramework, Equation):
@@ -254,10 +237,11 @@ class Sinusoid(equations_scientific.SinusoidScientific,
     
     """
     pass
-    
+
+
 
 class Cosine(equations_scientific.CosineScientific,
-               equations_framework.CosineFramework, Equation):
+             equations_framework.CosineFramework, Equation):
     """
     This class brings together the scientific and framework methods that are
     associated with the Sinusoid datatypes.
@@ -275,6 +259,7 @@ class Cosine(equations_scientific.CosineScientific,
     
     """
     pass
+
 
 
 class Alpha(equations_scientific.AlphaScientific,
@@ -298,8 +283,9 @@ class Alpha(equations_scientific.AlphaScientific,
     pass
 
 
+
 class PulseTrain(equations_scientific.PulseTrainScientific,
-            equations_framework.PulseTrainFramework, Equation):
+                 equations_framework.PulseTrainFramework, Equation):
     """
     This class brings together the scientific and framework methods that are
     associated with the PulseTrain datatypes.
@@ -319,8 +305,18 @@ class PulseTrain(equations_scientific.PulseTrainScientific,
     pass
 
 
+
+
+class HRFKernelEquation(Equation):
+    """
+    Abstract class introduced just for filtering what equations to be displayed in UI, for BOLD Monitor.
+    """
+    pass
+
+
+
 class Gamma(equations_scientific.GammaScientific,
-            equations_framework.GammaFramework, Equation):
+            equations_framework.GammaFramework, HRFKernelEquation):
     """
     This class brings together the scientific and framework methods that are
     associated with the Gamma datatypes.
@@ -340,8 +336,9 @@ class Gamma(equations_scientific.GammaScientific,
     pass
 
 
+
 class DoubleExponential(equations_scientific.DoubleExponentialScientific,
-            equations_framework.DoubleExponentialFramework, Equation):
+                        equations_framework.DoubleExponentialFramework, HRFKernelEquation):
     """
     This class brings together the scientific and framework methods that are
     associated with the DoubleExponential datatypes.
@@ -361,8 +358,9 @@ class DoubleExponential(equations_scientific.DoubleExponentialScientific,
     pass
 
 
+
 class FirstOrderVolterra(equations_scientific.FirstOrderVolterraScientific,
-            equations_framework.FirstOrderVolterraFramework, Equation):
+                         equations_framework.FirstOrderVolterraFramework, HRFKernelEquation):
     """
     This class brings together the scientific and framework methods that are
     associated with the DoubleExponential datatypes.

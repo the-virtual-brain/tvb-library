@@ -1066,7 +1066,7 @@ class Bold(Monitor):
         an integral multiple of 500. Typical measurment interval (repetition 
         time TR) is between 1-3 s. If TR is 2s, then Bold period is 2000ms.""")
 
-    hrf_kernel = equations.Equation(
+    hrf_kernel = equations.HRFKernelEquation(
         label = "Haemodynamic Response Function",
         default = equations.FirstOrderVolterra,
         required = True,
