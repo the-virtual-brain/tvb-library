@@ -37,6 +37,32 @@ import os
 import sys
 
 
+class LibraryModulesFinder():
+    """
+    In case users run TVB in 'library' profile access should be restricted
+    to some parts of tvb.
+    """
+    restricted_modules = ['tvb.interfaces',
+                          'tvb.datatype_removers',
+                          'tvb.core',
+                          'tvb.config',
+                          'tvb.adapters']
+    
+    
+    def find_module(self, fullname, path=None):
+        if fullname in self.restricted_modules:
+            return self
+        
+        
+    def load_module(self, module_name):
+        info_message = str("You are trying to import the module `%s` in library mode."
+                           "The library profile is a lightweight version of TVB and you "
+                           "only have access to the simulator, analyzers and datatypes packages."
+                           "If you want to use the entire TVB Framework start it either in command "
+                           "or web interface profile." % module_name)
+        raise ImportError(info_message)
+    
+
 class TvbProfile():
     """
     ENUM-like class with current TVB profile values.
@@ -107,6 +133,9 @@ class TvbProfile():
             if remove_from_args:
                 script_argv.remove(selected_profile)
                 script_argv.remove(TvbProfile.SUBPARAM_PROFILE)
+                
+            if selected_profile == TvbProfile.LIBRARY_PROFILE:
+                sys.meta_path.append(LibraryModulesFinder())
         
 
     @staticmethod
