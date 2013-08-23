@@ -124,7 +124,7 @@ class TvbProfile():
             # python -m will always consider the current folder as the first to search in.
             sys.path = os.environ.get("PYTHONPATH", "").split(os.pathsep) + sys.path
             for key in sys.modules.keys():
-                if key.startswith("tvb") and  sys.modules[key]:
+                if key.startswith("tvb") and sys.modules[key]:
                     reload(sys.modules[key])
 
         if selected_profile is not None:
