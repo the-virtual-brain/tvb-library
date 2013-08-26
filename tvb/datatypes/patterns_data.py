@@ -59,7 +59,7 @@ class SpatioTemporalPatternData(SpatialPatternData):
     Combine space and time equations.
     """
 
-    temporal = equations.Equation(label="Temporal Equation", order=3)
+    temporal = equations.TemporalApplicableEquation(label="Temporal Equation", order=3)
     #space must be shape (x, 1); time must be shape (1, t)
 
 
