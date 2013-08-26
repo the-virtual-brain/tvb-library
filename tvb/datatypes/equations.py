@@ -66,7 +66,16 @@ class Equation(equations_scientific.EquationScientific, equations_framework.Equa
 
 
 
-class FiniteSupportEquation(Equation):
+class TemporalApplicableEquation(Equation):
+    """
+    Abstract class introduced just for filtering what equations to be displayed in UI,
+    for setting the temporal component in Stimulus on region and surface.
+    """
+    pass
+
+
+
+class FiniteSupportEquation(TemporalApplicableEquation):
     """
     Equations that decay to zero as the variable moves away from zero. It is
     necessary to restrict spatial equation evaluated on a surface to this
@@ -108,8 +117,7 @@ class DiscreteEquation(equations_scientific.DiscreteEquationScientific,
 
 
 
-class Linear(equations_scientific.LinearScientific,
-             equations_framework.LinearFramework, Equation):
+class Linear(equations_scientific.LinearScientific, equations_framework.LinearFramework, TemporalApplicableEquation):
     """
     This class brings together the scientific and framework methods that are
     associated with the Linear datatypes.
@@ -197,7 +205,7 @@ class Sigmoid(equations_scientific.SigmoidScientific,
 
 
 class GeneralizedSigmoid(equations_scientific.GeneralizedSigmoidScientific,
-                         equations_framework.GeneralizedSigmoidFramework, Equation):
+                         equations_framework.GeneralizedSigmoidFramework, TemporalApplicableEquation):
     """
     This class brings together the scientific and framework methods that are
     associated with the Generalized Sigmoid datatypes.
@@ -219,7 +227,7 @@ class GeneralizedSigmoid(equations_scientific.GeneralizedSigmoidScientific,
 
 
 class Sinusoid(equations_scientific.SinusoidScientific,
-               equations_framework.SinusoidFramework, Equation):
+               equations_framework.SinusoidFramework, TemporalApplicableEquation):
     """
     This class brings together the scientific and framework methods that are
     associated with the Sinusoid datatypes.
@@ -241,7 +249,7 @@ class Sinusoid(equations_scientific.SinusoidScientific,
 
 
 class Cosine(equations_scientific.CosineScientific,
-             equations_framework.CosineFramework, Equation):
+             equations_framework.CosineFramework, TemporalApplicableEquation):
     """
     This class brings together the scientific and framework methods that are
     associated with the Sinusoid datatypes.
@@ -263,7 +271,7 @@ class Cosine(equations_scientific.CosineScientific,
 
 
 class Alpha(equations_scientific.AlphaScientific,
-            equations_framework.AlphaFramework, Equation):
+            equations_framework.AlphaFramework, TemporalApplicableEquation):
     """
     This class brings together the scientific and framework methods that are
     associated with the Alpha datatypes.
@@ -285,7 +293,7 @@ class Alpha(equations_scientific.AlphaScientific,
 
 
 class PulseTrain(equations_scientific.PulseTrainScientific,
-                 equations_framework.PulseTrainFramework, Equation):
+                 equations_framework.PulseTrainFramework, TemporalApplicableEquation):
     """
     This class brings together the scientific and framework methods that are
     associated with the PulseTrain datatypes.
@@ -315,8 +323,7 @@ class HRFKernelEquation(Equation):
 
 
 
-class Gamma(equations_scientific.GammaScientific,
-            equations_framework.GammaFramework, HRFKernelEquation):
+class Gamma(equations_scientific.GammaScientific, equations_framework.GammaFramework, HRFKernelEquation):
     """
     This class brings together the scientific and framework methods that are
     associated with the Gamma datatypes.

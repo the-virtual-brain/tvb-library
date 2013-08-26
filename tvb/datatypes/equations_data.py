@@ -61,8 +61,8 @@ class EquationData(basic.MapAsJson, core.Type):
     Within the UI we'll access via the specific Equation subclasses implemented below.
     
     """
-    _base_classes = ['Equation', 'FiniteSupportEquation', "DiscreteEquation", "SpatialApplicableEquation",
-                     "HRFKernelEquation",
+    _base_classes = ['Equation', 'FiniteSupportEquation', "DiscreteEquation",
+                     "TemporalApplicableEquation", "SpatialApplicableEquation", "HRFKernelEquation",
                      #TODO: There should be a refactor of Coupling which may make these unnecessary
                      'Coupling', 'CouplingData', 'CouplingScientific', 'CouplingFramework',
                      'LinearCoupling', 'LinearCouplingData', 'LinearCouplingScientific', 'LinearCouplingFramework',

@@ -421,7 +421,7 @@ class Multiplicative(Noise):
         Sensible values are typically ~<< 1% of the dynamic range of a Model's
         state variables.""")
 
-    b = equations.Equation(
+    b = equations.TemporalApplicableEquation(
         label = ":math:`b`",
         default = equations.Linear(parameters = {"a": 1.0, "b": 0.0}),
         doc = """A function evaluated on the state-variables, the result of
