@@ -175,13 +175,13 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
         self.store_data_chunk("data", partial_result, grow_dimension=0, close_file=False)
 
 
-    def get_min_max_values(self, page_size=500, specific_slices=None):
+    def get_min_max_values(self):
         """
-        Compute a good approximation for MIN and MAX values of the current array.
-        Will be taken in consideration only the first page of data.
+        Retrieve the minimum and maximum values from the metadata.
+        :returns: (minimum_value, maximum_value)
         """
-        first_page = self.read_data_page(0, page_size, specific_slices)
-        return numpy.min(first_page), numpy.max(first_page)
+        metadata = self.get_metadata('data')
+        return metadata["Minimum"], metadata["Maximum"]
 
 
     def get_space_labels(self):
