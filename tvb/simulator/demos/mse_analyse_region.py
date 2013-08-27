@@ -115,6 +115,7 @@ TCi --> inferior temporal cortex
 # Third party python libraries
 import numpy
 import os
+import tvb.simulator
 from scipy import io
 from matplotlib.pyplot import *
 
