@@ -252,3 +252,37 @@ class DoubleExponentialScientific(equations_data.DoubleExponentialData, Equation
 class FirstOrderVolterraScientific(equations_data.FirstOrderVolterraData, EquationScientific):
     """ This class exists to add scientific methods to FirstOrderVolterraData """
     pass
+
+
+
+class MixtureOfGammasScientific(equations_data.MixtureOfGammasData, EquationScientific):
+    """ This class exists to add scientific methods to MixtureOfGammasData """
+
+    #------------------------------ pattern -----------------------------------#
+
+    def _get_pattern(self):
+        """
+        Return a discrete representation of the equation.
+        """
+        return self._pattern
+
+
+    def _set_pattern(self, var):
+        """
+        Generate a discrete representation of the equation for the space
+        represented by ``var``.
+        
+        .. note: numexpr doesn't support gamma function
+        
+        """
+
+        # get gamma functions
+        from scipy.special import gamma as sp_gamma  
+        self.parameters["gamma_a_1"] = sp_gamma(self.parameters["a_1"])
+        self.parameters["gamma_a_2"] = sp_gamma(self.parameters["a_2"])
+
+        self._pattern = numexpr.evaluate(self.equation, global_dict=self.parameters)
+
+
+    pattern = property(fget=_get_pattern, fset=_set_pattern)
+    #--------------------------------------------------------------------------#

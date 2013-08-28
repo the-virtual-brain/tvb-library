@@ -386,3 +386,24 @@ class FirstOrderVolterra(equations_scientific.FirstOrderVolterraScientific,
     """
     pass
 
+
+
+class MixtureOfGammas(equations_scientific.MixtureOfGammasScientific, equations_framework.MixtureOfGammasFramework, HRFKernelEquation):
+    """
+    This class brings together the scientific and framework methods that are
+    associated with the Gamma datatypes.
+    
+    ::
+        
+                        MixtureOfGammasData
+                                 |
+                                / \\
+        MixtureOfGammasFramework   MixtureOfGammasScientific
+                                \ /
+                                 |
+                          MixtureOfGammas
+        
+    
+    """
+    pass
+

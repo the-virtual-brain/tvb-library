@@ -274,5 +274,9 @@ class DoubleExponentialFramework(equations_data.DoubleExponentialData, EquationF
 class FirstOrderVolterraFramework(equations_data.DoubleExponentialData, EquationFramework):
     """ This class exists to add framework methods to GammaData """
     pass
+
+class MixtureOfGammasFramework(equations_data.MixtureOfGammasData, EquationFramework):
+    """ This class exists to add framework methods to GammaData """
+    pass
     
     
