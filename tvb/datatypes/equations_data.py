@@ -316,7 +316,7 @@ class GammaData(EquationData):
 
     parameters = basic.Dict(
         label="Gamma Parameters",
-        default={"tau": 1.08, "n": 3.0, "factorial": 2.0, "a": 0.01})
+        default={"tau": 1.08, "n": 3.0, "factorial": 2.0, "a": 0.1})
 
 
 
@@ -359,7 +359,7 @@ class DoubleExponentialData(EquationData):
         label="Double Exponential Parameters",
         default={"tau_1": 7.22, "f_1": 0.03, "amp_1": 0.1,
                  "tau_2": 7.4, "f_2": 0.12, "amp_2": 0.1,
-                 "a": 0.01, "pi": numpy.pi})
+                 "a": 0.1, "pi": numpy.pi})
 
 
 
