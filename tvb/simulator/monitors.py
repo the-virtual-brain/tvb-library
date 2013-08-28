@@ -1033,13 +1033,17 @@ class Bold(Monitor):
         (2000). Neuronal activity in human primary visual cortex correlates with
         perception during binocular rivalry. Nature Neuroscience 3: 1153-1159
 
+    .. [G_1999] Glover, G. *Deconvolution of Impulse Response in Event-Related BOLD fMRI*.
+        NeuroImage 9, 416-429, 1999.
+
   
-    .. VJ derivation...
+    .. VJ derivation in the review paper.
 
     .. note:: LIMITATIONS: sampling period must be integer multiple of 500ms
 
     .. note:: CONSIDERATIONS: It is  sensible to use this monitor if your 
               simulation length is > 30s (30000ms)
+
     .. note:: gamma and polonsky are based on the nitime implementation
               http://nipy.org/nitime/api/generated/nitime.fmri.hrf.html
 
@@ -1075,7 +1079,7 @@ class Bold(Monitor):
 
     hrf_length = basic.Float(
         label = "Duration (ms)",
-        default = 19200.,
+        default = 20000.,
         doc= """Duration of the hrf kernel""",
         order=-1)
 
@@ -1126,7 +1130,7 @@ class Bold(Monitor):
         LOG.warning("%s: Needs testing, debugging, etc..." % repr(self))
 
         self._stock_sample_rate = 2.0**-2 #/ms    # NOTE: An integral multiple of dt
-        magic_number = self.hrf_length * 0.8      # truncates G, volterra kernel, once ~zero 
+        magic_number = self.hrf_length #* 0.8      # truncates G, volterra kernel, once ~zero 
 
         #Length of history needed for convolution in steps @ _stock_sample_rate
         required_history_length = self._stock_sample_rate * magic_number # 3840 for tau_s=0.8
