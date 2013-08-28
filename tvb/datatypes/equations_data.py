@@ -378,7 +378,7 @@ class FirstOrderVolterraData(EquationData):
     :math:`V_0 : Resting blood volume fraction. 
 
 
-    Reference:
+    References:
     ---------- 
     .. [F_2000] Friston, K., Mechelli, A., Turner, R., and Price, C., *Nonlinear 
         Responses in fMRI: The Balloon Model, Volterra Kernels, and Other 
@@ -402,5 +402,72 @@ class FirstOrderVolterraData(EquationData):
              = 0 \\; \\; \\; \\; \\; \\;  for \\; \\; \\;  t < t^{\\prime}`.""")
 
     parameters = basic.Dict(
-        label="Double Exponential Parameters",
+        label="Mixture of Gammas Parameters",
         default={"tau_s": 0.8, "tau_f": 0.4, "k_1": 5.6, "V_0": 0.02})
+
+
+
+class MixtureOfGammasData(EquationData):
+    """
+    A mixture of two gamma distributions to create a kernel similar to the one used in SPM.
+
+    >> import scipy.stats as sp_stats
+    >> import numpy
+    >> t = numpy.linspace(1,20,100)
+    >> a1, a2 = 6., 10.
+    >> lambda = 1.
+    >> c      = 0.5
+    >> hrf    = sp_stats.gamma.pdf(t, a1, lambda) - c * sp_stats.gamma.pdf(t, a2, lambda)
+
+    gamma.pdf(x, a, theta) = (lambda*x)**(a-1) * exp(-lambda*x) / gamma(a)
+    a                 : shape parameter
+    theta: 1 / lambda : scale parameter
+
+
+    References:
+    ---------- 
+
+    .. [G_1999] Glover, G. *Deconvolution of Impulse Response in Event-Related BOLD fMRI*.
+                NeuroImage 9, 416-429, 1999.
+
+
+    Parameters:
+    ----------
+
+    :math:`a_{1}`       : shape parameter first gamma pdf.
+    :math:`a_{2}`       : shape parameter second gamma pdf.
+    :math:`\\lambda`    : scale parameter first gamma pdf.
+
+
+    Default values are based on [G_1999]_:
+    :math:`a_{1} - 1 = n_{1} =  5.0` 
+    :math:`a_{2} - 1 = n_{2} = 12.0`
+    :math:`c \\equiv a_{2}   = 0.4` 
+
+    Alternative values :math:`a_{2}=10` and :math:`c=0.5`
+
+    NOTE: gamma_a_1 and gamma_a_2 are placeholders, the true values are
+    computed before evaluating the expression, because numexpr does not
+    support certain functions.
+
+    NOTE: [G_1999]_ used a different analytical function that can be approximated
+    by this difference of gamma pdfs
+
+    """
+
+    _ui_name = "HRF kernel: Mixture of Gammas"
+
+    equation = basic.String(
+        label="Mixture of Gammas",
+        default="(l * var)**(a_1-1) * exp(-l*var) / gamma_a_1 - c * (l*var)**(a_2-1) * exp(-l*var) / gamma_a_2",
+        locked=True,
+        doc=""":math:`\\frac{\\lambda \\,t^{a_{1} - 1} \\,\\, \\exp^{-\\lambda \\,t}}{\\Gamma(a_{1})} 
+        - 0.5 \\frac{\\lambda \\,t^{a_{2} - 1} \\,\\, \\exp^{-\\lambda \\,t}}{\\Gamma(a_{2})}`.""")
+
+    parameters = basic.Dict(
+        label="Double Exponential Parameters",
+        default={"a_1": 6.0, "a_2": 13.0, "l":1.0, "c": 0.4, "gamma_a_1":1.0, "gamma_a_2":1.0})
+
+
+# TODO: half cosine model
+# TODO: mixture of gammma functions (Glover 1999 and Lindquist implementation 2009)
