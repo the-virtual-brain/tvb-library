@@ -436,7 +436,7 @@ class WilsonCowan(Model):
     _ui_name = "Wilson-Cowan model"
     ui_configurable_parameters = ['c_1', 'c_2', 'c_3', 'c_4', 'tau_e', 'tau_i',
                                   'a_e', 'theta_e', 'a_i', 'theta_i', 'r_e',
-                                  'r_i', 'k_e', 'k_i']
+                                  'r_i', 'k_e', 'k_i', 'P', 'Q']
 
     #Define traited attributes for this model, these represent possible kwargs.
     c_1 = arrays.FloatArray(
@@ -539,6 +539,21 @@ class WilsonCowan(Model):
         doc="""Maximum value of the inhibitory response function""",
         order=14)
 
+    P = arrays.FloatArray(
+        label=":math:`k_i`",
+        default=numpy.array([0.0]),
+        range=basic.Range(lo=0.0, hi=2.0, step=0.01),
+        doc="""External stimulus to the excitatory population. Constant intensity.Entry point for coupling.""",
+        order=15)
+
+    Q = arrays.FloatArray(
+        label=":math:`k_i`",
+        default=numpy.array([0.0]),
+        range=basic.Range(lo=0.0, hi=2.0, step=0.01),
+        doc="""External stimulus to the inhibitory population. Constant intensity.Entry point for coupling.""",
+        order=16)
+
+
     #Used for phase-plane axis ranges and to bound random initial() conditions.
     state_variable_range = basic.Dict(
         label="State Variable ranges [lo, hi]",
@@ -615,7 +630,7 @@ class WilsonCowan(Model):
         lc_0 = local_coupling * E
         lc_1 = local_coupling * I 
 
-        x_e = self.c_1 * E - self.c_2 * I + c_0 + lc_0 + lc_1
+        x_e = self.c_1 * E - self.c_2 * I + 1.25 + c_0 + lc_0 + lc_1
         x_i = self.c_3 * E - self.c_4 * I + c_0 + lc_0 + lc_1
 
         s_e = 1.0 / (1.0 + numpy.exp(-self.a_e * (x_e - self.theta_e)))
@@ -1838,7 +1853,7 @@ class JansenRit(Model):
         y4 = state_variables[4, :]
         y5 = state_variables[5, :]
 
-        c_0 = coupling[0, :]
+        c_0 = coupling[1, :] -  coupling[2, :]
 
         # NOTE: for local couplings
         # 0: pyramidal cells
@@ -1921,6 +1936,7 @@ class JansenRit(Model):
         DX(5) = B * b * (a_4 + J * sigm_y0_3) - 2.0 * b * y5 - b*b*y2;
         """
     )
+
 
 
 class Generic2dOscillator(Model):
@@ -2101,6 +2117,13 @@ class Generic2dOscillator(Model):
         doc="""Coefficient of the cubic term of the cubic nullcline.""",
         order=-1)
 
+    g = arrays.FloatArray(
+        label=":math:`f`",
+        default=numpy.array([0.0]),
+        range=basic.Range(lo=-5.0, hi=5.0, step=0.5),
+        doc="""Coefficient of the linear term of the cubic nullcline.""",
+        order=-1)
+
     alpha = arrays.FloatArray(
         label=":math:`\alpha`",
         default=numpy.array([1.0]),
@@ -2177,6 +2200,8 @@ class Generic2dOscillator(Model):
         If there is a time scale hierarchy, then typically :math:`V` is faster 
         than :math:`W` corresponding to a value of :math:`\tau` greater than 1.
 
+        #TODO: update equations
+
         The equations of the generic 2D population model read
 
         .. math::
@@ -2202,6 +2227,7 @@ class Generic2dOscillator(Model):
         d = self.d
         e = self.e
         f = self.f
+        g = self.g
         beta = self.beta
         alpha = self.alpha
 
@@ -2212,7 +2238,7 @@ class Generic2dOscillator(Model):
         #    self.derivative = numpy.empty((2,)+V.shape)
 
         ## numexpr       
-        dV = ev('d * tau * (alpha * W - f * V**3 + e * V**2 + I + c_0 + lc_0)')
+        dV = ev('d * tau * (alpha * W - f * V**3 + e * V**2 + g * V + I + c_0 + lc_0)')
         dW = ev('d * (a + b * V + c * V**2 - beta * W) / tau')
 
         ## regular ndarray operation
