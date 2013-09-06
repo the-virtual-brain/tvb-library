@@ -436,7 +436,7 @@ class WilsonCowan(Model):
     _ui_name = "Wilson-Cowan model"
     ui_configurable_parameters = ['c_1', 'c_2', 'c_3', 'c_4', 'tau_e', 'tau_i',
                                   'a_e', 'theta_e', 'a_i', 'theta_i', 'r_e',
-                                  'r_i', 'k_e', 'k_i']
+                                  'r_i', 'k_e', 'k_i', 'P', 'Q']
 
     #Define traited attributes for this model, these represent possible kwargs.
     c_1 = arrays.FloatArray(
@@ -539,6 +539,21 @@ class WilsonCowan(Model):
         doc="""Maximum value of the inhibitory response function""",
         order=14)
 
+    P = arrays.FloatArray(
+        label=":math:`k_i`",
+        default=numpy.array([0.0]),
+        range=basic.Range(lo=0.0, hi=2.0, step=0.01),
+        doc="""External stimulus to the excitatory population. Constant intensity.Entry point for coupling.""",
+        order=15)
+
+    Q = arrays.FloatArray(
+        label=":math:`k_i`",
+        default=numpy.array([0.0]),
+        range=basic.Range(lo=0.0, hi=2.0, step=0.01),
+        doc="""External stimulus to the inhibitory population. Constant intensity.Entry point for coupling.""",
+        order=16)
+
+
     #Used for phase-plane axis ranges and to bound random initial() conditions.
     state_variable_range = basic.Dict(
         label="State Variable ranges [lo, hi]",
@@ -615,7 +630,7 @@ class WilsonCowan(Model):
         lc_0 = local_coupling * E
         lc_1 = local_coupling * I 
 
-        x_e = self.c_1 * E - self.c_2 * I + c_0 + lc_0 + lc_1
+        x_e = self.c_1 * E - self.c_2 * I + 1.25 + c_0 + lc_0 + lc_1
         x_i = self.c_3 * E - self.c_4 * I + c_0 + lc_0 + lc_1
 
         s_e = 1.0 / (1.0 + numpy.exp(-self.a_e * (x_e - self.theta_e)))
@@ -1775,7 +1790,7 @@ class JansenRit(Model):
         #self._state_variables = ["y0", "y1", "y2", "y3", "y4", "y5"]
         self._nvar = 6
 
-        self.cvar = numpy.array([0], dtype=numpy.int32)
+        self.cvar = numpy.array([1, 2], dtype=numpy.int32)
 
         #TODO: adding an update_derived_parameters method to remove some of the
         #      redundant parameter multiplication in dfun should gain about 7%
@@ -1838,7 +1853,7 @@ class JansenRit(Model):
         y4 = state_variables[4, :]
         y5 = state_variables[5, :]
 
-        c_0 = coupling[0, :]
+        lrc = coupling[0, :] -  coupling[1, :]
 
         # NOTE: for local couplings
         # 0: pyramidal cells
@@ -1866,7 +1881,7 @@ class JansenRit(Model):
         dy0 = y3
         dy3 = self.A * self.a * sigm_y1_y2 - 2.0 * self.a * y3 - self.a ** 2 * y0
         dy1 = y4
-        dy4 = self.A * self.a * (self.mu + self.a_2 * self.J * sigm_y0_1 + c_0) - 2.0 * self.a * y4 - self.a ** 2 * y1
+        dy4 = self.A * self.a * (self.mu + self.a_2 * self.J * sigm_y0_1 + lrc) - 2.0 * self.a * y4 - self.a ** 2 * y1
         dy2 = y5
         dy5 = self.B * self.b * (self.a_4 * self.J * sigm_y0_3) - 2.0 * self.b * y5 - self.b ** 2 * y2
 
@@ -1921,6 +1936,7 @@ class JansenRit(Model):
         DX(5) = B * b * (a_4 + J * sigm_y0_3) - 2.0 * b * y5 - b*b*y2;
         """
     )
+
 
 
 class Generic2dOscillator(Model):
@@ -2101,6 +2117,13 @@ class Generic2dOscillator(Model):
         doc="""Coefficient of the cubic term of the cubic nullcline.""",
         order=-1)
 
+    g = arrays.FloatArray(
+        label=":math:`f`",
+        default=numpy.array([0.0]),
+        range=basic.Range(lo=-5.0, hi=5.0, step=0.5),
+        doc="""Coefficient of the linear term of the cubic nullcline.""",
+        order=-1)
+
     alpha = arrays.FloatArray(
         label=":math:`\alpha`",
         default=numpy.array([1.0]),
@@ -2177,6 +2200,8 @@ class Generic2dOscillator(Model):
         If there is a time scale hierarchy, then typically :math:`V` is faster 
         than :math:`W` corresponding to a value of :math:`\tau` greater than 1.
 
+        #TODO: update equations
+
         The equations of the generic 2D population model read
 
         .. math::
@@ -2202,6 +2227,7 @@ class Generic2dOscillator(Model):
         d = self.d
         e = self.e
         f = self.f
+        g = self.g
         beta = self.beta
         alpha = self.alpha
 
@@ -2212,7 +2238,7 @@ class Generic2dOscillator(Model):
         #    self.derivative = numpy.empty((2,)+V.shape)
 
         ## numexpr       
-        dV = ev('d * tau * (alpha * W - f * V**3 + e * V**2 + I + c_0 + lc_0)')
+        dV = ev('d * tau * (alpha * W - f * V**3 + e * V**2 + g * V + I + c_0 + lc_0)')
         dW = ev('d * (a + b * V + c * V**2 - beta * W) / tau')
 
         ## regular ndarray operation
@@ -3474,3 +3500,233 @@ class Kuramoto(Model):
 
         """
     )
+
+
+
+class JansenRitDavid(Model):
+    """
+    The Jansen and Rit models as studied by David et al., 2005
+    #TODO: finish this model
+
+
+   
+    .. #Currently there seems to be a clash betwen traits and autodoc, autodoc
+    .. #can't find the methods of the class, the class specific names below get
+    .. #us around this...
+    .. automethod:: JansenRit.__init__
+    .. automethod:: JansenRit.dfun
+
+    """
+
+    _ui_name = "Jansen-Rit (David et al., 2005)"
+    ui_configurable_parameters = []
+
+
+    #Define traited attributes for this model, these represent possible kwargs.
+    He = arrays.FloatArray(
+        label=":math:`He`",
+        default=numpy.array([3.25]),
+        range=basic.Range(lo=2.6, hi=9.75, step=0.05),
+        doc="""Maximum amplitude of EPSP [mV]. Also called average synaptic gain.""",
+        order=1)
+
+    Hi = arrays.FloatArray(
+        label=":math:`B`",
+        default=numpy.array([29.3]),
+        range=basic.Range(lo=17.6, hi=110.0, step=0.2),
+        doc="""Maximum amplitude of IPSP [mV]. Also called average synaptic gain.""",
+        order=2)
+
+    tau_e = arrays.FloatArray(
+        label=":math:`a`",
+        default=numpy.array([0.1]),
+        range=basic.Range(lo=0.05, hi=0.15, step=0.01),
+        doc="""time constant""",
+        order=3)
+
+    tau_i = arrays.FloatArray(
+        label=":math:`b`",
+        default=numpy.array([0.15]),
+        range=basic.Range(lo=0.025, hi=0.075, step=0.005),
+        doc="""time constant""",
+        order=4)
+
+    eo = arrays.FloatArray(
+        label=":math:`v_0`",
+        default=numpy.array([0.0025]),
+        range=basic.Range(lo=3.12, hi=6.0, step=0.02),
+        doc="""Firing threshold (PSP) for which a 50% firing rate is achieved.
+        In other words, it is the value of the average membrane potential
+        corresponding to the inflection point of the sigmoid [mV].""",
+        order=5)
+
+
+    r = arrays.FloatArray(
+        label=":math:`r`",
+        default=numpy.array([0.56]),
+        range=basic.Range(lo=0.28, hi=0.84, step=0.01),
+        doc="""Steepness of the sigmoidal transformation [mV^-1].""",
+        order=7)
+
+
+    gamma_1 = arrays.FloatArray(
+        label=r":math:`\alpha_1`",
+        default=numpy.array([50.0]),
+        range=basic.Range(lo=0.5, hi=1.5, step=0.1),
+        doc="""Average probability of synaptic contacts in the feedback
+        excitatory loop.""",
+        order=9)
+
+    gamma_2 = arrays.FloatArray(
+        label=r":math:`\alpha_2`",
+        default=numpy.array([40.]),
+        range=basic.Range(lo=0.4, hi=1.2, step=0.1),
+        doc="""Average probability of synaptic contacts in the feedback
+        excitatory loop.""",
+        order=10)
+
+    gamma_3 = arrays.FloatArray(
+        label=r":math:`\alpha_3`",
+        default=numpy.array([12.]),
+        range=basic.Range(lo=0.125, hi=0.375, step=0.005),
+        doc="""Average probability of synaptic contacts in the feedback
+        excitatory loop.""",
+        order=11)
+
+    gamma_4 = arrays.FloatArray(
+        label=r":math:`\alpha_4`",
+        default=numpy.array([12.]),
+        range=basic.Range(lo=0.125, hi=0.375, step=0.005),
+        doc="""Average probability of synaptic contacts in the slow feedback
+        inhibitory loop.""",
+        order=12)
+
+    #Used for phase-plane axis ranges and to bound random initial() conditions.
+    state_variable_range = basic.Dict(
+        label="State Variable ranges [lo, hi]",
+        default={"x0": numpy.array([-1.0, 1.0]),
+                 "x1": numpy.array([-1.0, 1.0]),
+                 "x2": numpy.array([-5.0, 5.0]),
+                 "x3": numpy.array([-6.0, 6.0]),
+                 "x4": numpy.array([-2.0, 2.0]),
+                 "x5": numpy.array([-5.0, 5.0]),
+                 "x6": numpy.array([-5.0, 5.0]),
+                 "x7": numpy.array([-5.0, 5.0])},
+        doc="""The values for each state-variable should be set to encompass
+        the expected dynamic range of that state-variable for the current 
+        parameters, it is used as a mechanism for bounding random inital 
+        conditions when the simulation isn't started from an explicit history,
+        it is also provides the default range of phase-plane plots.""",
+        order=16)
+
+    variables_of_interest = basic.Enumerate(
+        label="Variables watched by Monitors",
+        options=["x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7"],
+        default=["x0", "x1", "x2", "x3"],
+        select_multiple=True,
+        doc="""This represents the default state-variables of this Model to be
+                                    monitored. It can be overridden for each Monitor if desired. The 
+                                    corresponding state-variable indices for this model are :math:`y0 = 0`,
+                                    :math:`y1 = 1`, :math:`y2 = 2`, :math:`y3 = 3`, :math:`y4 = 4`, and
+                                    :math:`y5 = 5`""",
+        order=17)
+
+    #    variables_of_interest = arrays.IntegerArray(
+    #        label = "Variables watched by Monitors",
+    #        range = basic.Range(lo = 0.0, hi = 6.0, step = 1.0),
+    #        default = numpy.array([0, 3], dtype=numpy.int32),
+    #        doc = """This represents the default state-variables of this Model to be
+    #        monitored. It can be overridden for each Monitor if desired. The
+    #        corresponding state-variable indices for this model are :math:`y0 = 0`,
+    #        :math:`y1 = 1`, :math:`y2 = 2`, :math:`y3 = 3`, :math:`y4 = 4`, and
+    #        :math:`y5 = 5`""",
+    #        order = 17)
+
+
+    def __init__(self, **kwargs):
+        """
+        Initialise parameters for the Jansen Rit column, [JR_1995]_.
+
+        """
+        LOG.info("%s: initing..." % str(self))
+        super(JansenRitDavid, self).__init__(**kwargs)
+
+        #self._state_variables = ["y0", "y1", "y2", "y3", "y4", "y5"]
+        self._nvar = 8
+
+        self.cvar = numpy.array([1,2], dtype=numpy.int32)
+
+        #TODO: adding an update_derived_parameters method to remove some of the
+        #      redundant parameter multiplication in dfun should gain about 7%
+        #      maybe not worth it... The three exp() kill us at ~90 times *
+        #self.nu_max2 = None #2.0 * self.nu_max
+        #self.Aa = None # self.A * self.a
+        #self.Bb = None # self.B * self.b
+        #self.aa = None # self.a**2
+        #self.a2 = None # 2.0 * self.a
+        #self.b2 = None # 2.0 * self.b
+        #self.a_1J = None # self.a_1 * self.J
+        #self.a_2J = None # self.a_2 * self.J
+        #self.a_3J = None # self.a_3 * self.J
+        #self.a_4J = None # self.a_4 * self.J
+
+        LOG.debug('%s: inited.' % repr(self))
+
+
+    def dfun(self, state_variables, coupling, local_coupling=0.0):
+        r"""
+        The dynamic equations were taken from [JR_1995]_
+
+        .. math::
+            
+
+        """
+        #NOTE: We could speed up this model by making the number below smaller,
+        #      because the exp() dominate runtime, though we'd need to validate
+        #      the trade-off in numerical accuracy...
+        magic_exp_number = 709
+        AF = 0.1
+        AB = 0.2
+        AL = 0.05
+        x0 = state_variables[0, :]
+        x1 = state_variables[1, :]
+        x2 = state_variables[2, :]
+        x3 = state_variables[3, :]
+        x4 = state_variables[4, :]
+        x5 = state_variables[5, :]
+        x6 = state_variables[6, :]
+        x7 = state_variables[7, :]
+
+        y   = x1 - x2
+        #delayed activity x1 - x2
+        c_12   = coupling[0, :] -  coupling[1, :] 
+        c_12_f = AF * ((2 * self.eo) / (1 + numpy.exp(self.r * c_12)) - self.eo)
+        c_12_b = AB * ((2 * self.eo) / (1 + numpy.exp(self.r * c_12)) - self.eo)
+        c_12_l = AL * ((2 * self.eo) / (1 + numpy.exp(self.r * c_12)) - self.eo)
+
+        lc_f  = (local_coupling *  y)  * AF
+        lc_l  = (local_coupling *  y)  * AL
+        lc_b  = (local_coupling *  y)  * AB
+
+        S_y  = (2 * self.eo) / (1 + numpy.exp(self.r * y))  - self.eo
+        S_x0 = (2 * self.eo) / (1 + numpy.exp(self.r * x0)) - self.eo
+        S_x6 = (2 * self.eo) / (1 + numpy.exp(self.r * x6)) - self.eo
+
+        # NOTE: for local couplings
+        # 0:3 pyramidal cells
+        # 1:4 excitatory interneurons
+        # 2:5 inhibitory interneurons
+        # 3:7 
+
+        dx0 = x3
+        dx3 = self.He / self.tau_e * (c_12_f + c_12_l + self.gamma_1 * S_y) - (2 * x3) / self.tau_e - (x0 / self.tau_e**2)
+        dx1 = x4
+        dx4 = self.He / self.tau_e * (c_12_b + c_12_l + self.gamma_2 * S_x0) - (2 * x4) / self.tau_e - (x1 / self.tau_e**2)
+        dx2 = x5
+        dx5 = self.Hi / self.tau_i * (self.gamma_4 * S_x6) - (2 * x5) / self.tau_i - (x2 / self.tau_i**2)
+        dx6 = x7
+        dx7 = self.He / self.tau_e * (c_12_b + c_12_l + self.gamma_3 * S_y) - (2 * x7) / self.tau_e - (x6 / self.tau_e**2)
+
+        derivative = numpy.array([dx0, dx1, dx2, dx3, dx4, dx5, dx6, dx7])
+
+        return derivative
