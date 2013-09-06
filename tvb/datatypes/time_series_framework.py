@@ -277,6 +277,10 @@ class TimeSeriesSurfaceFramework(time_series_data.TimeSeriesSurfaceData, TimeSer
 
 class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSeriesFramework):
     """ This class exists to add framework methods to TimeSeriesVolumeData. """
-    pass
 
+    def get_volume_slice(self, from_idx, to_idx):
+        from_idx, to_idx = int(from_idx), int(to_idx)
+        overall_shape = self.read_data_shape()
 
+        slices = (slice(from_idx, to_idx), slice(overall_shape[1]), slice(overall_shape[2]), slice(overall_shape[3]))
+        return self.read_data_slice(tuple(slices))
