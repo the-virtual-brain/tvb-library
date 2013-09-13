@@ -3240,13 +3240,13 @@ class ReducedWongWang(Model):
     .. [WW_2006] Kong-Fatt Wong and Xiao-Jing Wang,  *A Recurrent Network 
                 Mechanism of Time Integration in Perceptual Decisions*. 
                 Journal of Neuroscience 26(4), 1314-1328, 2006.
-    
-    DOC ME
-    There is a new paper by Gustavo Deco et al. using this reduced model.
-    First equation in the Appendix of [WW_2006]_, page 1327
 
-    Cubic nullcline
-    ---------------
+    .. [DPA_2013] Deco Gustavo, Ponce Alvarez Adrian, Dante Mantini, Gian Luca
+                  Romani, Patric Hagmann and Maurizio Corbetta. *Resting-State
+                  Functional Connectivity Emerges from Structurally and
+                  Dynamically Shaped Slow Linear Fluctuations*. The Journal of
+                  Neuroscience 32(27), 11239-11252, 2013.
+
 
 
     .. automethod:: __init__
@@ -3259,62 +3259,71 @@ class ReducedWongWang(Model):
         label=":math:`a`",
         default=numpy.array([0.270, ]),
         range=basic.Range(lo=0.0, hi=1.0),
-        doc=""" (mVnC)^{-1}. Parameter chosen to ﬁt numerical solutions.""")
+        doc=""" (mVnC)^{-1}. Parameter chosen to ﬁt numerical solutions.""",
+        order=1)
 
     b = arrays.FloatArray(
         label=":math:`b`",
         default=numpy.array([0.108, ]),
         range=basic.Range(lo=0.0, hi=1.0),
-        doc="""[kHz]. Parameter chosen to ﬁt numerical solutions.""")
+        doc="""[kHz]. Parameter chosen to ﬁt numerical solutions.""",
+        order=2)
 
     d = arrays.FloatArray(
         label=":math:`d`",
         default=numpy.array([154.0, ]),
         range=basic.Range(lo=0.0, hi=200.0),
-        doc="""[ms]. Parameter chosen to ﬁt numerical solutions.""")
+        doc="""[ms]. Parameter chosen to ﬁt numerical solutions.""",
+        order=3)
 
     gamma = arrays.FloatArray(
         label=r":math:`\gamma`",
         default=numpy.array([0.0641/1000., ]),
         range=basic.Range(lo=0.0, hi=1.0),
-        doc="""Kinetic parameter divided by 1000 to set the time scale in ms""")
+        doc="""Kinetic parameter divided by 1000 to set the time scale in ms""",
+        order=4)
 
     tau_s = arrays.FloatArray(
         label=r":math:`\tau_S`",
         default=numpy.array([100., ]),
         range=basic.Range(lo=50.0, hi=150.0),
-        doc="""Kinetic parameter. NMDA decay time constant.""")
+        doc="""Kinetic parameter. NMDA decay time constant.""",
+        order=5)
 
     w = arrays.FloatArray(
         label=r":math:`w`",
         default=numpy.array([0.9, ]),
         range=basic.Range(lo=0.0, hi=1.0, step=0.1),
-        doc="""Excitatory recurrence""")
+        doc="""Excitatory recurrence""",
+        order=6)
 
     J_N = arrays.FloatArray(
         label=r":math:`J_{N}`",
         default=numpy.array([0.2609, ]),
         range=basic.Range(lo=0.2609, hi=0.5, step=0.01),
-        doc="""Excitatory recurrence""")
+        doc="""Excitatory recurrence""",
+        order=7)
 
     I_o = arrays.FloatArray(
         label=":math:`I_{o}`",
         default=numpy.array([0.3, ]),
         range=basic.Range(lo=0.0, hi=1.0),
-        doc="""Effective external input""")
+        doc="""Effective external input""",
+        order=8)
 
     sigma_noise = arrays.FloatArray(
         label=r":math:`\sigma_{noise}`",
-        default=numpy.array([0.02, ]),
+        default=numpy.array([0.001, ]),
         range=basic.Range(lo=0.0, hi=1.0),
         doc="""Noise amplitude. Take this value into account for stochatic
-        integration schemes.""")
+        integration schemes."""
+        order=-1)
 
     state_variable_range = basic.Dict(
         label="State variable ranges [lo, hi]",
         default={"S": numpy.array([0.0, 1.0])},
-        doc="n/a",
-        order=-1
+        doc="Population firing rate",
+        order=9
     )
 
     variables_of_interest = basic.Enumerate(
@@ -3357,13 +3366,13 @@ class ReducedWongWang(Model):
 
     def dfun(self, state_variables, coupling, local_coupling=0.0):
         r"""
+        Equations taken from [DPA_2013]_ , page 11242
 
-        ..math::
+        ..math:: 
+                \frac{dS}{dt} &= -\frac{S}{\tau_s} + (1- S) \, H \, \gamma
+                H(x) &= \frac{ax - b}{1 - \exp(-d(ax -b))}
+                x &= wJ_{N}S + I_o + J_N c_0 + J_N lc_0 
 
-            \frac{dS_{i}}{dt} &= - \frac{S_{1}}{\tau_{S}} + (1 - S_{1})\gamma H_{1} \\
-            H_{1} &= \frac{a x_{1} - b}{1- \exp[-d (a x_{1} - b)]} \\
-            x_{1} &= J11  S_{1} + I_{0} + I_{1} \\
-            I_{1} &= J_{ext} \mu_{0} \left( 1 \pm \frac{c}{100}\right)
         """
 
         S   = state_variables[0, :]
@@ -3372,7 +3381,7 @@ class ReducedWongWang(Model):
         # if applicable
         lc_0 = local_coupling * S
 
-        x = self.w * self.J_N * S + self.I_o + c_0 + lc_0
+        x = self.w * self.J_N * S + self.I_o + self.J_N * c_0 + self.J_N * lc_0
         H = (self.a * x - self.b) / (1 - numpy.exp(-self.d * (self.a * x -  self.b)))
         dS = - (S / self.tau_s) + (1 - S) * H * self.gamma
 
