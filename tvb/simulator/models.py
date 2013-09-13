@@ -3247,7 +3247,6 @@ class ReducedWongWang(Model):
 
     Cubic nullcline
     ---------------
-    Oh Lord won't you buy me a brain? What to do with the phase line of this model....? 
 
 
     .. automethod:: __init__
@@ -3286,10 +3285,21 @@ class ReducedWongWang(Model):
         range=basic.Range(lo=50.0, hi=150.0),
         doc="""Kinetic parameter. NMDA decay time constant.""")
 
+    w = arrays.FloatArray(
+        label=r":math:`w`",
+        default=numpy.array([0.9, ]),
+        range=basic.Range(lo=0.0, hi=1.0, step=0.1),
+        doc="""Excitatory recurrence""")
+
+    J_N = arrays.FloatArray(
+        label=r":math:`J_{N}`",
+        default=numpy.array([0.2609, ]),
+        range=basic.Range(lo=0.2609, hi=0.5, step=0.01),
+        doc="""Excitatory recurrence""")
 
     I_o = arrays.FloatArray(
         label=":math:`I_{o}`",
-        default=numpy.array([0.3255, ]),
+        default=numpy.array([0.3, ]),
         range=basic.Range(lo=0.0, hi=1.0),
         doc="""Effective external input""")
 
@@ -3360,9 +3370,9 @@ class ReducedWongWang(Model):
         c_0 = coupling[0, :]
         
         # if applicable
-        #lc_0 = local_coupling * S
-        # NOTE: note sure about 'x'. The self connection weight (J_11) should be still included.
-        x = S + self.I_o + c_0
+        lc_0 = local_coupling * S
+
+        x = self.w * self.J_N * S + self.I_o + c_0 + lc_0
         H = (self.a * x - self.b) / (1 - numpy.exp(-self.d * (self.a * x -  self.b)))
         dS = - (S / self.tau_s) + (1 - S) * H * self.gamma
 
