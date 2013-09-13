@@ -3316,7 +3316,7 @@ class ReducedWongWang(Model):
         default=numpy.array([0.001, ]),
         range=basic.Range(lo=0.0, hi=1.0),
         doc="""Noise amplitude. Take this value into account for stochatic
-        integration schemes."""
+        integration schemes.""",
         order=-1)
 
     state_variable_range = basic.Dict(
