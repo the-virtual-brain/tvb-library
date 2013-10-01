@@ -255,7 +255,7 @@ class PulseTrainFramework(equations_data.PulseTrainData, EquationFramework):
 
     @property
     def ui_equation(self):
-        return "amp if (var % T) < tau else 0.0 * var"
+        return "amp if (var % T) <= tau and var >= onset else 0.0 * var"
 
 
 
@@ -274,6 +274,7 @@ class DoubleExponentialFramework(equations_data.DoubleExponentialData, EquationF
 class FirstOrderVolterraFramework(equations_data.DoubleExponentialData, EquationFramework):
     """ This class exists to add framework methods to GammaData """
     pass
+
 
 class MixtureOfGammasFramework(equations_data.MixtureOfGammasData, EquationFramework):
     """ This class exists to add framework methods to GammaData """
