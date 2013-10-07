@@ -49,7 +49,7 @@ authors.
 
 When using the default TVB connectivity matrix, then the slope 'a' of
 the Linear coupling function should be divided by a factor of at least
-10 to obtain similar results.
+100 to obtain similar results (see below).
 
 
 ``Run time``: 
@@ -96,7 +96,7 @@ rww.state_variable_range['S'] = numpy.array([0.0, 0.01])
 #Intialise a Connectivity
 white_matter = connectivity.Connectivity()
 white_matter.speed = numpy.array([20000.0])
-white_matter_coupling = coupling.Linear(a=1.05)
+white_matter_coupling = coupling.Linear(a=1.05/100.)
 
 #Initialise an Integrator
 hiss = noise.Additive(nsig = rww.sigma_noise)
