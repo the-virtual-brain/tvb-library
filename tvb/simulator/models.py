@@ -3258,8 +3258,8 @@ class ReducedWongWang(Model):
     a = arrays.FloatArray(
         label=":math:`a`",
         default=numpy.array([0.270, ]),
-        range=basic.Range(lo=0.0, hi=1.0),
-        doc=""" (mVnC)^{-1}. Parameter chosen to ﬁt numerical solutions.""",
+        range=basic.Range(lo=0.0, hi=0.270),
+        doc=""" [nC]^{-1}. Parameter chosen to ﬁt numerical solutions.""",
         order=1)
 
     b = arrays.FloatArray(
@@ -3271,16 +3271,16 @@ class ReducedWongWang(Model):
 
     d = arrays.FloatArray(
         label=":math:`d`",
-        default=numpy.array([154.0, ]),
+        default=numpy.array([154., ]),
         range=basic.Range(lo=0.0, hi=200.0),
         doc="""[ms]. Parameter chosen to ﬁt numerical solutions.""",
         order=3)
 
     gamma = arrays.FloatArray(
         label=r":math:`\gamma`",
-        default=numpy.array([0.0641/1000., ]),
+        default=numpy.array([0.641, ]),
         range=basic.Range(lo=0.0, hi=1.0),
-        doc="""Kinetic parameter divided by 1000 to set the time scale in ms""",
+        doc="""Kinetic parameter""",
         order=4)
 
     tau_s = arrays.FloatArray(
@@ -3292,7 +3292,7 @@ class ReducedWongWang(Model):
 
     w = arrays.FloatArray(
         label=r":math:`w`",
-        default=numpy.array([0.9, ]),
+        default=numpy.array([0.6, ]),
         range=basic.Range(lo=0.0, hi=1.0, step=0.1),
         doc="""Excitatory recurrence""",
         order=6)
@@ -3306,16 +3306,16 @@ class ReducedWongWang(Model):
 
     I_o = arrays.FloatArray(
         label=":math:`I_{o}`",
-        default=numpy.array([0.3, ]),
+        default=numpy.array([0.33, ]),
         range=basic.Range(lo=0.0, hi=1.0),
-        doc="""Effective external input""",
+        doc="""[nA] Effective external input""",
         order=8)
 
     sigma_noise = arrays.FloatArray(
         label=r":math:`\sigma_{noise}`",
-        default=numpy.array([0.001, ]),
-        range=basic.Range(lo=0.0, hi=1.0),
-        doc="""Noise amplitude. Take this value into account for stochatic
+        default=numpy.array([0.000000001, ]),
+        range=basic.Range(lo=0.0, hi=0.005),
+        doc="""[nA] Noise amplitude. Take this value into account for stochatic
         integration schemes.""",
         order=-1)
 
@@ -3376,13 +3376,16 @@ class ReducedWongWang(Model):
         """
 
         S   = state_variables[0, :]
+        S[S<0] = 0.
+        S[S>1] = 1.
         c_0 = coupling[0, :]
+
         
         # if applicable
         lc_0 = local_coupling * S
 
-        x = self.w * self.J_N * S + self.I_o + self.J_N * c_0 + self.J_N * lc_0
-        H = (self.a * x - self.b) / (1 - numpy.exp(-self.d * (self.a * x -  self.b)))
+        x  = self.w * self.J_N * S + self.I_o + self.J_N * c_0 + self.J_N * lc_0
+        H = ((self.a * x ) - self.b) / (1 - numpy.exp(-self.d * ((self.a *x)- self.b)))
         dS = - (S / self.tau_s) + (1 - S) * H * self.gamma
 
         derivative = numpy.array([dS])
