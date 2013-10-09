@@ -75,7 +75,7 @@ def build_sim_part(mod, opt):
     used to identify the class required.
 
     If 'class' entry has multiple lines, and the first line
-    is used to identify the class; see the Burst.dir() 
+    is used to identify the class; see the SimulatorController.dir() 
     method below. 
 
     """
@@ -170,7 +170,7 @@ def build_and_run(spec):
         r = e
     return r
 
-class Burst(object):
+class SimulatorController(object):
 
     # keep track of simulations
     nsim = 0
@@ -280,12 +280,14 @@ if __name__ == '__main__':
             return '0.0' # TODO TVB version
 
     api = API()
-    api.burst = Burst()
+    api.simulator = SimulatorController()
+
+    print 'server is ready'
 
     cherrypy.quickstart(api, '/api', {
         'global': {
             'server.socket_host': '0.0.0.0',
-            'server.socket_port': 8042,
+            'server.socket_port': 8080,
             },
         }
         )

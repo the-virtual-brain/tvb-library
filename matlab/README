@@ -8,6 +8,9 @@ cell mode), to see how it should work and to test your own installation.
 In principle, this should work from any recent MATLAB, interacting with
 the standard distribution of TVB. 
 
+Currently, data is saved somewhere on the local computer, so this interface
+won't work over a network, but this would be possible in the future.
+
 If you are not using the standard distribution of TVB, but rather just the
 scientific_library, you just need to make sure you've got cherrypy and h5py 
 installed. Prefer using pip, your package manger may not get the most
