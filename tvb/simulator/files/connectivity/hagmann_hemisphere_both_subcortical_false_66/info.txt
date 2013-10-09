@@ -1,0 +1,10 @@
+Matrix label:  HAGMANN_66 
+Centres space:  talaraich
+Number of regions:  66 
+Left hemisphere regions: 
+11111111111111111111111111111111000000000000000000000000000000000
+weights_unit = "fiber density"
+length_unit = "mm"
+area_unit = "mm^2"
+order: index array to order the regions as presented in Gustavo Deco's articles.
+functional_connectivity: empirical functional connectivity matrix.
