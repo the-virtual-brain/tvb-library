@@ -1,8 +1,4 @@
-%% needed packages
-addpath jsonlab
-
 %% determine url
-%
 % We communicate with TVB as a server, so need to know where it is
 % and use that address for all calls
 sv = vb_url('localhost', 8080)
