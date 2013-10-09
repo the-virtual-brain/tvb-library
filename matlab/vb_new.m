@@ -1,9 +1,9 @@
-function [id, data] = vb_new(sim)
+function [id, data] = vb_new(sv, sim)
 %
-% id = vb_new(sim)
+% id = vb_new(sv, sim)
 % 
 % Create new simulation with options specified in struct sim, and return
-% the id of the new simulation.
+% the id of the new simulation, on TVB @ sv
 %
 % Special fields of sim:
 %
@@ -11,7 +11,7 @@ function [id, data] = vb_new(sim)
 % sim.tf    simulation length, in milliseconds
 % sim.wait  wait for simulation to finish 
 %
-% [id, data] = vb_new(sim)
+% [id, data] = vb_new(sv, sim)
 %
 % As above, but wait for finish, load & return data immediately.
 %
@@ -44,13 +44,14 @@ end
 js = savejson('opt', sim);
 
 % submit
-id = urlread('http://localhost:8042/api/burst/create', 'GET', {'js' js});
+url = [sv 'api/simulator/create'];
+id = urlread(url, 'GET', {'js' js});
 id = str2num(id);
 
 % get & return data if requested
 if nargout > 1
     % wait for Python to catch up
     pause(1.0);
-    data = vb_load(id, 0);
+    data = vb_load(sv, id, 0);
 end
     
