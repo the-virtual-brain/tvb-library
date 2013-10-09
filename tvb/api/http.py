@@ -50,10 +50,8 @@ import h5py
 import numpy
 import cherrypy
 
-print 'begin tvb imports'
 from tvb.datatypes import connectivity, equations, surfaces, patterns
 from tvb.simulator import noise, integrators, models, coupling, monitors, simulator
-print 'done'
 
 def threadsafe(f):
     """
@@ -271,35 +269,24 @@ class Burst(object):
         return str(nproc)
 
 
-# TODO move this module to the simulator, it's not framework specific
-# TODO mount controller from web/run.py
-# TODO finish build_and_run & dir minimally
-# TODO work out MATLAB API  
+if __name__ == '__main__':
+    # not true if we're running in the TVB distribution
 
-# need to make sure we can 
-# - construct arbitrary simualtions
-# - run them
-# - get results
+    class API(object):
+        exposed = True
 
+        @cherrypy.expose
+        def version(self):
+            return '0.0' # TODO TVB version
 
-# TODO use different pool backends, i.e. burstservice, IPython, nipype's execution framework, etc. 
-#           or OAR or whatever... 
+    api = API()
+    api.burst = Burst()
 
-class API(object):
-    exposed = True
-
-    @cherrypy.expose
-    def version(self):
-        return '0.0' # TODO TVB version
-
-api = API()
-api.burst = Burst()
-
-cherrypy.quickstart(api, '/api', {
-    'global': {
-        'server.socket_host': '0.0.0.0',
-        'server.socket_port': 8042,
-        },
-    }
-    )
+    cherrypy.quickstart(api, '/api', {
+        'global': {
+            'server.socket_host': '0.0.0.0',
+            'server.socket_port': 8042,
+            },
+        }
+        )
 
