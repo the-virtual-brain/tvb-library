@@ -41,7 +41,7 @@ widely used to represent functional connectivity (FC).
 import numpy
 #TODO: Currently built around the Simulator's 4D timeseries -- generalise...
 import tvb.datatypes.time_series as time_series
-import tvb.datatypes.temporal_correlations as temporal_correlations
+import tvb.datatypes.graph as graph
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
 import tvb.basic.traits.util as util
@@ -99,6 +99,7 @@ class CorrCoeff(core.Type):
         
         result = numpy.zeros(result_shape)
 
+
         t_lo = int((1. / self.time_series.sample_period) * (self.t_start -  self.time_series.sample_period))
         t_hi = int((1. / self.time_series.sample_period) * (self.t_end -  self.time_series.sample_period))
         
@@ -106,7 +107,7 @@ class CorrCoeff(core.Type):
         for mode in range(result_shape[3]):
             for var in range(result_shape[2]):
                 data = self.time_series.data[t_lo:t_hi+1, var, :, mode]
-                result[ :, :, var, mode] = numpy.corrcoef(data)
+                result[ :, :, var, mode] = numpy.corrcoef(data.T)
 
         
         util.log_debug_array(LOG, result, "result")
