@@ -39,11 +39,11 @@ widely used to represent functional connectivity (FC).
 """
 
 import numpy
-from scipy.signal.signaltools import correlate
 #TODO: Currently built around the Simulator's 4D timeseries -- generalise...
 import tvb.datatypes.time_series as time_series
 import tvb.datatypes.temporal_correlations as temporal_correlations
 import tvb.basic.traits.core as core
+import tvb.basic.traits.types_basic as basic
 import tvb.basic.traits.util as util
 from tvb.basic.logger.builder import get_logger
 import tvb.simulator.monitors as monitors
