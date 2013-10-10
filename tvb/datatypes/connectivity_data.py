@@ -52,7 +52,7 @@ class ConnectivityData(MappedType):
     data into a single object. 
     """
 
-    default = readers.File(folder_path="connectivity/hagmann_hemisphere_both_subcortical_false_66")
+    default = readers.File(folder_path="connectivity/o52r00_irp2008")
 
     parcellation_mask = volumes.ParcellationMask(
         label="Parcellation mask (volume)",
