@@ -300,7 +300,7 @@ def show_me_the_colours():
 ##-                   mayavi based plotting functions                        -##
 ##----------------------------------------------------------------------------##
 try:
-    from mayavi1 import mlab
+    from mayavi import mlab
 
     IMPORTED_MAYAVI = True
 except ImportError:
