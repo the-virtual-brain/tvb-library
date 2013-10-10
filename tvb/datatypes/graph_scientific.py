@@ -33,7 +33,7 @@
 Scientific methods for the Graph datatypes.
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
-
+.. moduleauthor:: Paula Sanz Leon <paula.sanz-leon@univ-amu.fr>
 """
 
 import tvb.datatypes.graph_data as graph_data
@@ -45,6 +45,22 @@ LOG = get_logger(__name__)
 
 class CovarianceScientific(graph_data.CovarianceData):
     """ This class exists to add scientific methods to CovarianceData. """
+    __tablename__ = None
+    
+    
+    def _find_summary_info(self):
+        """
+        Gather scientifically interesting summary information from an instance
+        of this datatype.
+        """
+        summary = {"Graph type": self.__class__.__name__}
+        summary["Source"] = self.source.title
+        summary['Shape'] = self.get_data_shape('array_data')
+        return summary
+
+
+class CorrelationCoefficientsScientific(graph_data.CorrelationCoefficientsData):
+    """ This class exists to add scientific methods to CorrelationCoefficientsData. """
     __tablename__ = None
     
     

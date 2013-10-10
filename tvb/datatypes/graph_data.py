@@ -33,6 +33,7 @@
 The Data component of Graph datatypes.
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
+.. moduleauthor:: Paula Sanz Leon <paula.sanz-leon@univ-amu.fr>
 
 """
 
@@ -53,6 +54,16 @@ class CovarianceData(arrays.MappedArray):
         label = "Source time-series",
         doc = "Links to the time-series on which NodeCovariance is applied.")
     
+    __generate_table__ = True
+
+
+class CorrelationCoefficientsData(arrays.MappedArray):
+    array_data = arrays.FloatArray(file_storage=core.FILE_STORAGE_EXPAND)
+
+    source = time_series.TimeSeries(
+        label = "Source time-series",
+        doc = "Links to the time-series on which Correlation (coefficients) is applied.")
+
     __generate_table__ = True
 
 

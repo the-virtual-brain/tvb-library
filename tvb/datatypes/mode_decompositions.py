@@ -33,6 +33,7 @@ The Mode Decomposition datatypes. This brings together the scientific and
 framework methods that are associated with the Mode Decomposition datatypes.
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
+.. moduleauthor:: Paula Sanz Leon <paula.sanz-leon@univ-amu.fr>
 
 """
 
