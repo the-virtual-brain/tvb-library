@@ -46,14 +46,13 @@ import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
 import tvb.basic.traits.util as util
 from tvb.basic.logger.builder import get_logger
-import tvb.simulator.monitors as monitors
 
 LOG = get_logger(__name__)
 
 
 
 
-class CorrCoeff(core.Type):
+class CorrelationCoefficient(core.Type):
     """
     Compute the node-pairwise pearson correlation coefficient of the
     given input 4D TimeSeries  datatype.
@@ -63,35 +62,33 @@ class CorrCoeff(core.Type):
     
     See: http://docs.scipy.org/doc/numpy/reference/generated/numpy.corrcoef.html
     """
-    
+
     time_series = time_series.TimeSeries(
-        label = "Time Series",
-        required = True,
-        doc = """The time-series for which the cross correlation matrices are 
+        label="Time Series",
+        required=True,
+        doc="""The time-series for which the cross correlation matrices are
         calculated.""")
 
-    
     t_start = basic.Float(
-        label = "starting time point (ms)",
-        default = 0.9765625,
-        required = True,
-        doc = """By default it uses the default Monitor sample period. 
+        label="starting time point (ms)",
+        default=0.9765625,
+        required=True,
+        doc="""By default it uses the default Monitor sample period.
         The starting time point of a time series is not zero, but the monitor's sample period. """)
 
-
-    t_end  = basic.Float(
-        label = "end time point",
-        default = 1000.,
-        required = True,
-        doc = """ DOC ME""")
+    t_end = basic.Float(
+        label="end time point",
+        default=1000.,
+        required=True,
+        doc=""" DOC ME""")
     
     
     def evaluate(self):
         """
         Compute the correlation coefficients of a 2D array (tpts x nodes)
         """
-        cls_attr_name = self.__class__.__name__+".time_series"
-        self.time_series.trait["data"].log_debug(owner = cls_attr_name)
+        cls_attr_name = self.__class__.__name__ + ".time_series"
+        self.time_series.trait["data"].log_debug(owner=cls_attr_name)
         
         #(nodes, nodes, state-variables, modes)
         result_shape = self.result_shape(self.time_series.data.shape)
@@ -100,23 +97,21 @@ class CorrCoeff(core.Type):
         result = numpy.zeros(result_shape)
 
 
-        t_lo = int((1. / self.time_series.sample_period) * (self.t_start -  self.time_series.sample_period))
-        t_hi = int((1. / self.time_series.sample_period) * (self.t_end -  self.time_series.sample_period))
+        t_lo = int((1. / self.time_series.sample_period) * (self.t_start - self.time_series.sample_period))
+        t_hi = int((1. / self.time_series.sample_period) * (self.t_end - self.time_series.sample_period))
         
         #One correlation coeff matrix, for each state-var & mode.
         for mode in range(result_shape[3]):
             for var in range(result_shape[2]):
-                data = self.time_series.data[t_lo:t_hi+1, var, :, mode]
-                result[ :, :, var, mode] = numpy.corrcoef(data.T)
+                data = self.time_series.data[t_lo:t_hi + 1, var, :, mode]
+                result[:, :, var, mode] = numpy.corrcoef(data.T)
 
         
         util.log_debug_array(LOG, result, "result")
-        
-        
-        corr_coeff = graph.CorrelationCoefficients(source = self.time_series,
-                                      array_data = result,
-                                      use_storage = False)
-        
+
+        corr_coeff = graph.CorrelationCoefficients(source=self.time_series,
+                                                   array_data=result,
+                                                   use_storage=False)
         return corr_coeff
     
     
@@ -131,8 +126,7 @@ class CorrCoeff(core.Type):
         """
         Returns the storage size in Bytes of the main result of .
         """
-        result_size = numpy.sum(map(numpy.prod,
-                                    self.result_shape(input_shape))) * 8.0 #Bytes
+        result_size = numpy.sum(map(numpy.prod, self.result_shape(input_shape))) * 8.0  # Bytes
         return result_size
     
     
@@ -142,7 +136,7 @@ class CorrCoeff(core.Type):
         That is, it includes storage of the evaluated ... attributes
         such as ..., etc.
         """
-        extend_size = self.result_size(input_shape) #Currently no derived attributes.
+        extend_size = self.result_size(input_shape)  # Currently no derived attributes.
         return extend_size
 
 

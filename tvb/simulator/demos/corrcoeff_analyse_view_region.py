@@ -29,7 +29,7 @@
 #
 
 """
-Make use of the corr_coeff analyzer to compute functional connectivity, using
+Make use of the correlation_coefficient analyzer to compute functional connectivity, using
 the demo data at the region level.
 ``Run time``: 
 
@@ -40,16 +40,14 @@ the demo data at the region level.
 """
 
 import numpy
-
-from tvb.basic.logger.builder import get_logger
-LOG = get_logger(__name__)
-
 import tvb.datatypes.connectivity as connectivity
+import tvb.analyzers.correlation_coefficient as corr_coeff
 from tvb.datatypes.time_series import TimeSeriesRegion
-
-import tvb.analyzers.corr_coeff  as corr_coeff
-
+from tvb.basic.logger.builder import get_logger
 from tvb.simulator.plot.tools import *
+
+
+LOG = get_logger(__name__)
 
 #Load the demo region timeseries dataset 
 try:
@@ -58,17 +56,17 @@ except IOError:
     LOG.error("Can't load demo data. Run demos/generate_region_demo_data.py")
     raise
 
-period = 0.00048828125 #s
+period = 0.00048828125  # s
 
 #Put the data into a TimeSeriesRegion datatype
 white_matter = connectivity.Connectivity()
-tsr = TimeSeriesRegion(connectivity = white_matter, 
-                       data = data,
-                       sample_period = period)
+tsr = TimeSeriesRegion(connectivity=white_matter,
+                       data=data,
+                       sample_period=period)
 tsr.configure()
 
 #Create and run the analyser
-corrcoeff_analyser = corr_coeff.CorrCoeff(time_series = tsr)
+corrcoeff_analyser = corr_coeff.CorrelationCoefficient(time_series=tsr)
 corrcoeff_data = corrcoeff_analyser.evaluate()
 
 #Generate derived data, if any...
