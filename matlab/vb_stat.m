@@ -1,8 +1,8 @@
-function info = vb_stat()
+function info = vb_stat(sv)
 %
-% Retrieve information on current simulations.
+% Retrieve information on current simulations on TVB @ sv
 %
 
-url = 'http://localhost:8042/api/burst/read';
+url = [sv 'api/simulator/read'];
 
 info = loadjson(urlread(url));

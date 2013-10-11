@@ -1,4 +1,4 @@
-function vb_wait(id)
+function vb_wait(sv, id)
 %
 % Wait for one or more simulations, specified by id,
 % to finish running. If no id given, wait for all jobs.
@@ -11,7 +11,7 @@ function vb_wait(id)
 %
 
 while 1
-    info = vb_stat;
+    info = vb_stat(sv);
     
     if id > length(info)
         warning('vb_wait() ignoring out of bounds id=%d > length(info)=%d', id, length(info))

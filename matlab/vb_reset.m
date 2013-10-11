@@ -1,14 +1,14 @@
-function nproc = vb_reset(nproc)
+function nproc = vb_reset(sv, nproc)
 %
-% vb_reset()
+% vb_reset(sv)
 % 
-% Reset TVB server, clearing work log and stopping/canceling 
+% Reset TVB server sv, clearing work log and stopping/canceling 
 % running simulations.
 %
 % NOTE This resets id values, so previous vb_stat information 
 % is no longer valid
 %
-% vb_reset(2)
+% vb_reset(sv, 2)
 %
 % Optionally, reset & specify how many CPUs to use for 
 % simulatneous simulations. Default is 2, which is
@@ -17,9 +17,9 @@ function nproc = vb_reset(nproc)
 % Returns the number of CPUs used, as confirmed by server.
 %
 
-if nargin < 1, nproc = 2; end
+if nargin < 2, nproc = 2; end
 
-url = 'http://localhost:8042/api/burst/reset';
+url = [sv 'api/simulator/reset'];
 pars = {'nproc' num2str(nproc)};
 
 nproc = urlread(url, 'get', pars);

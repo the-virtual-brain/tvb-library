@@ -1,11 +1,17 @@
 %% needed packages
 addpath jsonlab
 
+%% determine url
+%
+% We communicate with TVB as a server, so need to know where it is
+% and use that address for all calls
+sv = vb_url('localhost', 8080)
+
 %% set the number of procs in the pool
-vb_reset(2)
+vb_reset(sv, 2)
 
 %% get info on classes in TVB
-vb = vb_dir;
+vb = vb_dir(sv);
 
 %% try a simulation
 
@@ -34,7 +40,7 @@ sim.monitors{1}.class = 'TemporalAverage';
 %sim.monitors{2}.class = 'Raw';
 %sim.monitors{2}.period = 1.0; % ms
 
-[id, data] = vb_new(sim);
+[id, data] = vb_new(sv, sim);
 
 plot(data.mon_0_TemporalAverage.ts, squeeze(data.mon_0_TemporalAverage.ys)')
 
