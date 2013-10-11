@@ -27,22 +27,18 @@
 #   Frontiers in Neuroinformatics (7:10. doi: 10.3389/fninf.2013.00010)
 #
 #
-"""
-Created on Mar 20, 2013
 
+"""
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
-if __name__ == "__main__":
-    from tvb_library_test import setup_test_console_env
-    setup_test_console_env()
     
 import unittest
-
 from tvb.datatypes import arrays
 from tvb.basic.traits.parameters_factory import get_traited_instance_for_name, get_traited_subclasses
 from tvb.basic.traits.types_mapped import Array
 from tvb_library_test.base_testcase import BaseTestCase
-        
+
+
 class ParametersFactoryTest(BaseTestCase):
     
     def test_traitedsubclassed(self):
@@ -71,7 +67,9 @@ class ParametersFactoryTest(BaseTestCase):
         """
         inst = get_traited_instance_for_name("StringArray", Array, {})
         self.assertTrue(isinstance(inst, arrays.StringArray))
-        
+
+
+
 def suite():
     """
     Gather all the tests in a test suite.

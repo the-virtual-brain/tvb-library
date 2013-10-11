@@ -83,7 +83,7 @@ KWARG_AVOID_SUBCLASSES = 'fixed_type'   # When set on a traited attr, no subclas
 KWARG_FILE_STORAGE = 'file_storage'
 KWARG_REQUIRED = 'required'
 KWARG_FILTERS_UI = 'filters_ui'
-KWARG_OPTIONS = 'options'
+KWARG_OPTIONS = 'options'               # Used for Enumerate basic type
 KWARG_STORAGE_PATH = 'storage_path'
 KWARS_USE_STORAGE = 'use_storage'
 
@@ -91,9 +91,12 @@ FILE_STORAGE_DEFAULT = 'HDF5'
 FILE_STORAGE_EXPAND = 'expandable_HDF5'
 FILE_STORAGE_NONE = 'None'
 
-SPECIAL_KWDS = ['bind', 'doc', 'label', 'db', 'default', 'required', 'configurable_noise', KWARG_AVOID_SUBCLASSES,
-                'range', 'locked', KWARG_FILTERS_UI, KWARG_CONSOLE_DEFAULT, KWARG_SELECT_MULTIPLE,
-                KWARG_FILE_STORAGE, KWARG_ORDER, KWARG_OPTIONS, KWARS_USE_STORAGE]
+SPECIAL_KWDS = ['bind',                 # set and used internally by the traiting mechanism
+                'doc', 'label', KWARG_REQUIRED, 'locked',
+                'default', 'range', KWARG_CONSOLE_DEFAULT,
+                'configurable_noise', KWARG_OPTIONS,
+                KWARG_AVOID_SUBCLASSES, KWARG_FILTERS_UI, KWARG_SELECT_MULTIPLE, KWARG_ORDER,
+                KWARG_FILE_STORAGE, KWARS_USE_STORAGE]
 
 
 ## Module global used by MetaType.
@@ -354,7 +357,7 @@ class MetaType(abc.ABCMeta):
         # set all possible options if they were passed in trait instantiation
         inst.trait.options = options
         # set instance's value, inits dict and kwd passed trait values
-        inst.trait.value = deepcopy(value) # if (value is not None) else inst
+        inst.trait.value = deepcopy(value)  # if (value is not None) else inst
         inst.trait.inits = inits
         # Set Default attributes from traited class definition
         for name, attr in inst.trait.iteritems():

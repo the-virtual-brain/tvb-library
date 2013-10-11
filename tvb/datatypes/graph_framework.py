@@ -34,6 +34,7 @@ Framework methods for the Graph datatypes.
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
+.. moduleauthor:: Paula Sanz Leon <paula.sanz-leon@univ-amu.fr>
 """
 
 import tvb.datatypes.graph_data as graph_data
@@ -70,6 +71,38 @@ class CovarianceFramework(graph_data.CovarianceData):
         """
         self.store_data_chunk('array_data', partial_result, grow_dimension=2, close_file=False)
 
+
+
+class CorrelationCoefficientsFramework(graph_data.CorrelationCoefficientsData):
+    """
+    This class exists to add framework methods to CovarianceData.
+    """
+    __tablename__ = None
+    
+    def configure(self):
+        """After populating few fields, compute the rest of the fields"""
+        # Do not call super, because that accesses data not-chunked
+        self.nr_dimensions = len(self.read_data_shape())
+        for i in range(self.nr_dimensions): 
+            setattr(self, 'length_%dd' % (i + 1), int(self.read_data_shape()[i]))
+    
+    def read_data_shape(self):
+        """
+        Expose shape read on field 'data'
+        """
+        return self.get_data_shape('array_data')
+    
+    def read_data_slice(self, data_slice):
+        """
+        Expose chunked-data access.
+        """
+        return self.get_data('array_data', data_slice)
+    
+    def write_data_slice(self, partial_result):
+        """
+        Append chunk.
+        """
+        self.store_data_chunk('array_data', partial_result, grow_dimension=2, close_file=False)
 
 
 

@@ -33,6 +33,7 @@ The Data component of Spectral datatypes.
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
+.. moduleauthor:: Paula Sanz Leon <paula.sanz-leon@univ-amu.fr>
 
 """
 

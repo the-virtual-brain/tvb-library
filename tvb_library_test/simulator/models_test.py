@@ -151,7 +151,7 @@ class ModelsTest(BaseTestCase):
                                                  [[ 0.88352129, 6.98631166, 6.29850938]],
                                                  [[ 6.91821169, 7.65394629, 6.51316375]]]])) is None)
     
-    def test_wong_wang(self):
+    def test_reduced_wong_wang(self):
         """
         """
         model = models.ReducedWongWang()

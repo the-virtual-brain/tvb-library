@@ -40,7 +40,7 @@ if __name__ == "__main__":
 import unittest
 from tvb_library_test.basic.traits import core_test
 from tvb_library_test.basic.traits import data_readers_test
-from tvb_library_test.basic.traits import parametersfactory_test
+from tvb_library_test.basic.traits import parameters_factory_test
 from tvb_library_test.basic.traits import start_console
 from tvb_library_test.basic.traits import traits_test
 
@@ -53,7 +53,7 @@ def suite():
     test_suite.addTest(core_test.suite())
     test_suite.addTest(data_readers_test.suite())
     test_suite.addTest(traits_test.suite())
-    test_suite.addTest(parametersfactory_test.suite())
+    test_suite.addTest(parameters_factory_test.suite())
     test_suite.addTest(start_console.suite())
     return test_suite
 

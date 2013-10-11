@@ -29,51 +29,51 @@
 #
 
 """
+Make use of the corr_coeff analyzer to compute functional connectivity, using
+the demo data at the region level.
+``Run time``: 
 
-The Data component of Graph datatypes.
+``Memory requirement``: 
 
-.. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 .. moduleauthor:: Paula Sanz Leon <paula.sanz-leon@univ-amu.fr>
 
 """
 
-import tvb.basic.traits.core as core
-import tvb.datatypes.arrays as arrays
-import tvb.datatypes.time_series as time_series
+import numpy
+
+from tvb.basic.logger.builder import get_logger
+LOG = get_logger(__name__)
+
 import tvb.datatypes.connectivity as connectivity
+from tvb.datatypes.time_series import TimeSeriesRegion
 
+import tvb.analyzers.corr_coeff  as corr_coeff
 
-class CovarianceData(arrays.MappedArray):
-    """
-    Result of a Covariance  Analysis.
-    """
-    #Overwrite attribute from superclass
-    array_data = arrays.ComplexArray(file_storage=core.FILE_STORAGE_EXPAND)
-    
-    source = time_series.TimeSeries(
-        label = "Source time-series",
-        doc = "Links to the time-series on which NodeCovariance is applied.")
-    
-    __generate_table__ = True
+from tvb.simulator.plot.tools import *
 
+#Load the demo region timeseries dataset 
+try:
+    data = numpy.load("demo_data_region_16s_2048Hz.npy")
+except IOError:
+    LOG.error("Can't load demo data. Run demos/generate_region_demo_data.py")
+    raise
 
-class CorrelationCoefficientsData(arrays.MappedArray):
-    array_data = arrays.FloatArray(file_storage=core.FILE_STORAGE_EXPAND)
+period = 0.00048828125 #s
 
-    source = time_series.TimeSeries(
-        label = "Source time-series",
-        doc = "Links to the time-series on which Correlation (coefficients) is applied.")
+#Put the data into a TimeSeriesRegion datatype
+white_matter = connectivity.Connectivity()
+tsr = TimeSeriesRegion(connectivity = white_matter, 
+                       data = data,
+                       sample_period = period)
+tsr.configure()
 
-    __generate_table__ = True
+#Create and run the analyser
+corrcoeff_analyser = corr_coeff.CorrCoeff(time_series = tsr)
+corrcoeff_data = corrcoeff_analyser.evaluate()
 
+#Generate derived data, if any...
+corrcoeff_data.configure()
 
-class ConnectivityMeasureData(arrays.MappedArray):
-    """
-    An array representing a measure of a Connectivity dataType.
-    """
-    
-    connectivity = connectivity.Connectivity 
-    
-    __generate_table__ = True
-    
-    
+# Plot matrix with numbers
+pyplot.imshow(corrcoeff_data.array_data[:, :, 0, 0], interpolation='nearest')
+pyplot.show()
