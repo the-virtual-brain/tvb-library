@@ -10,12 +10,13 @@ What follow are some suggestions for the coding conventions we should adopt
 within the Python code of "The Virtual Brain", hereafter TVB.
 
 When in doubt implementing algorithms from the literature, please follow
-guidelines described at 
-    http://codecapsule.com/2012/01/18/how-to-implement-a-paper/
+guidelines described at:
+http://codecapsule.com/2012/01/18/how-to-implement-a-paper/
 
 Coding Style
 ------------
 The standard reference for Python coding style is the BDFL's PEP 8:
+
     http://www.python.org/dev/peps/pep-0008/
     
 

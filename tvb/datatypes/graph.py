@@ -71,13 +71,13 @@ class CorrelationCoefficients(graph_scientific.CorrelationCoefficientsScientific
     
     ::
         
-                        CorrelationCoefficientsData
-                                     |
-                                    / \\
-    CorrelationCoefficientsFramework   CorrelationCoefficientsScientific
-                                    \ /
-                                     |
-                           CorrelationCoefficients
+                            CorrelationCoefficientsData
+                                         |
+                                        / \\
+        CorrelationCoefficientsFramework   CorrelationCoefficientsScientific
+                                        \ /
+                                         |
+                               CorrelationCoefficients
         
     
     """

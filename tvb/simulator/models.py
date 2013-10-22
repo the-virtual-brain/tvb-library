@@ -392,13 +392,15 @@ class model_device_info(object):
 
 class WilsonCowan(Model):
     """
+    **References**:
+
     .. [WC_1972] Wilson, H.R. and Cowan, J.D. *Excitatory and inhibitory 
         interactions in localized populations of model neurons*, Biophysical
         journal, 12: 1-24, 1972.
     .. [WC_1973] Wilson, H.R. and Cowan, J.D  *A Mathematical Theory of the 
-    Functional Dynamics of Cortical and Thalamic Nervous Tissue*
+        Functional Dynamics of Cortical and Thalamic Nervous Tissue*
 
-    Used Eqns 11 and 12 from [WC_1972]_ in ``dfun''.  P and Q represent external inputs,
+    Used Eqns 11 and 12 from [WC_1972]_ in ``dfun``.  P and Q represent external inputs,
     which when exploring the phase portrait of the local model are set to
     constant values. However in the case of a full network, P and Q are the
     entry point to our long range and local couplings, that is, the  activity
@@ -1976,67 +1978,84 @@ class Generic2dOscillator(Model):
 
     The model with its default parameters exhibits FitzHugh-Nagumo like dynamics.
 
-     ---------------------------
+    +---------------------------+
     |  EXCITABLE CONFIGURATION  |
-     ---------------------------
+    +--------------+------------+
     |Parameter     |  Value     |
-    -----------------------------
+    +==============+============+
     | a            |     -2.0   |
+    +--------------+------------+
     | b            |    -10.0   |
+    +--------------+------------+
     | c            |      0.0   |
+    +--------------+------------+
     | d            |      0.02  |
+    +--------------+------------+
     | I            |      0.0   |
-    -----------------------------
-    |* limit cylce if a = 2.0   |
-    -----------------------------
+    +--------------+------------+
+    | * limit cylce if a = 2.0  |
+    +---------------------------+
     
-     ---------------------------
+    +---------------------------+
     |   BISTABLE CONFIGURATION  |
-     ---------------------------
+    +--------------+------------+
     |Parameter     |  Value     |
-    -----------------------------
+    +==============+============+
     | a            |      1.0   |
+    +--------------+------------+
     | b            |      0.0   |
+    +--------------+------------+
     | c            |     -5.0   |
+    +--------------+------------+
     | d            |      0.02  |
+    +--------------+------------+
     | I            |      0.0   |
-    -----------------------------
+    +--------------+------------+
     |* monostable regime:       |
     |* fixed point if Iext=-2.0 |
     |* limit cylce if Iext=-1.0 |
-    -----------------------------
+    +---------------------------+
     
-     ---------------------------
-    |  EXCITABLE CONFIGURATION  | (similar to Morris-Lecar)
-     ---------------------------
+    +---------------------------+
+    |  EXCITABLE CONFIGURATION  |
+    |  (similar to Morris-Lecar)|
+    +--------------+------------+
     |Parameter     |  Value     |
-    -----------------------------
+    +==============+============+
     | a            |      0.5   |
+    +--------------+------------+
     | b            |      0.6   |
+    +--------------+------------+
     | c            |     -4.0   |
+    +--------------+------------+
     | d            |      0.02  |
+    +--------------+------------+
     | I            |      0.0   |
-    -----------------------------
+    +--------------+------------+
     |* excitable regime if b=0.6|
     |* oscillatory if b=0.4     |
-    -----------------------------
+    +---------------------------+
     
     
-     ---------------------------
+    +---------------------------+     
     |  SanzLeonetAl  2013       | 
-     ---------------------------
+    +--------------+------------+
     |Parameter     |  Value     |
-    -----------------------------
+    +==============+============+
     | a            |    - 0.5   |
+    +--------------+------------+
     | b            |    -10.0   |
+    +--------------+------------+
     | c            |      0.0   |
+    +--------------+------------+
     | d            |      0.02  |
+    +--------------+------------+
     | I            |      0.0   |
-    -----------------------------
+    +--------------+------------+
     |* excitable regime if      |
     |* intrinsic frequency is   |
     |  approx 10 Hz             |
-    -----------------------------
+    +---------------------------+
 
     .. figure :: img/Generic2dOscillator_01_mode_0_pplane.svg
     .. _phase-plane-Generic2D:
