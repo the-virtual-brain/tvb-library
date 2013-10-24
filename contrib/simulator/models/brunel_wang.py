@@ -56,6 +56,7 @@ import tvb.datatypes.lookup_tables as lookup_tables
 import tvb.basic.traits.types_basic as basic 
 import tvb.simulator.models as models
 
+
 class BrunelWang(models.Model):
     """
     .. [DJ_2012] Deco G and Jirsa V. *Ongoing Cortical 
