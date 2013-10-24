@@ -46,13 +46,13 @@ import numexpr
 import scipy
 import scipy.special
 from scipy.integrate import quad
-from tabulate import TabulateInterp
 
 #The Virtual Brain
-from tvb.simulator.common import psutil, get_logger
+from tvb.simulator.common import get_logger
 LOG = get_logger(__name__)
 
 import tvb.datatypes.arrays as arrays
+import tvb.datatypes.lookup_tables as lookup_tables
 import tvb.basic.traits.types_basic as basic 
 import tvb.simulator.models as models
 
@@ -325,18 +325,6 @@ class BrunelWang(models.Model):
         doc = """Synaptic coupling strength [w-] (dimensionless)""",
         order = -1)
     
-    #Informational attribute, used for phase-plane and initial()
-    state_variable_range = basic.Dict(
-        label = "State Variable ranges [lo, hi]",
-        default = {"E": numpy.array([0.001, 0.01]),
-                   "I": numpy.array([0.001, 0.01])},
-        doc = """The values for each state-variable should be set to encompass
-            the expected dynamic range of that state-variable for the current 
-            parameters, it is used as a mechanism for bounding random initial 
-            conditions when the simulation isn't started from an explicit
-            history, it is also provides the default range of phase-plane plots.
-            The corresponding state-variable units for this model are kHz.""",
-        order = 22)
             
     NMAX = arrays.IntegerArray(
         label = ":math:`N_{MAX}`",
@@ -388,16 +376,43 @@ class BrunelWang(models.Model):
         range = basic.Range(lo = 1.4, hi = 1.9, step = 0.05),
         doc = """Global scaling weight [W] (dimensionless)""",
         order = -1)
-                    
-    variables_of_interest = arrays.IntegerArray(
-        label = "Variables watched by Monitors.",
-        range = basic.Range(lo = 0.0, hi = 2.0, step = 1.0),
-        default = numpy.array([0], dtype=numpy.int32),
-        doc = """This represents the default state-variables of this Model to be
-        monitored. It can be overridden for each Monitor if desired. The 
-        corresponding state-variable indices for this model are :math:`E = 0`
-        and :math:`I = 1`.""",
-        order = 21)
+
+    variables_of_interest = basic.Enumerate(
+        label="Variables watched by Monitors",
+        options=["E", "I"],
+        default=["E"],
+        select_multiple=True,
+        doc="""This represents the default state-variables of this Model to be
+                                    monitored. It can be overridden for each Monitor if desired. The 
+                                    corresponding state-variable indices for this model are :math:`E = 0`
+                                    and :math:`I = 1`.""",
+        order=21)
+
+        #Informational attribute, used for phase-plane and initial()
+    state_variable_range = basic.Dict(
+        label = "State Variable ranges [lo, hi]",
+        default = {"E": numpy.array([0.001, 0.01]),
+                   "I": numpy.array([0.001, 0.01])},
+        doc = """The values for each state-variable should be set to encompass
+            the expected dynamic range of that state-variable for the current 
+            parameters, it is used as a mechanism for bounding random initial 
+            conditions when the simulation isn't started from an explicit
+            history, it is also provides the default range of phase-plane plots.
+            The corresponding state-variable units for this model are kHz.""",
+        order = 22)
+
+
+    psi_table = lookup_tables.PsiTable(required=True,
+                                       default=lookup_tables.PsiTable(),
+                                       console_default=lookup_tables.PsiTable(),
+                                       label="Psi Table",
+                                       doc="""Psi Table (description).""")
+
+    nerf_table = lookup_tables.NerfTable(required=True,
+                                         default=lookup_tables.NerfTable(),
+                                         console_default=lookup_tables.NerfTable(),
+                                         label="Nerf Table",
+                                         doc="""Nerf Table (description).""")
                    
                                        
 
@@ -411,7 +426,7 @@ class BrunelWang(models.Model):
         
         super(BrunelWang, self).__init__(**kwargs)
         
-        self._state_variables = ["E", "I"]
+        #self._state_variables = ["E", "I"]
         self._nvar = 2 
         
         self.cvar = numpy.array([0], dtype=numpy.int32)
@@ -454,18 +469,27 @@ class BrunelWang(models.Model):
         """  """
         super(BrunelWang, self).configure()
         self.update_derived_parameters()
-        #   self.optimize()
+
+        # configure look up tables
+        self.psi_table.configure()
+        self.nerf_table.configure()
+
+        #self.optimize()
         
     def optimize(self, fnname='optdfun'):
-    
+        """
+        Optimization routine when we have too many self.parameters
+        within dfun
+        """
+
         decl = "def %s(state_variables, coupling, local_coupling=0.0):\n" % (fnname,)
-        
+
         NoneType = type(None)
         for k in dir(self):
             attr = getattr(self, k)
-            if not k[0]=='_' and type(attr) in (numpy.ndarray, NoneType):
+            if not k[0] == '_' and type(attr) in (numpy.ndarray, NoneType):
                 decl += '        %s = %r\n' % (k, attr)
-        
+
         decl += '\n'.join(inspect.getsource(self.dfun).split('\n')[1:]).replace("self.", "")
         dikt = {'vint': self.vint, 'array': numpy.array, 'int32': numpy.int32, 'numpy': numpy}
         #print decl
@@ -519,86 +543,87 @@ class BrunelWang(models.Model):
 
         E = state_variables[0, :]
         I = state_variables[1, :]
-        
-        c_0 = coupling[0,:] 
-        
+        #A = state_variables[2, :]
+
+        # where and how to add local coupling
+
+        c_0 = coupling[0, :]
+        c_2 = coupling[1, :]
+
         # AMPA synapses (E --> E, and E --> I)
-        vn_e = E * self.wplus  * self.pool_fractions  + c_0      # + local_coupling * E
+        vn_e = c_0
         vn_i = E * self.wminus * self.pool_fractions
-        
+
         # NMDA synapses (E --> E, and E --> I)
-        vN_e = self.psi_table(E) * self.wplus  * self.pool_fractions + c_0 # + local_coupling * self.psi_table(E)
-        vN_i = self.psi_table(E) * self.wminus * self.pool_fractions       
-        
+        vN_e = c_2
+        vN_i = E * self.wminus * self.pool_fractions
+
         # GABA (A) synapses (I --> E, and I --> I)
-        vni_e = I * self.wminus  # I --> E
-        vni_i = I * self.wminus  # I --> I 
+        vni_e = self.wminus * I  # I --> E
+        vni_i = self.wminus * I  # I --> I 
 
         J_e = 1 + self.cgamma * numpy.exp(-self.cbeta * self.ve)
         J_i = 1 + self.cgamma * numpy.exp(-self.cbeta * self.vi)
 
         rho1_e = self.crho1_e / J_e
         rho1_i = self.crho1_i / J_i
-        rho2_e = self.crho2_e * (self.ve - self.VE) * (J_e-1) / J_e**2
-        rho2_i = self.crho2_i * (self.vi - self.VI) * (J_i-1) / J_i**2
+        rho2_e = self.crho2_e * (self.ve - self.VE) * (J_e - 1) / J_e ** 2
+        rho2_i = self.crho2_i * (self.vi - self.VI) * (J_i - 1) / J_i ** 2
 
         vS_e = 1 + self.Text_e * self.nuext + self.TAMPA_e * vn_e + \
-                (rho1_e + rho2_e) * vN_e + self.T_ei * vni_e                
+               (rho1_e + rho2_e) * vN_e + self.T_ei * vni_e
         vS_i = 1 + self.Text_i * self.nuext + self.TAMPA_i * vn_i + \
-                (rho1_i + rho2_i) * vN_i + self.T_ii * vni_i
-                
+               (rho1_i + rho2_i) * vN_i + self.T_ii * vni_i
 
-        vtau_e = self.Cm_e / (self.gm_e * vS_e)   
-        vtau_i = self.Cm_i / (self.gm_i * vS_i)   
-        
+        vtau_e = self.Cm_e / (self.gm_e * vS_e)
+        vtau_i = self.Cm_i / (self.gm_i * vS_i)
 
         vmu_e = (rho2_e * vN_e * self.ve + self.T_ei * vni_e * self.VI + \
-                self.VL) / vS_e
-                
+                 self.VL) / vS_e
+
         vmu_i = (rho2_i * vN_i * self.vi + self.T_ii * vni_i * self.VI + \
-                self.VL) / vS_i
-                     
-        vsigma_e = numpy.sqrt((self.ve - self.VE)**2 * vtau_e * \
-                        self.csigma_e * self.nuext)
-        vsigma_i = numpy.sqrt((self.vi - self.VE)**2 * vtau_i * \
-                        self.csigma_i * self.nuext)
-        
+                 self.VL) / vS_i
+
+        vsigma_e = numpy.sqrt((self.ve - self.VE) ** 2 * vtau_e * \
+                              self.csigma_e * self.nuext)
+        vsigma_i = numpy.sqrt((self.vi - self.VE) ** 2 * vtau_i * \
+                              self.csigma_i * self.nuext)
+
         #tauAMPA_over_vtau_e        
         k_e = self.tauAMPA / vtau_e
         k_i = self.tauAMPA / vtau_i
 
-        
+
         #integration limits
         alpha_e = (self.Vthr - vmu_e) / vsigma_e * (1.0 + 0.5 * k_e) + \
-                    1.03 * numpy.sqrt(k_e) - 0.5 * k_e
+                  1.03 * numpy.sqrt(k_e) - 0.5 * k_e
         alpha_e = numpy.where(alpha_e > 19, 19, alpha_e)
         alpha_i = (self.Vthr - vmu_i) / vsigma_i * (1.0 + 0.5 * k_i) + \
-                    1.03 * numpy.sqrt(k_i) - 0.5 * k_i
+                  1.03 * numpy.sqrt(k_i) - 0.5 * k_i
         alpha_i = numpy.where(alpha_i > 19, 19, alpha_i)
-            
+
         beta_e = (self.Vreset - vmu_e) / vsigma_e
         beta_e = numpy.where(beta_e > 19, 19, beta_e)
-        
-        beta_i = (self.Vreset - vmu_i) / vsigma_i 
+
+        beta_i = (self.Vreset - vmu_i) / vsigma_i
         beta_i = numpy.where(beta_i > 19, 19, beta_i)
-        
-        v_ae = self.phi_table(alpha_e)
-        v_ai = self.phi_table(alpha_i)
-        v_be = self.phi_table(beta_e)
-        v_bi = self.phi_table(beta_e)
+
+        v_ae = self.nerf_table.search_value(alpha_e)
+        v_ai = self.nerf_table.search_value(alpha_i)
+        v_be = self.nerf_table.search_value(beta_e)
+        v_bi = self.nerf_table.search_value(beta_e)
 
         v_integral_e = v_ae - v_be
         v_integral_i = v_ai - v_bi
-        
+
         Phi_e = 1 / (self.taurp_e + vtau_e * numpy.sqrt(numpy.pi) * v_integral_e)
         Phi_i = 1 / (self.taurp_i + vtau_i * numpy.sqrt(numpy.pi) * v_integral_i)
-        
-        self.ve = - (self.Vthr - self.Vreset) * E * vtau_e + vmu_e
-        self.vi = - (self.Vthr - self.Vreset) * I * vtau_i + vmu_i 
 
-        
-        dE = (-E + Phi_e) / vtau_e   
-        dI = (-I + Phi_i) / vtau_i   
+        self.ve = - (self.Vthr - self.Vreset) * E * vtau_e + vmu_e
+        self.vi = - (self.Vthr - self.Vreset) * I * vtau_i + vmu_i
+
+        dE = (-E + Phi_e) / vtau_e
+        dI = (-I + Phi_i) / vtau_i
         
         derivative = numpy.array([dE, dI])
         return derivative
@@ -606,11 +631,11 @@ class BrunelWang(models.Model):
     def update_derived_parameters(self):
         """
         Derived parameters
-    
+
         """
-        
+
         self.pool_fractions = 1. / (self.pool_nodes * 2)
-        
+
         self.tauNMDA = self.calpha * self.tauNMDArise * self.tauNMDAdecay
         self.Text_e = (self.gAMPAext_e * self.Cext * self.tauAMPA) / self.gm_e
         self.Text_i = (self.gAMPAext_i * self.Cext * self.tauAMPA) / self.gm_i
@@ -624,13 +649,10 @@ class BrunelWang(models.Model):
         self.crho2_e = self.cbeta * self.crho1_e
         self.crho2_i = self.cbeta * self.crho1_i
 
-        self.csigma_e = (self.gAMPAext_e**2 * self.Cext * self.tauAMPA**2)/\
-                (self.gm_e * self.taum_e)**2
-        self.csigma_i = (self.gAMPAext_i**2 * self.Cext * self.tauAMPA**2)/\
-                (self.gm_i * self.taum_i)**2
-        
-        self.psi_table.load('../files/psi.npz')
-        self.phi_table.load('../files/nerf_int.npz')
+        self.csigma_e = (self.gAMPAext_e ** 2 * self.Cext * self.tauAMPA ** 2) / \
+                        (self.gm_e * self.taum_e) ** 2
+        self.csigma_i = (self.gAMPAext_i ** 2 * self.Cext * self.tauAMPA ** 2) / \
+                        (self.gm_i * self.taum_i) ** 2
         
 
 if __name__ == "__main__":
