@@ -37,10 +37,9 @@ A contributed model: Larter model revisited by Breaskpear M.
 
 # Third party python libraries
 import numpy
-import numexpr
 
 #The Virtual Brain
-from tvb.simulator.common import psutil, get_logger
+from tvb.simulator.common import get_logger
 LOG = get_logger(__name__)
 
 import tvb.datatypes.arrays as arrays
@@ -57,12 +56,17 @@ class LarterBreakspear(models.Model):
         lattice model for the simulation of epileptic seizures.* Chaos. 9(3):
         795, 1999.
     
-    .. [Breaksetal_2003] M. J. Breakspear et.al. *Modulation of excitatory 
+
+    .. [Breaksetal_2003_a] Breakspear, M.; Terry, J. R. & Friston, K. J.  *Modulation of excitatory
+        synaptic coupling facilitates synchronization and complex dynamics in an
+        onlinear model of neuronal dynamics*. Neurocomputing 52–54 (2003).151–158
+
+    .. [Breaksetal_2003_b] M. J. Breakspear et.al. *Modulation of excitatory 
         synaptic coupling facilitates synchronization and complex dynamics in a
         biophysical model of neuronal dynamics.* Network: Computation in Neural
         Systems 14: 703-732, 2003.
     
-    Equations are taken from [Breaksetal_2003]_. All equations and parameters 
+    Equations are taken from [Breaksetal_2003_b]_. All equations and parameters 
     are non-dimensional and normalized.
     
     .. figure :: img/LarterBreakspear_01_mode_0_pplane.svg
@@ -273,12 +277,15 @@ class LarterBreakspear(models.Model):
         range = basic.Range(lo = 0.001, hi = 0.005, step = 0.0001),
         doc = """Maximal firing rate for excitatory and inihibtory populations (kHz)""")
     
-    variables_of_interest = arrays.IntegerArray(
-        label = "Variables watched by Monitors.",
-        range = basic.Range(lo = 0, hi = 3, step=1),
-        default = numpy.array([0, 2], dtype=numpy.int32),
-        doc = """This represents the default state-variables of this Model to be
-        monitored. It can be overridden for each Monitor if desired.""")
+
+    variables_of_interest = basic.Enumerate(
+        label="Variables watched by Monitors",
+        options=["V", "W", "Z"],
+        default=["V"],
+        select_multiple=True,
+        doc="""This represents the default state-variables of this Model to be
+        monitored. It can be overridden for each Monitor if desired.""",
+        order=10)
     
     #Informational attribute, used for phase-plane and initial()
     state_variable_range = basic.Dict(
@@ -345,8 +352,9 @@ class LarterBreakspear(models.Model):
         
         Q_V = 0.5 * self.Q_max * (1 + numpy.tanh((V - self.VT) / self.d_V))
         Q_Z = 0.5 * self.Q_max * (1 + numpy.tanh((Z - self.ZT) / self.d_Z))
+
         
-        dV = - (self.gCa + (1.0 - self.c) * self.rNMDA * self.aee * Q_V + \
+        dV = - (self.gCa + (1.0 - self.c) * self.rNMDA * self.aee * Q_V.mean + \
         self.c * self.rNMDA * self.aee * (lc_0 * Q_V + c_0)) * m_Ca * (V - self.VCa) - \
         self.gK * W * (V - self.VK) -  self.gL * (V - self.VL) - (self.gNa * m_Na + \
         (1.0 - self.c) * self.aee * Q_V + self.c * self.aee * (lc_0 * Q_V + c_0)) *\
@@ -375,7 +383,7 @@ if __name__ == "__main__":
     doctest.testmod()
     
     #Initialise Models in their default state:
-    LARTER_BREAKS_MODEL = LarterBreakspear()
+    LB = LarterBreakspear()
     
     LOG.info("Model initialised in its default state without error...")
     
@@ -385,7 +393,7 @@ if __name__ == "__main__":
     import tvb.simulator.integrators
         
     INTEGRATOR = tvb.simulator.integrators.HeunDeterministic(dt=2**-5)
-    ppi_fig = PhasePlaneInteractive(model=LARTER_BREAKS_MODEL, integrator=INTEGRATOR)
+    ppi_fig = PhasePlaneInteractive(model=LB, integrator=INTEGRATOR)
     ppi_fig.show()
 
     
