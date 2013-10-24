@@ -7,17 +7,6 @@
 .. _tvb: http://www.thevirtualbrain.org
 
 
-.. |logo| image:: img/evil_tvb_logo_transparent.svg
-    :alt: The Virtual Brain Project
-    :align: top 
-    :height: 148
-    :target: tvb_
-    
-    
-|logo|
-*******
-
-
 Welcome to tvb.simulator's documentation!
 =========================================
 
@@ -59,11 +48,3 @@ A pdf version of this document can be found here_
 .. #----------
 .. #
 .. #.. todolist::
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
