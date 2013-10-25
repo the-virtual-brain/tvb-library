@@ -261,6 +261,15 @@ class Range(core.Type):
         1.0
         2.0
 
+    NOTE: That's not true. It yields
+        1.0
+        2.0
+        3.0
+
+    NOTE: the step has to be explicitly set to 0 if we want to use base. 
+    Otherwise it takes the default value.
+
+
     """
     lo = Float(doc='start of range')
     hi = Float(doc='end of range')
@@ -274,14 +283,18 @@ class Range(core.Type):
         """ Get valid values in interval"""
 
         def gen():
-            val = self.lo
-            while val < self.hi:
-                if self.step:
-                    val += self.step
-                    yield val
-                else:
-                    val *= self.base
-                    yield val
+            if self.base <= 1.0:
+                msg = "Bad base value: %s"
+                LOG.error(msg % str(self.base))
+            else:
+                val = self.lo
+                while val < self.hi:
+                    if self.step:
+                        val += self.step
+                        yield val
+                    else:
+                        val *= self.base
+                        yield val
 
 
         return gen()
