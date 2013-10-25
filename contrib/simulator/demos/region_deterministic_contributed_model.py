@@ -29,7 +29,7 @@
 #
 
 """
-Use a 'contributed' model
+Template for running a demo using a 'contributed' model
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 .. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
@@ -38,13 +38,16 @@ Use a 'contributed' model
 
 # Third party python libraries
 import numpy
+import sys
 
 # Try and import from "The Virtual Brain"
 from tvb.simulator.lab import *
 
-# Import the contributed model
-# NOTE: Add the ~/scientific_library/contrib/simulator/models folder to the PYTHONPATH env variable.
-import larter as TheModel
+# Add the contributed models directory to the PYTHONPATH
+sys.path += ["../models"]
+
+# import the Model class
+from larter import Larter
 
 ##----------------------------------------------------------------------------##
 ##-                      Perform the simulation                              -##
@@ -52,7 +55,7 @@ import larter as TheModel
 
 LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
-lar = TheModel.Larter()
+lar = Larter()
 
 white_matter = connectivity.Connectivity()
 white_matter.speed = numpy.array([4.0])
