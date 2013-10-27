@@ -312,20 +312,20 @@ class LarterBreakspear(models.Model):
     QV_max = arrays.FloatArray(
         label = ":math:`Q_{max}`",
         default = numpy.array([0.1]),
-        range = basic.Range(lo = 0.1, hi = 0.005, step = 0.001),
+        range = basic.Range(lo = 0.1, hi = 100., step = 0.001),
         doc = """Maximal firing rate for excitatory populations (kHz)""")
 
     QZ_max = arrays.FloatArray(
         label = ":math:`Q_{max}`",
         default = numpy.array([0.07]),
-        range = basic.Range(lo = 0.1, hi = 0.005, step = 0.001),
+        range = basic.Range(lo = 0.1, hi = 100., step = 0.001),
         doc = """Maximal firing rate for excitatory populations (kHz)""")
 
 
     t_scale = arrays.FloatArray(
         label=":math:`t_{scale}`",
         default = 0.015,
-        range = basic.Range(lo=0.0001, hi=1.0, step=0.1),
+        range = basic.Range(lo=0.0001, hi=10.0, step=0.1),
         doc = """Time scale factor. Rescale the derivative to adapt 
         the resulting time-series to milliseconds. This factor does not 
         affect the dynamics of the model. """)
@@ -438,17 +438,18 @@ if __name__ == "__main__":
     doctest.testmod()
     
     #Initialise Models in their default state:
-    LB = LarterBreakspear()
+    LB = LarterBreakspear(QV_max=1.0, QZ_max=1.0, t_scale=0.02)
     
     LOG.info("Model initialised in its default state without error...")
     
     LOG.info("Testing phase plane interactive ... ")
     
-    from tvb.simulator.plot.phase_plane_interactive import PhasePlaneInteractive
+    import tvb.simulator.plot.phase_plane_interactive as ppi
     import tvb.simulator.integrators
         
-    INTEGRATOR = tvb.simulator.integrators.HeunDeterministic(dt=2**-5)
-    ppi_fig = PhasePlaneInteractive(model=LB, integrator=INTEGRATOR)
+    INTEGRATOR = tvb.simulator.integrators.HeunDeterministic(dt=2**-3)
+    ppi.TRAJ_STEPS = 4096
+    ppi_fig = ppi.PhasePlaneInteractive(model=LB, integrator=INTEGRATOR)
     ppi_fig.show()
 
     
