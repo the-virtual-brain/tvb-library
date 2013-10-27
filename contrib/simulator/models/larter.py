@@ -305,7 +305,7 @@ class Larter(models.Model):
         
         M_inf = 0.5 * (1 + numpy.tanh((V - self.V1) / self.V2))
         W_inf = 0.5 * (1 + numpy.tanh((V - self.V3) / self.V4))
-        tau_Winv = numpy.cosh((V - self.V3) / (2 * self.V4))
+        tau_Winv  = numpy.cosh((V - self.V3) / (2 * self.V4))
         alpha_exc = self.a_exc * (1 + numpy.tanh((V - self.V5) / self.V6))
         alpha_inh = self.a_inh * (1 + numpy.tanh((V - self.V7) / self.V6))
         
@@ -322,4 +322,28 @@ class Larter(models.Model):
         derivative = numpy.array([dV, dW, dZ]) 
         
         return derivative
+
+
+
+if __name__ == "__main__":
+    # Do some stuff that tests or makes use of this module...
+    LOG.info("Testing %s module..." % __file__)
+    
+    # Check that the docstring examples, if there are any, are accurate.
+    import doctest
+    doctest.testmod()
+    
+    #Initialise Models in their default state:
+    L = Larter()
+    
+    LOG.info("Model initialised in its default state without error...")
+    
+    LOG.info("Testing phase plane interactive ... ")
+    
+    from tvb.simulator.plot.phase_plane_interactive import PhasePlaneInteractive
+    import tvb.simulator.integrators
+        
+    INTEGRATOR = tvb.simulator.integrators.HeunDeterministic(dt=2**-5)
+    ppi_fig = PhasePlaneInteractive(model=L, integrator=INTEGRATOR)
+    ppi_fig.show()
 
