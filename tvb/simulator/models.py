@@ -1956,7 +1956,7 @@ class JRFast(JansenRit):
 
         if self.invalid_dfun_cache:
             self.dy = y.copy() * 0.0
-            self.y1m2 = y.copy()
+            self.y1m2 = y[1].copy()
             self.dfunlocals = {}
             for k in ['nu_max', 'r', 'v0', 'a_1', 'J', 'a_3', 'A', 'a', 'mu', 
                     'a_2', 'B', 'b', 'a_4']:
