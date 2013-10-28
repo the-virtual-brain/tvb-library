@@ -1956,6 +1956,7 @@ class JRFast(JansenRit):
 
         if self.invalid_dfun_cache:
             self.dy = y.copy() * 0.0
+            self.y1m2 = y.copy()
             self.dfunlocals = {}
             for k in ['nu_max', 'r', 'v0', 'a_1', 'J', 'a_3', 'A', 'a', 'mu', 
                     'a_2', 'B', 'b', 'a_4']:
@@ -1971,12 +1972,14 @@ class JRFast(JansenRit):
         l['c0'], l['c1'] = coupling
 
         # self.cvar = numpy.array([1, 2], dtype=numpy.int32)
-        l['lc0'], l['lc1'] = local_coupling * y[1], local_coupling * y[2]
+        self.y1m2[:] = y[1]
+        self.y1m2 -= y[2]
+        l['lc'] = local_coupling * self.y1m2
 
         self.dy[:3] = y[3:]
 
         ev('A * a * (2.0 * nu_max / (1.0 + exp(r * (v0 - (y1 - y2))))) - 2.0 * a * y3 - a ** 2 * y0', l, g, out=self.dy[3], casting='no')
-        ev('A * a * (mu + a_2 * J * (2.0 * nu_max / (1.0 + exp(r * (v0 - (a_1 * J * y0))))) + (c0 - c1) + (lc0 - lc1)) - 2.0 * a * y4 - a ** 2 * y1', l, g, out=self.dy[4], casting='no')
+        ev('A * a * (mu + a_2 * J * (2.0 * nu_max / (1.0 + exp(r * (v0 - (a_1 * J * y0))))) + (c0 - c1) + lc) - 2.0 * a * y4 - a ** 2 * y1', l, g, out=self.dy[4], casting='no')
         ev('B * b * (a_4 * J * (2.0 * nu_max / (1.0 + exp(r * (v0 - (a_3 * J * y0)))))) - 2.0 * b * y5 - b ** 2 * y2', l, g, out=self.dy[5], casting='no')
 
         return self.dy
