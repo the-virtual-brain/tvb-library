@@ -147,8 +147,8 @@ class LarterBreakspear(models.Model):
     
     gNa = arrays.FloatArray(
         label = ":math:`g_{Na}`",
-        default = numpy.array([0.0]),
-        range = basic.Range(lo = 0.0, hi = 6.7, step = 0.1),
+        default = numpy.array([6.7]),
+        range = basic.Range(lo = 0.0, hi = 10.0, step = 0.1),
         doc = """Conductance of population of Na channels.""")
     
     TK = arrays.FloatArray(
@@ -170,7 +170,7 @@ class LarterBreakspear(models.Model):
         doc = "Threshold value for Na channels.")
     
     VCa = arrays.FloatArray(
-        label = ":matj:`V_{Ca}`",
+        label = ":math:`V_{Ca}`",
         default = numpy.array([1.0]),
         range = basic.Range(lo = 0.9, hi = 1.1, step = 0.05),
         doc = """Ca Nernst potential.""")
@@ -219,7 +219,7 @@ class LarterBreakspear(models.Model):
     
     aei = arrays.FloatArray(
         label = ":math:`a_{ei}`",
-        default = numpy.array([0.1]),
+        default = numpy.array([2.0]),
         range = basic.Range(lo = 0.1, hi = 2.0, step = 0.1),
         doc = """Excitatory-to-inhibitory synaptic strength.""")
     
@@ -236,8 +236,8 @@ class LarterBreakspear(models.Model):
         doc = """Time constant scaling factor. The original value is 0.1""")
     
     C = arrays.FloatArray(
-        label = ":math:`c`",
-        default = numpy.array([0.0]),
+        label = ":math:`c`",    
+        default = numpy.array([0.1]),
         range = basic.Range(lo = 0.0, hi = 0.2, step = 0.05),
         doc = """Strength of excitatory coupling. Balance between internal and
         local (and global) coupling strength. C > 0 introduces interdependences between 
@@ -246,7 +246,7 @@ class LarterBreakspear(models.Model):
     
     ane = arrays.FloatArray(
         label = ":math:`a_{ne}`",
-        default = numpy.array([0.4]),
+        default = numpy.array([1.0]),
         range = basic.Range(lo = 0.4, hi = 1.0, step = 0.05),
         doc = """Non-specific-to-excitatory synaptic strength.""")
     
@@ -277,14 +277,14 @@ class LarterBreakspear(models.Model):
     
     VT = arrays.FloatArray(
         label = ":math:`V_{T}`",
-        default = numpy.array([0.54]),
+        default = numpy.array([0.0]),
         range = basic.Range(lo = 0.0, hi = 0.7, step = 0.01),
         doc = """Threshold potential (mean) for excitatory neurons. 
         In [Breaksetal_2003_b]_ this values is 0.""")
     
     d_V = arrays.FloatArray(
         label = ":math:`\\delta_{V}`",
-        default = numpy.array([0.5]),
+        default = numpy.array([0.65]),
         range = basic.Range(lo = 0.1, hi = 0.7, step = 0.05),
         doc = """Variance of the excitatory threshold. It is one of the main
         parameters explored in [Breaksetal_2003_b]_.""")
@@ -311,20 +311,20 @@ class LarterBreakspear(models.Model):
     #I took these ones from DESTEXHE 2001
     QV_max = arrays.FloatArray(
         label = ":math:`Q_{max}`",
-        default = numpy.array([0.1]),
-        range = basic.Range(lo = 0.1, hi = 100., step = 0.001),
+        default = numpy.array([1.0]),
+        range = basic.Range(lo = 0.1, hi = 1., step = 0.001),
         doc = """Maximal firing rate for excitatory populations (kHz)""")
 
     QZ_max = arrays.FloatArray(
         label = ":math:`Q_{max}`",
-        default = numpy.array([0.07]),
-        range = basic.Range(lo = 0.1, hi = 100., step = 0.001),
+        default = numpy.array([1.0]),
+        range = basic.Range(lo = 0.1, hi = 1., step = 0.001),
         doc = """Maximal firing rate for excitatory populations (kHz)""")
 
 
     t_scale = arrays.FloatArray(
         label=":math:`t_{scale}`",
-        default = 0.015,
+        default = 1.0,
         range = basic.Range(lo=0.0001, hi=10.0, step=0.1),
         doc = """Time scale factor. Rescale the derivative to adapt 
         the resulting time-series to milliseconds. This factor does not 
@@ -333,7 +333,7 @@ class LarterBreakspear(models.Model):
 
     variables_of_interest = basic.Enumerate(
         label="Variables watched by Monitors",
-        options=["V", "W", "Z"],
+        options=["V", "W", "Z", "QV"],
         default=["V"],
         select_multiple=True,
         doc="""This represents the default state-variables of this Model to be
@@ -344,8 +344,9 @@ class LarterBreakspear(models.Model):
     state_variable_range = basic.Dict(
         label = "State Variable ranges [lo, hi]",
         default = {"V": numpy.array([-0.3, 0.1]),
-                   "W": numpy.array([0.0, 0.6]),
-                   "Z": numpy.array([-0.02, 0.08])},
+                   "W": numpy.array([0.0, 0.08]),
+                   "Z": numpy.array([-0.3, 0.1]),
+                   "QV": numpy.array([0.01, 0.1])},
         doc = """The values for each state-variable should be set to encompass
             the expected dynamic range of that state-variable for the current 
             parameters, it is used as a mechanism for bounding random inital 
@@ -363,10 +364,10 @@ class LarterBreakspear(models.Model):
         
         super(LarterBreakspear, self).__init__(**kwargs)
         
-        self._state_variables = ["V", "W", "Z"]
+        self._state_variables = ["V", "W", "Z", "QV"]
         
-        self._nvar = 3
-        self.cvar = numpy.array([0], dtype=numpy.int32)
+        self._nvar = 4
+        self.cvar = numpy.array([3], dtype=numpy.int32)
         
         LOG.debug('%s: inited.' % repr(self))
     
@@ -393,27 +394,28 @@ class LarterBreakspear(models.Model):
         V = state_variables[0, :]
         W = state_variables[1, :]
         Z = state_variables[2, :]
+        QV = state_variables[3, :]
         
-        c_0 = coupling[0, :]
-        lc_0 = local_coupling
+        c_0   = coupling[0, :] # <Q_V>
+        lc_0  = local_coupling
         
         # relationship between membrane voltage and channel conductance
         m_Ca = 0.5 * (1 + numpy.tanh((V - self.TCa) / self.d_Ca))
         m_Na = 0.5 * (1 + numpy.tanh((V - self.TNa) / self.d_Na))
-        m_K  = 0.5 * (1 + numpy.tanh((V - self.TK)  / self.d_K))
+        m_K  = 0.5 * (1 + numpy.tanh((V - self.TK )  / self.d_K))
         
         # voltage to firing rate
-        QV = 0.5 * self.QV_max * (1 + numpy.tanh((V - self.VT) / self.d_V))
-        QZ = 0.5 * self.QZ_max * (1 + numpy.tanh((Z - self.ZT) / self.d_Z))
+        # QV = 0.5 * self.QV_max * (1 + numpy.tanh((V - self.VT) / self.d_V))
+        QZ  = 0.5 * self.QZ_max * (1 + numpy.tanh((Z - self.ZT) / self.d_Z))
 
-        # Qv should be the coupling variable. In this work the effect is instantaneous.
-        QV_av = (0.5 * self.QV_max * (1 + numpy.tanh((c_0 - self.VT) / self.d_V))).mean()
         
         dV = self.t_scale * (- (self.gCa + (1.0 - self.C) * self.rNMDA * self.aee * QV + \
-        self.C * self.rNMDA * self.aee * QV_av) * m_Ca * (V - self.VCa) - \
+        self.C * self.rNMDA * self.aee * c_0) * m_Ca * (V - self.VCa) - \
         self.gK * W * (V - self.VK) -  self.gL * (V - self.VL) - \
-        (self.gNa * m_Na + (1.0 - self.C) * self.aee * QV + self.C * self.aee * QV_av) *\
-        (V - self.VNa) + self.aei * Z * QZ+ self.ane * self.Iext)
+        (self.gNa * m_Na + (1.0 - self.C) * self.aee * QV + self.C * self.aee * c_0) *\
+        (V - self.VNa) + self.aei * Z * QZ + self.ane * self.Iext)
+
+        dQV = self.t_scale * ((0.5 * self.QV_max * dV * (1 - (numpy.tanh((V - self.VT) / self.d_V))**2))/ self.d_V)
         
         # Single node equation
 #        dV = - (self.gCa + (1.0 - self.c) * self.rNMDA * self.aee * Q_V ) *  \
@@ -424,7 +426,7 @@ class LarterBreakspear(models.Model):
         
         dZ = self.t_scale * (self.b * (self.ani * self.Iext + self.aei * V * QV))
         
-        derivative = numpy.array([dV, dW, dZ])
+        derivative = numpy.array([dV, dW, dZ, dQV])
         
         return derivative
 
@@ -438,7 +440,13 @@ if __name__ == "__main__":
     doctest.testmod()
     
     #Initialise Models in their default state:
-    LB = LarterBreakspear(QV_max=1.0, QZ_max=1.0, t_scale=0.02)
+    # LB = LarterBreakspear(QV_max=1.0, QZ_max=1.0, 
+    #                       t_scale=0.01, 
+    #                       aie=1.0, ane=1.0, 
+    #                       rNMDA=0.2,
+    #                       d_V=0.01, d_Z=0.01)
+
+    LB = LarterBreakspear(QV_max=0.1, QZ_max=0.1, t_scale=1.0, C=0.0, d_V=0.6, aee=0.5, aie=0.5, gNa=0.0, Iext=0.165)
     
     LOG.info("Model initialised in its default state without error...")
     
@@ -447,8 +455,8 @@ if __name__ == "__main__":
     import tvb.simulator.plot.phase_plane_interactive as ppi
     import tvb.simulator.integrators
         
-    INTEGRATOR = tvb.simulator.integrators.HeunDeterministic(dt=2**-3)
-    ppi.TRAJ_STEPS = 4096
+    INTEGRATOR = tvb.simulator.integrators.HeunDeterministic(dt=2**-2)
+    ppi.TRAJ_STEPS = 2048
     ppi_fig = ppi.PhasePlaneInteractive(model=LB, integrator=INTEGRATOR)
     ppi_fig.show()
 
