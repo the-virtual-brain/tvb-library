@@ -346,7 +346,7 @@ class LarterBreakspear(models.Model):
         default = {"V": numpy.array([-1.5, 1.5]),
                    "W": numpy.array([ 0.0, 1.0]),
                    "Z": numpy.array([-1.5, 1.5]),
-                   "QV": numpy.array([0.5, 1.0])},
+                   "QV": numpy.array([0.99, 1.01])},
         doc = """The values for each state-variable should be set to encompass
             the expected dynamic range of that state-variable for the current 
             parameters, it is used as a mechanism for bounding random inital 
@@ -394,7 +394,7 @@ class LarterBreakspear(models.Model):
         V = state_variables[0, :]
         W = state_variables[1, :]
         Z = state_variables[2, :]
-        #QV = state_variables[3, :]
+        QV = state_variables[3, :]
         
         c_0   = coupling[0, :] # <Q_V(t-t_d)>
         lc_0  = local_coupling
