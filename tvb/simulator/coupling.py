@@ -194,8 +194,8 @@ class Linear(Coupling):
 
 
         """
-        input = (g_ij * x_j).sum(axis=0)
-        return self.a * input + self.b
+        coupled_input = (g_ij * x_j).sum(axis=0)
+        return self.a * coupled_input + self.b
 
     device_info = coupling_device_info(
         pars = ['a', 'b'],
@@ -247,8 +247,8 @@ class Scaling(Coupling):
 
 
         """
-        input = (g_ij * x_j).sum(axis=0)
-        return self.scaling_factor * input
+        coupled_input = (g_ij * x_j).sum(axis=0)
+        return self.scaling_factor * coupled_input
 
     device_info = coupling_device_info(
         pars = ['scaling_factor'],
@@ -327,9 +327,9 @@ class Sigmoidal(Coupling):
 
 
         """
-        input = (g_ij * x_j).sum(axis=0)
+        coupled_input = (g_ij * x_j).sum(axis=0)
         sig = self.cmin + ((self.cmax - self.cmin) / (1.0 +
-            numpy.exp(-self.pi_on_sqrt3 * ((input - self.midpoint) / self.sigma))))
+              numpy.exp(-self.pi_on_sqrt3 * ((coupled_input - self.midpoint) / self.sigma))))
         return sig
 
     device_info = coupling_device_info(
