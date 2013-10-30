@@ -162,6 +162,7 @@ class noise_device_info(object):
     def __set__(self, inst, val):
         raise AttributeError
 
+
 class Noise(core.Type):
     """
     Defines a base class for noise. Specific noises are derived from this class
@@ -193,7 +194,7 @@ class Noise(core.Type):
     .. automethod:: Noise.coloured
 
     """
-    _base_classes = ['Noise']
+    _base_classes = ['Noise', 'MultiplicativeSimple']
 
     #NOTE: nsig is not declared here because we use this class directly as the 
     #      inital conditions noise source, and in that use the job of nsig is 
@@ -453,6 +454,7 @@ class Multiplicative(Noise):
         g_x = numpy.sqrt(2.0 * self.nsig) * self.b.pattern  
 
         return g_x
+
 
 class MultiplicativeSimple(Multiplicative):
     """
