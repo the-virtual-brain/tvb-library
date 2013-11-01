@@ -73,5 +73,9 @@ corrcoeff_data = corrcoeff_analyser.evaluate()
 corrcoeff_data.configure()
 
 # Plot matrix with numbers
-pyplot.imshow(corrcoeff_data.array_data[:, :, 0, 0], interpolation='nearest')
+# For visualization purposes, the diagonal is set to zero.
+FC = corrcoeff_data.array_data[:, :, 0, 0]
+numpy.fill_diagonal(FC,  0.)
+pyplot.matshow(FC, cmap='RdBu', vmin=-0.5, vmax=0.5, interpolation='nearest')
+pyplot.colorbar()
 pyplot.show()
