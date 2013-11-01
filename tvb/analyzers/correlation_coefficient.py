@@ -64,28 +64,33 @@ class CorrelationCoefficient(core.Type):
     """
 
     time_series = time_series.TimeSeries(
-        label="Time Series",
-        required=True,
-        doc="""The time-series for which the cross correlation matrices are
+        label = "Time Series",
+        required = True,
+        doc = """The time-series for which the cross correlation matrices are
         calculated.""")
 
     t_start = basic.Float(
-        label="starting time point (ms)",
-        default=0.9765625,
-        required=True,
-        doc="""By default it uses the default Monitor sample period.
+        label = ":math:`t_{start}",
+        default = 0.9765625,
+        required = True,
+        doc = """Time start point (ms). By default it uses the default Monitor sample period.
         The starting time point of a time series is not zero, but the monitor's sample period. """)
 
     t_end = basic.Float(
-        label="end time point",
-        default=1000.,
-        required=True,
-        doc=""" DOC ME""")
+        label = ":math:`t_{end}`",
+        default = 1000.,
+        required = True,
+        doc = """ End time point (ms) """)
     
     
     def evaluate(self):
         """
-        Compute the correlation coefficients of a 2D array (tpts x nodes)
+        Compute the correlation coefficients of a 2D array (tpts x nodes).
+        Yields an array of size nodes x nodes x state-variables x modes.
+
+        The time interval over which the correlation coefficients are computed 
+        is defined by t_start, t_end
+
         """
         cls_attr_name = self.__class__.__name__ + ".time_series"
         self.time_series.trait["data"].log_debug(owner=cls_attr_name)
