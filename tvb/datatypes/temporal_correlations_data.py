@@ -44,25 +44,24 @@ import tvb.datatypes.arrays as arrays
 import tvb.datatypes.time_series as time_series
 
 
+
 class CrossCorrelationData(MappedType):
     """
     Result of a CrossCorrelation Analysis.
     """
     #Overwrite attribute from superclass
-    array_data = arrays.FloatArray(file_storage = core.FILE_STORAGE_EXPAND)
-    
+    array_data = arrays.FloatArray(file_storage=core.FILE_STORAGE_EXPAND)
+
     source = time_series.TimeSeries(
-        label = "Source time-series",
-        doc = """Links to the time-series on which the cross_correlation is
-            applied.""")
-    
-    time = arrays.FloatArray(label = "Temporal Offsets")
-    
-    
+        label="Source time-series",
+        doc="""Links to the time-series on which the cross_correlation is applied.""")
+
+    time = arrays.FloatArray(label="Temporal Offsets")
+
     labels_ordering = basic.List(
-        label = "Dimension Names",
-        default = ["Offsets", "Node", "Node", "State Variable", "Mode"],
-        doc = """List of strings representing names of each data dimension""")
-    
+        label="Dimension Names",
+        default=["Offsets", "Node", "Node", "State Variable", "Mode"],
+        doc="""List of strings representing names of each data dimension""")
+
     __generate_table__ = True
 

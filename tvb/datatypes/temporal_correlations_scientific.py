@@ -43,19 +43,20 @@ LOG = get_logger(__name__)
 
 
 class CrossCorrelationScientific(temporal_correlations_data.CrossCorrelationData):
-    """ This class exists to add scientific methods to CrossCorrelationData. """
+    """
+    This class exists to add scientific methods to CrossCorrelationData.
+    """
     __tablename__ = None
     
     
     def _find_summary_info(self):
         """
-        Gather scientifically interesting summary information from an instance
-        of this datatype.
+        Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Temporal correlation type": self.__class__.__name__}
-        summary["Source"] = self.source.title
-        summary["Dimensions"] = self.labels_ordering
-        #summary["Dimensions"] = ["Offsets", "Node", "Node","State Variable", "Mode"]
+        summary = {"Temporal correlation type": self.__class__.__name__,
+                   "Source": self.source.title,
+                   "Dimensions": self.labels_ordering}
+
         summary.update(self.get_info_about_array('array_data'))
         return summary
 

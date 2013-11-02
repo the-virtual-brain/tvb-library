@@ -38,42 +38,52 @@ The Data component of Graph datatypes.
 """
 
 import tvb.basic.traits.core as core
+import tvb.basic.traits.types_basic as basic
 import tvb.datatypes.arrays as arrays
 import tvb.datatypes.time_series as time_series
 import tvb.datatypes.connectivity as connectivity
+
 
 
 class CovarianceData(arrays.MappedArray):
     """
     Result of a Covariance  Analysis.
     """
-    #Overwrite attribute from superclass
+
     array_data = arrays.ComplexArray(file_storage=core.FILE_STORAGE_EXPAND)
-    
+
     source = time_series.TimeSeries(
-        label = "Source time-series",
-        doc = "Links to the time-series on which NodeCovariance is applied.")
-    
+        label="Source time-series",
+        doc="Links to the time-series on which NodeCovariance is applied.")
+
     __generate_table__ = True
+
 
 
 class CorrelationCoefficientsData(arrays.MappedArray):
+
     array_data = arrays.FloatArray(file_storage=core.FILE_STORAGE_EXPAND)
 
     source = time_series.TimeSeries(
-        label = "Source time-series",
-        doc = "Links to the time-series on which Correlation (coefficients) is applied.")
+        label="Source time-series",
+        doc="Links to the time-series on which Correlation (coefficients) is applied.")
+
+    labels_ordering = basic.List(
+        label="Dimension Names",
+        default=["Node", "Node", "State Variable", "Mode"],
+        doc="""List of strings representing names of each data dimension""")
 
     __generate_table__ = True
+
 
 
 class ConnectivityMeasureData(arrays.MappedArray):
     """
     An array representing a measure of a Connectivity dataType.
     """
-    
-    connectivity = connectivity.Connectivity 
-    
+
+    connectivity = connectivity.Connectivity
+
     __generate_table__ = True
     
     
