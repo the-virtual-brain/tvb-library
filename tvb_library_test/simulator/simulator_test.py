@@ -40,8 +40,6 @@ schemes (region and surface based simulations).
 #TODO: check the defaults of simulator.Simulator() (?)
 #TODO: continuation support or maybe test that particular feature elsewhere
 #TODO: explicitly define a test for each model, integrator and monitor (?)
-#I'm feeling lazy ...
-#XXX: The BrunelWang model is giving me headaches again ...
 
 if __name__ == "__main__":
     from tvb_library_test import setup_test_console_env
@@ -51,7 +49,6 @@ if __name__ == "__main__":
 import numpy
 import unittest
 import itertools
-
 # From "The Virtual Brain"
 import tvb.datatypes.sensors as sensors
 from tvb_library_test.base_testcase import BaseTestCase
@@ -76,27 +73,27 @@ class Simulator(object):
 
         #Initialise some Monitors with period in physical time
         raw     = monitors.Raw()
-        gavg    = monitors.GlobalAverage(period=2**-2)
-        subsamp = monitors.SubSample(period=2**-2)
-        tavg    = monitors.TemporalAverage(period=2**-2)
-        spheeg  = monitors.SphericalEEG(sensors=sens_eeg, period=2**-2)
-        sphmeg  = monitors.SphericalMEG(sensors=sens_meg, period=2**-2)
+        gavg    = monitors.GlobalAverage(period=2 ** -2)
+        subsamp = monitors.SubSample(period=2 ** -2)
+        tavg    = monitors.TemporalAverage(period=2 ** -2)
+        spheeg  = monitors.SphericalEEG(sensors=sens_eeg, period=2 ** -2)
+        sphmeg  = monitors.SphericalMEG(sensors=sens_meg, period=2 ** -2)
         
         self.monitors = (raw, gavg, subsamp, tavg, spheeg, sphmeg) 
         
-        self.model   = None
-        self.method  = None
-        self.sim     = None
+        self.model  = None
+        self.method = None
+        self.sim    = None
 
 
-    def run_simulation(self, simulation_length=2**4):
+    def run_simulation(self, simulation_length=2 ** 4):
         """
         Test a simulator constructed with one of the <model>_<scheme> methods. 
         
         """
 
         raw_data, gavg_data, subsamp_data, tavg_data = [], [], [], []
-        spheeg_data, sphmeg_data  = [], []
+        spheeg_data, sphmeg_data = [], []
 
         for raw, gavg, subsamp, tavg, spheeg, sphmeg in self.sim(simulation_length=simulation_length):    
 
@@ -119,7 +116,7 @@ class Simulator(object):
                 sphmeg_data.append(sphmeg)
                 
 
-    def configure(self, dt=2**-4, model="Generic2dOscillator", speed=4.0, 
+    def configure(self, dt=2 ** -4, model="Generic2dOscillator", speed=4.0,
                   coupling_strength=0.00042, method="HeunDeterministic", 
                   surface_sim=False):
         """
@@ -139,23 +136,23 @@ class Simulator(object):
         dynamics = eval("models." + model + "()")
         
         if method[-10:] == "Stochastic":
-            hisss = noise.Additive(nsig = numpy.array([2**-11,]))
+            hisss = noise.Additive(nsig=numpy.array([2 ** -11,]))
             integrator = eval("integrators." + method + "(dt=dt, noise=hisss)")
         else:
             integrator = eval("integrators." + method + "(dt=dt)")
         
         if surface_sim:
-            local_coupling_strength = numpy.array([2**-10])
+            local_coupling_strength = numpy.array([2 ** -10])
             default_cortex = surfaces.Cortex(coupling_strength=local_coupling_strength) 
         else: 
-            default_cortex  = None
+            default_cortex = None
 
         # Order of monitors determines order of returned values.
-        self.sim = simulator.Simulator(model = dynamics, 
-                                       connectivity = white_matter,
-                                       coupling =  white_matter_coupling,
-                                       integrator = integrator, 
-                                       monitors = self.monitors,
+        self.sim = simulator.Simulator(model=dynamics,
+                                       connectivity=white_matter,
+                                       coupling=white_matter_coupling,
+                                       integrator=integrator,
+                                       monitors=self.monitors,
                                        surface=default_cortex)
         self.sim.configure()
         
@@ -164,11 +161,9 @@ class SimulatorTest(BaseTestCase):
 
     def test_simulator_region(self):
         
-        AVAILABLE_MODELS  = get_traited_subclasses(models.Model)
-        # stupid model
-        del AVAILABLE_MODELS['BrunelWang']
+        AVAILABLE_MODELS = get_traited_subclasses(models.Model)
         AVAILABLE_METHODS = get_traited_subclasses(integrators.Integrator)
-        MODEL_NAMES  = AVAILABLE_MODELS.keys()
+        MODEL_NAMES = AVAILABLE_MODELS.keys()
         METHOD_NAMES = AVAILABLE_METHODS.keys()
         METHOD_NAMES.append('RungeKutta4thOrderDeterministic')
         
@@ -177,7 +172,7 @@ class SimulatorTest(BaseTestCase):
     
         #test cases
         for model_name, method_name in itertools.product(MODEL_NAMES, METHOD_NAMES):        
-            test_simulator.configure(model= model_name,
+            test_simulator.configure(model=model_name,
                                      method=method_name,
                                      surface_sim=False)
             test_simulator.run_simulation()

@@ -73,7 +73,7 @@ class Model(core.Type):
     .. automethod:: Model.update_derived_parameters
 
     """
-    _base_classes = ['Model']
+    _base_classes = ['Model', "LileySteynRoss", "JansenRitDavid"]
     #NOTE: the parameters that are contained in the following list will be
     #      editable from the ui in an visual manner
     ui_configurable_parameters = []
