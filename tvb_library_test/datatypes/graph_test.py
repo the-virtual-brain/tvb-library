@@ -27,21 +27,21 @@
 #   Frontiers in Neuroinformatics (7:10. doi: 10.3389/fninf.2013.00010)
 #
 #
-"""
-Created on Mar 20, 2013
 
+"""
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
+
 if __name__ == "__main__":
     from tvb_library_test import setup_test_console_env
     setup_test_console_env()
 
 import numpy
 import unittest
-
 from tvb.datatypes import graph, time_series, connectivity
 from tvb_library_test.base_testcase import BaseTestCase
-        
+
+
 class GraphTest(BaseTestCase):
     """
     Tests the defaults for `tvb.datatypes.graph` module.
@@ -49,13 +49,31 @@ class GraphTest(BaseTestCase):
     
     def test_covariance(self):
         data = numpy.random.random((10, 10))
-        ts = time_series.TimeSeries(data=data)
-        dt = graph.Covariance(source=ts)
-        self.assertEqual(dt.shape, (0,))
-        self.assertEqual(dt.array_data.shape, (0,))
+        ts = time_series.TimeSeries(data=data, title="test")
+        dt = graph.Covariance(source=ts, array_data=data)
+
+        self.assertEqual(dt.shape, (10, 10))
+        self.assertEqual(dt.array_data.shape, (10, 10))
+
         summary = dt.summary_info
         self.assertEqual(summary['Graph type'], "Covariance")
-        self.assertEqual(summary['Shape'], (0,))
+        self.assertEqual(summary['Source'], "test")
+
+
+    def test_correlation_coefficients(self):
+        data = numpy.random.random((13, 14))
+        ts = time_series.TimeSeries(data=data, title="test-ts")
+        dt = graph.CorrelationCoefficients(source=ts, array_data=data)
+
+        self.assertEqual(dt.shape, (13, 14))
+        self.assertEqual(dt.array_data.shape, (13, 14))
+
+        summary = dt.summary_info
+        self.assertEqual(summary['Graph type'], "CorrelationCoefficients")
+        self.assertEqual(summary['Source'], "test-ts")
+        self.assertEqual(summary['Dimensions'], dt.labels_ordering)
+
+        self.assertEqual(dt.labels_ordering, ["Node", "Node", "State Variable", "Mode"])
         
         
     def test_connectivitymeasure(self):

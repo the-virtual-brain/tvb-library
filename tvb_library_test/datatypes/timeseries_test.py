@@ -27,21 +27,21 @@
 #   Frontiers in Neuroinformatics (7:10. doi: 10.3389/fninf.2013.00010)
 #
 #
-"""
-Created on Mar 20, 2013
 
+"""
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
+
 if __name__ == "__main__":
     from tvb_library_test import setup_test_console_env
     setup_test_console_env()
     
 import numpy
 import unittest
-
 from tvb.datatypes import time_series
 from tvb_library_test.base_testcase import BaseTestCase
-        
+
+
 class TimeseriesTest(BaseTestCase):
     """
     Tests the defaults for `tvb.datatypes.time_series` module.
@@ -68,7 +68,7 @@ class TimeseriesTest(BaseTestCase):
         data = numpy.random.random((10, 10))
         dt = time_series.TimeSeriesEEG(data=data)
         self.assertEqual(dt.data.shape, (10, 10))
-        self.assertEqual(dt.labels_ordering, ['Time', 'EEG Sensor'])
+        self.assertEqual(['Time', '1', 'EEG Sensor', '1'], dt.labels_ordering)
         self.assertEqual(dt.sample_period, 1.0)
         self.assertEqual(dt.sample_rate, 0.0)
         self.assertTrue(dt.sensors is None)
@@ -80,7 +80,7 @@ class TimeseriesTest(BaseTestCase):
         data = numpy.random.random((10, 10))
         dt = time_series.TimeSeriesMEG(data=data)
         self.assertEqual(dt.data.shape, (10, 10))
-        self.assertEqual(dt.labels_ordering, ['Time', 'MEG Sensor'])
+        self.assertEqual(['Time', '1', 'MEG Sensor', '1'], dt.labels_ordering)
         self.assertEqual(dt.sample_period, 1.0)
         self.assertEqual(dt.sample_rate, 0.0)
         self.assertTrue(dt.sensors is None)
