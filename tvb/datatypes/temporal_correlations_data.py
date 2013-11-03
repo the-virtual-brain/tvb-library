@@ -49,7 +49,6 @@ class CrossCorrelationData(MappedType):
     """
     Result of a CrossCorrelation Analysis.
     """
-    #Overwrite attribute from superclass
     array_data = arrays.FloatArray(file_storage=core.FILE_STORAGE_EXPAND)
 
     source = time_series.TimeSeries(

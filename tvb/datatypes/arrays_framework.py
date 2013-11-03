@@ -45,6 +45,7 @@ class BaseArrayFramework(Array):
     """Basic class for non-mapped arrays."""
     pass
 
+
 class FloatArrayFramework(arrays_data.FloatArrayData, BaseArrayFramework):
     """ This class exists to add framework methods to FloatArrayData """
     pass
@@ -101,7 +102,7 @@ class MappedArrayFramework(arrays_data.MappedArrayData):
         data_shape = self.get_data_shape('array_data')
         self.nr_dimensions = len(data_shape)
         for i in range(min(self.nr_dimensions, 4)): 
-            setattr(self, 'length_%dd' % (i+1), int(data_shape[i]))
+            setattr(self, 'length_%dd' % (i + 1), int(data_shape[i]))
     
     
     def configure(self):
@@ -111,21 +112,18 @@ class MappedArrayFramework(arrays_data.MappedArrayData):
             return
         self.nr_dimensions = len(self.array_data.shape)
         for i in range(min(self.nr_dimensions, 4)): 
-            setattr(self, 'length_%dd' % (i+1), self.array_data.shape[i])
-    
-    
-    @staticmethod  
+            setattr(self, 'length_%dd' % (i + 1), self.array_data.shape[i])
+
+
+    @staticmethod
     def accepted_filters():
         filters = arrays_data.MappedArrayData.accepted_filters()
-        filters.update({'datatype_class._nr_dimensions': 
-                                {'type': 'int', 'display':'Dimensionality',
-                                 'operations': ['==', '<', '>']},
-                        'datatype_class._length_1d': 
-                                {'type': 'int', 'display':'Shape 1',
-                                 'operations': ['==', '<', '>']},
-                       'datatype_class._length_2d': 
-                                {'type': 'int', 'display':'Shape 2',
-                                 'operations': ['==', '<', '>']}})
+        filters.update({'datatype_class._nr_dimensions':
+                            {'type': 'int', 'display': 'Dimensionality', 'operations': ['==', '<', '>']},
+                        'datatype_class._length_1d':
+                            {'type': 'int', 'display': 'Shape 1', 'operations': ['==', '<', '>']},
+                        'datatype_class._length_2d':
+                            {'type': 'int', 'display': 'Shape 2', 'operations': ['==', '<', '>']}})
         return filters
     
     
@@ -143,7 +141,7 @@ class MappedArrayFramework(arrays_data.MappedArrayData):
         #- aggregation_functions = {dimension: agg_func, ...} e.g.: {0: sum, 1: average, 2: none, ...}
         #- dimensions = {dimension: [list_of_indexes], ...} e.g.: {0: [0,1], 1: [5,500],...}
         dimensions, aggregation_functions, required_dimension, shape_restrictions = \
-        self.parse_selected_items(ui_selected_items)
+            self.parse_selected_items(ui_selected_items)
 
         if required_dimension is not None:
             #find the dimension of the resulted array
@@ -174,17 +172,15 @@ class MappedArrayFramework(arrays_data.MappedArrayData):
                 result = result[tuple(my_slice)]
             if i in aggregation_functions.keys():
                 if aggregation_functions[i] != "none":
-                    result = eval("numpy." + aggregation_functions[i] + 
-                                  "(result,axis=" + str(i -cut_dimensions) +")")
+                    result = eval("numpy." + aggregation_functions[i] + "(result,axis=" + str(i - cut_dimensions) + ")")
                     cut_dimensions += 1
 
         #check that the shape for the resulted array respects given conditions
         result_shape = result.shape
         for i in xrange(len(result_shape)):
             if i in shape_restrictions:
-                flag = eval(str(result_shape[i]) +
-                           shape_restrictions[i][self.KEY_OPERATION] +
-                           str(shape_restrictions[i][self.KEY_SIZE]))
+                flag = eval(str(result_shape[i]) + shape_restrictions[i][self.KEY_OPERATION] +
+                            str(shape_restrictions[i][self.KEY_SIZE]))
                 if not flag:
                     msg = ("The condition is not fulfilled: dimension " 
                            + str(i + 1) + " " 
@@ -194,8 +190,8 @@ class MappedArrayFramework(arrays_data.MappedArrayData):
                            + " is " + str(result_shape[i]) + ".")
                     self.logger.debug(msg)
                     raise Exception(msg)
-        if (required_dimension is not None and required_dimension >= 1
-            and len(result.shape) != required_dimension):
+
+        if required_dimension is not None and 1 <= required_dimension != len(result.shape):
             self.logger.debug("Dimensions of the selected array are incorrect")
             raise Exception("Dimensions of the selected array are incorrect!")
 
@@ -239,11 +235,11 @@ class MappedArrayFramework(arrays_data.MappedArrayData):
                         dimensions[int(str_array[1])].append(int(str_array[2]))
                     else:
                         dimensions[int(str_array[1])] = [int(str_array[2])]
-        return dimensions, aggregation_functions, required_dimension, \
-               self._parse_expected_shape(expected_shape_str, operations_str)
+        return dimensions, aggregation_functions, required_dimension, self._parse_expected_shape(expected_shape_str,
+                                                                                                 operations_str)
 
 
-    def _parse_expected_shape(self, expected_shape_str='', operations_str= ''):
+    def _parse_expected_shape(self, expected_shape_str='', operations_str=''):
         """
         If we have the inputs of form: expected_shape='x,512,x' and operations='x,&lt;,x'.
         The result will be: {1: {'size':512, 'operation':'<'}}
@@ -258,18 +254,30 @@ class MappedArrayFramework(arrays_data.MappedArrayData):
 
         operations = self._get_operations()
         for i in xrange(len(shape_array)):
-            if (str(shape_array[i]).isdigit() and i < len(op_array) 
-                and op_array[i] in operations):
-                result[i] = {self.KEY_SIZE : int(shape_array[i]),
-                             self.KEY_OPERATION : operations[op_array[i]]}
+            if str(shape_array[i]).isdigit() and i < len(op_array) and op_array[i] in operations:
+                result[i] = {self.KEY_SIZE: int(shape_array[i]),
+                             self.KEY_OPERATION: operations[op_array[i]]}
         return result
+
+
+    def read_data_shape(self):
+        """ Expose shape read on field 'array_data' """
+        return self.get_data_shape('array_data')
+
+
+    def read_data_slice(self, data_slice):
+        """ Expose chunked-data access. """
+        return self.get_data('array_data', data_slice)
 
 
     @staticmethod
     def _get_operations():
         """Return accepted operations"""
-        operations = {'&lt;': '<', '&gt;': '>', '&ge;': '>=', 
-                      '&le;': '<=', '==': '=='}
+        operations = {'&lt;': '<',
+                      '&gt;': '>',
+                      '&ge;': '>=',
+                      '&le;': '<=',
+                      '==': '=='}
         return operations
 
 

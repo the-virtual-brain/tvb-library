@@ -55,20 +55,6 @@ class CovarianceFramework(graph_data.CovarianceData):
             setattr(self, 'length_%dd' % (i + 1), int(self.read_data_shape()[i]))
 
 
-    def read_data_shape(self):
-        """
-        Expose shape read on field 'data'
-        """
-        return self.get_data_shape('array_data')
-
-
-    def read_data_slice(self, data_slice):
-        """
-        Expose chunked-data access.
-        """
-        return self.get_data('array_data', data_slice)
-
-
     def write_data_slice(self, partial_result):
         """
         Append chunk.
@@ -92,32 +78,10 @@ class CorrelationCoefficientsFramework(graph_data.CorrelationCoefficientsData):
             setattr(self, 'length_%dd' % (i + 1), int(self.read_data_shape()[i]))
 
 
-    def read_data_shape(self):
-        """
-        Expose shape read on field 'data'
-        """
-        return self.get_data_shape('array_data')
-
-
-    def read_data_slice(self, data_slice):
-        """
-        Expose chunked-data access.
-        """
-        return self.get_data('array_data', data_slice)
-
-
-    def write_data_slice(self, partial_result):
-        """
-        Append chunk.
-        """
-        self.store_data_chunk('array_data', partial_result, grow_dimension=2, close_file=False)
-
-
 
 class ConnectivityMeasureFramework(graph_data.ConnectivityMeasureData):
     """
     Framework methods for ConnectivityMeasure entity
     """
     __tablename__ = None
-
 

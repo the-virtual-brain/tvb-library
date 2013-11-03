@@ -62,7 +62,7 @@ class CovarianceData(arrays.MappedArray):
 
 class CorrelationCoefficientsData(arrays.MappedArray):
 
-    array_data = arrays.FloatArray(file_storage=core.FILE_STORAGE_EXPAND)
+    array_data = arrays.FloatArray(file_storage=core.FILE_STORAGE_DEFAULT)
 
     source = time_series.TimeSeries(
         label="Source time-series",

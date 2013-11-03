@@ -55,8 +55,9 @@ class CovarianceScientific(graph_data.CovarianceData):
         Gather scientifically interesting summary information from an instance of this datatype.
         """
         summary = {"Graph type": self.__class__.__name__,
-                   "Source": self.source.title,
-                   'Shape': self.get_data_shape('array_data')}
+                   "Source": self.source.title}
+
+        summary.update(self.get_info_about_array('array_data'))
         return summary
 
 

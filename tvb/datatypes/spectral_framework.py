@@ -52,18 +52,7 @@ class FourierSpectrumFramework(spectral_data.FourierSpectrumData):
         self.nr_dimensions = len(self.read_data_shape())
         for i in range(self.nr_dimensions): 
             setattr(self, 'length_%dd' % (i + 1), int(self.read_data_shape()[i]))
-    
-    def read_data_shape(self):
-        """
-        Expose shape read on field 'data'
-        """
-        return self.get_data_shape('array_data')
-    
-    def read_data_slice(self, data_slice):
-        """
-        Expose chunked-data access.
-        """
-        return self.get_data('array_data', data_slice)
+
     
     def write_data_slice(self, partial_result):
         """
@@ -103,18 +92,7 @@ class WaveletCoefficientsFramework(spectral_data.WaveletCoefficientsData):
         self.nr_dimensions = len(self.read_data_shape())
         for i in range(self.nr_dimensions): 
             setattr(self, 'length_%dd' % (i + 1), int(self.read_data_shape()[i]))
-    
-    def read_data_shape(self):
-        """
-        Expose shape read on field 'data'
-        """
-        return self.get_data_shape('array_data')
-    
-    def read_data_slice(self, data_slice):
-        """
-        Expose chunked-data access.
-        """
-        return self.get_data('array_data', data_slice)
+
     
     def write_data_slice(self, partial_result):
         """
@@ -143,18 +121,7 @@ class CoherenceSpectrumFramework(spectral_data.CoherenceSpectrumData):
         """After populating few fields, compute the rest of the fields"""
         # Do not call super, because that accesses data not-chunked
         self.configure_chunk_safe()
-    
-    def read_data_shape(self):
-        """
-        Expose shape read on field 'data'
-        """
-        return self.get_data_shape('array_data')
-    
-    def read_data_slice(self, data_slice):
-        """
-        Expose chunked-data access.
-        """
-        return self.get_data('array_data', data_slice)
+
     
     def write_data_slice(self, partial_result):
         """
@@ -173,15 +140,9 @@ class ComplexCoherenceSpectrumFramework(spectral_data.ComplexCoherenceSpectrumDa
     def configure(self):
         """After populating few fields, compute the rest of the fields"""
         # Do not call super, because that accesses data not-chunked
-
         self.configure_chunk_safe()
-        
-    def read_data_shape(self):
-        """
-        Expose shape read on field 'data'
-        """
-        return self.get_data_shape('array_data')
-    
+
+
     def write_data_slice(self, partial_result):
         """
         Append chunk.
