@@ -39,6 +39,9 @@ the demo data at the region level.
 
 """
 
+from tvb.basic.profile import TvbProfile
+TvbProfile.set_profile(["-profile", "LIBRARY_PROFILE"], try_reload=False)
+
 import numpy
 import tvb.datatypes.connectivity as connectivity
 import tvb.analyzers.correlation_coefficient as corr_coeff
@@ -75,7 +78,7 @@ corrcoeff_data.configure()
 # Plot matrix with numbers
 # For visualization purposes, the diagonal is set to zero.
 FC = corrcoeff_data.array_data[:, :, 0, 0]
-numpy.fill_diagonal(FC,  0.)
+numpy.fill_diagonal(FC, 0.)
 pyplot.matshow(FC, cmap='RdBu', vmin=-0.5, vmax=0.5, interpolation='nearest')
 pyplot.colorbar()
 pyplot.show()

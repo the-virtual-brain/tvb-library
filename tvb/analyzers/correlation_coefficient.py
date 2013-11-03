@@ -70,7 +70,7 @@ class CorrelationCoefficient(core.Type):
         calculated.""")
 
     t_start = basic.Float(
-        label = ":math:`t_{start}",
+        label = ":math:`t_{start}`",
         default = 0.9765625,
         required = True,
         doc = """Time start point (ms). By default it uses the default Monitor sample period.
@@ -81,8 +81,8 @@ class CorrelationCoefficient(core.Type):
         default = 1000.,
         required = True,
         doc = """ End time point (ms) """)
-    
-    
+
+
     def evaluate(self):
         """
         Compute the correlation coefficients of a 2D array (tpts x nodes).
@@ -94,47 +94,52 @@ class CorrelationCoefficient(core.Type):
         """
         cls_attr_name = self.__class__.__name__ + ".time_series"
         self.time_series.trait["data"].log_debug(owner=cls_attr_name)
-        
+
         #(nodes, nodes, state-variables, modes)
-        result_shape = self.result_shape(self.time_series.data.shape)
+        input_shape = self.time_series.read_data_shape()
+        result_shape = self.result_shape(input_shape)
         LOG.info("result shape will be: %s" % str(result_shape))
-        
+
         result = numpy.zeros(result_shape)
 
 
         t_lo = int((1. / self.time_series.sample_period) * (self.t_start - self.time_series.sample_period))
         t_hi = int((1. / self.time_series.sample_period) * (self.t_end - self.time_series.sample_period))
-        
+        t_lo = max(t_lo, 0)
+        t_hi = max(t_hi, input_shape[0])
+
         #One correlation coeff matrix, for each state-var & mode.
         for mode in range(result_shape[3]):
             for var in range(result_shape[2]):
-                data = self.time_series.data[t_lo:t_hi + 1, var, :, mode]
+                current_slice = tuple([slice(t_lo, t_hi + 1), slice(var, var + 1),
+                                       slice(input_shape[2]), slice(mode, mode + 1)])
+                data = self.time_series.read_data_slice(current_slice).squeeze()
                 result[:, :, var, mode] = numpy.corrcoef(data.T)
 
-        
+
         util.log_debug_array(LOG, result, "result")
 
         corr_coeff = graph.CorrelationCoefficients(source=self.time_series,
                                                    array_data=result,
                                                    use_storage=False)
         return corr_coeff
-    
-    
+
+
     def result_shape(self, input_shape):
         """Returns the shape of the main result of ...."""
         result_shape = (input_shape[2], input_shape[2],
                         input_shape[1], input_shape[3])
         return result_shape
-    
-    
+
+
     def result_size(self, input_shape):
         """
         Returns the storage size in Bytes of the main result of .
         """
         result_size = numpy.sum(map(numpy.prod, self.result_shape(input_shape))) * 8.0  # Bytes
         return result_size
-    
-    
+
+
     def extended_result_size(self, input_shape):
         """
         Returns the storage size in Bytes of the extended result of the ....
