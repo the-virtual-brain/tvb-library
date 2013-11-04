@@ -285,7 +285,7 @@ class LarterBreakspear(models.Model):
     d_V = arrays.FloatArray(
         label = ":math:`\\delta_{V}`",
         default = numpy.array([0.65]),
-        range = basic.Range(lo = 0.1, hi = 0.7, step = 0.05),
+        range = basic.Range(lo = 0.49, hi = 0.7, step = 0.01),
         doc = """Variance of the excitatory threshold. It is one of the main
         parameters explored in [Breaksetal_2003_b]_.""")
     
@@ -322,18 +322,9 @@ class LarterBreakspear(models.Model):
         doc = """Maximal firing rate for excitatory populations (kHz)""")
 
 
-    t_scale = arrays.FloatArray(
-        label=":math:`t_{scale}`",
-        default = 1.0,
-        range = basic.Range(lo=0.0001, hi=10.0, step=0.1),
-        doc = """Time scale factor. Rescale the derivative to adapt 
-        the resulting time-series to milliseconds. This factor does not 
-        affect the dynamics of the model. """)
-
-
     variables_of_interest = basic.Enumerate(
         label="Variables watched by Monitors",
-        options=["V", "W", "Z", "QV"],
+        options=["V", "W", "Z"],
         default=["V"],
         select_multiple=True,
         doc="""This represents the default state-variables of this Model to be
@@ -345,8 +336,7 @@ class LarterBreakspear(models.Model):
         label = "State Variable ranges [lo, hi]",
         default = {"V": numpy.array([-1.5, 1.5]),
                    "W": numpy.array([ 0.0, 1.0]),
-                   "Z": numpy.array([-1.5, 1.5]),
-                   "QV": numpy.array([0.99, 1.01])},
+                   "Z": numpy.array([-1.5, 1.5])},
         doc = """The values for each state-variable should be set to encompass
             the expected dynamic range of that state-variable for the current 
             parameters, it is used as a mechanism for bounding random inital 
@@ -364,10 +354,10 @@ class LarterBreakspear(models.Model):
         
         super(LarterBreakspear, self).__init__(**kwargs)
         
-        self._state_variables = ["V", "W", "Z", "QV"]
+        self._state_variables = ["V", "W", "Z"]
         
-        self._nvar = 4
-        self.cvar = numpy.array([3], dtype=numpy.int32)
+        self._nvar = 3
+        self.cvar = numpy.array([0], dtype=numpy.int32)
         
         LOG.debug('%s: inited.' % repr(self))
     
@@ -380,7 +370,7 @@ class LarterBreakspear(models.Model):
             - g_K\\, W\\, (V - V_K) - g_L\\, (V - V_L)
             - (g_{Na} m_{Na} + (1 - C) \\, a_{ee} Q_V^i + 
             C \\, a_{ee} \\langle Q_V \\rangle) \\, (V - V_{Na})
-            + a_{ie}\\, Z \\, Q_Z^i + a_{ne} \\, I_{\\delta}
+            - a_{ie}\\, Z \\, Q_Z^i + a_{ne} \\, I_{\\delta}
             
             \\dot{W} &= \\frac{\\phi \\, (m_K - W)}{\\tau_K} \\\\
             \\dot{Z} &= b \\, (a_{ni} \\, I_{\\delta} + a_{ei} \\, V \\, Q_V)\\\\
@@ -389,14 +379,16 @@ class LarterBreakspear(models.Model):
             
         See Equations (7), (3), (6) and (2) respectively in [Breaksetal_2003]_.
         Pag: 705-706
+
+        NOTE: Equation (8) has an error the sign before the term :math:`a_{ie}\\, Z \\, Q_Z^i`
+        should be a minus (-) and not a plus (+).
         
         """
         V = state_variables[0, :]
         W = state_variables[1, :]
         Z = state_variables[2, :]
-        QV = state_variables[3, :]
-        
-        c_0   = coupling[0, :] # <Q_V(t-t_d)>
+
+        c_0   = coupling[0, :]    
         lc_0  = local_coupling
         
         # relationship between membrane voltage and channel conductance
@@ -407,21 +399,14 @@ class LarterBreakspear(models.Model):
         # voltage to firing rate
         QV  = 0.5 * self.QV_max * (1 + numpy.tanh((V - self.VT) / self.d_V))
         QZ  = 0.5 * self.QZ_max * (1 + numpy.tanh((Z - self.ZT) / self.d_Z))
+        
+        dV = (- (self.gCa + (1.0 - self.C) * self.rNMDA * self.aee * QV + self.C * self.rNMDA * self.aee * c_0) * m_Ca * (V - self.VCa) - self.gK * W * (V - self.VK) -  self.gL * (V - self.VL) - (self.gNa * m_Na + (1.0 - self.C) * self.aee * QV + self.C * self.aee * c_0) * (V - self.VNa) - self.aei * Z * QZ + self.ane * self.Iext)
 
+        dW = (self.phi * (m_K - W) / self.tau_K)
         
-        dV = self.t_scale * (- (self.gCa + (1.0 - self.C) * self.rNMDA * self.aee * QV + \
-        self.C * self.rNMDA * self.aee * c_0) * m_Ca * (V - self.VCa) - \
-        self.gK * W * (V - self.VK) -  self.gL * (V - self.VL) - \
-        (self.gNa * m_Na + (1.0 - self.C) * self.aee * QV + self.C * self.aee * c_0) *\
-        (V - self.VNa) - self.aei * Z * QZ + self.ane * self.Iext)
-
-        dQV = self.t_scale * ((0.5 * self.QV_max * dV * (1 - (numpy.tanh((V - self.VT) / self.d_V))**2))/ self.d_V)
+        dZ = (self.b * (self.ani * self.Iext + self.aei * V * QV))
         
-        dW = self.t_scale * (self.phi * (m_K - W) / self.tau_K)
-        
-        dZ = self.t_scale * (self.b * (self.ani * self.Iext + self.aei * V * QV))
-        
-        derivative = numpy.array([dV, dW, dZ, dQV])
+        derivative = numpy.array([dV, dW, dZ])
         
         return derivative
 
