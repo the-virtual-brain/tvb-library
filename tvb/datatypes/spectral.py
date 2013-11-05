@@ -114,14 +114,14 @@ class ComplexCoherenceSpectrum(spectral_scientific.ComplexCoherenceSpectrumScien
     associated with the ComplexCoherenceSpectrum datatype.
     
     ::
-        
-                          ComplexCoherenceSpectrumData
-                                   |
-                                  / \\
- ComplexCoherenceSpectrumFramework   ComplexCoherenceSpectrumScientific
-                                  \ /
-                                   |
-                            ComplexCoherenceSpectrum
+         
+                              ComplexCoherenceSpectrumData
+                                          |
+                                         / \\
+        ComplexCoherenceSpectrumFramework   ComplexCoherenceSpectrumScientific
+                                         \ /
+                                          |
+                              ComplexCoherenceSpectrum
         
     
     """

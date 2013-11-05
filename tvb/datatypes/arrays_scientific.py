@@ -47,14 +47,13 @@ class FloatArrayScientific(arrays_data.FloatArrayData):
     
     def _find_summary_info(self):
         """
-        Gather scientifically interesting summary information from an instance
-        of this datatype.
+        Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Array type": self.__class__.__name__}
-        summary["Shape"] = self.shape
-        summary["Maximum"] = self.value.max()
-        summary["Minimum"] = self.value.min()
-        summary["Mean"] = self.value.mean()
+        summary = {"Array type": self.__class__.__name__,
+                   "Shape": self.shape,
+                   "Maximum": self.value.max(),
+                   "Minimum": self.value.min(),
+                   "Mean": self.value.mean()}
         return summary
 
 
@@ -64,34 +63,31 @@ class IntegerArrayScientific(arrays_data.IntegerArrayData):
     
     def _find_summary_info(self):
         """
-        Gather scientifically interesting summary information from an instance
-        of this datatype.
+        Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Array type": self.__class__.__name__}
-        summary["Shape"] = self.shape
-        summary["Maximum"] = self.value.max()
-        summary["Minimum"] = self.value.min()
-        summary["Mean"] = self.value.mean()
-        summary["Median"] = numpy.median(self.value)
+        summary = {"Array type": self.__class__.__name__,
+                   "Shape": self.shape,
+                   "Maximum": self.value.max(),
+                   "Minimum": self.value.min(),
+                   "Mean": self.value.mean(),
+                   "Median": numpy.median(self.value)}
         return summary
 
 
 class ComplexArrayScientific(arrays_data.ComplexArrayData):
     """ This class exists to add scientific methods to ComplexArrayData """
     
-    _stored_metadata = [key for key in MappedType.ALL_METADATA_ARRAY.keys() 
-                          if key != MappedType.METADATA_ARRAY_VAR]
+    _stored_metadata = [key for key in MappedType.ALL_METADATA_ARRAY.keys() if key != MappedType.METADATA_ARRAY_VAR]
     
     def _find_summary_info(self):
         """
-        Gather scientifically interesting summary information from an instance
-        of this datatype.
+        Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Array type": self.__class__.__name__}
-        summary["Shape"] = self.shape
-        summary["Maximum"] = self.value.max()
-        summary["Minimum"] = self.value.min()
-        summary["Mean"] = self.value.mean()
+        summary = {"Array type": self.__class__.__name__,
+                   "Shape": self.shape,
+                   "Maximum": self.value.max(),
+                   "Minimum": self.value.min(),
+                   "Mean": self.value.mean()}
         return summary
 
 
@@ -102,11 +98,10 @@ class BoolArrayScientific(arrays_data.BoolArrayData):
     
     def _find_summary_info(self):
         """
-        Gather scientifically interesting summary information from an instance
-        of this datatype.
+        Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Array type": self.__class__.__name__}
-        summary["Shape"] = self.shape
+        summary = {"Array type": self.__class__.__name__,
+                   "Shape": self.shape}
         return summary
 
 
@@ -117,11 +112,10 @@ class StringArrayScientific(arrays_data.StringArrayData):
     
     def _find_summary_info(self):
         """
-        Gather scientifically interesting summary information from an instance
-        of this datatype.
+        Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Array type": self.__class__.__name__}
-        summary["Shape"] = self.shape
+        summary = {"Array type": self.__class__.__name__,
+                   "Shape": self.shape}
         return summary
 
 

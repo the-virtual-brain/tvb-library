@@ -44,6 +44,7 @@ from tvb.basic.logger.builder import get_logger
 LOG = get_logger(__name__)
 
 
+
 class Covariance(graph_scientific.CovarianceScientific, graph_framework.CovarianceFramework):
     """
     This class brings together the scientific and framework methods that are
@@ -64,24 +65,27 @@ class Covariance(graph_scientific.CovarianceScientific, graph_framework.Covarian
     pass
 
 
-class CorrelationCoefficients(graph_scientific.CorrelationCoefficientsScientific, graph_framework.CorrelationCoefficientsFramework):
+
+class CorrelationCoefficients(graph_scientific.CorrelationCoefficientsScientific,
+                              graph_framework.CorrelationCoefficientsFramework):
     """
     This class brings together the scientific and framework methods that are
     associated with the CorrelationCoefficients DataType.
     
     ::
         
-                        CorrelationCoefficientsData
-                                     |
-                                    / \\
-    CorrelationCoefficientsFramework   CorrelationCoefficientsScientific
-                                    \ /
-                                     |
-                           CorrelationCoefficients
+                            CorrelationCoefficientsData
+                                         |
+                                        / \\
+        CorrelationCoefficientsFramework   CorrelationCoefficientsScientific
+                                        \ /
+                                         |
+                               CorrelationCoefficients
         
     
     """
     pass
+
 
 
 class ConnectivityMeasure(graph_scientific.ConnectivityMeasureScientific,

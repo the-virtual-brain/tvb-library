@@ -44,35 +44,42 @@ LOG = get_logger(__name__)
 
 
 class CovarianceScientific(graph_data.CovarianceData):
-    """ This class exists to add scientific methods to CovarianceData. """
+    """
+    This class exists to add scientific methods to CovarianceData.
+    """
     __tablename__ = None
-    
-    
+
+
     def _find_summary_info(self):
         """
-        Gather scientifically interesting summary information from an instance
-        of this datatype.
+        Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Graph type": self.__class__.__name__}
-        summary["Source"] = self.source.title
-        summary['Shape'] = self.get_data_shape('array_data')
+        summary = {"Graph type": self.__class__.__name__,
+                   "Source": self.source.title}
+
+        summary.update(self.get_info_about_array('array_data'))
         return summary
+
 
 
 class CorrelationCoefficientsScientific(graph_data.CorrelationCoefficientsData):
-    """ This class exists to add scientific methods to CorrelationCoefficientsData. """
+    """
+    This class exists to add scientific methods to CorrelationCoefficientsData.
+    """
     __tablename__ = None
-    
-    
+
+
     def _find_summary_info(self):
         """
-        Gather scientifically interesting summary information from an instance
-        of this datatype.
+        Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Graph type": self.__class__.__name__}
-        summary["Source"] = self.source.title
-        summary['Shape'] = self.get_data_shape('array_data')
+        summary = {"Graph type": self.__class__.__name__,
+                   "Source": self.source.title,
+                   "Dimensions": self.labels_ordering}
+
+        summary.update(self.get_info_about_array('array_data'))
         return summary
+
 
 
 class ConnectivityMeasureScientific(graph_data.ConnectivityMeasureData):
@@ -80,11 +87,11 @@ class ConnectivityMeasureScientific(graph_data.ConnectivityMeasureData):
     Scientific methods for ConnectivityMeasure entity.
     """
     __tablename__ = None
-    
+
+
     def _find_summary_info(self):
         """
-        Gather scientifically interesting summary information from an instance
-        of this datatype.
+        Gather scientifically interesting summary information from an instance of this datatype.
         """
         summary = {"Graph type": self.__class__.__name__}
         #summary["Source"] = self.connectivity.title

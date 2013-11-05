@@ -437,6 +437,7 @@ if IMPORTED_MAYAVI:
         vertices (vertex_colours).
 
         * How to obtain a pretty picture (from Mayavi's gui): 
+        
           - set surf_mesh color to rgb(237, 217, 221)
           - add a surface module derived from surf_mesh; set 'Actor' 
             representation to wireframe; colour 'gray'.
