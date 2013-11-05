@@ -229,7 +229,6 @@ class Model(core.Type):
                 #initial_conditions[:, var, :] = nsig * noise + loc
                 #TODO: Hackery, validate me...-noise.mean(axis=0) ... self.noise.nsig
             initial_conditions[:, var, :] = numpy.sqrt(2.0 * nsig) * numpy.cumsum(noise[:, var, :],axis=0) + loc
-            print initial_conditions[0, :, 0, 0] 
         return initial_conditions
 
 
