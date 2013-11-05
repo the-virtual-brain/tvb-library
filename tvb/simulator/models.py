@@ -198,20 +198,22 @@ class Model(core.Type):
         tpts = history_shape[0]
         nvar = history_shape[1]
         history_shape = history_shape[2:]
+        
         self.configure_initial(dt, history_shape)
+        noise = numpy.zeros((tpts, nvar) + history_shape)
+
+        for tpt in range(tpts):
+            for var in range(nvar):
+                noise[tpt, var, :] = self.noise.generate(history_shape)
+        
         for var in range(nvar):
             loc = self.state_variable_range[self.state_variables[var]].mean()
             nsig = (self.state_variable_range[self.state_variables[var]][1] -
                     self.state_variable_range[self.state_variables[var]][0]) / 6.0 #state-space: 3std
-            nsig = nsig / (tpts * dt)
-            noise = numpy.zeros((tpts,) + history_shape)
-            #import pdb; pdb.set_trace()
-            for tpt in range(tpts):
-                noise[tpt, :] = self.noise.generate(history_shape)
+            nsig = nsig #/ (tpts * dt)
                 #initial_conditions[:, var, :] = nsig * noise + loc
-            initial_conditions[:, var, :] = numpy.sqrt(2.0 * nsig) * numpy.cumsum(noise,
-                                                                                  axis=0) + loc #TODO: Hackery, validate me...-noise.mean(axis=0) ... self.noise.nsig
-
+                #TODO: Hackery, validate me...-noise.mean(axis=0) ... self.noise.nsig
+            initial_conditions[:, var, :] = numpy.sqrt(2.0 * nsig) * numpy.cumsum(noise[:, var, :],axis=0) + loc 
         return initial_conditions
 
 
