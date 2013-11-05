@@ -183,6 +183,21 @@ class Model(core.Type):
         parameter set.
 
         """
+        #NOTE: The following factor is set such that it considers the worst
+        #case possible for the history array, that is, low conduction speed,
+        #small 'dt' and the longest fibre. With this we expect to bound the
+        #diffussion process used to set the initial history to the state
+        #variable ranges.  
+        # Example:
+        #        + longest fiber: 200 mm (Ref:)
+        #        + min conduction speed: 3 mm/ms (Ref: http://www.scholarpedia.org/article/Axonal_conduction_delays) 
+        #          corpus callousm in the macaque monkey.
+        #        + max time delay: tau = longest fibre / speed \approx 67 ms
+        #        + and a small, yet not unheard of, dt = 2**-6
+        #        + max idelay = max_time_delay / dt = 4288.0
+        #        + let's hope for the best...
+
+        max_history_length = 4288. 
         #TODO: There is an issue of allignment when the current implementation 
         #      is used to pad out explicit inital conditions that aren't as long
         #      as the required history...
@@ -209,11 +224,12 @@ class Model(core.Type):
         for var in range(nvar):
             loc = self.state_variable_range[self.state_variables[var]].mean()
             nsig = (self.state_variable_range[self.state_variables[var]][1] -
-                    self.state_variable_range[self.state_variables[var]][0]) / 6.0 #state-space: 3std
-            nsig = nsig #/ (tpts * dt)
+                    self.state_variable_range[self.state_variables[var]][0]) / 2.0 
+            nsig = nsig / max_history_length
                 #initial_conditions[:, var, :] = nsig * noise + loc
                 #TODO: Hackery, validate me...-noise.mean(axis=0) ... self.noise.nsig
-            initial_conditions[:, var, :] = numpy.sqrt(2.0 * nsig) * numpy.cumsum(noise[:, var, :],axis=0) + loc 
+            initial_conditions[:, var, :] = numpy.sqrt(2.0 * nsig) * numpy.cumsum(noise[:, var, :],axis=0) + loc
+            print initial_conditions[0, :, 0, 0] 
         return initial_conditions
 
 
