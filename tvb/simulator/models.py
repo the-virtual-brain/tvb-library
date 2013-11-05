@@ -207,7 +207,7 @@ class Model(core.Type):
             noise = numpy.zeros((tpts,) + history_shape)
             #import pdb; pdb.set_trace()
             for tpt in range(tpts):
-                noise[tpt, :] = abs(self.noise.generate(history_shape))
+                noise[tpt, :] = self.noise.generate(history_shape)
                 #initial_conditions[:, var, :] = nsig * noise + loc
             initial_conditions[:, var, :] = numpy.sqrt(2.0 * nsig) * numpy.cumsum(noise,
                                                                                   axis=0) + loc #TODO: Hackery, validate me...-noise.mean(axis=0) ... self.noise.nsig
