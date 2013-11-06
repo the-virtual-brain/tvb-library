@@ -73,7 +73,7 @@ class Model(core.Type):
     .. automethod:: Model.update_derived_parameters
 
     """
-    _base_classes = ['Model', "LileySteynRoss", "JansenRitDavid"]
+    _base_classes = ['Model', "LileySteynRoss", "JansenRitDavid", "JRFast"]
     #NOTE: the parameters that are contained in the following list will be
     #      editable from the ui in an visual manner
     ui_configurable_parameters = []
@@ -1954,6 +1954,7 @@ class JansenRit(Model):
         """
     )
 
+
 class JRFast(JansenRit):
     """
     This is an optimized version of the above JansenRit model, using numexpr and
@@ -1963,8 +1964,8 @@ class JRFast(JansenRit):
     the dfun method, so if you change the number of nodes or the parameters, you
     need to invalidate the cache by setting the invalid_dfun_cache attribute to
     True.
-
     """
+    _ui_name = "Jansen-Rit-Optimized"
 
     invalid_dfun_cache = True
 
