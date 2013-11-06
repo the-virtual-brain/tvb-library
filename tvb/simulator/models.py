@@ -191,13 +191,11 @@ class Model(core.Type):
         # Example:
         #        + longest fiber: 200 mm (Ref:)
         #        + min conduction speed: 3 mm/ms (Ref: http://www.scholarpedia.org/article/Axonal_conduction_delays) 
-        #          corpus callousm in the macaque monkey.
+        #          corpus callosum in the macaque monkey.
         #        + max time delay: tau = longest fibre / speed \approx 67 ms
-        #        + and a small, yet not unheard of, dt = 2**-6
-        #        + max idelay = max_time_delay / dt = 4288.0
         #        + let's hope for the best...
 
-        max_history_length = 4288. 
+        max_history_length = 67. 
         #TODO: There is an issue of allignment when the current implementation 
         #      is used to pad out explicit inital conditions that aren't as long
         #      as the required history...
