@@ -442,6 +442,8 @@ class Simulator(core.Type):
                                                   self.number_of_nodes))
                 local_coupling = sp_cs * self.surface.local_connectivity.matrix
 
+            local_coupling = local_coupling.tocsr()
+
         if self.stimulus is None:
             stimulus = 0.0
         else: #TODO: Consider changing to absolute time...
