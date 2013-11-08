@@ -268,15 +268,9 @@ class Scaling(Coupling):
 
 class HyperbolicTangent(Coupling):
     """
-    Hyperbolic tangent. 
-    This coupling will be used mainly when the delayed 
-    state needs to be transformed (eg, voltage to rate)
-
+    Hyperbolic tangent.
 
     """
-    #NOTE: The defaults here produce something close to the current default for
-    #      Linear (a=0.00390625, b=0) over the linear portion of the sigmoid,
-    #      with saturation at -1 and 1.
 
     a = arrays.FloatArray(
         label = ":math:`a`", 
@@ -294,9 +288,15 @@ class HyperbolicTangent(Coupling):
 
     sigma = arrays.FloatArray(
         label = r":math:`\sigma`",
-        default = numpy.array([0.0,]),
+        default = numpy.array([1.0,]),
         range = basic.Range(lo = 0.01, hi = 1000.0, step = 10.0),
         doc = """Standard deviation of the ...""",
+        order = 4)
+
+    normalise = basic.Bool(
+        label = "normalise by in-degree",
+        default = True,
+        doc = """Normalise the node coupling by the node's in-degree""",
         order = 4)
 
 
@@ -306,13 +306,15 @@ class HyperbolicTangent(Coupling):
         evaluated has the following form:
 
             .. math::
-
+                        a * (1 + tanh((x - midpoint)/sigma))
 
         """
-        # Get Q_j 
         temp =  self.a * (1 +  numpy.tanh((x_j - self.midpoint) / self.sigma))
-        # Average
-        coupled_input = (g_ij*temp).mean(axis=0)
+        if self.normalise: # yeeeeahhh, let's make simulations slower ...
+            temp *= (g_ij / (numpy.max(numpy.abs(g_ij.sum(axis=1))))) # region mode normalisation
+            coupled_input = temp.mean(axis=0)
+        else: 
+            coupled_input = (g_ij*temp).mean(axis=0)
         
         return coupled_input
 
