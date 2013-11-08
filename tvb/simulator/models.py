@@ -173,6 +173,7 @@ class Model(core.Type):
         if self.noise.ntau > 0.0:
             self.noise.configure_coloured(dt, shape)
         else:
+            # The same applies for truncated rv
             self.noise.configure_white(dt, shape)
 
 
@@ -182,12 +183,22 @@ class Model(core.Type):
         these initial conditions be guaranteed to be sensible for the default
         parameter set.
 
+        It is often seen that initial conditions or initial history are filled
+        following ic = nsig * noise + loc, where noise is a stream of random
+        numbers drawn from a uniform or normal distribution.
+
+        Here, the noise is integrated, that is the initial conditions are
+        described by a diffusion process.
+
         """
-        #NOTE: The following factor is set such that it considers the worst
-        #case possible for the history array, that is, low conduction speed,
-        #small 'dt' and the longest fibre. With this we expect to bound the
-        #diffussion process used to set the initial history to the state
-        #variable ranges.  
+        #NOTE: The following max_history_length factor is set such that it
+        #considers the worst case possible for the history array, that is, low
+        #conduction speed and the longest white matter fibre. With this, plus
+        #drawing the random stream of numbers from a truncated normal
+        #distribution, we expect to bound the diffussion process used to set
+        #the initial history to the state variable ranges. (even for the case
+        #of rate based models)
+
         # Example:
         #        + longest fiber: 200 mm (Ref:)
         #        + min conduction speed: 3 mm/ms (Ref: http://www.scholarpedia.org/article/Axonal_conduction_delays) 
@@ -195,7 +206,7 @@ class Model(core.Type):
         #        + max time delay: tau = longest fibre / speed \approx 67 ms
         #        + let's hope for the best...
 
-        max_history_length = 67. 
+        max_history_length = 67. # ms
         #TODO: There is an issue of allignment when the current implementation 
         #      is used to pad out explicit inital conditions that aren't as long
         #      as the required history...
@@ -207,6 +218,10 @@ class Model(core.Type):
         #      temporally coloured noise hasn't un-whitened the spatial noise
         #      distribution to start with... [ie, spatial colour is a longer
         #      term problem to solve...])
+        #TODO: Ideally we'd like to have a independent random stream for each node.
+        #      Currently, if the number of nodes is different we'll get the
+        #      slightly different values further in the history array.
+
         initial_conditions = numpy.zeros(history_shape)
         tpts = history_shape[0]
         nvar = history_shape[1]
@@ -214,19 +229,28 @@ class Model(core.Type):
         
         self.configure_initial(dt, history_shape)
         noise = numpy.zeros((tpts, nvar) + history_shape)
+        nsig  = numpy.zeros(nvar)
+        loc   = numpy.zeros(nvar)  
 
         for tpt in range(tpts):
             for var in range(nvar):
-                noise[tpt, var, :] = self.noise.generate(history_shape)
+                loc[var]  = self.state_variable_range[self.state_variables[var]].mean()
+                nsig[var] = (self.state_variable_range[self.state_variables[var]][1] -
+                             self.state_variable_range[self.state_variables[var]][0]) / 2.0 
+                nsig[var] = nsig[var] / max_history_length
+
+                # define lower und upper bounds to truncate the random variates to the sv range.
+                lo = self.state_variable_range[self.state_variables[var]][0]
+                hi = self.state_variable_range[self.state_variables[var]][1]
+                lo_bound, up_bound = (lo - loc[var]) / nsig[var], (hi - loc[var]) / nsig[var]
+                
+                noise[tpt, var, :] = self.noise.generate(history_shape, truncate=True, 
+                                                         lo=lo_bound, hi=up_bound)
         
         for var in range(nvar):
-            loc = self.state_variable_range[self.state_variables[var]].mean()
-            nsig = (self.state_variable_range[self.state_variables[var]][1] -
-                    self.state_variable_range[self.state_variables[var]][0]) / 2.0 
-            nsig = nsig / max_history_length
-                #initial_conditions[:, var, :] = nsig * noise + loc
                 #TODO: Hackery, validate me...-noise.mean(axis=0) ... self.noise.nsig
-            initial_conditions[:, var, :] = numpy.sqrt(2.0 * nsig) * numpy.cumsum(noise[:, var, :],axis=0) + loc
+            initial_conditions[:, var, :] = numpy.sqrt(2.0 * nsig[var]) * numpy.cumsum(noise[:, var, :],axis=0) + loc[var]
+
         return initial_conditions
 
 
