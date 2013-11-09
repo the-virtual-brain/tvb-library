@@ -2228,7 +2228,7 @@ class Generic2dOscillator(Model):
         order=-1)
 
     alpha = arrays.FloatArray(
-        label=":math:`\alpha`",
+        label=r":math:`\alpha`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=-5.0, hi=5.0, step=0.0001),
         doc="""Constant parameter to scale the rate of feedback from the
@@ -2236,7 +2236,7 @@ class Generic2dOscillator(Model):
         order=-1)
 
     beta = arrays.FloatArray(
-        label=":math:`\beta`",
+        label=r":math:`\beta`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=-5.0, hi=5.0, step=0.0001),
         doc="""Constant parameter to scale the rate of feedback from the
@@ -2512,14 +2512,14 @@ class LileySteynRoss(Model):
 
 
     A_ee = arrays.FloatArray(
-        label=r":math:`\Alpha_{ee}`",
+        label=r":math:`\alpha_{ee}`",
         default=numpy.array([0.04]),
         range=basic.Range(lo=0.02, hi=0.06, step=0.01),
         doc="""Characteristic cortico-cortical inverse length scale [mm]-1. Original: 0.4 cm-1""",
         order=9)
 
     A_ei = arrays.FloatArray(
-        label=r":math:`\Alpha_{ei}`",
+        label=r":math:`\alpha_{ei}`",
         default=numpy.array([0.065]),
         range=basic.Range(lo=0.02, hi=0.08, step=0.01),
         doc="""Characteristic cortico-cortical inverse length scale [mm]-1. Original: 0.4 cm-1""",
@@ -2562,21 +2562,21 @@ class LileySteynRoss(Model):
         order=15)
 
     N_b_ei = arrays.FloatArray(
-        label=":math:`N_{ei}^{\beta}`",
+        label=r":math:`N_{ei}^{\beta}`",
         default=numpy.array([3034.0]),
         range=basic.Range(lo=3000., hi=3050., step=10.0),
         doc="""Total number of local exc to inh synaptic connections.""",
         order=16)
 
     N_b_ie = arrays.FloatArray(
-        label=":math:`N_{ie}^{\beta}`",
+        label=r":math:`N_{ie}^{\beta}`",
         default=numpy.array([536.0]),
         range=basic.Range(lo=500., hi=550., step=1.0),
         doc="""Total number of local inh to exc synaptic connections.""",
         order=17)
 
     N_b_ii = arrays.FloatArray(
-        label=":math:`N_{ii}^{\beta}`",
+        label=r":math:`N_{ii}^{\beta}`",
         default=numpy.array([536.0]),
         range=basic.Range(lo=500., hi=550., step=1.0),
         doc="""Total number of local inh to inh synaptic connections.""",
@@ -2584,28 +2584,28 @@ class LileySteynRoss(Model):
 
 
     N_a_ee = arrays.FloatArray(
-        label=":math:`N_{ee}^{\alpha}`",
+        label=r":math:`N_{ee}^{\alpha}`",
         default=numpy.array([4000.0]),
         range=basic.Range(lo=3000., hi=5000., step=10.0),
         doc="""Total number of synaptic connections from distant exc populations""",
         order=19)
 
     N_a_ei = arrays.FloatArray(
-        label=":math:`N_{ei}^{\alpha}`",
+        label=r":math:`N_{ei}^{\alpha}`",
         default=numpy.array([2000.0]),
         range=basic.Range(lo=1000., hi=3000., step=1.0),
         doc="""Total number of synaptic connections from distant exc populations""",
         order=20)
 
     theta_e = arrays.FloatArray(
-        label=":math:`\theta_e`",
+        label=r":math:`\theta_e`",
         default=numpy.array([-60.0]),
         range=basic.Range(lo=-90.0, hi=-40.0, step=5.0),
         doc="""inflection point voltage for sigmoid function [mV]""",
         order=21)
 
     theta_i = arrays.FloatArray(
-        label=":math:`\theta_i`",
+        label=r":math:`\theta_i`",
         default=numpy.array([-60.0]),
         range=basic.Range(lo=-90.0, hi=-40.0, step=5.0),
         doc="""inflection point voltage for sigmoid function [mV]""",
