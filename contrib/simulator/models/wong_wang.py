@@ -304,7 +304,7 @@ if __name__ == "__main__":
     LOG.info("Testing phase plane interactive ... ")
     
     # Check the Phase Plane
-    from tvb.simulator.phase_plane_interactive import PhasePlaneInteractive
+    from tvb.simulator.plot.phase_plane_interactive import PhasePlaneInteractive
     import tvb.simulator.integrators
         
     INTEGRATOR = tvb.simulator.integrators.HeunDeterministic(dt=2**-5)

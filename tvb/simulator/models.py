@@ -2382,7 +2382,7 @@ class LileySteynRoss(Model):
     """
     Liley lumped model as presented in Steyn-Ross et al 1999.
 
-    This  model is to be use for modellin cortical dynamics in which "inputs"
+    This  model is to be use for modelling cortical dynamics in which "inputs"
     to neuronal assemblies are treated as random Gaussian fluctuations about a
     mean value. Anesthetic agent effects are modelled as as a modulation of the
     inhibitory neurotransmitter rate constant.
