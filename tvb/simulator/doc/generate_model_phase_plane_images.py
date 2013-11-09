@@ -283,7 +283,7 @@ if __name__ == '__main__':
     
     from tvb.basic.traits.parameters_factory import get_traited_subclasses
     AVAILABLE_MODELS = get_traited_subclasses(models.Model)
-    ##AVAILABLE_MODELS = {models.LileySteynRoss.__name__: models.LileySteynRoss}
+    ##AVAILABLE_MODELS = {models.LarterBreakspear.__name__: models.LarterBreakspear}
     MODEL_NAMES = AVAILABLE_MODELS.keys()
     
     for model_name in MODEL_NAMES:

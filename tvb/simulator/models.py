@@ -2861,7 +2861,7 @@ class LarterBreakspear(Model):
         doc = """Conductance of population of leak channels.""")
     
     phi = arrays.FloatArray(
-        label = ":math:`\\phi`",
+        label = r":math:`\phi`",
         default = numpy.array([0.7]),
         range = basic.Range(lo = 0.3, hi = 0.9, step = 0.1),
         doc = """Temperature scaling factor.""")
@@ -2915,25 +2915,25 @@ class LarterBreakspear(Model):
         doc = """Na Nernst potential.""")
     
     d_K = arrays.FloatArray(
-        label = ":math:`\\delta_{K}`",
+        label = r":math:`\delta_{K}`",
         default = numpy.array([0.3]),
         range = basic.Range(lo = 0.1, hi = 0.4, step = 0.1),
         doc = """Variance of K channel threshold.""")
     
     tau_K = arrays.FloatArray(
-        label = ":math:`\\tau_{K}`",
+        label = r":math:`\tau_{K}`",
         default = numpy.array([1.0]),
         range = basic.Range(lo = 0.01, hi = 0.0, step = 0.1),
         doc = """Time constant for K relaxation time (ms)""")
     
     d_Na = arrays.FloatArray(
-        label = ":math:`\\delta_{Na}`",
+        label = r":math:`\delta_{Na}`",
         default = numpy.array([0.15]),
         range = basic.Range(lo = 0.1, hi = 0.2, step = 0.05),
         doc = "Variance of Na channel threshold.")
     
     d_Ca = arrays.FloatArray(
-        label = ":math:`\\delta_{Ca}`",
+        label = r":math:`\delta_{Ca}`",
         default = numpy.array([0.15]),
         range = basic.Range(lo = 05.1, hi = 0.2, step = 0.05),
         doc = "Variance of Ca channel threshold.")
@@ -3004,7 +3004,7 @@ class LarterBreakspear(Model):
         In [Breaksetal_2003_b]_ this values is 0.""")
     
     d_V = arrays.FloatArray(
-        label = ":math:`\\delta_{V}`",
+        label = r":math:`\delta_{V}`",
         default = numpy.array([0.65]),
         range = basic.Range(lo = 0.49, hi = 0.7, step = 0.01),
         doc = """Variance of the excitatory threshold. It is one of the main
@@ -3017,7 +3017,7 @@ class LarterBreakspear(Model):
         doc = """Threshold potential (mean) for inihibtory neurons.""")
     
     d_Z = arrays.FloatArray(
-        label = ":math:`\\delta_{Z}`",
+        label = r":math:`\delta_{Z}`",
         default = numpy.array([0.7]),
         range = basic.Range(lo = 0.001, hi = 0.75, step = 0.05),
         doc = """Variance of the inhibitory threshold.""")
