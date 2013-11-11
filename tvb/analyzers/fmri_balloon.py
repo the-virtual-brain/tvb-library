@@ -122,7 +122,7 @@ class BalloonModel(core.Type):
         Coefficients  k1, k2 and k3 will be derived accordingly.""",
         order = 5)
 
-    neural_input_transformation = basic.Dict(
+    neural_input_transformation = basic.Enumerate(
         label="Neural input",
         options=["none", "abs_diff", "sum"],
         default=["none"],
@@ -130,8 +130,8 @@ class BalloonModel(core.Type):
         doc=""" This represents the operation to perform on the state-variable(s) of
         the model used to generate the input TimeSeries. ``none`` takes the
         first state-variable as neural input; `` abs_diff`` is the absolute
-        value of the derivative (first order difference); ``sum``: sum all the
-        state-variables in the input TimeSeries.""")
+        value of the derivative (first order difference) of the first state variable; 
+        ``sum``: sum all the state-variables of the input TimeSeries.""")
 
     tau_s = basic.Float(
         label = ":math:`\tau_s`",
@@ -227,14 +227,14 @@ class BalloonModel(core.Type):
         #      input is the sum over the state-variables. Only time-series
         #      from basic monitors should be used as inputs.
 
-        neural_activity = self.time_series.data[:, 0, :, :]
-        neural_activity = neural_activity[:, numpy.newaxis, :, :]
-
-        ts_time  = self.time_series.time 
+        neural_activity, t_int = self.input_transformation(self.time_series, self.neural_input_transformation)
+        input_shape = neural_activity.shape
+        result_shape = self.result_shape(input_shape)
+        LOG.info("result shape will be: %s" % str(result_shape))
 
         if self.dt is None:
             self.dt = self.time_series.sample_period / 1000. # (s) integration time step
-            msg = "Integration time step size for the balloon model is %s seconds" % str(dt)
+            msg = "Integration time step size for the balloon model is %s seconds" % str(self.dt)
             LOG.info(msg)
 
         #NOTE: Avoid upsampling ...
@@ -242,12 +242,10 @@ class BalloonModel(core.Type):
             msg = "Integration time step shouldn't be smaller than the sampling period of the input signal." 
             LOG.error()
 
-        # integration time in (s)
-        t_int  = ts_time / 1000. 
-        ballon_nvar = 4           
+        balloon_nvar = 4           
 
         #NOTE: hard coded initial conditions
-        state = numpy.zeros((ts_shape[0], balloon_nvar, ts_shape[2], 1)) #s
+        state = numpy.zeros((input_shape[0], balloon_nvar, input_shape[2], input_shape[3])) #s
         state[0, 1,:] = 1. # f
         state[0, 2,:] = 1. # v
         state[0, 3,:] = 1. # q
@@ -278,26 +276,30 @@ class BalloonModel(core.Type):
         v = state[:, 2,:] 
         q = state[:, 3,:] 
 
+        #import pdb; pdb.set_trace()
+
         # BOLD models
         if self.non_linear:
             """
             Non-linear BOLD model equations.
             Page 391. Eq. (13) top in [Stephan2007]_ 
             """
-            y_bold = self.V0*(k1*(1.-q) + k2*(1. - q/v) + k3 * (1.-v))
+            y_bold = numpy.array(self.V0*(k1*(1.- q) + k2*(1. - q/v) + k3 * (1.-v)))
+            y_b = y_bold[:, numpy.newaxis, :, :]
 
         else:
             """
             Linear BOLD model equations.
             Page 391. Eq. (13) bottom in [Stephan2007]_ 
             """
-            y_bold = self.V0 * ((k1 + k2)*(1.-q) + (k3 - k2)*(1.-v))
+            y_bold = numpy.array(self.V0 * ((k1 + k2)*(1.-q) + (k3 - k2)*(1.-v)))
+            y_b = y_bold[:, numpy.newaxis, :, :]
 
-        sample_period = 1./dt
+        sample_period = 1./self.dt
 
         
         bold_signal = time_series.TimeSeries(
-            data = y_bold,
+            data = y_b,
             time = t_int,
             sample_period = sample_period,
             sample_period_unit = 's',
@@ -332,6 +334,37 @@ class BalloonModel(core.Type):
 
         return numpy.array([k1, k2, k3])
 
+
+    def input_transformation(self, time_series, mode):
+        """
+        Perform an operation on the input time-series.
+        """
+
+        LOG.info("Computing: %s on the input time series" % str(mode))
+
+        if mode == "none":
+            ts = time_series.data[:, 0, :, :]
+            ts = ts[:, numpy.newaxis, :, :]
+            t_int = time_series.time / 1000. # (s)
+
+        elif mode == "abs_diff":
+            ts = abs(numpy.diff(time_series.data, axis=0))
+            t_int = (time_series.time[1:] -  time_series.time[0:-1]) / 1000.# (s)
+
+        elif mode == "sum":
+            ts = numpy.sum(time_series.data, axis=1)
+            ts = ts[:, numpy.newaxis, :, :]
+            t_int = time_series.time / 1000. # (s)
+
+        else:
+            LOG.error("Bad operation/transformation mode, must be one of:")
+            LOG.error("('abs_diff', 'sum', 'none')")
+            raise Exception("Bad transformation mode") 
+
+        return ts, t_int
+
+
+
     def balloon_dfun(self, state_variables, neural_input, local_coupling=0.0):
         r"""
         The Balloon model equations. See Eqs. (4-10) in [Stephan2007]_
@@ -357,3 +390,28 @@ class BalloonModel(core.Type):
         dq  = (1. / self.tau_o) * ((f * (1.-(1. - self.E0)**(1./f)) / self.E0) - (v**(1./self.alpha)) * (q/v))  
 
         return numpy.array([ds, df, dv, dq])
+
+
+    def result_shape(self, input_shape):
+        """Returns the shape of the main result of fmri balloon ..."""
+        result_shape = (input_shape[0], input_shape[1],
+                        input_shape[2], input_shape[3])
+        return result_shape
+
+
+    def result_size(self, input_shape):
+        """
+        Returns the storage size in Bytes of the main result of .
+        """
+        result_size = numpy.sum(map(numpy.prod, self.result_shape(input_shape))) * 8.0  # Bytes
+        return result_size
+
+
+    def extended_result_size(self, input_shape):
+        """
+        Returns the storage size in Bytes of the extended result of the ....
+        That is, it includes storage of the evaluated ... attributes
+        such as ..., etc.
+        """
+        extend_size = self.result_size(input_shape)  # Currently no derived attributes.
+        return extend_size
