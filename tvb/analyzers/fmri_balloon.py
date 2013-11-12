@@ -107,12 +107,12 @@ class BalloonModel(core.Type):
         methods. It is used to compute the time courses of the balloon model state 
         variables.""")
     
-    non_linear = basic.Bool(
-        label = "Select non_linear or linear BOLD equations",
-        default = True,
-        required = True,
-        doc = """Select the non-linear or linear set of equations for the 
-        BOLD model (N or L).""",
+    bold_model = basic.Enumerate(
+        label="Select BOLD model equations",
+        options=["linear", "nonlinear"],
+        default=["nonlinear"],
+        select_multiple = False,
+        doc = """Select the set of equations for the BOLD model.""",
         order = 4)
 
     RBM = basic.Bool(
@@ -132,7 +132,8 @@ class BalloonModel(core.Type):
         the model used to generate the input TimeSeries. ``none`` takes the
         first state-variable as neural input; `` abs_diff`` is the absolute
         value of the derivative (first order difference) of the first state variable; 
-        ``sum``: sum all the state-variables of the input TimeSeries.""")
+        ``sum``: sum all the state-variables of the input TimeSeries.""",
+        order = 3)
 
     tau_s = basic.Float(
         label = r":math:`\tau_s`",
@@ -272,9 +273,17 @@ class BalloonModel(core.Type):
         if numpy.isnan(neural_activity).any():
             LOG.info("Ooopssss NaNs detected in the neural activity!!")
 
+        # normalise the time-series.
+        normalise=True
+        if normalise:
+            neural_activity = neural_activity - neural_activity.mean(axis=0)[numpy.newaxis, :]
+        #    neural_activity = neural_activity / neural_activity.std(axis=0)[numpy.newaxis, :]
+
         # solve equations
         for step in range(1, t_int.shape[0]):
             state[step, :] = scheme(state[step-1, :], self.balloon_dfun, neural_activity[step, :], local_coupling, stimulus)
+            if numpy.isnan(state[step, :]).any():
+                LOG.info("Ooopssss NaNs detected...")
 
         # NOTE: just for the sake of clarity, define the variables used in the BOLD model
         s = state[:, 0,:] 
@@ -285,13 +294,14 @@ class BalloonModel(core.Type):
         #import pdb; pdb.set_trace()
 
         # BOLD models
-        if self.non_linear:
+        if self.bold_model == "nonlinear":
             """
             Non-linear BOLD model equations.
             Page 391. Eq. (13) top in [Stephan2007]_ 
             """
             y_bold = numpy.array(self.V0*(k1*(1.- q) + k2*(1. - q/v) + k3 * (1.-v)))
             y_b = y_bold[:, numpy.newaxis, :, :]
+            LOG.info("Max value: %s" % str(y_b.max()))
 
         else:
             """
