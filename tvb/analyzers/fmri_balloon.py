@@ -89,9 +89,10 @@ class BalloonModel(core.Type):
     # it also sets the bold sampling period.
     dt = basic.Float(
         label = ":math:`dt`",
-        default = None, 
+        default = 0.002, 
         required = True,
-        doc = """The integration time step size for the balloon model (s)""",
+        doc = """The integration time step size for the balloon model (s). 
+        If none is provided, by default, the TimeSeries sample period is used.""",
         order = 2)
 
 
@@ -99,7 +100,7 @@ class BalloonModel(core.Type):
         label = "Integration scheme",
         default = integrators_module.HeunDeterministic,
         required = True,
-        order = 3,
+        order = -1,
         doc = """ A tvb.simulator.Integrator object which is
         an integration scheme with supporting attributes such as 
         integration step size and noise specification for stochastic 
@@ -123,7 +124,7 @@ class BalloonModel(core.Type):
         order = 5)
 
     neural_input_transformation = basic.Enumerate(
-        label="Neural input",
+        label="Neural input transformation",
         options=["none", "abs_diff", "sum"],
         default=["none"],
         select_multiple=False,
@@ -134,59 +135,59 @@ class BalloonModel(core.Type):
         ``sum``: sum all the state-variables of the input TimeSeries.""")
 
     tau_s = basic.Float(
-        label = ":math:`\tau_s`",
+        label = r":math:`\tau_s`",
         default = 0.65, 
         required = True,
         doc = """Balloon model parameter. Time of signal decay (s)""", 
-        order = 6)
+        order = -1)
 
     tau_f = basic.Float(
-        label = ":math:`\tau_f`",
+        label = r":math:`\tau_f`",
         default = 0.41, 
         required = True,
         doc = """ Balloon model parameter. Time of flow-dependent elimination or
         feedback regulation (s). The average  time blood take to traverse the
         venous compartment. It is the  ratio of resting blood volume (V0) to
         resting blood flow (F0).""",
-        order = 7)
+        order = -1)
 
     tau_o = basic.Float(
-        label = ":math:`\tau_o`",
+        label = r":math:`\tau_o`",
         default = 0.98, 
         required = True,
         doc = """
         Balloon model parameter. Haemodynamic transit time (s). The average
         time blood take to traverse the venous compartment. It is the  ratio
         of resting blood volume (V0) to resting blood flow (F0).""",
-        order = 8)
+        order = -1)
 
     alpha = basic.Float(
-        label = ":math:`\tau_f`",
+        label = r":math:`\tau_f`",
         default = 0.32, 
         required = True,
         doc = """Balloon model parameter. Stiffness parameter. Grubb's exponent.""",
-        order = 9)
+        order = -1)
 
     TE = basic.Float(
         label = ":math:`TE`",
         default = 0.04, 
         required = True,
         doc = """BOLD parameter. Echo Time""",
-        order = 10)
+        order = -1)
 
     V0 = basic.Float(
         label = ":math:`V_0`",
         default = 4.0, 
         required = True,
         doc = """BOLD parameter. Resting blood volume fraction.""",
-        order = 11)
+        order = -1)
 
     E0 = basic.Float(
         label = ":math:`E_0`",
         default = 0.4, 
         required = True,
         doc = """BOLD parameter. Resting oxygen extraction fraction.""",
-        order = 12)
+        order = -1)
 
     epsilon = arrays.FloatArray(
         label = ":math:`\epsilon`",
@@ -195,22 +196,22 @@ class BalloonModel(core.Type):
         required = True,
         doc = """ BOLD parameter. Ratio of intra- and extravascular signals. In principle  this
         parameter could be derived from empirical data and spatialized.""",
-        order =13)
+        order =-1)
 
     nu_0 = basic.Float(
-        label = ":math:`\nu_0`",
+        label = r":math:`\nu_0`",
         default = 40.3 , 
         required = True,
         doc = """BOLD parameter. Frequency offset at the outer surface of magnetized vessels (Hz).""",
-        order = 14)
+        order = -1)
 
     r_0 = basic.Float(
-        label = ":math:`\nu_0`",
+        label = ":math:`r_0`",
         default = 25. , 
         required = True,
         doc = """ BOLD parameter. Slope r0 of intravascular relaxation rate (Hz). Only used for
         ``revised`` coefficients. """,
-        order = 15)
+        order = -1)
 
 
 
@@ -230,7 +231,7 @@ class BalloonModel(core.Type):
         neural_activity, t_int = self.input_transformation(self.time_series, self.neural_input_transformation)
         input_shape = neural_activity.shape
         result_shape = self.result_shape(input_shape)
-        LOG.info("result shape will be: %s" % str(result_shape))
+        LOG.info("Result shape will be: %s" % str(result_shape))
 
         if self.dt is None:
             self.dt = self.time_series.sample_period / 1000. # (s) integration time step
@@ -257,6 +258,7 @@ class BalloonModel(core.Type):
         # prepare integrator
         self.integrator.dt = self.dt
         self.integrator.configure()
+        LOG.info("Integration time step size will be: %s seconds" % str(self.integrator.dt))
 
         scheme = self.integrator.scheme
 
@@ -265,6 +267,10 @@ class BalloonModel(core.Type):
 
         local_coupling = 0.0
         stimulus = 0.0
+
+        # Do some checks:
+        if numpy.isnan(neural_activity).any():
+            LOG.info("Ooopssss NaNs detected in the neural activity!!")
 
         # solve equations
         for step in range(1, t_int.shape[0]):
@@ -298,7 +304,7 @@ class BalloonModel(core.Type):
         sample_period = 1./self.dt
 
         
-        bold_signal = time_series.TimeSeries(
+        bold_signal = time_series.TimeSeriesRegion(
             data = y_b,
             time = t_int,
             sample_period = sample_period,
