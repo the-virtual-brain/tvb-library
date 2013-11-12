@@ -176,7 +176,7 @@ tavg_data = []
 bold_time = []
 bold_data = []
 
-for tavg_out, bold_out in sim(30000, rng_state):
+for tavg_out, bold_out in sim(10000, rng_state):
 
     if not tavg_out is None:
        tavg_time.append(tavg_out[0])

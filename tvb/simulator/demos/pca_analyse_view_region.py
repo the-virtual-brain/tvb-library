@@ -86,7 +86,7 @@ tsi = timeseries_interactive.TimeSeriesInteractive(time_series = component_tsr)
 tsi.configure()
 tsi.show()
 
-if IMPORTED_MAYAVI:
-    xmas_balls(tsr.connectivity, pca_data.weights[:, 0, 0, 0], edge_data=True)
+#if IMPORTED_MAYAVI:
+#    xmas_balls(tsr.connectivity, pca_data.weights[:, 0, 0, 0], edge_data=True)
 
 
