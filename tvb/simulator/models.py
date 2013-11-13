@@ -3048,9 +3048,9 @@ class LarterBreakspear(Model):
     #Informational attribute, used for phase-plane and initial()
     state_variable_range = basic.Dict(
         label = "State Variable ranges [lo, hi]",
-        default = {"V": numpy.array([-1.5, 1.5]),
-                   "W": numpy.array([-1.0, 1.0]),
-                   "Z": numpy.array([-1.5, 1.5])},
+        default = {"V": numpy.array([-0.5, 0.5]),
+                   "W": numpy.array([-0.5, 0.5]),
+                   "Z": numpy.array([-0.5, 0.5])},
         doc = """The values for each state-variable should be set to encompass
             the expected dynamic range of that state-variable for the current 
             parameters, it is used as a mechanism for bounding random inital 

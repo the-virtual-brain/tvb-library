@@ -40,6 +40,7 @@ dynamics.
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 .. moduleauthor:: Noelia Montejo <Noelia@tvb.invalid>
 .. moduleauthor:: Marmaduke Woodman <mw@eml.cc>
+.. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
 
 """
 
