@@ -31,10 +31,13 @@
 """
 Explore LarterBreakspear model.
 
-``Run time``: approximately 1 hour (High end MacBook Pro circa 2007)
+``Run time``: 20 min (workstation circa 2012 Intel Xeon W3520@2.67Ghz)
 
-``Memory requirement``: < 2GB
-``Storage requirement``: ~ 19MB
+``Memory requirement``: ~300 MB
+``Storage requirement``: ~150MB
+
+NOTE: stats were made for a simulation using the 998 region Hagmann
+connectivity matrix.
 
 .. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
 
@@ -60,6 +63,8 @@ lb = models.LarterBreakspear(QV_max=1.0, QZ_max=1.0,
                              aee=0.5, aie=0.5, ani=0.1, 
                              VT=0.5,  gNa=0.0, Iext=0.165)
 
+lb.variables_of_interest = ["V", "W", "Z"]
+
 white_matter = connectivity.Connectivity()
 white_matter.speed = numpy.array([7.0])
 
@@ -72,11 +77,11 @@ white_matter_coupling = coupling.HyperbolicTangent(a=0.5*lb.QV_max,
 heunint = integrators.HeunDeterministic(dt=0.2)
 
 #Initialise some Monitors with period in physical time
-mon_raw  = monitors.Raw()
-mon_tavg = monitors.TemporalAverage(period=2.)
+mon_tavg =  monitors.TemporalAverage(period=2.)
+mon_bold  = monitors.Bold(period=2000.)
 
 #Bundle them
-what_to_watch = (mon_raw, mon_tavg)
+what_to_watch = (mon_bold, mon_tavg)
 
 #Initialise a Simulator -- Model, Connectivity, Integrator, and Monitors.
 sim = simulator.Simulator(model = lb, 
@@ -89,13 +94,13 @@ sim.configure()
 
 LOG.info("Starting simulation...")
 #Perform the simulation
-raw_data, raw_time = [], []
+bold_data, bold_time = [], []
 tavg_data, tavg_time = [], []
 
 for raw, tavg in sim(simulation_length=10000):
     if not raw is None:
-        raw_time.append(raw[0])
-        raw_data.append(raw[1])
+        bold_time.append(raw[0])
+        bold_data.append(raw[1])
     
     if not tavg is None:
         tavg_time.append(tavg[0])
@@ -108,20 +113,20 @@ LOG.info("Finished simulation.")
 ##----------------------------------------------------------------------------##
 
 #Make the lists numpy.arrays for easier use.
-RAW = numpy.array(raw_data)
+BOLD = numpy.array(bold_data)
 TAVG = numpy.array(tavg_data)
 
 #Plot raw time series
 figure(1)
-plot(raw_time, RAW[:, 0, :, 0], 'k', alpha=0.1)
+plot(tavg_time, TAVG[:, 0, :, 0], 'k', alpha=0.1)
 title("Raw -- State variable 0")
 
 figure(2)
-plot(raw_time, RAW[:, 1, :, 0], 'b', alpha=0.1)
+plot(tavg_time, TAVG[:, 1, :, 0], 'b', alpha=0.1)
 title("Raw -- State variable 1")
 
 figure(3)
-plot(raw_time, RAW[:, 2, :, 0], 'r', alpha=0.1)
+plot(tavg_time, TAVG[:, 2, :, 0], 'r', alpha=0.1)
 title("Raw -- State variable 2")
 
 #Plot 3D trajectories
@@ -130,7 +135,9 @@ from mpl_toolkits.mplot3d import Axes3D
 
 fig = plt.figure(4)
 ax = fig.gca(projection='3d')
-ax.plot(RAW[:, 0, 0, 0],  RAW[:, 1, 0, 0], RAW[:, 2, 0, 0])
+
+for node in range(white_matter.number_of_regions):
+  ax.plot(TAVG[:, 0, node, 0],  TAVG[:, 1, node, 0], TAVG[:, 2, node, 0], alpha=0.1)
 ax.set_xlabel('V')
 ax.set_ylabel('W')
 ax.set_zlabel('Z')
@@ -140,21 +147,26 @@ plt.show()
 
 #Make the list a numpy.array.
 LOG.info("Converting result to array...")
-TAVG      = numpy.array(tavg_data)
 TAVG_TIME = numpy.array(tavg_time)
+BOLD_TIME = numpy.array(bold_time)
 
-#Save it
+#Save tavg output
 FILE_NAME = "demo_data_region_tavg_10s_500Hz_larterbreakspear"
 LOG.info("Saving array to %s..." % FILE_NAME)
-numpy.save(FILE_NAME + '.npy', TAVG)
-numpy.save(FILE_NAME+'_time.npy', TAVG_TIME)
+TAVG=numpy.load(FILE_NAME + '.npy')
+TAVG_TIME=numpy.load(FILE_NAME+'_time.npy')
+
+#Save bold output
+FILE_NAME = "demo_data_region_bold_10s_500Hz_larterbreakspear"
+LOG.info("Saving array to %s..." % FILE_NAME)
+numpy.save(FILE_NAME + '.npy', BOLD)
+numpy.save(FILE_NAME+'_time.npy', BOLD_TIME)
 
 
-# Create TimeSeries instance
-tsr = TimeSeriesRegion(connectivity = white_matter, 
-                       data = TAVG,
+#Create TimeSeries instance
+tsr = TimeSeriesRegion(data = TAVG,
                        time = TAVG_TIME,
-                       sample_period = mon_tavg.period)
+                       sample_period = 2.)
 tsr.configure()
 
 #Create and run the monitor/analyser
@@ -163,10 +175,18 @@ bold_data  = bold_model.evaluate()
 
 #Put the data into a TimeSeriesSurface datatype
 bold_tsr = TimeSeriesRegion(connectivity = white_matter,
-                                    data = bold_data.data)
+                            data = bold_data.data, 
+                            time = bold_data.time)
 
 #Prutty puctures...
 tsi = timeseries_interactive.TimeSeriesInteractive(time_series = bold_tsr)
 tsi.configure()
 tsi.show()
+
+#Save bold-balloon output
+FILE_NAME = "demo_data_region_balloon_10s_500Hz_larterbreakspear"
+LOG.info("Saving array to %s..." % FILE_NAME)
+numpy.save(FILE_NAME + '.npy', bold_data.data)
+numpy.save(FILE_NAME+'_time.npy', bold_data.time)
+
 ###EoF###
