@@ -295,9 +295,9 @@ class HyperbolicTangent(Coupling):
         order = 4)
 
     normalise = basic.Bool(
-        label = "normalise by in-degree",
+        label = "normalise by in-strength",
         default = True,
-        doc = """Normalise the node coupling by the node's in-degree""",
+        doc = """Normalise the node coupling by the node's in-strenght""",
         order = 4)
 
 
