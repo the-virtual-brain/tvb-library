@@ -2752,7 +2752,7 @@ class LarterBreakspear(Model):
 
 
     Parameters used for simulations in [Breaksetal_2003_a]_ Table 1. Page 153.
-    Two nodes were coupled.
+    Two nodes were coupled. C=0.1
 
     +---------------------------+
     |          Table 1          | 
@@ -2957,9 +2957,9 @@ class LarterBreakspear(Model):
         doc = """Time constant scaling factor. The original value is 0.1""")
     
     C = arrays.FloatArray(
-        label = ":math:`c`",    
-        default = numpy.array([0.0]),
-        range = basic.Range(lo = 0.0, hi = 0.2, step = 0.05),
+        label = ":math:`C`",    
+        default = numpy.array([0.1]),
+        range = basic.Range(lo = 0.0, hi = 0.2, step = 0.01),
         doc = """Strength of excitatory coupling. Balance between internal and
         local (and global) coupling strength. C > 0 introduces interdependences between 
         consecutive columns/nodes. C=1 corresponds to maximum coupling.
