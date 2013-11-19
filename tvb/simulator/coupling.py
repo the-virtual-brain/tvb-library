@@ -311,8 +311,13 @@ class HyperbolicTangent(Coupling):
 
         """
         temp =  self.a * (1 +  numpy.tanh((x_j - self.midpoint) / self.sigma))
+
         if self.normalise: # yeeeeahhh, let's make simulations slower ...
-            temp *= (g_ij / (numpy.max(numpy.abs(g_ij.sum(axis=1))))) # region mode normalisation
+            #NOTE: normalising by the strength or degrees may yield NaNs, so fill these values with inf
+            in_strength = g_ij.sum(axis=2)[:, :, numpy.newaxis, :]
+            in_strength[in_strength==0] = numpy.inf
+            temp *= (g_ij / in_strength) #region mode normalisation
+            
             coupled_input = temp.mean(axis=0)
         else: 
             coupled_input = (g_ij*temp).mean(axis=0)
