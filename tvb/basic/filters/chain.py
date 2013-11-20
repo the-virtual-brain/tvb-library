@@ -349,7 +349,8 @@ class UIFilter():
     """
 
 
-    def __init__(self, linked_elem_name, linked_elem_field, linked_elem_parent_name, linked_elem_parent_option):
+    def __init__(self, linked_elem_name, linked_elem_field,
+                 linked_elem_parent_name=None, linked_elem_parent_option=None):
         self.linked_elem_name = linked_elem_name
         self.linked_elem_field = linked_elem_field
         self.linked_elem_parent_name = linked_elem_parent_name
