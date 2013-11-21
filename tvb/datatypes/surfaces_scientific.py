@@ -203,8 +203,8 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         """
         .
         """
-        neighbours = [[] for _ in range(self.number_of_vertices)]
-        for k in range(self.number_of_triangles):
+        neighbours = [[] for _ in xrange(self.number_of_vertices)]
+        for k in xrange(self.number_of_triangles):
             neighbours[self.triangles[k, 0]].append(self.triangles[k, 1])
             neighbours[self.triangles[k, 0]].append(self.triangles[k, 2])
             neighbours[self.triangles[k, 1]].append(self.triangles[k, 0])
@@ -231,8 +231,8 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         """
         .
         """
-        triangles = [[] for _ in range(self.number_of_vertices)]
-        for k in range(self.number_of_triangles):
+        triangles = [[] for _ in xrange(self.number_of_vertices)]
+        for k in xrange(self.number_of_triangles):
             triangles[self.triangles[k, 0]].append(k)
             triangles[self.triangles[k, 1]].append(k)
             triangles[self.triangles[k, 2]].append(k)
@@ -256,7 +256,7 @@ class SurfaceScientific(surfaces_data.SurfaceData):
 
         for _ in range(neighbourhood):
             neighbours = [self.vertex_neighbours[indx] for indx in ring]
-            neighbours = set([vert for subset in neighbours for vert in subset])
+            neighbours = set(vert for subset in neighbours for vert in subset)
             ring = neighbours.difference(local_vertices)
             local_vertices.update(ring)
 
@@ -288,7 +288,7 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         angle they subtend at each vertex...
         """
         vert_norms = numpy.zeros((self.number_of_vertices, 3))
-        for k in range(self.number_of_vertices):
+        for k in xrange(self.number_of_vertices):
             tri_list = list(self.vertex_triangles[k])
             angle_mask = self.triangles[tri_list, :] == k
             angles = self.triangle_angles[tri_list, :]
@@ -362,9 +362,9 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         # TODO: Should be possible with arrays, ie not nested loops...
         # (this was a direct translation of some old matlab code)
         angles = numpy.zeros((self.number_of_triangles, 3))
-        for tt in range(self.number_of_triangles):
+        for tt in xrange(self.number_of_triangles):
             triangle = self.triangles[tt, :]
-            for ta in range(3):
+            for ta in xrange(3):
                 ang = numpy.roll(triangle, -ta)
                 angles[tt, ta] = numpy.arccos(numpy.dot(
                     (verts[ang[1], :] - verts[ang[0], :]) /
@@ -400,10 +400,8 @@ class SurfaceScientific(surfaces_data.SurfaceData):
                            self.triangles[:, 2][:, numpy.newaxis]))
         edges = numpy.hstack((v0, v1))
         edges.sort(axis=1)
-        edges = [tuple(edges[k]) for k in range(edges.shape[0])]
-        edges = set(edges)
-        edges = list(edges)
-        edges.sort()
+        edges = set(tuple(edges[k]) for k in xrange(edges.shape[0]))
+        edges = sorted(edges)
         return edges
 
 
@@ -476,8 +474,8 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         """
         .
         """
-        triangles = [[] for _ in range(self.number_of_edges)]
-        for k in range(self.number_of_edges):
+        triangles = [[] for _ in xrange(self.number_of_edges)]
+        for k in xrange(self.number_of_edges):
             tris = set.intersection(set(self.vertex_triangles[self.edges[k][0]]),
                                     set(self.vertex_triangles[self.edges[k][1]]))
             triangles[k] = tris

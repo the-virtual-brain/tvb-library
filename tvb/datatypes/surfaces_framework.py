@@ -193,7 +193,7 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         url_lines = []
         alphas = []
         alphas_indices = []
-        for i in range(self.number_of_split_slices):
+        for i in xrange(self.number_of_split_slices):
             param = "slice_number=" + str(i)
             url_vertices.append(paths2url(self, 'get_vertices_slice', parameter=param, flatten=True))
             url_triangles.append(paths2url(self, 'get_triangles_slice', parameter=param, flatten =True))
@@ -207,8 +207,8 @@ class SurfaceFramework(surfaces_data.SurfaceData):
             end_idx = self.SPLIT_MAX_SIZE * (i + 1) + self.SPLIT_BUFFER_SIZE
             end_idx = min(end_idx, self.number_of_vertices)
             alphas_indices.append(paths2url(region_mapping, "get_alpha_indices_array", 
-                                                                      flatten=True, parameter="start_idx="+ 
-                                                                      str(start_idx) +";end_idx="+ str(end_idx)))
+                                              flatten=True, parameter="start_idx="+
+                                              str(start_idx) +";end_idx="+ str(end_idx)))
           
         if include_alphas:  
             return url_vertices, url_normals, url_lines, url_triangles, alphas, alphas_indices

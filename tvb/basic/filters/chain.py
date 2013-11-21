@@ -189,10 +189,9 @@ class FilterChain(object):
         data_class = data_name
         if isinstance(data_name, (str, unicode)):
             try:
-                class_ = str(data_name).split(".")[-1]
-                module_ = str(data_name)[:-len(class_) - 1].lstrip().rstrip()
-                data_class = __import__(module_, globals(), locals(), [class_])
-                data_class = eval("data_class." + class_)
+                module_name, class_name = str(data_name).rsplit('.', 1)
+                module = __import__(module_name, globals(), locals(), [class_name])
+                data_class = getattr(module, class_name)
             except Exception, excep:
                 LOGGER.error("Expected DataType full class quantifier! Got:" + str(data_name))
                 LOGGER.exception(excep)
