@@ -60,7 +60,6 @@ import tvb.datatypes.time_series as time_series
 import tvb.datatypes.arrays as arrays
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
-import tvb.basic.traits.util as util
 import tvb.simulator.integrators as integrators_module
 from tvb.basic.logger.builder import get_logger
 
@@ -74,7 +73,6 @@ class BalloonModel(core.Type):
     object of TVB and returning another TimeSeries object.
 
     The haemodynamic model parameters based on constants for a 1.5 T scanner.
-
         
     """
     
@@ -82,46 +80,45 @@ class BalloonModel(core.Type):
     #TODO: add an spatial averaging for TimeSeriesSurface.
 
     time_series = time_series.TimeSeries(
-        label = "Time Series",
-        required = True,
-        doc = """The timeseries that represents the input neural activity""",
-        order = 1)
+        label="Time Series",
+        required=True,
+        doc="""The timeseries that represents the input neural activity""",
+        order=1)
     # it also sets the bold sampling period.
     dt = basic.Float(
-        label = ":math:`dt`",
-        default = 0.002, 
-        required = True,
-        doc = """The integration time step size for the balloon model (s). 
+        label=":math:`dt`",
+        default=0.002,
+        required=True,
+        doc="""The integration time step size for the balloon model (s).
         If none is provided, by default, the TimeSeries sample period is used.""",
-        order = 2)
-
+        order=2)
 
     integrator = integrators_module.Integrator(
-        label = "Integration scheme",
-        default = integrators_module.HeunDeterministic,
-        required = True,
-        order = -1,
-        doc = """ A tvb.simulator.Integrator object which is
+        label="Integration scheme",
+        default=integrators_module.HeunDeterministic,
+        required=True,
+        order=-1,
+        doc=""" A tvb.simulator.Integrator object which is
         an integration scheme with supporting attributes such as 
         integration step size and noise specification for stochastic 
         methods. It is used to compute the time courses of the balloon model state 
         variables.""")
-    
+
     bold_model = basic.Enumerate(
         label="Select BOLD model equations",
         options=["linear", "nonlinear"],
         default=["nonlinear"],
-        select_multiple = False,
-        doc = """Select the set of equations for the BOLD model.""",
-        order = 4)
+        select_multiple=False,
+        doc="""Select the set of equations for the BOLD model.""",
+        order=4)
 
     RBM = basic.Bool(
-        label = "Revised BOLD Model",
-        default = True,
-        required = True,
-        doc = """Select classical vs revised BOLD model (CBM or RBM). 
+        label="Revised BOLD Model",
+        default=True,
+        required=True,
+        doc="""Select classical vs revised BOLD model (CBM or RBM).
         Coefficients  k1, k2 and k3 will be derived accordingly.""",
-        order = 5)
+        order=5)
 
     neural_input_transformation = basic.Enumerate(
         label="Neural input transformation",
@@ -133,86 +130,86 @@ class BalloonModel(core.Type):
         first state-variable as neural input; `` abs_diff`` is the absolute
         value of the derivative (first order difference) of the first state variable; 
         ``sum``: sum all the state-variables of the input TimeSeries.""",
-        order = 3)
+        order=3)
 
     tau_s = basic.Float(
-        label = r":math:`\tau_s`",
-        default = 0.65, 
-        required = True,
-        doc = """Balloon model parameter. Time of signal decay (s)""", 
-        order = -1)
+        label=r":math:`\tau_s`",
+        default=0.65,
+        required=True,
+        doc="""Balloon model parameter. Time of signal decay (s)""",
+        order=-1)
 
     tau_f = basic.Float(
-        label = r":math:`\tau_f`",
-        default = 0.41, 
-        required = True,
-        doc = """ Balloon model parameter. Time of flow-dependent elimination or
+        label=r":math:`\tau_f`",
+        default=0.41,
+        required=True,
+        doc=""" Balloon model parameter. Time of flow-dependent elimination or
         feedback regulation (s). The average  time blood take to traverse the
         venous compartment. It is the  ratio of resting blood volume (V0) to
         resting blood flow (F0).""",
-        order = -1)
+        order=-1)
 
     tau_o = basic.Float(
-        label = r":math:`\tau_o`",
-        default = 0.98, 
-        required = True,
-        doc = """
+        label=r":math:`\tau_o`",
+        default=0.98,
+        required=True,
+        doc="""
         Balloon model parameter. Haemodynamic transit time (s). The average
         time blood take to traverse the venous compartment. It is the  ratio
         of resting blood volume (V0) to resting blood flow (F0).""",
-        order = -1)
+        order=-1)
 
     alpha = basic.Float(
-        label = r":math:`\tau_f`",
-        default = 0.32, 
-        required = True,
-        doc = """Balloon model parameter. Stiffness parameter. Grubb's exponent.""",
-        order = -1)
+        label=r":math:`\tau_f`",
+        default=0.32,
+        required=True,
+        doc="""Balloon model parameter. Stiffness parameter. Grubb's exponent.""",
+        order=-1)
 
     TE = basic.Float(
-        label = ":math:`TE`",
-        default = 0.04, 
-        required = True,
-        doc = """BOLD parameter. Echo Time""",
-        order = -1)
+        label=":math:`TE`",
+        default=0.04,
+        required=True,
+        doc="""BOLD parameter. Echo Time""",
+        order=-1)
 
     V0 = basic.Float(
-        label = ":math:`V_0`",
-        default = 4.0, 
-        required = True,
-        doc = """BOLD parameter. Resting blood volume fraction.""",
-        order = -1)
+        label=":math:`V_0`",
+        default=4.0,
+        required=True,
+        doc="""BOLD parameter. Resting blood volume fraction.""",
+        order=-1)
 
     E0 = basic.Float(
-        label = ":math:`E_0`",
-        default = 0.4, 
-        required = True,
-        doc = """BOLD parameter. Resting oxygen extraction fraction.""",
-        order = -1)
+        label=":math:`E_0`",
+        default=0.4,
+        required=True,
+        doc="""BOLD parameter. Resting oxygen extraction fraction.""",
+        order=-1)
 
     epsilon = arrays.FloatArray(
-        label = ":math:`\epsilon`",
-        default = numpy.array([0.5]),
-        range = basic.Range(lo=0.5, hi=2.0, step=0.25), 
-        required = True,
-        doc = """ BOLD parameter. Ratio of intra- and extravascular signals. In principle  this
+        label=":math:`\epsilon`",
+        default=numpy.array([0.5]),
+        range=basic.Range(lo=0.5, hi=2.0, step=0.25),
+        required=True,
+        doc=""" BOLD parameter. Ratio of intra- and extravascular signals. In principle  this
         parameter could be derived from empirical data and spatialized.""",
-        order =-1)
+        order=-1)
 
     nu_0 = basic.Float(
-        label = r":math:`\nu_0`",
-        default = 40.3 , 
-        required = True,
-        doc = """BOLD parameter. Frequency offset at the outer surface of magnetized vessels (Hz).""",
-        order = -1)
+        label=r":math:`\nu_0`",
+        default=40.3,
+        required=True,
+        doc="""BOLD parameter. Frequency offset at the outer surface of magnetized vessels (Hz).""",
+        order=-1)
 
     r_0 = basic.Float(
-        label = ":math:`r_0`",
-        default = 25. , 
-        required = True,
-        doc = """ BOLD parameter. Slope r0 of intravascular relaxation rate (Hz). Only used for
+        label=":math:`r_0`",
+        default=25.,
+        required=True,
+        doc=""" BOLD parameter. Slope r0 of intravascular relaxation rate (Hz). Only used for
         ``revised`` coefficients. """,
-        order = -1)
+        order=-1)
 
 
 
@@ -220,10 +217,8 @@ class BalloonModel(core.Type):
         """
         Calculate simulated BOLD signal
         """
-        cls_attr_name = self.__class__.__name__+".time_series"
-        self.time_series.trait["data"].log_debug(owner = cls_attr_name)
-        
-        ts_shape = self.time_series.data.shape
+        cls_attr_name = self.__class__.__name__ + ".time_series"
+        self.time_series.trait["data"].log_debug(owner=cls_attr_name)
 
         #NOTE: Just using the first state variable, although in the Bold monitor
         #      input is the sum over the state-variables. Only time-series
@@ -235,22 +230,22 @@ class BalloonModel(core.Type):
         LOG.info("Result shape will be: %s" % str(result_shape))
 
         if self.dt is None:
-            self.dt = self.time_series.sample_period / 1000. # (s) integration time step
+            self.dt = self.time_series.sample_period / 1000.    # (s) integration time step
             msg = "Integration time step size for the balloon model is %s seconds" % str(self.dt)
             LOG.info(msg)
 
         #NOTE: Avoid upsampling ...
         if self.dt < (self.time_series.sample_period / 1000.):
             msg = "Integration time step shouldn't be smaller than the sampling period of the input signal." 
-            LOG.error()
+            LOG.error(msg)
 
         balloon_nvar = 4           
 
         #NOTE: hard coded initial conditions
-        state = numpy.zeros((input_shape[0], balloon_nvar, input_shape[2], input_shape[3])) #s
-        state[0, 1,:] = 1. # f
-        state[0, 2,:] = 1. # v
-        state[0, 3,:] = 1. # q
+        state = numpy.zeros((input_shape[0], balloon_nvar, input_shape[2], input_shape[3]))  # s
+        state[0, 1, :] = 1.  # f
+        state[0, 2, :] = 1.  # v
+        state[0, 3, :] = 1.  # q
 
         # BOLD model coefficients
         k = self.compute_derived_parameters()
@@ -271,25 +266,23 @@ class BalloonModel(core.Type):
 
         # Do some checks:
         if numpy.isnan(neural_activity).any():
-            LOG.info("Ooopssss NaNs detected in the neural activity!!")
+            LOG.warning("NaNs detected in the neural activity!!")
 
         # normalise the time-series.
-        normalise=True
-        if normalise:
-            neural_activity = neural_activity - neural_activity.mean(axis=0)[numpy.newaxis, :]
-        #    neural_activity = neural_activity / neural_activity.std(axis=0)[numpy.newaxis, :]
+        neural_activity = neural_activity - neural_activity.mean(axis=0)[numpy.newaxis, :]
 
         # solve equations
         for step in range(1, t_int.shape[0]):
-            state[step, :] = scheme(state[step-1, :], self.balloon_dfun, neural_activity[step, :], local_coupling, stimulus)
+            state[step, :] = scheme(state[step - 1, :], self.balloon_dfun,
+                                    neural_activity[step, :], local_coupling, stimulus)
             if numpy.isnan(state[step, :]).any():
-                LOG.info("Ooopssss NaNs detected...")
+                LOG.warning("NaNs detected...")
 
         # NOTE: just for the sake of clarity, define the variables used in the BOLD model
-        s = state[:, 0,:] 
-        f = state[:, 1,:] 
-        v = state[:, 2,:] 
-        q = state[:, 3,:] 
+        s = state[:, 0, :]
+        f = state[:, 1, :]
+        v = state[:, 2, :]
+        q = state[:, 3, :]
 
         #import pdb; pdb.set_trace()
 
@@ -297,9 +290,9 @@ class BalloonModel(core.Type):
         if self.bold_model == "nonlinear":
             """
             Non-linear BOLD model equations.
-            Page 391. Eq. (13) top in [Stephan2007]_ 
+            Page 391. Eq. (13) top in [Stephan2007]_
             """
-            y_bold = numpy.array(self.V0*(k1*(1.- q) + k2*(1. - q/v) + k3 * (1.-v)))
+            y_bold = numpy.array(self.V0 * (k1 * (1. - q) + k2 * (1. - q / v) + k3 * (1. - v)))
             y_b = y_bold[:, numpy.newaxis, :, :]
             LOG.info("Max value: %s" % str(y_b.max()))
 
@@ -308,20 +301,18 @@ class BalloonModel(core.Type):
             Linear BOLD model equations.
             Page 391. Eq. (13) bottom in [Stephan2007]_ 
             """
-            y_bold = numpy.array(self.V0 * ((k1 + k2)*(1.-q) + (k3 - k2)*(1.-v)))
+            y_bold = numpy.array(self.V0 * ((k1 + k2) * (1. - q) + (k3 - k2) * (1. - v)))
             y_b = y_bold[:, numpy.newaxis, :, :]
 
-        sample_period = 1./self.dt
+        sample_period = 1. / self.dt
 
-        
         bold_signal = time_series.TimeSeriesRegion(
-            data = y_b,
-            time = t_int,
-            sample_period = sample_period,
-            sample_period_unit = 's',
-            use_storage = False)
+            data=y_b,
+            time=t_int,
+            sample_period=sample_period,
+            sample_period_unit='s',
+            use_storage=False)
 
-        
         return bold_signal
 
 
@@ -344,9 +335,9 @@ class BalloonModel(core.Type):
             Generalized BOLD signal model.
             Page 400 in [Stephan2007]_, Eq. (12)
             """
-            k1  = 4.3 * self.nu_0 * self.E0 * self.TE
-            k2  = self.epsilon * self.r_0 * self.E0 * self.TE
-            k3  = 1 - self.epsilon
+            k1 = 4.3 * self.nu_0 * self.E0 * self.TE
+            k2 = self.epsilon * self.r_0 * self.E0 * self.TE
+            k3 = 1 - self.epsilon
 
         return numpy.array([k1, k2, k3])
 
@@ -361,16 +352,16 @@ class BalloonModel(core.Type):
         if mode == "none":
             ts = time_series.data[:, 0, :, :]
             ts = ts[:, numpy.newaxis, :, :]
-            t_int = time_series.time / 1000. # (s)
+            t_int = time_series.time / 1000.  # (s)
 
         elif mode == "abs_diff":
             ts = abs(numpy.diff(time_series.data, axis=0))
-            t_int = (time_series.time[1:] -  time_series.time[0:-1]) / 1000.# (s)
+            t_int = (time_series.time[1:] - time_series.time[0:-1]) / 1000.  # (s)
 
         elif mode == "sum":
             ts = numpy.sum(time_series.data, axis=1)
             ts = ts[:, numpy.newaxis, :, :]
-            t_int = time_series.time / 1000. # (s)
+            t_int = time_series.time / 1000.  # (s)
 
         else:
             LOG.error("Bad operation/transformation mode, must be one of:")
@@ -393,17 +384,18 @@ class BalloonModel(core.Type):
                 \gamma &= \frac{1}{\tau_f}
         """
 
-        s  = state_variables[0, :]
-        f  = state_variables[1, :]
-        v  = state_variables[2, :]
-        q  = state_variables[3, :]
+        s = state_variables[0, :]
+        f = state_variables[1, :]
+        v = state_variables[2, :]
+        q = state_variables[3, :]
 
-        x = neural_input[0,:]
+        x = neural_input[0, :]
 
-        ds  = x - (1./self.tau_s) * s - (1./self.tau_f) * (f-1) 
-        df  = s
-        dv  = (1. / self.tau_o) * (f - v**(1./self.alpha))
-        dq  = (1. / self.tau_o) * ((f * (1.-(1. - self.E0)**(1./f)) / self.E0) - (v**(1./self.alpha)) * (q/v))  
+        ds = x - (1. / self.tau_s) * s - (1. / self.tau_f) * (f - 1)
+        df = s
+        dv = (1. / self.tau_o) * (f - v ** (1. / self.alpha))
+        dq = (1. / self.tau_o) * ((f * (1. - (1. - self.E0) ** (1. / f)) / self.E0) -
+                                  (v ** (1. / self.alpha)) * (q / v))
 
         return numpy.array([ds, df, dv, dq])
 
