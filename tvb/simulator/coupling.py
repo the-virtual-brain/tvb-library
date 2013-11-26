@@ -131,7 +131,7 @@ class coupling_device_info(object):
 
     """
 
-    def __init__(self, pars=[], kernel=""):
+    def __init__(self, pars, kernel=""):
         self._pars = pars
         self._kernel = kernel
 

@@ -53,11 +53,15 @@ def paths2url(datatype_entity, attribute_name, flatten=False, parameter=None, da
     Prepare a File System Path for passing into an URL.
     """
     if parameter is None:
-        return cfg.WEB_VISUALIZERS_URL_PREFIX + datatype_entity.gid + '/'+ attribute_name + '/' + str(flatten) + '/' + json.dumps(datatype_kwargs)
+        return (cfg.WEB_VISUALIZERS_URL_PREFIX + datatype_entity.gid + '/' + attribute_name +
+                '/' + str(flatten) + '/' + json.dumps(datatype_kwargs))
+
     return (cfg.WEB_VISUALIZERS_URL_PREFIX + datatype_entity.gid + '/' + attribute_name + 
             '/' + str(flatten) + '/' + json.dumps(datatype_kwargs) + "?" + str(parameter))
 
+
 ##--------------------- CLOSE SURFACES Start Here---------------------------------------##
+
 
 class SurfaceFramework(surfaces_data.SurfaceData):
     """ 
@@ -65,15 +69,18 @@ class SurfaceFramework(surfaces_data.SurfaceData):
     """
     
     __tablename__ = None
-    
-    SPLIT_MAX_SIZE = 40000          #### Slices are for vertices [0.....SPLIT_MAX_SIZE + SPLIT_BUFFER_SIZE] 
-    SPLIT_BUFFER_SIZE = 15000       #### [SPLIT_MAX_SIZE ..... 2 * SPLIT_BUFFER_SIZE + SPLIT_BUFFER_SIZE]
-    
-    SPLIT_PICK_MAX_TRIANGLE = 20000     #### Triangles [0, 1, 2], [3, 4, 5], [6, 7, 8].....
-                                        #### Vertices -  no of triangles * 3
+
+    #### Slices are for vertices [0.....SPLIT_MAX_SIZE + SPLIT_BUFFER_SIZE]
+    #### [SPLIT_MAX_SIZE ..... 2 * SPLIT_BUFFER_SIZE + SPLIT_BUFFER_SIZE]
+    #### Triangles [0, 1, 2], [3, 4, 5], [6, 7, 8].....
+    #### Vertices -  no of triangles * 3
+
+    SPLIT_MAX_SIZE = 40000
+    SPLIT_BUFFER_SIZE = 15000
+    SPLIT_PICK_MAX_TRIANGLE = 20000
      
      
-    def get_vertices_slice(self, slice_number= 0):
+    def get_vertices_slice(self, slice_number=0):
         """
         Read vertices slice, to be used by WebGL visualizer.
         """
@@ -84,7 +91,7 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         return self.get_data('vertices', slice(start_idx, end_idx, 1))
     
     
-    def get_vertex_normals_slice(self, slice_number= 0):
+    def get_vertex_normals_slice(self, slice_number=0):
         """
         Read vertex-normal slice, to be used by WebGL visualizer.
         """
@@ -95,7 +102,7 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         return self.get_data('vertex_normals', slice(start_idx, end_idx, 1))
     
     
-    def get_triangles_slice(self, slice_number= 0):
+    def get_triangles_slice(self, slice_number=0):
         """
         Read split-triangles slice, to be used by WebGL visualizer.
         """
@@ -107,7 +114,7 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         return self.get_data('split_triangles', slice(start_idx, end_idx, 1))
     
     
-    def get_lines_slice(self, slice_number= 0):
+    def get_lines_slice(self, slice_number=0):
         """
         Read the gl lines values for the current slice number.
         """
@@ -145,11 +152,11 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         ### Compute the number of split slices.
         self.number_of_split_slices = self.number_of_vertices // self.SPLIT_MAX_SIZE
         if self.number_of_vertices % self.SPLIT_MAX_SIZE > self.SPLIT_BUFFER_SIZE:
-            self.number_of_split_slices = self.number_of_split_slices + 1
+            self.number_of_split_slices += 1
         
         ### Do not split again, if split-data is already loaded:
         if (self.split_triangles is not None and self.split_triangles_indices is not None 
-            and len(self.split_triangles_indices) == self.number_of_split_slices + 1):
+                and len(self.split_triangles_indices) == self.number_of_split_slices + 1):
             return
         
         LOG.debug("Start to compute surface split triangles and vertices")
@@ -162,7 +169,7 @@ class SurfaceFramework(surfaces_data.SurfaceData):
             transformed_triangle = [self.triangles[i][j] for j in range(3)]
             while min(transformed_triangle) > self.SPLIT_MAX_SIZE and current_slice < self.number_of_split_slices - 1:
                 transformed_triangle = [transformed_triangle[j] - self.SPLIT_MAX_SIZE for j in range(3)]
-                current_slice = current_slice + 1
+                current_slice += 1
             
             if max(transformed_triangle) > self.SPLIT_MAX_SIZE + self.SPLIT_BUFFER_SIZE:
                 # triangle ignored, as it has vertices over multiple slices.
@@ -196,19 +203,18 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         for i in xrange(self.number_of_split_slices):
             param = "slice_number=" + str(i)
             url_vertices.append(paths2url(self, 'get_vertices_slice', parameter=param, flatten=True))
-            url_triangles.append(paths2url(self, 'get_triangles_slice', parameter=param, flatten =True))
-            url_lines.append(paths2url(self, 'get_lines_slice', parameter=param, flatten =True))
+            url_triangles.append(paths2url(self, 'get_triangles_slice', parameter=param, flatten=True))
+            url_lines.append(paths2url(self, 'get_lines_slice', parameter=param, flatten=True))
             url_normals.append(paths2url(self, 'get_vertex_normals_slice', parameter=param, flatten=True))
             if not include_alphas or region_mapping is None:
                 continue
-            alphas.append(paths2url(region_mapping, "get_alpha_array", flatten=True, 
-                                                 parameter="size="+ str(self.number_of_vertices)))
+            alphas.append(paths2url(region_mapping, "get_alpha_array", flatten=True,
+                                    parameter="size=" + str(self.number_of_vertices)))
             start_idx = self.SPLIT_MAX_SIZE * i 
             end_idx = self.SPLIT_MAX_SIZE * (i + 1) + self.SPLIT_BUFFER_SIZE
             end_idx = min(end_idx, self.number_of_vertices)
-            alphas_indices.append(paths2url(region_mapping, "get_alpha_indices_array", 
-                                              flatten=True, parameter="start_idx="+
-                                              str(start_idx) +";end_idx="+ str(end_idx)))
+            alphas_indices.append(paths2url(region_mapping, "get_alpha_indices_array", flatten=True,
+                                            parameter="start_idx=" + str(start_idx) + " ;end_idx=" + str(end_idx)))
           
         if include_alphas:  
             return url_vertices, url_normals, url_lines, url_triangles, alphas, alphas_indices
@@ -217,14 +223,13 @@ class SurfaceFramework(surfaces_data.SurfaceData):
 
     ####################################### Split for Picking
     #######################################
-    def get_pick_vertices_slice(self, slice_number= 0):
+    def get_pick_vertices_slice(self, slice_number=0):
         """
         Read vertices slice, to be used by WebGL visualizer with pick.
         """
         slice_number = int(slice_number)
-        slice_triangles = self.get_data('triangles', slice(slice_number * self.SPLIT_PICK_MAX_TRIANGLE, 
-                                                           min(self.number_of_triangles, 
-                                                               (slice_number+1) * self.SPLIT_PICK_MAX_TRIANGLE)))
+        slice_triangles = self.get_data('triangles', slice(slice_number * self.SPLIT_PICK_MAX_TRIANGLE,
+                                    min(self.number_of_triangles, (slice_number + 1) * self.SPLIT_PICK_MAX_TRIANGLE)))
         result_vertices = []
         for triang in slice_triangles:
             result_vertices.append(self.vertices[triang[0]])
@@ -233,14 +238,13 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         return numpy.array(result_vertices)
        
        
-    def get_pick_vertex_normals_slice(self, slice_number= 0):
+    def get_pick_vertex_normals_slice(self, slice_number=0):
         """
         Read vertex-normals slice, to be used by WebGL visualizer with pick.
         """
         slice_number = int(slice_number)
         slice_triangles = self.get_data('triangles', slice(slice_number * self.SPLIT_PICK_MAX_TRIANGLE, 
-                                                           min(self.number_of_triangles, 
-                                                               (slice_number+1) * self.SPLIT_PICK_MAX_TRIANGLE)))
+                                    min(self.number_of_triangles, (slice_number + 1) * self.SPLIT_PICK_MAX_TRIANGLE)))
         result_normals = []
         for triang in slice_triangles:
             result_normals.append(self.vertex_normals[triang[0]])
@@ -249,12 +253,12 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         return numpy.array(result_normals) 
          
          
-    def get_pick_triangles_slice(self, slice_number= 0):
+    def get_pick_triangles_slice(self, slice_number=0):
         """
         Read triangles slice, to be used by WebGL visualizer with pick.
         """
         slice_number = int(slice_number)
-        no_of_triangles = (min(self.number_of_triangles, (slice_number+1) * self.SPLIT_PICK_MAX_TRIANGLE) 
+        no_of_triangles = (min(self.number_of_triangles, (slice_number + 1) * self.SPLIT_PICK_MAX_TRIANGLE)
                            - slice_number * self.SPLIT_PICK_MAX_TRIANGLE)
         triangles_array = numpy.array(range(0, no_of_triangles * 3)).reshape((no_of_triangles, 3))
         return triangles_array
@@ -269,26 +273,28 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         normals = []
         number_of_split = self.number_of_triangles // self.SPLIT_PICK_MAX_TRIANGLE
         if self.number_of_triangles % self.SPLIT_PICK_MAX_TRIANGLE > 0:
-            number_of_split = number_of_split + 1
+            number_of_split += 1
             
         for i in range(number_of_split):
             param = "slice_number=" + str(i)
             vertices.append(paths2url(self, 'get_pick_vertices_slice', parameter=param, flatten=True))
-            triangles.append(paths2url(self, 'get_pick_triangles_slice', parameter=param, flatten =True))
+            triangles.append(paths2url(self, 'get_pick_triangles_slice', parameter=param, flatten=True))
             normals.append(paths2url(self, 'get_pick_vertex_normals_slice', parameter=param, flatten=True))
             
         return vertices, normals, triangles
     
     
     def get_url_for_region_boundaries(self, region_mapping):
-        return paths2url(self, 'generate_region_boundaries', datatype_kwargs={'region_mapping' : region_mapping.gid})
+        return paths2url(self, 'generate_region_boundaries', datatype_kwargs={'region_mapping': region_mapping.gid})
     
     
     def center(self):
         """
         Compute the center of the surface as the median spot on all the three axes.
         """
-        return [float(numpy.mean(self.vertices[:, 0])), float(numpy.mean(self.vertices[:, 1])), float(numpy.mean(self.vertices[:, 2]))]
+        return [float(numpy.mean(self.vertices[:, 0])),
+                float(numpy.mean(self.vertices[:, 1])),
+                float(numpy.mean(self.vertices[:, 2]))]
     
     
     def generate_region_boundaries(self, region_mapping):
@@ -339,14 +345,15 @@ class SurfaceFramework(surfaces_data.SurfaceData):
                     
                     
             
-    def _process_triangle(self, triangle, reg_idx1, reg_idx2, dangling_idx, indices_offset, region_mapping, vertices, normals):
+    def _process_triangle(self, triangle, reg_idx1, reg_idx2, dangling_idx, indices_offset,
+                          region_mapping, vertices, normals):
         """
         Process a triangle and generate the required data for a region separation.
         :param triangle: the actual triangle as a 3 element vector
         :param reg_idx1: the first vertex that is in a 'conflicting' region
         :param reg_idx2: the second vertex that is in a 'conflicting' region
-        :param dangling_idx: the third vector for which we know nothing yet. Depening on this we might generate a line, or a 3 star centered
-                             in the triangle
+        :param dangling_idx: the third vector for which we know nothing yet.
+                    Depending on this we might generate a line, or a 3 star centered in the triangle
         :param indices_offset: to take into account the slicing
         :param region_mapping: the region mapping for which the regions are computed
         :param vertices: the current vertex slice
@@ -382,15 +389,15 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         n2 = normals[triangle[dangling_idx] - indices_offset]
         result_vertices = []
         result_normals = []
-        result_lines = []
+
         if (region_mapping.array_data[triangle[dangling_idx]] != region_mapping.array_data[triangle[reg_idx1]]
-            and region_mapping.array_data[triangle[dangling_idx]] != region_mapping.array_data[triangle[reg_idx2]]):
+                and region_mapping.array_data[triangle[dangling_idx]] != region_mapping.array_data[triangle[reg_idx2]]):
             # Triangle is actually spanning 3 regions. Create a vertex in the center of the triangle, which connects to
             # the middle of each edge
             _star_triangle(p0, p1, p2, result_vertices)
             _star_triangle(n0, n1, n2, result_normals)
             result_lines = [0, 1, 0, 2, 0, 3]
-        elif (region_mapping.array_data[triangle[dangling_idx]] == region_mapping.array_data[triangle[reg_idx1]]):
+        elif region_mapping.array_data[triangle[dangling_idx]] == region_mapping.array_data[triangle[reg_idx1]]:
             # Triangle spanning only 2 regions, draw a line through the middle of the triangle
             _slice_triangle(p1, p0, p2, result_vertices)
             _slice_triangle(n1, n0, n2, result_normals)
@@ -418,6 +425,7 @@ class BrainSkullFramework(surfaces_data.BrainSkullData, SurfaceFramework):
     """ This class exists to add framework methods to BrainSkullData """
     pass
 
+
 class SkullSkinFramework(surfaces_data.SkullSkinData, SurfaceFramework):
     """ This class exists to add framework methods to SkullSkinData """
     pass
@@ -425,6 +433,7 @@ class SkullSkinFramework(surfaces_data.SkullSkinData, SurfaceFramework):
 ##--------------------- CLOSE SURFACES End Here---------------------------------------##
 
 ##--------------------- OPEN SURFACES Start Here---------------------------------------##
+
 
 class OpenSurfaceFramework(surfaces_data.OpenSurfaceData, SurfaceFramework):
     """ This class exists to add framework methods to OpenSurfaceData """
@@ -437,7 +446,7 @@ class OpenSurfaceFramework(surfaces_data.OpenSurfaceData, SurfaceFramework):
         """
         # Check if the surface has a valid number of vertices (not more than the configured maximum).
         if self.number_of_vertices > cfg.MAX_SURFACE_VERTICES_NUMBER:
-            msg = "This surface has too many vertices (max allowed: %d)."%cfg.MAX_SURFACE_VERTICES_NUMBER
+            msg = "This surface has too many vertices (max allowed: %d)." % cfg.MAX_SURFACE_VERTICES_NUMBER
             msg += " Please upload a new surface or change max number in application settings."
             raise exceptions.ValidationException(msg)
 
@@ -446,6 +455,7 @@ class EEGCapFramework(surfaces_data.EEGCapData, OpenSurfaceFramework):
     """ This class exists to add framework methods to EEGCapData """
     pass
 
+
 class FaceSurfaceFramework(surfaces_data.FaceSurfaceData, OpenSurfaceFramework):
     """ This class exists to add framework methods to FaceSurface """
     pass
@@ -453,6 +463,7 @@ class FaceSurfaceFramework(surfaces_data.FaceSurfaceData, OpenSurfaceFramework):
 ##--------------------- OPEN SURFACES End Here---------------------------------------##
 
 ##--------------------- SURFACES ADJIACENT classes start Here---------------------------------------##
+
 
 class RegionMappingFramework(surfaces_data.RegionMappingData):
     """ 

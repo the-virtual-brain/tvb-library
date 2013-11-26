@@ -85,7 +85,7 @@ class File(object):
                                                             'dtype': dtype,
                                                             'skiprows': skiprows,
                                                             'usecols': usecols,
-                                                            'field' : field},
+                                                            'field': field},
                                       self.KEY_METHOD: 'read_data'}
         if lazy_load:
             ## Do not read now, just keep the reference. It will be used on "reload" later.

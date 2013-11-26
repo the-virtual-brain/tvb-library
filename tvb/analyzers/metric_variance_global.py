@@ -58,10 +58,10 @@ class GlobalVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
     This is a crude indicator of "excitability" or oscillation amplitude of the
     models over the entire network.
     """
-    
+
     time_series = time_series_module.TimeSeries(
-        label = "Time Series", 
-        required = True,
+        label="Time Series",
+        required=True,
         doc="""The TimeSeries for which the zero centered Global Variance is to
             be computed.""")
     
@@ -69,8 +69,8 @@ class GlobalVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
         """
         Compute the zero centered global variance of the time_series. 
         """
-        cls_attr_name = self.__class__.__name__+".time_series"
-        self.time_series.trait["data"].log_debug(owner = cls_attr_name)
+        cls_attr_name = self.__class__.__name__ + ".time_series"
+        self.time_series.trait["data"].log_debug(owner=cls_attr_name)
         
         zero_mean_data = (self.time_series.data - self.time_series.data.mean(axis=0))
         global_variance = zero_mean_data.var()
@@ -81,14 +81,14 @@ class GlobalVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
         """
         Returns the shape of the main result of the ... 
         """
-        return (1,)
+        return (1, )
     
     
     def result_size(self):
         """
         Returns the storage size in Bytes of the results of the ... .
         """
-        return 8.0 #Bytes
+        return 8.0  # Bytes
     
     
     def extended_result_size(self):
@@ -96,6 +96,6 @@ class GlobalVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
         Returns the storage size in Bytes of the extended result of the ....
         That is, it includes storage of the evaluated ...
         """
-        return 8.0 #Bytes
+        return 8.0  # Bytes
 
 
