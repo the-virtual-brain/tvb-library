@@ -227,12 +227,12 @@ class BalloonModel(core.Type):
         neural_activity, t_int = self.input_transformation(self.time_series, self.neural_input_transformation)
         input_shape = neural_activity.shape
         result_shape = self.result_shape(input_shape)
-        LOG.info("Result shape will be: %s" % str(result_shape))
+        LOG.debug("Result shape will be: %s" % str(result_shape))
 
         if self.dt is None:
             self.dt = self.time_series.sample_period / 1000.    # (s) integration time step
             msg = "Integration time step size for the balloon model is %s seconds" % str(self.dt)
-            LOG.info(msg)
+            LOG.debug(msg)
 
         #NOTE: Avoid upsampling ...
         if self.dt < (self.time_series.sample_period / 1000.):
@@ -254,7 +254,7 @@ class BalloonModel(core.Type):
         # prepare integrator
         self.integrator.dt = self.dt
         self.integrator.configure()
-        LOG.info("Integration time step size will be: %s seconds" % str(self.integrator.dt))
+        LOG.debug("Integration time step size will be: %s seconds" % str(self.integrator.dt))
 
         scheme = self.integrator.scheme
 
@@ -294,7 +294,7 @@ class BalloonModel(core.Type):
             """
             y_bold = numpy.array(self.V0 * (k1 * (1. - q) + k2 * (1. - q / v) + k3 * (1. - v)))
             y_b = y_bold[:, numpy.newaxis, :, :]
-            LOG.info("Max value: %s" % str(y_b.max()))
+            LOG.debug("Max value: %s" % str(y_b.max()))
 
         else:
             """
@@ -347,7 +347,7 @@ class BalloonModel(core.Type):
         Perform an operation on the input time-series.
         """
 
-        LOG.info("Computing: %s on the input time series" % str(mode))
+        LOG.debug("Computing: %s on the input time series" % str(mode))
 
         if mode == "none":
             ts = time_series.data[:, 0, :, :]
