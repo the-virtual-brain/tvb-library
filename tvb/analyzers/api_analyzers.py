@@ -29,41 +29,43 @@
 #
 
 """
-.. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
+.. moduleauthor:: Paula Sanz Leon <paula.sanz-leon@univ-amu.fr>
 
 Define what Analyzers classes will be included in the UI / Online help 
 documentation. Python docstring from the classes listed below will be included.
 
 """
 
-import tvb.analyzers.cross_correlation as cross_correlation
-import tvb.analyzers.fft as fft
-import tvb.analyzers.ica as ica
-import tvb.analyzers.pca as pca
-import tvb.analyzers.node_coherence as node_coherence
-import tvb.analyzers.node_complex_coherence as node_complex_coherence
-import tvb.analyzers.node_covariance as node_covariance
-import tvb.analyzers.metric_kuramoto_index as metric_kuramoto_index
-import tvb.analyzers.metric_variance_global as metric_variance_global
-import tvb.analyzers.metric_variance_of_node_variance as metric_variance_of_node_variance
-import tvb.analyzers.wavelet as wavelet
+from tvb.analyzers.correlation_coefficient import CorrelationCoefficient
+from tvb.analyzers.cross_correlation import CrossCorrelate
+from tvb.analyzers.fft import FFT
+from tvb.analyzers.fmri_balloon import BalloonModel
+from tvb.analyzers.ica import fastICA
+from tvb.analyzers.pca import PCA
+from tvb.analyzers.node_coherence import NodeCoherence
+from tvb.analyzers.node_complex_coherence import NodeComplexCoherence
+from tvb.analyzers.node_covariance import NodeCovariance
+from tvb.analyzers.metric_kuramoto_index import KuramotoIndex
+from tvb.analyzers.metric_variance_global import GlobalVariance
+from tvb.analyzers.metric_variance_of_node_variance import VarianceNodeVariance
+from tvb.analyzers.wavelet import ContinuousWaveletTransform
 
 
 
 ### Dictionary {Analyzer Class : Title to appear in final documentation}
 
 ANALYZERS_FOR_DOCUMENTATION = {
-    cross_correlation.CrossCorrelate: "Cross-correlation",
-    fft.FFT: "Fast Fourier Transform (FFT)",
-    ica.fastICA: "Independent Component Analysis",
-    pca.PCA: "Principal Components Analysis",
-    node_coherence.NodeCoherence: "Node Coherence",
-    node_complex_coherence.NodeComplexCoherence: "Node Complex Coherence",
-    node_covariance.NodeCovariance: "Node Covariance",
-    wavelet.ContinuousWaveletTransform: "Wavelet",
-    metric_variance_global.GlobalVariance: "Global Variance",
-    metric_variance_of_node_variance.VarianceNodeVariance: "Variance of Node Variance",
-    metric_kuramoto_index.KuramotoIndex: "Kuramoto Index"
+    CorrelationCoefficient: "Pearson Correlation Coefficient",
+    CrossCorrelate: "Cross-correlation",
+    FFT: "Fast Fourier Transform (FFT)",
+    BalloonModel: "Model Balloon",
+    fastICA: "Independent Component Analysis",
+    NodeCoherence: "Node Coherence",
+    NodeComplexCoherence: "Node Complex Coherence",
+    NodeCovariance: "Node Covariance",
+    PCA: "Principal Components Analysis",
+    ContinuousWaveletTransform: "Wavelet",
+    GlobalVariance: "Global Variance",
+    VarianceNodeVariance: "Variance of Node Variance",
+    KuramotoIndex: "Kuramoto Index"
 }
-
-

@@ -39,9 +39,11 @@ TODO: Convert sampen to a traited class
 """
 import numpy
 
+
+
 def sampen(y, m=2, r=None, qse=False, taus=1, info=False,
-       tile=numpy.tile, na=numpy.newaxis, abs=numpy.abs, 
-       log=numpy.log, r_=numpy.r_):
+           tile=numpy.tile, na=numpy.newaxis, abs=numpy.abs,
+           log=numpy.log, r_=numpy.r_):
     """
     Computes (quadratic) sample entropy of a given input signal y, with
     embedding dimension n, and a match tolerance of r (ref 2). If an array
@@ -74,35 +76,35 @@ def sampen(y, m=2, r=None, qse=False, taus=1, info=False,
         return numpy.array([sampen(y, m=m, r=r, qse=qse, taus=int(tau)) for tau in taus])
 
     # helper function to reformat arrays for matching
-    subseq = lambda y, n: y[tile(r_[0:n], (y.size-n+1, 1)) + r_[0:y.size-n+1][:, na]]
+    subseq = lambda y, n: y[tile(r_[0:n], (y.size - n + 1, 1)) + r_[0:y.size - n + 1][:, na]]
 
     # default value of r
     if r is None:
-        r = 0.15*y.std()
+        r = 0.15 * y.std()
 
     # if we have a scale factor, coarsen time series 
     if taus > 1:
-        y = y[:y.shape[0]/taus*taus].reshape((-1, taus)).mean(axis=1)
+        y = y[:y.shape[0] / taus * taus].reshape((-1, taus)).mean(axis=1)
 
     # compute embedding of signal dims m, m+1, initialize match counts to 0
-    Y1 = subseq(y, m  )
-    Y2 = subseq(y, m+1)
+    Y1 = subseq(y, m)
+    Y2 = subseq(y, m + 1)
     c1 = 0
     c2 = 0
 
     # check for matches
     for i in range(Y1.shape[0] - 1):
-        c1 += (abs(tile(Y1[i], (Y1.shape[0]-i-1, 1)) - Y1[i+1:]) < r).all(axis=1).sum()
+        c1 += (abs(tile(Y1[i], (Y1.shape[0] - i - 1, 1)) - Y1[i + 1:]) < r).all(axis=1).sum()
 
     for i in range(Y2.shape[0] - 1):
-        c2 += (abs(tile(Y2[i], (Y2.shape[0]-i-1, 1)) - Y2[i+1:]) < r).all(axis=1).sum()
+        c2 += (abs(tile(Y2[i], (Y2.shape[0] - i - 1, 1)) - Y2[i + 1:]) < r).all(axis=1).sum()
 
     # ref 2, last paragraph of methods, warn inaccurate estimate
-    if c2 < 5: 
+    if c2 < 5:
         print "m+1 template match count is low, %d < 5" % c2
 
-    p = c2*1.0/c1
-    e = -log( p/(2*r) if qse else p )
+    p = c2 * 1.0 / c1
+    e = -log(p / (2 * r) if qse else p)
 
     if info:
         return e, p, c2, c1
