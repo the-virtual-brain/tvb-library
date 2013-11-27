@@ -90,7 +90,7 @@ class TimeSeriesRegionScientific(time_series_data.TimeSeriesRegionData, TimeSeri
         Gather scientifically interesting summary information from an instance of this datatype.
         """
         summary = super(TimeSeriesRegionScientific, self)._find_summary_info()
-        summary.update({"Connectivity:": self.connectivity.display_name})
+        summary.update({"Source Connectivity:": self.connectivity.display_name})
         return summary
 
 
@@ -104,7 +104,7 @@ class TimeSeriesSurfaceScientific(time_series_data.TimeSeriesSurfaceData, TimeSe
         Gather scientifically interesting summary information from an instance of this datatype.
         """
         summary = super(TimeSeriesSurfaceScientific, self)._find_summary_info()
-        summary.update({"Surface:": self.surface.display_name})
+        summary.update({"Source Surface:": self.surface.display_name})
         return summary
 
 
@@ -117,6 +117,6 @@ class TimeSeriesVolumeScientific(time_series_data.TimeSeriesVolumeData, TimeSeri
         Gather scientifically interesting summary information from an instance of this datatype.
         """
         summary = super(TimeSeriesVolumeScientific, self)._find_summary_info()
-        summary.update({"Volume:": self.volume.display_name})
+        summary.update({"Source Volume:": self.volume.display_name})
         return summary
 
