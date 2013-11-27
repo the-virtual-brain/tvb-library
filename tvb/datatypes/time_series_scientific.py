@@ -85,19 +85,38 @@ class TimeSeriesRegionScientific(time_series_data.TimeSeriesRegionData, TimeSeri
     """
     This class exists to add scientific methods to TimeSeriesRegionData.
     """
-    pass
+    def _find_summary_info(self):
+        """
+        Gather scientifically interesting summary information from an instance of this datatype.
+        """
+        summary = super(TimeSeriesRegionScientific, self)._find_summary_info()
+        summary.update({"Connectivity:": self.connectivity.display_name})
+        return summary
 
 
 class TimeSeriesSurfaceScientific(time_series_data.TimeSeriesSurfaceData, TimeSeriesScientific):
     """
     This class exists to add scientific methods to TimeSeriesSurfaceData.
     """
-    pass
+
+    def _find_summary_info(self):
+        """
+        Gather scientifically interesting summary information from an instance of this datatype.
+        """
+        summary = super(TimeSeriesSurfaceScientific, self)._find_summary_info()
+        summary.update({"Surface:": self.surface.display_name})
+        return summary
 
 
 class TimeSeriesVolumeScientific(time_series_data.TimeSeriesVolumeData, TimeSeriesScientific):
     """
     This class exists to add scientific methods to TimeSeriesVolumeData.
     """
-    pass
+    def _find_summary_info(self):
+        """
+        Gather scientifically interesting summary information from an instance of this datatype.
+        """
+        summary = super(TimeSeriesVolumeScientific, self)._find_summary_info()
+        summary.update({"Volume:": self.volume.display_name})
+        return summary
 
