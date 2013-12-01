@@ -103,8 +103,10 @@ Reproducing Sanz Leon etal 2013 [Evoked Responses]:
         (2013). The Virtual Brain: a simulator of primate brain dynamics. Frontiers in Neuroinformatics
         (submitted).
 
+Reproducing Alstott et al. 2009 [Modeling The Impact Of Structural Lesions]:
 
-Reproducing Author etal Year:
+
+Reproducing Author etal Year [Name of the tutorial]:
     This tutorial attempts to reproduce the experimental paradigm and analysis
     used in 
         Full paper/s reference
@@ -118,6 +120,21 @@ Evoked Responses:
     This tutorial explains how to model evoked reponses when stimulating the primary visual cortex (V1)
     with a rectangular pulse train. Two simulations are launched to produce resting state and 
     stimulation-driven activity. 
+
+Modeling The Impact Of Structural Lesions: 
+    In this tutorial we aimed to:
+        + reproduce the results presented in (Alstott et al. 2009) using TVB aiming to
+          define a set of standardized lesion strategies for simulation studies of
+          Brain Network Models (BNMs);
+
+        + extend the original work by studying the role of conduction speed (i.e.,
+          time delays) on the healthy and lesioned networks;
+
+        + systematically explore the impact of structural changes in the dynamics. 
+          In TVB architecture, structural connectivity is one parameter of a BNM; and
+        
+        + to create a reproducible project, make it publicly available to improve 
+          the experience of the reviewers and readers. A folder with the data is included.
 
 
 Tutorial Name [short description]:
