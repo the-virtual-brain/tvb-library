@@ -1,0 +1,5 @@
+Matrix label:  TIM_EPI
+Centres space:  mni 
+Number of regions:  2
+Left hemisphere regions: 
+1100
