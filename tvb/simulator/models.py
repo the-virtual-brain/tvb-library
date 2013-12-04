@@ -2295,18 +2295,21 @@ class Generic2dOscillator(Model):
         alpha = self.alpha
 
         lc_0 = local_coupling * V
-
+        import pdb; pdb.set_trace()
+            
 
         #if not hasattr(self, 'derivative'):
         #    self.derivative = numpy.empty((2,)+V.shape)
 
         ## numexpr       
-        dV = ev('d * tau * (alpha * W - f * V**3 + e * V**2 + g * V + I + c_0 + lc_0)')
-        dW = ev('d * (a + b * V + c * V**2 - beta * W) / tau')
+        #dV = ev('d * tau * (alpha * W - f * V**3 + e * V**2 + g * V + I + c_0 + lc_0)')
+        #dW = ev('d * (a + b * V + c * V**2 - beta * W) / tau')
+        dV = d * tau * (alpha * W - f * V**3 + e * V**2 + g * V + I + c_0 + lc_0)
+        dW = d * (a + b * V + c * V**2 - beta * W) / tau
 
         ## regular ndarray operation
-        ##dV = tau * (W - 0.5* V**3.0 + 3.0 * V**2 + I + c_0 + lc_0)
-        ##dW = d * (a + b * V + c * V**2 - W) / tau
+        #dV = tau * (W - 0.5* V**3.0 + 3.0 * V**2 + I + c_0 + lc_0)
+        #dW = d * (a + b * V + c * V**2 - W) / tau
 
         self.derivative = numpy.array([dV, dW])
 
