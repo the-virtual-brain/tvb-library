@@ -52,8 +52,7 @@ from tvb.simulator.lab import *
 
 LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
-import epileptor
-oscilator = epileptor.HMJEpileptor()
+oscilator = models.Generic2dOscillator()
 white_matter = connectivity.Connectivity()
 white_matter.speed = numpy.array([3.0])
 white_matter_coupling = coupling.Linear()

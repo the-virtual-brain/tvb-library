@@ -1,5 +1,0 @@
-Matrix label:  PAUPAU 
-Centres space:  mni 
-Number of regions:  4 
-Left hemisphere regions: 
-1100

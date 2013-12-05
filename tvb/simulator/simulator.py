@@ -65,7 +65,7 @@ import tvb.datatypes.patterns as patterns_dtype
 from tvb.simulator.common import psutil, get_logger
 LOG = get_logger(__name__)
 
-########## test chagne
+
 #from tvb.simulator.common import iround
 
 class Simulator(core.Type):

@@ -45,6 +45,7 @@ import tvb.datatypes.arrays as arrays
 from tvb.basic.traits.types_mapped import MappedType
 
 
+
 class ConnectivityData(MappedType):
     """
     This class primarily exists to bundle the long range structural connectivity
@@ -52,7 +53,6 @@ class ConnectivityData(MappedType):
     """
 
     default = readers.File(folder_path="connectivity/o52r00_irp2008")
-
 
     parcellation_mask = volumes.ParcellationMask(
         label="Parcellation mask (volume)",
@@ -141,3 +141,5 @@ class ConnectivityData(MappedType):
     # In case of edited Connectivity, this are the nodes left in interest area,
     # the rest were part of a lesion, so they were removed.
     saved_selection = basic.JSONType(required=False)
+
+

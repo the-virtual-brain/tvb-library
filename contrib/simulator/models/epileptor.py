@@ -145,44 +145,28 @@ class HMJEpileptor(models.Model):
         doc="n/a",
         order=-1)
         
-    Kvf = arrays.FloatArray(
-        label="K_vf",
-        default=numpy.array([0.0]),
+    Kpop1 = arrays.FloatArray(
+        label="K_11",
+        default=numpy.array([0.5]),
         range=basic.Range(lo=0.0, hi=4.0, step=0.5),
-        doc='''Test parameter. Correspond to the coupling scaling on a very fast time scale.
-        Move outside to be consistent with the general TVB implementation.''',
+        doc='''Test parameter. Correspond to the coupling scaling. Move outside to be
+        consistent with the general TVB implementation.''',
         order=-1)
         
-    Kf = arrays.FloatArray(
-        label="K_f",
-        default=numpy.array([0.0]),
-        range=basic.Range(lo=0.0, hi=4.0, step=0.5),
-        doc='''Test parameter. Correspond to the coupling scaling on a fast time scale.
-        Move outside to be consistent with the general TVB implementation.''',
-        order=-1)
-
-    Ks = arrays.FloatArray(
-        label="K_s",
-        default=numpy.array([0.0]),
-        range=basic.Range(lo=0.0, hi=4.0, step=0.5),
-        doc='''Test parameter. Correspond to the coupling scaling on a slow time scale.
-        Move outside to be consistent with the general TVB implementation.''',
-        order=-1)
-
-    tt = arrays.FloatArray(
-        label="tt",
-        default=numpy.array([1.0/(2**4)]),
-        range=basic.Range(lo=0.001, hi=1.0, step=0.001),
+    Kpop2 = arrays.FloatArray(
+        label="K_22",
+        default=numpy.array([0.2]),
+        range=basic.Range(lo=0.0, hi=1.0, step=0.5),
         doc='''Test parameter. Correspond to the coupling scaling. Move outside to be
         consistent with the general TVB implementation.''',
         order=-1)
 
     state_variable_range = basic.Dict(
         label="State variable ranges [lo, hi]",
-        default = {"y0": numpy.array([-1.7,-1.69]),
-                   "y1": numpy.array([-15, -14.9]),
-                   "y2": numpy.array([3.9, 4.0]),
-                   "y3": numpy.array([-0.7, -0.68]),
+        default = {"y0": numpy.array([0., 1e-10]),
+                   "y1": numpy.array([-5., 0.]),
+                   "y2": numpy.array([3., 4.]),
+                   "y3": numpy.array([0., 1e-10]),
                    "y4": numpy.array([0., 1e-10]),
                    "y5": numpy.array([0., 1e-2]) },
         doc = "n/a",
@@ -245,8 +229,7 @@ class HMJEpileptor(models.Model):
 
         y = state_variables
         n = y.shape[1]
-        #Iext = self.Iext + coupling[0, :] + local_coupling
-        Iext = self.Iext + local_coupling * y[0]
+        Iext = self.Iext + coupling[0, :] + local_coupling
         c_pop1 = coupling[0, :]
         c_pop2 = coupling[1, :]
 
@@ -254,16 +237,10 @@ class HMJEpileptor(models.Model):
         #     ydot1 = y(2)-a*y(1)^3 + b*y(1)^2-y(3)+iext; 
         #     ydot2 = c-d*y(1)^2-y(2); 
         #     ydot3 =  r*(s*(y(1)-x0)  - y(3));   % energy consumption = 1 - available energy
-            
-        #if_y1_lt_0 = concat([ (self.tt*(y[1] - self.a*y[0]**3 + self.b*y[0]**2 - y[2] + Iext + self.Kvf*c_pop1)).reshape((1, n, 1)),
-        #                      (self.tt*(self.c - self.d*y[0]**2 - y[1])).reshape((1, n, 1)),
-        #                      (self.tt*(self.r*(self.s*(y[0] - self.x0) - y[2] - self.Ks*c_pop1))).reshape((1,n,1))])
-        
-        #import pdb; pdb.set_trace()
-            
-        if_y1_lt_0 = concat([ (self.tt*(y[1] - self.a*y[0]**3 + self.b*y[0]**2 - y[2] + Iext + self.Kvf*c_pop1)).reshape((1, n, 1)),
-                              (self.tt*(self.c - self.d*y[0]**2 - y[1])).reshape((1, n, 1)),
-                              (self.tt*(self.r*(3./(1.+numpy.exp(-(y[0]+0.5)/0.2)) + self.x0 - y[2] - self.Ks*c_pop1))).reshape((1,n,1))])
+
+        if_y1_lt_0 = concat([ (y[1] - self.a*y[0]**3 + self.b*y[0]**2 - y[2] + Iext).reshape((1, n, 1)),
+                              (self.c - self.d*y[0]**2 - y[1]).reshape((1, n, 1)),
+                              (self.r*(self.s*(y[0] - self.x0) - y[2] - self.Kpop1 * (c_pop1 - y[0]) )).reshape((1, n, 1)) ])
 
          # else
         # %    ydot1 = y(2) + (slope - y(4) -1.0*(y(3)-4))*y(1) - y(3)+iext; % this is just an
@@ -278,13 +255,9 @@ class HMJEpileptor(models.Model):
         #     ydot3 =   r*(s*(y(1)-x0)  - y(3));
         # end
 
-        #else_pop1 = concat([ (self.tt*(y[1] + (self.slope - y[3] + 0.6*(y[2]-4.0)**2)*y[0] - y[2] + Iext + self.Kvf*c_pop1)).reshape((1, n, 1)),
-        #                 (self.tt*(self.c - self.d*y[0]**2 - y[1])).reshape((1, n, 1)),
-        #                 (self.tt*(self.r*(self.s*(y[0] - self.x0) - y[2] - self.Ks*c_pop1))).reshape((1,n,1))])
-        
-        else_pop1 = concat([ (self.tt*(y[1] + (self.slope - y[3] + 0.6*(y[2]-4.0)**2)*y[0] - y[2] + Iext + self.Kvf*c_pop1)).reshape((1, n, 1)),
-                         (self.tt*(self.c - self.d*y[0]**2 - y[1])).reshape((1, n, 1)),
-                         (self.tt*(self.r*(3./(1.+numpy.exp(-(y[0]+0.5)/0.2)) + self.x0 - y[2] - self.Ks*c_pop1))).reshape((1,n,1))])
+        else_pop1 = concat([ (y[1] + (self.slope - y[3] + 0.6*(y[2]-4.0)**2)*y[0] - y[2] + Iext).reshape((1, n, 1)),
+                         (self.c - self.d*y[0]**2 - y[1]).reshape((1, n, 1)),
+                         (self.r*(self.s*(y[0] - self.x0) - y[2] - self.Kpop1 * (c_pop1 - y[0]))).reshape((1, n, 1)) ])
 
         pop1 = where(y[0] < 0., if_y1_lt_0, else_pop1)
 
@@ -299,13 +272,13 @@ class HMJEpileptor(models.Model):
         #     % y(6) turns the oscillator on and off, whereas the y(3) term helps it to become precritical (critical fluctuations). 
         #     ydot5 = -y(5)/tau ;
 
-        if_ = concat([ (self.tt*(-y[4] + y[3] - y[3]**3 + self.Iext2 + 2*y[5] - 0.3*(y[2] - 3.5) + self.Kf*c_pop2)).reshape((1, n, 1)), (self.tt*(-y[4]/self.tau)).reshape((1, n, 1)) ])
+        if_ = concat([ (-y[4] + y[3] - y[3]**3 + self.Iext2 + 2*y[5] - 0.3*(y[2] - 3.5) + self.Kpop2 * (c_pop2 - y[3])).reshape((1, n, 1)), (-y[4]/self.tau).reshape((1, n, 1)) ])
         # else
         #     ydot4 = -y(5)+ y(4)-y(4)^3 + iext2+ 2*y(6)-0.3*(y(3)-3.5); 
         #     ydot5 = (-y(5) + aa*(y(4)+0.25))/tau;   % here is the mlj structure
         # end
 
-        else_pop2 = concat([ (self.tt*(-y[4] + y[3] - y[3]**3 + self.Iext2 + 2*y[5] - 0.3*(y[2] - 3.5) + self.Kf*c_pop2)).reshape((1, n, 1)), (self.tt*((-y[4] + self.aa*(y[3] + 0.25))/self.tau)).reshape((1, n, 1)) ])
+        else_pop2 = concat([ (-y[4] + y[3] - y[3]**3 + self.Iext2 + 2*y[5] - 0.3*(y[2] - 3.5) + self.Kpop2 * (c_pop2 - y[3])).reshape((1, n, 1)), ((-y[4] + self.aa*(y[3] + 0.25))/self.tau).reshape((1, n, 1)) ])
 
 
         pop2 = where(y[3] < -0.25, if_, else_pop2)
@@ -313,7 +286,7 @@ class HMJEpileptor(models.Model):
         # 
         #  ydot6 = -0.01*(y(6)-0.1*y(1)) ;
 
-        energy = array([ self.tt*(-0.01*(y[5] - 0.1*y[0]))])
+        energy = array([ -0.01*(y[5] - 0.1*y[0])])
         
         # 
         # ydot = [ydot1;ydot2;ydot3;ydot4;ydot5;ydot6];
