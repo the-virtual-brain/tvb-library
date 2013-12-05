@@ -37,7 +37,7 @@ import setuptools
 import shutil
 
 
-LIBRARY_VERSION = "1.0"
+LIBRARY_VERSION = "1.0.0"
 
 TVB_TEAM = "Stuart Knock, Marmaduke Woodman, Paula Sanz Leon"
 CONTACT_EMAIL = "tvb.admin@thevirtualbrain.org"
@@ -45,14 +45,27 @@ CONTACT_EMAIL = "tvb.admin@thevirtualbrain.org"
 TVB_INSTALL_REQUIREMENTS = ["networkx", "nibabel", "numpy", "numexpr", "scikit-learn", "scipy"]
 
 
-setuptools.setup( name = 'tvb',
-                  version = LIBRARY_VERSION,
-                  packages = setuptools.find_packages(),
-                  license = 'Not decided yet',
-                  author = TVB_TEAM,
-                  author_email = CONTACT_EMAIL,
-                  include_package_data = True,
-                  install_requires = TVB_INSTALL_REQUIREMENTS)
+setuptools.setup(
+    name = 'tvb',
+    description='A whole brain simulation framework',
+    url='https://github.com/the-virtual-brain/scientific_library',
+    version = LIBRARY_VERSION,
+    packages = setuptools.find_packages(),
+    license = 'GPL',
+    author = TVB_TEAM,
+    author_email = CONTACT_EMAIL,
+    maintainer='Marmaduke Woodman',
+    maintainer_email='mmwoodman@gmail.com',
+    include_package_data = True,
+    install_requires = TVB_INSTALL_REQUIREMENTS,
+    long_description="""
+This package contains the scientific library from the Virtual Brain 
+project which provides data handling and numerical routines 
+required to perform whole brain simulation. It is a work in 
+progress, and a subject of on-going research efforts.
+"""
+    )
+
 ## Cleanup after EGG install.
 shutil.rmtree('tvb.egg-info', True)
 
