@@ -378,10 +378,10 @@ class MetaType(abc.ABCMeta):
         for name, attr in inst.trait.iteritems():
             try:
                 val = attr.trait.value
-                try:
-                    print name, isinstance(val, dict), reader is not None, "file_name" in val
-                except:
-                    print
+                #try:
+                #    print name, isinstance(val, dict), reader is not None, "file_name" in val
+                #except:
+                #    print
                 if isinstance(val, dict) and reader is not None and "file_name" in val: # from file reader
                     if "self" in val:
                         val.pop("self")
