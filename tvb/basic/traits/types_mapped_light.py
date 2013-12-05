@@ -131,6 +131,14 @@ class MappedTypeLight(Type):
         return ()
 
 
+    def get_data(self, data_name, data_slice=None):
+        """
+        Get sliced portion of an attribute of type numpy array.
+        """
+        array_data = getattr(self, data_name)
+        return array_data[data_slice]
+
+
 
 class Array(Type):
     """

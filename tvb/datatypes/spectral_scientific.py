@@ -79,15 +79,14 @@ class FourierSpectrumScientific(spectral_data.FourierSpectrumData):
     
     def _find_summary_info(self):
         """
-        Gather scientifically interesting summary information from an instance
-        of this datatype.
+        Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Spectral type": self.__class__.__name__}
-        summary["Source"] = self.source.title
-        summary["Segment length"] = self.segment_length
-        summary["Windowing function"] = self.windowing_function
-        summary["Frequency step"] = self.freq_step
-        summary["Maximum frequency"] = self.max_freq
+        summary = {"Spectral type": self.__class__.__name__,
+                   "Source": self.source.title,
+                   "Segment length": self.segment_length,
+                   "Windowing function": self.windowing_function,
+                   "Frequency step": self.freq_step,
+                   "Maximum frequency": self.max_freq}
         return summary
     
     
@@ -136,13 +135,13 @@ class FourierSpectrumScientific(spectral_data.FourierSpectrumData):
     
     def compute_power(self):
         """ Power of the complex Fourier spectrum."""
-        self.power = numpy.abs(self.array_data)**2
+        self.power = numpy.abs(self.array_data) ** 2
         self.trait["power"].log_debug(owner=self.__class__.__name__)
     
     
     def compute_average_power(self):
         """ Average-power of the complex Fourier spectrum."""
-        self.average_power = numpy.mean(numpy.abs(self.array_data)**2, axis=-1)
+        self.average_power = numpy.mean(numpy.abs(self.array_data) ** 2, axis=-1)
         self.trait["average_power"].log_debug(owner=self.__class__.__name__)
     
     
@@ -183,18 +182,17 @@ class WaveletCoefficientsScientific(spectral_data.WaveletCoefficientsData):
     
     def _find_summary_info(self):
         """
-        Gather scientifically interesting summary information from an instance
-        of this datatype.
+        Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Spectral type": self.__class__.__name__}
-        summary["Source"] = self.source.title
-        summary["Wavelet type"] = self.mother
-        summary["Normalisation"] = self.normalisation
-        summary["Q-ratio"] = self.q_ratio
-        summary["Sample period"] = self.sample_period
-        summary["Number of scales"] = self.frequencies.shape[0]
-        summary["Minimum frequency"] = self.frequencies[0]
-        summary["Maximum frequency"] = self.frequencies[-1]
+        summary = {"Spectral type": self.__class__.__name__,
+                   "Source": self.source.title,
+                   "Wavelet type": self.mother,
+                   "Normalisation": self.normalisation,
+                   "Q-ratio": self.q_ratio,
+                   "Sample period": self.sample_period,
+                   "Number of scales": self.frequencies.shape[0],
+                   "Minimum frequency": self.frequencies[0],
+                   "Maximum frequency": self.frequencies[-1]}
         return summary
     
     
@@ -223,7 +221,7 @@ class WaveletCoefficientsScientific(spectral_data.WaveletCoefficientsData):
     
     def compute_power(self):
         """ Power of the complex Wavelet coefficients."""
-        self.power = numpy.abs(self.array_data)**2
+        self.power = numpy.abs(self.array_data) ** 2
         self.trait["power"].log_debug(owner=self.__class__.__name__)
 
 
@@ -234,15 +232,14 @@ class CoherenceSpectrumScientific(spectral_data.CoherenceSpectrumData):
     
     def _find_summary_info(self):
         """
-        Gather scientifically interesting summary information from an instance
-        of this datatype.
+        Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Spectral type": self.__class__.__name__}
-        summary["Source"] = self.source.title
-        summary["Number of frequencies"] = self.frequency.shape[0]
-        summary["Minimum frequency"] = self.frequency[0]
-        summary["Maximum frequency"] = self.frequency[-1]
-        summary["FFT length (time-points)"] = self.nfft
+        summary = {"Spectral type": self.__class__.__name__,
+                   "Source": self.source.title,
+                   "Number of frequencies": self.frequency.shape[0],
+                   "Minimum frequency": self.frequency[0],
+                   "Maximum frequency": self.frequency[-1],
+                   "FFT length (time-points)": self.nfft}
         return summary
         
         
@@ -256,13 +253,12 @@ class ComplexCoherenceSpectrumScientific(spectral_data.ComplexCoherenceSpectrumD
             
     def _find_summary_info(self):
         """
-        Gather scientifically interesting summary information from an instance
-        of this datatype.
+        Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Spectral type": self.__class__.__name__}
-        summary["Source"] = self.source.title
-        summary["Frequency step"] = self.freq_step
-        summary["Maximum frequency"] = self.max_freq
+        summary = {"Spectral type": self.__class__.__name__,
+                   "Source": self.source.title,
+                   "Frequency step": self.freq_step,
+                   "Maximum frequency": self.max_freq}
         #summary["FFT length (time-points)"] = self.fft_points
         #summary["Number of epochs"] = self.number_of_epochs
         return summary

@@ -39,70 +39,63 @@ import tvb.datatypes.time_series_data as time_series_data
 
 
 class TimeSeriesScientific(time_series_data.TimeSeriesData):
-    """ This class exists to add scientific methods to TimeSeriesData. """
+    """
+    This class exists to add scientific methods to TimeSeriesData.
+    """
     __tablename__ = None
     
     
     def _find_summary_info(self):
         """
-        Gather scientifically interesting summary information from an instance
-        of this datatype.
+        Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Time-series type": self.__class__.__name__}
-        summary["Time-series name"] = self.title
-        summary["Dimensions"] = self.labels_ordering
-        summary["Time units"] = self.sample_period_unit
-        summary["Sample period"] = self.sample_period
-        summary["Length"] = self.sample_period * self.get_data_shape('data')[0]
+        summary = {"Time-series type": self.__class__.__name__,
+                   "Time-series name": self.title,
+                   "Dimensions": self.labels_ordering,
+                   "Time units": self.sample_period_unit,
+                   "Sample period": self.sample_period,
+                   "Length": self.sample_period * self.get_data_shape('data')[0]}
         summary.update(self.get_info_about_array('data'))
         return summary
 
 
 
-class TimeSeriesEEGScientific(time_series_data.TimeSeriesEEGData, 
-                              TimeSeriesScientific):
-    """ This class exists to add scientific methods to TimeSeriesEEGData. """
-    pass
-    
-#    #NOTE: Explicitly adding number_of_sensors is sort of redundant given
-#    #      "Shape" and "Dimensions", however, maybe worthwhile as convinience?
-#    def _find_summary_info(self):
-#        """ Extend the base class's summary dictionary. """
-#        summary = super(TimeSeriesEEGScientific, self)._find_summary_info()
-#        summary["Number of EEG sensors"] = self.sensors.number_of_sensors
-#        return summary
-
-
-class TimeSeriesMEGScientific(time_series_data.TimeSeriesMEGData, 
-                              TimeSeriesScientific):
-    """ This class exists to add scientific methods to TimeSeriesMEGData. """
+class TimeSeriesEEGScientific(time_series_data.TimeSeriesEEGData, TimeSeriesScientific):
+    """
+    This class exists to add scientific methods to TimeSeriesEEGData.
+    """
     pass
 
 
-class TimeSeriesSEEGScientific(time_series_data.TimeSeriesSEEGData, 
-                              TimeSeriesScientific):
-    """ This class exists to add scientific methods to TimeSeriesMEGData. """
+class TimeSeriesMEGScientific(time_series_data.TimeSeriesMEGData, TimeSeriesScientific):
+    """
+    This class exists to add scientific methods to TimeSeriesMEGData.
+    """
     pass
 
 
-class TimeSeriesRegionScientific(time_series_data.TimeSeriesRegionData, 
-                                 TimeSeriesScientific):
+class TimeSeriesSEEGScientific(time_series_data.TimeSeriesSEEGData, TimeSeriesScientific):
+    """
+    This class exists to add scientific methods to TimeSeriesMEGData.
+    """
+    pass
+
+
+class TimeSeriesRegionScientific(time_series_data.TimeSeriesRegionData, TimeSeriesScientific):
     """
     This class exists to add scientific methods to TimeSeriesRegionData.
     """
     pass
 
 
-class TimeSeriesSurfaceScientific(time_series_data.TimeSeriesSurfaceData, 
-                                  TimeSeriesScientific):
+class TimeSeriesSurfaceScientific(time_series_data.TimeSeriesSurfaceData, TimeSeriesScientific):
     """
     This class exists to add scientific methods to TimeSeriesSurfaceData.
     """
     pass
 
 
-class TimeSeriesVolumeScientific(time_series_data.TimeSeriesVolumeData,
-                                 TimeSeriesScientific):
+class TimeSeriesVolumeScientific(time_series_data.TimeSeriesVolumeData, TimeSeriesScientific):
     """
     This class exists to add scientific methods to TimeSeriesVolumeData.
     """

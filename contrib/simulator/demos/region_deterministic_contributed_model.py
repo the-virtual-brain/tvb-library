@@ -29,7 +29,7 @@
 #
 
 """
-Use a 'contributed' model
+Template for running a demo using a 'contributed' model
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 .. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
@@ -38,13 +38,16 @@ Use a 'contributed' model
 
 # Third party python libraries
 import numpy
+import sys
 
 # Try and import from "The Virtual Brain"
 from tvb.simulator.lab import *
 
-# Import the contributed model
-# NOTE: Add the ~/scientific_library/contrib/simulator/models folder to the PYTHONPATH env variable.
-import larter as TheModel
+# Add the contributed models directory to the PYTHONPATH
+sys.path += ["../models"]
+
+# import the Model class
+from larter_breakspear import LarterBreakspear
 
 ##----------------------------------------------------------------------------##
 ##-                      Perform the simulation                              -##
@@ -52,19 +55,19 @@ import larter as TheModel
 
 LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
-lar = TheModel.Larter()
+lar = LarterBreakspear(QV_max=1.0, QZ_max=1.0, t_scale=0.01, VT=0.54, d_V=0.5, C=0.0)
 
 white_matter = connectivity.Connectivity()
 white_matter.speed = numpy.array([4.0])
 
-white_matter_coupling = coupling.Linear(a=0.0154)
+white_matter_coupling = coupling.Linear(a=lar.C)
 
 #Initialise an Integrator
-heunint = integrators.HeunDeterministic(dt=2**-4)
+heunint = integrators.HeunDeterministic(dt=0.2)
 
 #Initialise some Monitors with period in physical time
 mon_raw  = monitors.Raw()
-mon_tavg = monitors.TemporalAverage(period=2**-2)
+mon_tavg = monitors.TemporalAverage(period=1.)
 
 #Bundle them
 what_to_watch = (mon_raw, mon_tavg)
@@ -83,7 +86,7 @@ LOG.info("Starting simulation...")
 raw_data, raw_time = [], []
 tavg_data, tavg_time = [], []
 
-for raw, tavg in sim(simulation_length=2**8):
+for raw, tavg in sim(simulation_length=2**14):
     if not raw is None:
         raw_time.append(raw[0])
         raw_data.append(raw[1])
@@ -111,10 +114,19 @@ figure(2)
 plot(raw_time, RAW[:, 1, :, 0])
 title("Raw -- State variable 1")
 
-#Plot temporally averaged time series
 figure(3)
-plot(tavg_time, TAVG[:, 0, :, 0])
-title("Temporal average")
+plot(raw_time, RAW[:, 2, :, 0])
+title("Raw -- State variable 2")
+
+#Plot 3D trajectories
+
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+fig = plt.figure(4)
+ax = fig.gca(projection='3d')
+ax.plot(RAW[:, 0, 0, 0],  RAW[:, 1, 0, 0], RAW[:, 2, 0, 0])
+plt.show()
 
 #Show them
 show()

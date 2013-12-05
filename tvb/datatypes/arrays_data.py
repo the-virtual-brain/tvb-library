@@ -73,42 +73,38 @@ class BoolArrayData(Array):
 class StringArrayData(Array):
     """ A numpy.ndarray of dtype str """
     _ui_name = "Array of strings"
-    dtype = "128a" # "42a"
+    dtype = "128a"  # "42a"
 
 
 class PositionArrayData(FloatArrayData):
     """ An array specifying position. """
     _ui_name = "Array of positions"
-    
-    coordinate_system = basic.String(
-        label = "Coordinate system",
-        default = "cartesian", 
-        doc = """The coordinate system used to specify the positions.
-            Eg: 'spherical', 'polar'""")
 
-    coordinate_space = basic.String( # ?Make this only an extension where needed?
-        label = "Coordinate space",
-        default = "None",
-        doc = "The standard space the positions are in, eg, 'MNI', 'colin27'")
+    coordinate_system = basic.String(label="Coordinate system",
+                                     default="cartesian",
+                                     doc="""The coordinate system used to specify the positions.
+                                     Eg: 'spherical', 'polar'""")
+
+    coordinate_space = basic.String(label="Coordinate space",
+                                    default="None",
+                                    doc="The standard space the positions are in, eg, 'MNI', 'colin27'")
 
 
 class OrientationArrayData(FloatArrayData):
     """ An array specifying orientations. """
     _ui_name = "Array of orientations"
 
-    coordinate_system_or = basic.String(
-        label = "Coordinate system",
-        default = "cartesian")
+    coordinate_system_or = basic.String(label="Coordinate system",
+                                        default="cartesian")
 
 
 class IndexArrayData(IntegerArrayData):
     """ An array that indexes another array. """
     _ui_name = "Index array"
- 
-    target = Array(
-        label = "Indexed array",
-        file_storage = core.FILE_STORAGE_NONE,
-        doc = "A link to the array that the indices index.")
+
+    target = Array(label="Indexed array",
+                   file_storage=core.FILE_STORAGE_NONE,
+                   doc="A link to the array that the indices index.")
 
 
 class MappedArrayData(MappedType):
@@ -118,10 +114,10 @@ class MappedArrayData(MappedType):
     
     title = basic.String
     label_x, label_y = basic.String, basic.String
-    aggregation_functions = basic.JSONType(required = False)
-    dimensions_labels = basic.JSONType(required = False)
+    aggregation_functions = basic.JSONType(required=False)
+    dimensions_labels = basic.JSONType(required=False)
     
-    nr_dimensions, length_1d, length_2d, length_3d, length_4d = [basic.Integer]*5
+    nr_dimensions, length_1d, length_2d, length_3d, length_4d = [basic.Integer] * 5
     array_data = Array()  
     
     __generate_table__ = True
@@ -134,7 +130,7 @@ class MappedArrayData(MappedType):
         previous = super(MappedArrayData, self).display_name
         if previous is None:
             return str(self.title)
-        return str(self.title) +  " " + previous
+        return str(self.title) + " " + previous
        
        
     @property

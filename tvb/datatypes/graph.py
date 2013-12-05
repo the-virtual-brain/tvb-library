@@ -34,7 +34,7 @@ The Graph datatypes. This brings together the scientific and framework methods
 that are associated with the Graph datatypes.
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
-
+.. moduleauthor:: Paula Sanz Leon <paula.sanz-leon@univ-amu.fr>
 """
 
 import tvb.datatypes.graph_scientific as graph_scientific
@@ -42,6 +42,7 @@ import tvb.datatypes.graph_framework as graph_framework
 from tvb.basic.logger.builder import get_logger
 
 LOG = get_logger(__name__)
+
 
 
 class Covariance(graph_scientific.CovarianceScientific, graph_framework.CovarianceFramework):
@@ -62,6 +63,29 @@ class Covariance(graph_scientific.CovarianceScientific, graph_framework.Covarian
     
     """
     pass
+
+
+
+class CorrelationCoefficients(graph_scientific.CorrelationCoefficientsScientific,
+                              graph_framework.CorrelationCoefficientsFramework):
+    """
+    This class brings together the scientific and framework methods that are
+    associated with the CorrelationCoefficients DataType.
+    
+    ::
+        
+                            CorrelationCoefficientsData
+                                         |
+                                        / \\
+        CorrelationCoefficientsFramework   CorrelationCoefficientsScientific
+                                        \ /
+                                         |
+                               CorrelationCoefficients
+        
+    
+    """
+    pass
+
 
 
 class ConnectivityMeasure(graph_scientific.ConnectivityMeasureScientific,

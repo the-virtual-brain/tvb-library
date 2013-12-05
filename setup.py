@@ -37,13 +37,9 @@ import setuptools
 import shutil
 
 
-LIBRARY_VERSION = "1.0.0.3"
-
+LIBRARY_VERSION = "1.1"
 TVB_TEAM = "Stuart Knock, Marmaduke Woodman, Paula Sanz Leon, Jan Fousek, Lia Domide, Noelia Montejo, Bogdan Neacsa, Laurent Pezard, Jochen Mersmann, Anthony R McIntosh, Viktor Jirsa"
-CONTACT_EMAIL = "tvb.admin@thevirtualbrain.org"
-
 TVB_INSTALL_REQUIREMENTS = ["networkx", "nibabel", "numpy", "numexpr", "scikit-learn", "scipy", "gdist"]
-
 
 setuptools.setup(
     name = 'tvb',
@@ -70,6 +66,3 @@ http://www.frontiersin.org/Journal/10.3389/fninf.2013.00010/abstract
 
 ## Cleanup after EGG install.
 shutil.rmtree('tvb.egg-info', True)
-
-
- 

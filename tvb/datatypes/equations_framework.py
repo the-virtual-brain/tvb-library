@@ -113,6 +113,24 @@ class EquationFramework(equations_data.EquationData):
         return result, was_exception_thrown
 
 
+        ## TODO Try to make the commented code bellow usable. Currently it is not.
+        # result = []
+        # try:
+        #     x_array = numpy.arange(min_range, max_range + step, step)
+        #     self.pattern = x_array
+        #     y_array = self.pattern
+        #     for i in numpy.arrange(0, x_array.size):
+        #         result.append([float(x_array[i]), round(y_array[i], 19)])
+        #
+        # except Exception, exc:
+        #     LOG.exception(exc)
+        #     LOG.error("Could not evaluate the equation")
+        #     was_exception_thrown = True
+        #
+        # return result, was_exception_thrown
+
+
+
     @staticmethod
     def build_equation_from_dict(equation_field_name, submitted_data_dict, alter_submitted_dictionary=False):
         """
@@ -255,7 +273,7 @@ class PulseTrainFramework(equations_data.PulseTrainData, EquationFramework):
 
     @property
     def ui_equation(self):
-        return "amp if (var % T) < tau else 0.0 * var"
+        return "amp if (var % T) <= tau and var >= onset else 0.0 * var"
 
 
 
@@ -274,6 +292,7 @@ class DoubleExponentialFramework(equations_data.DoubleExponentialData, EquationF
 class FirstOrderVolterraFramework(equations_data.DoubleExponentialData, EquationFramework):
     """ This class exists to add framework methods to GammaData """
     pass
+
 
 class MixtureOfGammasFramework(equations_data.MixtureOfGammasData, EquationFramework):
     """ This class exists to add framework methods to GammaData """

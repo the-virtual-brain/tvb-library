@@ -248,13 +248,13 @@ class PulseTrainData(EquationData):
     """
     A pulse train , offseted with respect to the time axis.
     
-    Parameters:
-    ----------
-        :math:`\\tau` :  pulse width or pulse duration
-        :math:`T`     :  pulse repetition period
-        :math:`f`     :  pulse repetition frequency (1/T)
-        duty cycle    :  :math:``\\frac{\\tau}{T} (for a square wave: 0.5)
-        onset time    :
+    **Parameters**:
+    
+    * :math:`\\tau` :  pulse width or pulse duration
+    * :math:`T`     :  pulse repetition period
+    * :math:`f`     :  pulse repetition frequency (1/T)
+    * duty cycle    :  :math:``\\frac{\\tau}{T}`` (for a square wave: 0.5)
+    * onset time    :
     """
 
     equation = basic.String(
@@ -281,17 +281,17 @@ class GammaData(EquationData):
     """
     A Gamma function for the bold monitor. It belongs to the family of Exponential functions.
     
-    Parameters:
-    ----------
+    **Parameters**:
     
-        :math:`\\tau`      : Exponential time constant of the gamma function [seconds].
-        :math:`n`          : The phase delay of the gamma function.
-        :math: `factorial` : (n-1)!. numexpr does not support factorial yet. 
-        :math: `a`         : Amplitude factor after normalization.
+    
+    * :math:`\\tau`      : Exponential time constant of the gamma function [seconds].
+    * :math:`n`          : The phase delay of the gamma function.
+    * :math: `factorial` : (n-1)!. numexpr does not support factorial yet. 
+    * :math: `a`         : Amplitude factor after normalization.
 
 
-    Reference:
-    --------- 
+    **Reference**:
+     
     .. [B_1996] Geoffrey M. Boynton, Stephen A. Engel, Gary H. Glover and David 
         J. Heeger (1996). Linear Systems Analysis of Functional Magnetic Resonance 
         Imaging in Human V1. J Neurosci 16: 4207-4221
@@ -324,21 +324,19 @@ class DoubleExponentialData(EquationData):
     """
     A difference of two exponential functions to define a kernel for the bold monitor.
 
-    Parameters:
-    ----------
+    **Parameters** :
 
-        :math:`\\tau_1`: Time constant of the second exponential function [s]
-        :math:`\\tau_2`: Time constant of the first exponential function [s].
-        :math:`f_1`  : Frequency of the first sine function [Hz].
-        :math:`f_2`  : Frequency of the second sine function [Hz].
-        :math:`amp_1`: Amplitude of the first exponential function.
-        :math:`amp_2`: Amplitude of the second exponential function.
-        :math:`a`    : Amplitude factor after normalization.
+    * :math:`\\tau_1`: Time constant of the second exponential function [s]
+    * :math:`\\tau_2`: Time constant of the first exponential function [s].
+    * :math:`f_1`  : Frequency of the first sine function [Hz].
+    * :math:`f_2`  : Frequency of the second sine function [Hz].
+    * :math:`amp_1`: Amplitude of the first exponential function.
+    * :math:`amp_2`: Amplitude of the second exponential function.
+    * :math:`a`    : Amplitude factor after normalization.
     
     
-    Reference:
-    ---------
-
+    **Reference**:
+    
     .. [P_2000] Alex Polonsky, Randolph Blake, Jochen Braun and David J. Heeger
         (2000). Neuronal activity in human primary visual cortex correlates with
         perception during binocular rivalry. Nature Neuroscience 3: 1153-1159
@@ -369,21 +367,19 @@ class FirstOrderVolterraData(EquationData):
     Ballon Windekessel model for computing the Bold signal. 
     This function describes a damped Oscillator.
 
-    Parameters:
-    ----------
+    **Parameters** :    
 
-    :math:`\\tau_s`: Dimensionless? exponential decay parameter.
-    :math:`\\tau_f`: Dimensionless? oscillatory parameter. 
-    :math:`k_1`    : First Volterra kernel coefficient. 
-    :math:`V_0 : Resting blood volume fraction. 
+    * :math:`\\tau_s`: Dimensionless? exponential decay parameter.
+    * :math:`\\tau_f`: Dimensionless? oscillatory parameter. 
+    * :math:`k_1`    : First Volterra kernel coefficient. 
+    * :math:`V_0` : Resting blood volume fraction. 
 
 
-    References:
-    ---------- 
+    **References** :
+     
     .. [F_2000] Friston, K., Mechelli, A., Turner, R., and Price, C., *Nonlinear 
         Responses in fMRI: The Balloon Model, Volterra Kernels, and Other 
         Hemodynamics*, NeuroImage, 12, 466 - 477, 2000.
-
 
     """
 
@@ -424,25 +420,24 @@ class MixtureOfGammasData(EquationData):
     theta: 1 / lambda : scale parameter
 
 
-    References:
-    ---------- 
+    **References**:    
 
     .. [G_1999] Glover, G. *Deconvolution of Impulse Response in Event-Related BOLD fMRI*.
                 NeuroImage 9, 416-429, 1999.
 
 
-    Parameters:
-    ----------
+    **Parameters**:
+    
 
-    :math:`a_{1}`       : shape parameter first gamma pdf.
-    :math:`a_{2}`       : shape parameter second gamma pdf.
-    :math:`\\lambda`    : scale parameter first gamma pdf.
+    * :math:`a_{1}`       : shape parameter first gamma pdf.
+    * :math:`a_{2}`       : shape parameter second gamma pdf.
+    * :math:`\\lambda`    : scale parameter first gamma pdf.
 
 
     Default values are based on [G_1999]_:
-    :math:`a_{1} - 1 = n_{1} =  5.0` 
-    :math:`a_{2} - 1 = n_{2} = 12.0`
-    :math:`c \\equiv a_{2}   = 0.4` 
+    * :math:`a_{1} - 1 = n_{1} =  5.0` 
+    * :math:`a_{2} - 1 = n_{2} = 12.0`
+    * :math:`c \\equiv a_{2}   = 0.4` 
 
     Alternative values :math:`a_{2}=10` and :math:`c=0.5`
 

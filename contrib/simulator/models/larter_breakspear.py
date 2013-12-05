@@ -37,10 +37,9 @@ A contributed model: Larter model revisited by Breaskpear M.
 
 # Third party python libraries
 import numpy
-import numexpr
 
 #The Virtual Brain
-from tvb.simulator.common import psutil, get_logger
+from tvb.simulator.common import get_logger
 LOG = get_logger(__name__)
 
 import tvb.datatypes.arrays as arrays
@@ -57,13 +56,53 @@ class LarterBreakspear(models.Model):
         lattice model for the simulation of epileptic seizures.* Chaos. 9(3):
         795, 1999.
     
-    .. [Breaksetal_2003] M. J. Breakspear et.al. *Modulation of excitatory 
+
+    .. [Breaksetal_2003_a] Breakspear, M.; Terry, J. R. & Friston, K. J.  *Modulation of excitatory
+        synaptic coupling facilitates synchronization and complex dynamics in an
+        onlinear model of neuronal dynamics*. Neurocomputing 52–54 (2003).151–158
+
+    .. [Breaksetal_2003_b] M. J. Breakspear et.al. *Modulation of excitatory 
         synaptic coupling facilitates synchronization and complex dynamics in a
         biophysical model of neuronal dynamics.* Network: Computation in Neural
         Systems 14: 703-732, 2003.
     
-    Equations are taken from [Breaksetal_2003]_. All equations and parameters 
-    are non-dimensional and normalized.
+    Equations and default parameters are taken from [Breaksetal_2003_b]_. 
+    All equations and parameters are non-dimensional and normalized.
+    For values of d_v  < 0.55, the dynamics of a single column settles onto a 
+    solitary fixed point attractor.
+
+
+    Parameters used for simulations in [Breaksetal_2003_a]_ Table 1. Page 153.
+    Two nodes were coupled.
+
+    +---------------------------+
+    |          Table 1          | 
+    +--------------+------------+
+    |Parameter     |  Value     |
+    +--------------+------------+
+    | I            |      0.3   |
+    | a_ee         |      0.4   |
+    | a_ei         |      0.1   |
+    | a_ie         |      1.0   |
+    | a_ne         |      1.0   |
+    | a_ni         |      0.4   |
+    | r_NMDA       |      0.2   |
+    | delta        |      0.001 |
+    +---------------------------+
+
+    NOTES about parameters
+
+    d_V
+    For d_V < 0.55, uncoupled network, the system exhibits fixed point dynamics; 
+    for 55 < lb.d_V < 0.59, limit cycle atractors; 
+    and for d_V > 0.59 chaotic attractors (eg, d_V=0.6,aee=0.5,aie=0.5, 
+                                               gNa=0, Iext=0.165)
+
+    C
+    The long-range coupling 'C' is ‘weak’ in the sense that 
+    they investigated parameter values for which C < a_ee and C << a_ie.
+
+
     
     .. figure :: img/LarterBreakspear_01_mode_0_pplane.svg
             :alt: Larter-Breaskpear phase plane (V, W)
@@ -77,9 +116,9 @@ class LarterBreakspear(models.Model):
     _ui_name = "Larter-Breakspear"
     ui_configurable_parameters = ['gCa', 'gK', 'gL', 'phi', 'gNa', 'TK', 'TCa',
                                   'TNa', 'VCa', 'VK', 'VL', 'VNa', 'd_K', 'tau_K',
-                                  'd_Na', 'd_Ca', 'aei', 'aie', 'b', 'c', 'ane',
+                                  'd_Na', 'd_Ca', 'aei', 'aie', 'b', 'C', 'ane',
                                   'ani', 'aee', 'Iext', 'rNMDA', 'VT', 'd_V', 'ZT',
-                                  'd_Z', 'beta', 'Q_max']
+                                  'd_Z', 'beta', 'QV_max', 'QZ_max', 't_scale']
     
     #Define traited attributes for this model, these represent possible kwargs.
     gCa = arrays.FloatArray(
@@ -108,8 +147,8 @@ class LarterBreakspear(models.Model):
     
     gNa = arrays.FloatArray(
         label = ":math:`g_{Na}`",
-        default = numpy.array([0.0]),
-        range = basic.Range(lo = 0.0, hi = 6.7, step = 0.1),
+        default = numpy.array([6.7]),
+        range = basic.Range(lo = 0.0, hi = 10.0, step = 0.1),
         doc = """Conductance of population of Na channels.""")
     
     TK = arrays.FloatArray(
@@ -131,7 +170,7 @@ class LarterBreakspear(models.Model):
         doc = "Threshold value for Na channels.")
     
     VCa = arrays.FloatArray(
-        label = ":matj:`V_{Ca}`",
+        label = ":math:`V_{Ca}`",
         default = numpy.array([1.0]),
         range = basic.Range(lo = 0.9, hi = 1.1, step = 0.05),
         doc = """Ca Nernst potential.""")
@@ -163,7 +202,7 @@ class LarterBreakspear(models.Model):
     tau_K = arrays.FloatArray(
         label = ":math:`\\tau_{K}`",
         default = numpy.array([1.0]),
-        range = basic.Range(lo = 0.1, hi = 1.0, step = 0.1),
+        range = basic.Range(lo = 0.01, hi = 0.0, step = 0.1),
         doc = """Time constant for K relaxation time (ms)""")
     
     d_Na = arrays.FloatArray(
@@ -180,7 +219,7 @@ class LarterBreakspear(models.Model):
     
     aei = arrays.FloatArray(
         label = ":math:`a_{ei}`",
-        default = numpy.array([0.1]),
+        default = numpy.array([2.0]),
         range = basic.Range(lo = 0.1, hi = 2.0, step = 0.1),
         doc = """Excitatory-to-inhibitory synaptic strength.""")
     
@@ -192,20 +231,22 @@ class LarterBreakspear(models.Model):
     
     b = arrays.FloatArray(
         label = ":math:`b`",
-        default = numpy.array([0.01]),
-        range = basic.Range(lo = 0.0001, hi = 0.1, step = 0.0001),
-        doc = """Time constant scaling factor.""")
+        default = numpy.array([0.1]),
+        range = basic.Range(lo = 0.0001, hi = 1.0, step = 0.0001),
+        doc = """Time constant scaling factor. The original value is 0.1""")
     
-    c = arrays.FloatArray(
-        label = ":math:`c`",
+    C = arrays.FloatArray(
+        label = ":math:`c`",    
         default = numpy.array([0.0]),
         range = basic.Range(lo = 0.0, hi = 0.2, step = 0.05),
         doc = """Strength of excitatory coupling. Balance between internal and
-        local (and global) coupling strength.""")
+        local (and global) coupling strength. C > 0 introduces interdependences between 
+        consecutive columns/nodes. C=1 corresponds to maximum coupling.
+        This strenght should be set to sensible values when a whole network is connected. """)
     
     ane = arrays.FloatArray(
         label = ":math:`a_{ne}`",
-        default = numpy.array([0.4]),
+        default = numpy.array([1.0]),
         range = basic.Range(lo = 0.4, hi = 1.0, step = 0.05),
         doc = """Non-specific-to-excitatory synaptic strength.""")
     
@@ -217,16 +258,16 @@ class LarterBreakspear(models.Model):
     
     aee = arrays.FloatArray(
         label = ":math:`a_{ee}`",
-        default = numpy.array([0.5]),
+        default = numpy.array([0.4]),
         range = basic.Range(lo = 0.4, hi = 0.6, step = 0.05),
         doc = """Excitatory-to-excitatory synaptic strength.""")
     
     Iext = arrays.FloatArray(
        label = ":math:`I_{ext}`",
-       default = numpy.array([0.165]),
+       default = numpy.array([0.3]),
        range = basic.Range(lo = 0.165, hi = 0.3, step = 0.005),
        doc = """Subcortical input strength. It represents a non-specific
-       excitation.""")
+       excitation or thalamic inputs.""")
     
     rNMDA = arrays.FloatArray(
         label = ":math:`r_{NMDA}`",
@@ -236,16 +277,17 @@ class LarterBreakspear(models.Model):
     
     VT = arrays.FloatArray(
         label = ":math:`V_{T}`",
-        default = numpy.array([0.54]),
+        default = numpy.array([0.0]),
         range = basic.Range(lo = 0.0, hi = 0.7, step = 0.01),
-        doc = """Threshold potential (mean) for excitatory neurons.""")
+        doc = """Threshold potential (mean) for excitatory neurons. 
+        In [Breaksetal_2003_b]_ this values is 0.""")
     
     d_V = arrays.FloatArray(
         label = ":math:`\\delta_{V}`",
         default = numpy.array([0.65]),
-        range = basic.Range(lo = 0.1, hi = 0.7, step = 0.05),
+        range = basic.Range(lo = 0.49, hi = 0.7, step = 0.01),
         doc = """Variance of the excitatory threshold. It is one of the main
-        parameters explored in [Breaksetal_2003]_.""")
+        parameters explored in [Breaksetal_2003_b]_.""")
     
     ZT = arrays.FloatArray(
         label = ":math:`Z_{T}`",
@@ -267,25 +309,34 @@ class LarterBreakspear(models.Model):
     
     # NOTE: the values were not in the article. 
     #I took these ones from DESTEXHE 2001
-    Q_max = arrays.FloatArray(
+    QV_max = arrays.FloatArray(
         label = ":math:`Q_{max}`",
-        default = numpy.array([0.001]),
-        range = basic.Range(lo = 0.001, hi = 0.005, step = 0.0001),
-        doc = """Maximal firing rate for excitatory and inihibtory populations (kHz)""")
-    
-    variables_of_interest = arrays.IntegerArray(
-        label = "Variables watched by Monitors.",
-        range = basic.Range(lo = 0, hi = 3, step=1),
-        default = numpy.array([0, 2], dtype=numpy.int32),
-        doc = """This represents the default state-variables of this Model to be
-        monitored. It can be overridden for each Monitor if desired.""")
+        default = numpy.array([1.0]),
+        range = basic.Range(lo = 0.1, hi = 1., step = 0.001),
+        doc = """Maximal firing rate for excitatory populations (kHz)""")
+
+    QZ_max = arrays.FloatArray(
+        label = ":math:`Q_{max}`",
+        default = numpy.array([1.0]),
+        range = basic.Range(lo = 0.1, hi = 1., step = 0.001),
+        doc = """Maximal firing rate for excitatory populations (kHz)""")
+
+
+    variables_of_interest = basic.Enumerate(
+        label="Variables watched by Monitors",
+        options=["V", "W", "Z"],
+        default=["V"],
+        select_multiple=True,
+        doc="""This represents the default state-variables of this Model to be
+        monitored. It can be overridden for each Monitor if desired.""",
+        order=10)
     
     #Informational attribute, used for phase-plane and initial()
     state_variable_range = basic.Dict(
         label = "State Variable ranges [lo, hi]",
-        default = {"V": numpy.array([-2.0, 2.0]),
-                   "W": numpy.array([-10.0, 10.0]),
-                   "Z": numpy.array([-3.0, 3.0])},
+        default = {"V": numpy.array([-1.5, 1.5]),
+                   "W": numpy.array([ 0.0, 1.0]),
+                   "Z": numpy.array([-1.5, 1.5])},
         doc = """The values for each state-variable should be set to encompass
             the expected dynamic range of that state-variable for the current 
             parameters, it is used as a mechanism for bounding random inital 
@@ -314,52 +365,46 @@ class LarterBreakspear(models.Model):
     def dfun(self, state_variables, coupling, local_coupling=0.0):
         """
         .. math::
-             \\dot{V} &= - (g_{Ca} + (1 - C) \\, r_{NMDA} \\, a_{ee} Q_{V}^{i} +
-            C \\, r_{NMDA} \\, a_{ee} \\langle Q_V \\rangle) \\,
-            m_{Ca} \\,(V - V_{Ca})
-            - g_{K}\\, W\\, (V - V_{K}) - g_{L}\\, (V - V_{L})
-            - (g_{Na} m_{Na} + (1 - C) \\, a_{ee} Q_{V}^{i} +
+             \\dot{V} &= - (g_{Ca} + (1 - C) \\, r_{NMDA} \\, a_{ee} Q_V^i +
+            C \\, r_{NMDA} \\, a_{ee} \\langle Q_V \\rangle) \\, m_{Ca} \\,(V - V_{Ca})
+            - g_K\\, W\\, (V - V_K) - g_L\\, (V - V_L)
+            - (g_{Na} m_{Na} + (1 - C) \\, a_{ee} Q_V^i + 
             C \\, a_{ee} \\langle Q_V \\rangle) \\, (V - V_{Na})
-            + a_{ie}\\, Z \\, Q_{Z}^{i} + a_{ne} \\, I_{\\delta}
+            - a_{ie}\\, Z \\, Q_Z^i + a_{ne} \\, I_{\\delta}
             
-            \\dot{W} &= \\frac{\\phi \\, (m_{K} - W)}{\\tau_{K}} \\\\
-            \\dot{Z} &= b \\, (a_{ni} \\, I_{\\delta} + a_{ei} \\, V \\, Q_{V})
-            \\\\
+            \\dot{W} &= \\frac{\\phi \\, (m_K - W)}{\\tau_K} \\\\
+            \\dot{Z} &= b \\, (a_{ni} \\, I_{\\delta} + a_{ei} \\, V \\, Q_V)\\\\
             
-            m_{ion}(X) &= 0.5 \\, (1 + tanh(\\frac{X-T_{ion}}{\\delta_{ion}})
+            m_{ion}(X) &= 0.5 \\, (1 + tanh(\\frac{V-T_{ion}}{\\delta_{ion}})
             
         See Equations (7), (3), (6) and (2) respectively in [Breaksetal_2003]_.
         Pag: 705-706
+
+        NOTE: Equation (8) has an error the sign before the term :math:`a_{ie}\\, Z \\, Q_Z^i`
+        should be a minus (-) and not a plus (+).
         
         """
         V = state_variables[0, :]
         W = state_variables[1, :]
         Z = state_variables[2, :]
+
+        c_0   = coupling[0, :]    
+        lc_0  = local_coupling
         
-        c_0 = coupling[0, :]
-        lc_0 = local_coupling
-        
+        # relationship between membrane voltage and channel conductance
         m_Ca = 0.5 * (1 + numpy.tanh((V - self.TCa) / self.d_Ca))
         m_Na = 0.5 * (1 + numpy.tanh((V - self.TNa) / self.d_Na))
-        m_K = 0.5 * (1 + numpy.tanh((V - self.TK) / self.d_K))
+        m_K  = 0.5 * (1 + numpy.tanh((V - self.TK )  / self.d_K))
         
-        Q_V = 0.5 * self.Q_max * (1 + numpy.tanh((V - self.VT) / self.d_V))
-        Q_Z = 0.5 * self.Q_max * (1 + numpy.tanh((Z - self.ZT) / self.d_Z))
+        # voltage to firing rate
+        QV  = 0.5 * self.QV_max * (1 + numpy.tanh((V - self.VT) / self.d_V))
+        QZ  = 0.5 * self.QZ_max * (1 + numpy.tanh((Z - self.ZT) / self.d_Z))
         
-        dV = - (self.gCa + (1.0 - self.c) * self.rNMDA * self.aee * Q_V + \
-        self.c * self.rNMDA * self.aee * (lc_0 * Q_V + c_0)) * m_Ca * (V - self.VCa) - \
-        self.gK * W * (V - self.VK) -  self.gL * (V - self.VL) - (self.gNa * m_Na + \
-        (1.0 - self.c) * self.aee * Q_V + self.c * self.aee * (lc_0 * Q_V + c_0)) *\
-        (V - self.VNa) + self.aei * Z * Q_Z + self.ane * self.Iext
+        dV = (- (self.gCa + (1.0 - self.C) * self.rNMDA * self.aee * QV + self.C * self.rNMDA * self.aee * c_0) * m_Ca * (V - self.VCa) - self.gK * W * (V - self.VK) -  self.gL * (V - self.VL) - (self.gNa * m_Na + (1.0 - self.C) * self.aee * QV + self.C * self.aee * c_0) * (V - self.VNa) - self.aei * Z * QZ + self.ane * self.Iext)
+
+        dW = (self.phi * (m_K - W) / self.tau_K)
         
-        # Single node equation
-#        dV = - (self.gCa + (1.0 - self.c) * self.rNMDA * self.aee * Q_V ) *  \
-#        m_Ca * (V - self.VCa) - self.gK * W * (V - self.VK) -  self.gL * \
-#        (V - self.VL) + self.aei * Z * Q_Z + self.ane * self.Iext
-        
-        dW = self.phi * (m_K - W) / self.tau_K
-        
-        dZ = self.b * (self.ani * self.Iext + self.aei * V * Q_V)
+        dZ = (self.b * (self.ani * self.Iext + self.aei * V * QV))
         
         derivative = numpy.array([dV, dW, dZ])
         
@@ -373,19 +418,24 @@ if __name__ == "__main__":
     # Check that the docstring examples, if there are any, are accurate.
     import doctest
     doctest.testmod()
-    
-    #Initialise Models in their default state:
-    LARTER_BREAKS_MODEL = LarterBreakspear()
+
+    # Reproduce Fig. 4 from [Breaksetal_2003_b]_
+    LB = LarterBreakspear(QV_max=1.0, QZ_max=1.0, 
+                          t_scale=1.0, C=0.00, 
+                          d_V=0.6, aee=0.5, aie=0.5, 
+                          gNa=0.0, Iext=0.165, VT=0.65, 
+                          ani=0.1)
     
     LOG.info("Model initialised in its default state without error...")
     
     LOG.info("Testing phase plane interactive ... ")
     
-    from tvb.simulator.phase_plane_interactive import PhasePlaneInteractive
+    import tvb.simulator.plot.phase_plane_interactive as ppi
     import tvb.simulator.integrators
         
-    INTEGRATOR = tvb.simulator.integrators.HeunDeterministic(dt=2**-5)
-    ppi_fig = PhasePlaneInteractive(model=LARTER_BREAKS_MODEL, integrator=INTEGRATOR)
+    INTEGRATOR = tvb.simulator.integrators.HeunDeterministic(dt=0.9)
+    ppi.TRAJ_STEPS = 2048
+    ppi_fig = ppi.PhasePlaneInteractive(model=LB, integrator=INTEGRATOR)
     ppi_fig.show()
 
     

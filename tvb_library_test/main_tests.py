@@ -90,7 +90,7 @@ if not os.path.exists(cfg.TVB_STORAGE):
 from tvb_library_test.basic import basic_test_main
 from tvb_library_test.datatypes import datatypes_test_main
 from tvb_library_test.simulator import simulator_test_main
-from tvb_library_test.xmlrunner import XMLTestRunner
+from tvb_library_test.xml_runner import XMLTestRunner
 
 
 def suite():

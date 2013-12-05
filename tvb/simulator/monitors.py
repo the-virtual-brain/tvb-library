@@ -1005,8 +1005,8 @@ class Bold(Monitor):
 
     Base class for the Bold monitor.
 
-    Attributes
-    ----------
+    **Attributes**
+    
         hrf_kernel: the haemodynamic response function (HRF) used to compute 
                     the BOLD (Blood Oxygenation Level Dependent) signal.
 
@@ -1014,9 +1014,8 @@ class Bold(Monitor):
 
         period    : the monitor's period
 
-    References
-    ----------  
-
+    **References**:
+      
     .. [B_1997] Buxton, R. and Frank, L., *A Model for the Coupling between 
         Cerebral Blood Flow and Oxygen Metabolism During Neural Stimulation*,
         17:64-72, 1997.

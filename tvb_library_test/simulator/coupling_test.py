@@ -37,12 +37,14 @@ Test for tvb.simulator.coupling module
 
 if __name__ == "__main__":
     from tvb_library_test import setup_test_console_env
+
     setup_test_console_env()
-    
+
 import unittest
 
 from tvb_library_test.base_testcase import BaseTestCase
 from tvb.simulator import coupling
+
 
 
 class CouplingTest(BaseTestCase):
@@ -52,7 +54,8 @@ class CouplingTest(BaseTestCase):
         - check functionality
         
     """
-    
+
+
     def test_linear_coupling(self):
         k = coupling.Linear()
         self.assertEqual(k.a, 0.00390625)
@@ -61,15 +64,17 @@ class CouplingTest(BaseTestCase):
 
     def test_scaling_coupling(self):
         k = coupling.Scaling()
-        self.assertEqual(k.scaling_factor, 0.00390625)
+        # Check scaling -factor
+        self.assertEqual(k.a, 0.00390625)
 
 
     def test_sigmoidal_coupling(self):
         k = coupling.Sigmoidal()
-        self.assertEqual(k.cmin,    -1.0)
-        self.assertEqual(k.cmax,     1.0)
+        self.assertEqual(k.cmin, -1.0)
+        self.assertEqual(k.cmax, 1.0)
         self.assertEqual(k.midpoint, 0.0)
-        self.assertEqual(k.sigma,    230.)
+        self.assertEqual(k.sigma, 230.)
+
 
 
 def suite():
@@ -79,6 +84,7 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(unittest.makeSuite(CouplingTest))
     return test_suite
+
 
 
 if __name__ == "__main__":
