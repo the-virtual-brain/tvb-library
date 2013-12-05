@@ -42,7 +42,7 @@ LIBRARY_VERSION = "1.1"
 TVB_TEAM = "Stuart Knock, Marmaduke Woodman, Paula Sanz Leon"
 CONTACT_EMAIL = "tvb.admin@thevirtualbrain.org"
 
-TVB_INSTALL_REQUIREMENTS = ["networkx", "nibabel", "numpy", "numexpr", "scikit-learn", "scipy"]
+TVB_INSTALL_REQUIREMENTS = ["networkx", "nibabel", "numpy", "numexpr", "scikit-learn", "scipy", "gdist"]
 
 setuptools.setup(name='tvb',
                  version=LIBRARY_VERSION,
