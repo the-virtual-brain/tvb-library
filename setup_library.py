@@ -47,7 +47,7 @@ TVB_INSTALL_REQUIREMENTS = ["networkx", "nibabel", "numpy", "numexpr", "scikit-l
 
 setuptools.setup(
     name = 'tvb',
-    description='A whole brain simulation framework',
+    description='A package for performing whole brain simulations',
     url='https://github.com/the-virtual-brain/scientific_library',
     version = LIBRARY_VERSION,
     packages = setuptools.find_packages(),
