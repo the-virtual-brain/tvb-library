@@ -44,6 +44,9 @@ from tvb.basic.logger.builder import get_logger
 LOG = get_logger(__name__)
 
 
+import tvb.basic.traits.data_readers as readers
+
+
 
 
 class ConnectivityScientific(connectivity_data.ConnectivityData):
@@ -54,7 +57,38 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
     """
     __tablename__ = None
     
-    
+    # def __init__(self, *args, **kwargs):
+    #     print args, kwargs
+    #     if 'filepath' in kwargs:
+    #         filepath = kwargs.pop('filepath')
+    #     else:
+    #         filepath = False
+    #     print filepath
+    #     super(ConnectivityScientific, self).__init__(*args, **kwargs)
+    #     if filepath is not False:
+    #         print "trying to add values"
+    #         try:
+    #             reader = readers.File(folder_path=filepath)
+    #             for trait_name, readerargs in [
+    #                     ("region_labels", dict(file_name="centres.txt.bz2", usecols=(0,),
+    #                                                               dtype="string", field="region_labels")),
+    #                     ("weights", dict(file_name="weights.txt.bz2", field="weights")),
+    #                     ("tract_lengths", dict(file_name="tract_lengths.txt.bz2", field="tract_lengths")),
+    #                     ("centres", dict(file_name="centres.txt.bz2", usecols=(1, 2, 3), field="centres")),
+    #                     ("cortical", dict(file_name="cortical.txt.bz2", dtype=numpy.bool, field="cortical")),
+    #                     ("orientations", dict(file_name="average_orientations.txt.bz2", field="orientations")),
+    #                     ("areas", dict(file_name="areas.txt.bz2", field="areas"))]:
+    #                 print trait_name, readerargs
+    #                 self.trait[trait_name].trait.value = reader.read_data(**readerargs)
+    #                 _readdict = self.trait[trait_name].trait.value
+    #                 _reader = _readdict.pop("self")
+    #                 self.trait[trait_name].trait.value = _reader(**_readdict)
+    #         except Exception as exc:
+    #             import traceback as tb
+    #             tb.print_last()
+    #             print exc
+
+
     
     def configure(self):
         """

@@ -66,6 +66,7 @@ class LibraryProfile():
     TRAITS_CONFIGURATION = EnhancedDictionary()
     TRAITS_CONFIGURATION.interface_method_name = 'interface'
     TRAITS_CONFIGURATION.use_storage = False
+    TRAITS_CONFIGURATION.file_read_data_returns_args = True
     
     ## Name of file where logging configuration is stored.
     LOGGER_CONFIG_FILE_NAME = "library_logger.conf"

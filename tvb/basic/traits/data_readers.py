@@ -71,10 +71,14 @@ class File(object):
 
 
     def read_data(self, file_name=None, matlab_data_name=None, dtype=numpy.float64,
-                  skiprows=0, usecols=None, field=None, lazy_load=False):
+                  skiprows=0, usecols=None, field=None, lazy_load=False, read_now=False):
         """
         Read from given file and sub-file.
         """
+
+        if TVBSettings.TRAITS_CONFIGURATION.file_read_data_returns_args:
+            return locals()
+
         if TVBSettings.TRAITS_CONFIGURATION.use_storage:
             # We want to avoid reading files when no library-mode is used.
             return None

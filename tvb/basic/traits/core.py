@@ -73,6 +73,9 @@ from tvb.basic.config.settings import TVBSettings as config
 from tvb.basic.traits.util import get, Args, TypeRegister, ispublic
 from tvb.basic.logger.builder import get_logger
 
+from tvb.basic.config.settings import TVBSettings
+
+from tvb.basic.traits import data_readers as readers
 
 LOG = get_logger(__name__)
 
@@ -334,6 +337,13 @@ class MetaType(abc.ABCMeta):
 
         options = kwds.get(KWARG_OPTIONS, None)
 
+        # special handling for non-default filepath
+        if "filepath" in kwds:
+            filepath = kwds.pop("filepath")
+            reader = readers.File(filepath)
+        else:
+            reader = getattr(ncs, "default", None)
+
         # discard kwds to be passed for instantiation
         [kwds.pop(key, None) for key in SPECIAL_KWDS]
 
@@ -359,14 +369,34 @@ class MetaType(abc.ABCMeta):
         # set instance's value, inits dict and kwd passed trait values
         inst.trait.value = deepcopy(value)  # if (value is not None) else inst
         inst.trait.inits = inits
+
+        # while iterating over traits, disable not reading data
+        old_data_read = TVBSettings.TRAITS_CONFIGURATION.file_read_data_returns_args
+        TVBSettings.TRAITS_CONFIGURATION.file_read_data_returns_args = False
+
         # Set Default attributes from traited class definition
         for name, attr in inst.trait.iteritems():
             try:
-                setattr(inst, name, deepcopy(attr.trait.value))
+                val = attr.trait.value
+                try:
+                    print name, isinstance(val, dict), reader is not None, "file_name" in val
+                except:
+                    print
+                if isinstance(val, dict) and reader is not None and "file_name" in val: # from file reader
+                    if "self" in val:
+                        val.pop("self")
+                    setattr(inst, name, reader.read_data(**val))
+                else:
+                    setattr(inst, name, deepcopy(val))
             except Exception, exc:
                 LOG.exception(exc)
                 LOG.error("Could not set attribute '" + name + "' on " + str(inst.__class__.__name__))
                 raise exc
+
+
+        # after iterating over traits, maybe reenable not reading data
+        TVBSettings.TRAITS_CONFIGURATION.file_read_data_returns_args = old_data_read
+
         # Overwrite with attributes passed in the constructor
         for name, attr in kwdtraits.iteritems():
             try:
