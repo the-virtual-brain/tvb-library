@@ -52,8 +52,7 @@ class SensorsTest(BaseTestCase):
         dt = sensors.Sensors()
         dt.configure()
         mapping = dt.sensors_to_surface(surf)
-        self.assertEqual(mapping[0].shape, (62, 1))
-        self.assertEqual(mapping[1].shape, (62, 3))
+        self.assertEqual(mapping[0].shape, (62, 3))
         summary_info = dt.summary_info
         self.assertEqual(summary_info['Sensor type'], '')
         self.assertEqual(summary_info['Number of Sensors'], 62)

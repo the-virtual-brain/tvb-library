@@ -132,8 +132,12 @@ class SensorsScientific(sensors_data.SensorsData):
             sensor_tri[k] = local_tri[local_triangle_index]
             #Scale sensor unit vector by t so that it lies on the surface.
             sensor_locations[k] = sensor_loc * tuv[local_triangle_index, 0]
-        
-        return sensor_tri, sensor_locations 
+
+        # sensor_tri seems to be unused
+        # commented to make async data retrieval easy from the ui
+        #return sensor_tri, sensor_locations
+        return sensor_locations
+
 
 
 class SensorsEEGScientific(sensors_data.SensorsEEGData, SensorsScientific):
