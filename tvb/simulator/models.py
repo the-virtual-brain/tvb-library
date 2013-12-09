@@ -73,7 +73,7 @@ class Model(core.Type):
     .. automethod:: Model.update_derived_parameters
 
     """
-    _base_classes = ['Model', "LileySteynRoss", "JansenRitDavid", "JRFast"]
+    _base_classes = ['Model', "JRFast"]
     #NOTE: the parameters that are contained in the following list will be
     #      editable from the ui in an visual manner
     ui_configurable_parameters = []
@@ -3075,3 +3075,338 @@ class Kuramoto(Model):
 
         """
     )
+
+
+class BreakspearRobinsonRennieWright(Model):
+    """
+
+    A reduced version of a corticothalamic neural field model [Robinson_1997]_ as 
+    but without the second order derivative (Laplacian) [Robinson_2002][Breakspear_2005][Freyer_2011]_ .
+
+    The model describes the interaction of 4 neural populations:
+      + cortical pyramidal cells
+      + cortical inhibitory cells
+      + thalamic specific nucleus cells
+      + thalamic reticular nucleaus cells
+
+
+    Cross check with:
+    https://github.com/stuart-knock/BrainNetworkModels/blob/master/BRRW_heun.m
+
+
+
+    References
+    ----------
+
+    
+    .. [Robinson_2002] 
+    
+    .. [Robinson_1997]
+
+    .. [Wilson]
+
+    .. [LopesDaSilva] 
+
+    .. [Freyer_2011] 
+
+    .. [Freyer_2009] 
+
+    .. [Freyer_2012]
+    
+    Equations and default parameters are taken from [Freyer_2011]_. 
+
+
+    
+    .. figure :: img/Robinson_01_mode_0_pplane.svg
+            :alt: Robinson phase plane (V, W)
+            
+            The (:math:`V`, :math:`W`) phase-plane for the Robinson model.
+    
+    .. automethod:: __init__
+    
+    """
+    
+    _ui_name = "Breakspear-Robinson-Rennie-Wright"
+    ui_configurable_parameters = ['Q_max', 'theta', 'sigma', 'gamma_e', 'alpha',
+                                  'beta', 't_0', 'nu_ee', 'nu_ie', 'nu_ei', 'nu_ii',
+                                  'nu_es', 'nu_is', 'nu_se', 'nu_sr',  'nu_sn', 'nu_re',
+                                  'nu_rs', 'nu_ss', 'nu_rr', 'chi', 'sigma_n']
+    
+    #Define traited attributes for this model, these represent possible kwargs.
+    Q_max = arrays.FloatArray(
+        label = ":math:`Q_{max}`",
+        default = numpy.array([0.250]),
+        range = basic.Range(lo = 0.100, hi = 0.250, step = 0.01),
+        doc = """Maximum firing rate [ms^-1].""")
+    
+    theta = arrays.FloatArray(
+        label = ":math:`\theta`",
+        default = numpy.array([15.]),
+        range = basic.Range(lo = 14., hi= 16., step = 0.01),
+        doc = """Mean neuronal threshold [mV]""")
+    
+    sigma = arrays.FloatArray(
+        label = ":math:`\sigma`",
+        default = numpy.array([6.]),
+        range = basic.Range(lo = 1.0 , hi = 10., step = 1.0),
+        doc = """Threshold SD [mV]""")
+    
+    gamma_e = arrays.FloatArray(
+        label = ":math:`\gamma_e`",
+        default = numpy.array([0.100]),
+        range = basic.Range(lo = 0.05, hi = 0.15, step = 0.01),
+        doc = """Ratio conduction velocity/mean range of axons [ms^-1]""")
+    
+    alpha = arrays.FloatArray(
+        label = ":math:`\alpha`",
+        default = numpy.array([0.06]),
+        range = basic.Range(lo = 0.04, hi = 0.01, step = 0.1),
+        doc = """Inverse decay time of membrane potential [ms^-1]""")
+    
+    beta = arrays.FloatArray(
+        label = ":math:`\beta`",
+        default = numpy.array([0.240]),
+        range = basic.Range(lo = 0.2, hi = 0.3, step = 0.02),
+        doc = """Inverse rise time of membrane potential [ms^-1]""")
+    
+    t_0 = arrays.FloatArray(
+        label = ":math:`t_{0}`",
+        default = numpy.array([80.]),
+        range = basic.Range(lo = -0.02, hi=-0.01, step = 0.0025),
+        doc = "Corticothalamic return time (complete return loop) [ms]")
+    
+    nu_ee = arrays.FloatArray(
+        label = ":math:`\nu_{ee}`",
+        default = numpy.array([1.06e3]),
+        range = basic.Range(lo = 1.0e3, hi= 1.1e3, step = 10.),
+        doc = "Excitatory-to-excitatory (cortico-cortical) synaptic strength [mVms].")
+    
+    nu_ie = arrays.FloatArray(
+        label = ":math:`\nu_{ie}`",
+        default = numpy.array([1.06e3]),
+        range = basic.Range(lo = 1.0e3, hi= 1.1e3, step = 10.),
+        doc = "Excitatory-to-inhibitory (cortico-cortical) synaptic strength [mVms].")
+    
+    nu_ei = arrays.FloatArray(
+        label = ":math:`\nu_{ei}`",
+        default = numpy.array([-1.8e3]),
+        range = basic.Range(lo = -2.0e3, hi= -1.0e3, step = 10.),
+        doc = "Inhibitory-to-excitatory (cortico-cortical) synaptic strength [mVms].")
+    
+    nu_ii = arrays.FloatArray(
+        label = ":math:`\nu_{ii}`",
+        default = numpy.array([-1.8e3]),
+        range = basic.Range(lo = -2.0e3, hi= -1.0e3, step = 10.),
+        doc = "Inhibitory-to-inhibitory (cortico-cortical) synaptic strength [mVms].")
+    
+    nu_es = arrays.FloatArray(
+        label = ":math:`\nu_{es}`",
+        default = numpy.array([2.2e3]),
+        range = basic.Range(lo = 2.0e3, hi= 2.5e3, step = 10.),
+        doc = "Specific nucleus-to-excitatory (thalamo-cortical) synaptic strength [mVms].")
+    
+    nu_is = arrays.FloatArray(
+        label = ":math:`\nu_{is}`",
+        default = numpy.array([2.2e3]),
+        range = basic.Range(lo = 2.0e3, hi= 2.5e3, step = 10.),
+        doc = "Specific nucleus-to-inhibitory (thalamo-cortical) synaptic strength [mVms].")
+
+    nu_se = arrays.FloatArray(
+        label = ":math:`\nu_{se}`",
+        default = numpy.array([2.28e3]),
+        range = basic.Range(lo = 2.2e3, hi= 2.3e3, step = 1.),
+        doc = "Excitatory-to-specific nucleus (cortico-thalamic) synaptic strength [mVms].")
+    
+    nu_sr = arrays.FloatArray(
+        label = ":math:`\nu_{sr}`",
+        default = numpy.array([-0.845e3]),
+        range = basic.Range(lo = -0.88e3, hi= -0.84e3, step = 0.01e3),
+        doc = "Reticular-to-specific nucleus (thalamo-thalamic) synaptic strength [mVms].")
+    
+    nu_sn = arrays.FloatArray(
+        label = ":math:`\nu_{sn}`",
+        default = numpy.array([1.2e3]),
+        range = basic.Range(lo = 1.1e3, hi= 1.3e3, step = 0.1e3),
+        doc = "Nonspecific-to-specific nucleus synaptic strength.")
+    
+    nu_re = arrays.FloatArray(
+        label = ":math:`\nu_{re}`",
+        default = numpy.array([0.91e3]),
+        range = basic.Range(lo = 0.9e3, hi= 0.92e3, step = 0.005e3),
+        doc = "Excitatory-to-reticular nucleus (cortico-thalamic) synaptic strength [mVms].")
+    
+    nu_rs = arrays.FloatArray(
+        label = ":math:`\nu_{rs}`",
+        default = numpy.array([0.41e3]),
+        range = basic.Range(lo = 0.4e3, hi= 0.42e3, step = 0.005e3),
+        doc = "Specific nucleus-to-reticular nucleus (intra-thalamic) synaptic strength [mVms].")
+
+    nu_ss = arrays.FloatArray(
+        label = ":math:`\nu_{ss}`",
+        default = numpy.array([0.0e3]),
+        range = basic.Range(lo = 0.0e3, hi= 0.0e3, step = 0.001e3),
+        doc = "Specific nucleus self connection (intra-thalamic) synaptic strength [mVms].")
+
+    nu_rr = arrays.FloatArray(
+        label = ":math:`\nu_{rr}`",
+        default = numpy.array([0.0e3]),
+        range = basic.Range(lo = 0.0e3, hi= 0.0e3, step = 0.001e3),
+        doc = "Reticular nucleus self connection (intra-thalamic) synaptic strength [mVms].")
+    
+    chi = arrays.FloatArray(
+        label = ":math:`\Chi`",
+        default = numpy.array([0.64]),
+        range = basic.Range(lo = 0.0, hi = 1.0, step = 0.01),
+        doc = """Ratio of multiplicative to additive noise (dimensionless). If :math:`Chi`=0
+                 then noise is only additive. """)
+    
+    
+    sigma_n = arrays.FloatArray(
+        label = ":math:`\sigma_n`",    
+        default = numpy.array([0.56]),
+        range = basic.Range(lo = 0.0, hi = 0.2, step = 0.01),
+        doc = """ SD of stochastic influence :math:`\phi_n` (fraction of the stable 
+                  limit cycle attractor amplitude) (dimensionless) """)
+
+
+    variables_of_interest = basic.Enumerate(
+        label="Variables watched by Monitors",
+        options=["phi_e", "dphi_e", "V_e", "dV_e", "V_s", "dV_s", "V_r", "dV_r"],
+        default=["phi_e"],
+        select_multiple=True,
+        doc="""This represents the default state-variables of this Model to be
+        monitored. It can be overridden for each Monitor if desired.""",
+        order=10)
+    
+    #Informational attribute, used for phase-plane and initial()
+    state_variable_range = basic.Dict(
+        label = "State Variable ranges [lo, hi]",
+        default = {"phi_e" : numpy.array([ 0.0, 0.25]),
+                   "dphi_e": numpy.array([-0.5, 0.5]),
+                   "V_e"   : numpy.array([-0.5, 0.5]),
+                   "dV_e"  : numpy.array([-0.5, 0.5]),
+                   "V_s"   : numpy.array([-0.5, 0.5]),
+                   "dV_s"  : numpy.array([-0.5, 0.5]),
+                   "V_r"   : numpy.array([-0.5, 0.5]),
+                   "dV_r"  : numpy.array([-0.5, 0.5])},
+        doc = """The values for each state-variable should be set to encompass
+            the expected dynamic range of that state-variable for the current 
+            parameters, it is used as a mechanism for bounding random inital 
+            conditions when the simulation isn't started from an explicit
+            history, it is also provides the default range of phase-plane plots.""")
+    
+    
+    def __init__(self, **kwargs):
+        """
+        .. May need to put kwargs back if we can't get them from trait...
+        
+        """
+        
+        LOG.info('%s: initing...' % str(self))
+        
+        super(BreakspearRobinsonRennieWright, self).__init__(**kwargs)
+        
+        self._state_variables = ["phi_e", "dphi_e", 
+                                 "V_e", "dV_e", 
+                                 "V_s", "dV_s",
+                                 "V_r", "dV_r"]
+        
+        self._nvar = 8
+        self.cvar = numpy.array([0,4], dtype=numpy.int32)
+        
+        LOG.debug('%s: inited.' % repr(self))
+    
+    
+    def dfun(self, state_variables, coupling, local_coupling=0.0):
+        """
+        The activity in each neural population is described by three state variables: 
+
+        * the mean soma membrane potentials :math:`V_a(x,t)` measured relative to resting;
+
+        * the mean firing rate at the cell soma :math:`Q_a(x,t)`; and 
+
+        * the local presynaptic activity :math:`\phi_a(x,t)`
+        
+
+        a: (e, i, r, s, n)
+
+
+        Presynaptic activity :math:`\phi_a(x,t)` couples through synaptic 
+        transmission to post- synaptic potentials. Therefore in this framework,
+        :math:`\phi_a(x,t)` is the coupling variable.
+
+        For stochastics simulations fluctuations the term is introduced 
+        to dV_e, dV_r, dV_s and it should be white noise with 0 mean and SD = sigma_n
+        and a scaling of ab * nu_sn.
+
+
+        """
+        phi_e  = state_variables[0, :]
+        dphi_e = state_variables[1, :]
+        V_e    = state_variables[2, :]
+        dV_e   = state_variables[3, :]
+        V_s    = state_variables[4, :]
+        dV_s   = state_variables[5, :]
+        V_r    = state_variables[6, :]
+        dV_r   = state_variables[7, :]
+
+        long_range_phi_e    =  coupling[0, :]
+        delayed_V_s         =  coupling[1, :] 
+
+        short_range_phi_e   = local_coupling * phi_e  
+
+        # voltage to firing rate
+        Q_e = self.sigma_fun(V_e)
+        Q_s = self.sigma_fun(V_s) # Note Qs should be the delayed activity from the specific nucleus of the thalamus
+        delayed_Q_s = self.sigma_fun(delayed_V_s)
+        Q_r = self.sigma_fun(V_r) 
+
+        v   = 10.**2  # NOTE: hardcode the conduction speed for short range connections
+        ab  = self.alpha * self.beta
+        apb = self.alpha + self.beta
+
+        # state-variables
+        d_phi_e  = (dphi_e)
+        d_dphi_e = (self.gamma_e**2 * (Q_e - phi_e) - 2.* self.gamma_e * dphi_e + v * short_range_phi_e)
+        d_V_e    = (dV_e)
+        d_dV_e   = (ab  *        (self.nu_ee * phi_e + self.nu_ee * long_range_phi_e
+                                + self.nu_ei * Q_e 
+                                + self.nu_es * delayed_Q_s 
+                                - V_e) - apb * dV_e)
+        d_V_s  = dV_s
+
+        d_dV_s = (ab  *          (self.nu_se * phi_e + self.nu_se * long_range_phi_e
+                                + self.nu_sr * Q_r 
+                                - V_s) - apb * dV_s)
+        d_V_r  = dV_r
+        d_dV_r = d_dV_s = (ab *  (self.nu_re * phi_e + self.nu_re * long_range_phi_e
+                                + self.nu_rs * Q_s 
+                                - V_r) - apb * dV_r)
+
+        
+        derivative = numpy.array([d_phi_e, d_dphi_e,
+                                  d_V_e, d_dV_e,
+                                  d_V_s, d_dV_s,
+                                  d_V_r, d_dV_r])
+        
+        return derivative
+
+    def sigma_fun(self, sv):
+        """
+        Neuronal activation function. This sigmoidal function 
+        increases from 0 to Q_max as "sv" increases.
+        sv represents a membrane potential state variable (V).
+
+        #TODO: test performance using equations.Sigmoid dtype. 
+        That's why they are implemented, right? 
+
+        """
+        #HACKERY: Hackery for exponential s that blow up. 
+        # Set to inf, so the result will be effectively zero.
+        magic_exp_number = 709
+        temp = (-numpy.pi * (sv - self.theta) / (self.sigma * numpy.sqrt(3.)))
+        temp = numpy.where(temp > magic_exp_number, numpy.inf, temp)
+        sigma_v_to_q = self.Q_max / (1. + numpy.exp(temp))
+
+
+        return sigma_v_to_q
