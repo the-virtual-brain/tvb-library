@@ -44,9 +44,6 @@ class TVBException(Exception):
         self.message = message
 
 
-    def __repr__(self):
-        return self.message
-    
     def __str__(self):
         return self.message
 
@@ -58,10 +55,6 @@ class ValidationException(TVBException):
     """
 
 
-    def __init__(self, message):
-        TVBException.__init__(self, message)
-
-
 
 class MissingEntityException(TVBException):
     """
@@ -70,19 +63,9 @@ class MissingEntityException(TVBException):
     """
 
 
-    def __init__(self, message):
-        TVBException.__init__(self, message)
-
-
 
 class StorageException(TVBException):
     """
     Exception class used for cases when trying to load an entity
     from database by id or GID and none found.
     """
-
-
-    def __init__(self, message):
-        TVBException.__init__(self, message)
-        
-        
