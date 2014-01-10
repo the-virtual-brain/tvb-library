@@ -3410,3 +3410,127 @@ class BreakspearRobinsonRennieWright(Model):
 
 
         return sigma_v_to_q
+    
+
+class ContinuousHopfield(Model):
+    """
+    The Hopfield neural network is a discrete time dynamical system composed of multiple binary nodes,
+    with a connectivity matrix built from a predetermined set of patterns. The update, inspired
+    from the spin-glass model (used to describe magnetic properties of dilute alloys), is based
+    on a random scanning of every node. The existence of a fixed point dynamics is guaranteed
+    by a Lyapunov function. The Hopfield network is expected to have those multiple patterns as
+    attractors (multistable dynamical system). When the initial conditions are close to one of
+    the “learned” patterns, the dynamical system is expected to relax on the corresponding attractor.
+    A possible output of the system is the final attractive state (interpreted as an associative memory).
+
+    Various extensions of the initial model have been proposed, among which a noiseless and
+    continuous version [Hopfield 1984] having a slightly different Lyapunov function, but essentially
+    the same dynamical properties, with more straightforward physiological interpretation.
+    A continuous Hopfield neural network (with a sigmoid transfer function) can indeed be interpreted
+    as a network of neural masses with every node corresponding to the mean field activity of a local
+    brain region, with many bridges with the Wilson Cowan model [ref].
+
+    .. [Hopfield 1982] Hopfield, J. J., *Neural networks and physical systems with emergent collective
+    computational abilities*, Proc. Nat. Acad. Sci. (USA) 79, 2554–2558, 1982.
+
+    .. [Hopfield 1984] Hopfield, J. J., *Neurons with graded response have collective computational
+    properties like those of two-sate neurons*, Proc. Nat. Acad. Sci. (USA) 81, 3088-3092, 1984.
+
+    See also, http://www.scholarpedia.org/article/Hopfield_network
+
+    .. automethod:: Hopfield.__init__
+    .. automethod:: Hopfield.dfun
+
+    """
+
+    _ui_name = "Continuous Hopfield"
+    ui_configurable_parameters = ['taux']
+
+    #Define traited attributes for this model, these represent possible kwargs.
+    taux = arrays.FloatArray(
+        label = ":math:`\\tau_{x}`",
+        default = numpy.array([1.]),
+        range = basic.Range(lo = 0.01, hi = 100., step = 0.01),
+        doc = """The fast time-scale for potential calculus :math:`x`, state-variable of the model.""",
+        order=1)
+
+    #Used for phase-plane axis ranges and to bound random initial() conditions.
+    state_variable_range = basic.Dict(
+        label = "State Variable ranges [lo, hi]",
+        default = {"x": numpy.array([-1., 2.])},
+        doc = """The values for each state-variable should be set to encompass
+            the expected dynamic range of that state-variable for the current
+            parameters, it is used as a mechanism for bounding random inital
+            conditions when the simulation isn't started from an explicit
+            history, it is also provides the default range of phase-plane plots.""",
+        order = 2)
+
+    variables_of_interest = basic.Enumerate(
+        label = "Variables watched by Monitors",
+        options=["x"],
+        default=["x"],
+        select_multiple=True,
+        doc = """The values for each state-variable should be set to encompass
+            the expected dynamic range of that state-variable for the current
+            parameters, it is used as a mechanism for bounding random inital
+            conditions when the simulation isn't started from an explicit
+            history, it is also provides the default range of phase-plane plots.""",
+        #doc="""This represents the default state-variables of this Model to be
+                                    #monitored. It can be overridden for each Monitor if desired. The
+                                    #corresponding state-variable indices for this model are :math:`E = 0`
+                                    #and :math:`I = 1`.""",
+        order = 3)
+
+
+    def __init__(self, **kwargs):
+        """Initialize the Hopfield Based model's traited attributes, any provided as
+        keywords will overide their traited default.
+        """
+        LOG.info("%s: initing..." % str(self))
+        super(ContinuousHopfield, self).__init__(**kwargs)
+
+        self._state_variables = ["x"]
+        self._nvar = len(self._state_variables)
+        self.cvar = numpy.array([0], dtype=numpy.int32)
+
+        LOG.debug("%s: inited." % repr(self))
+
+
+    def dfun(self, state_variables, coupling, local_coupling=0.0):
+        """The fast, :math:`x`, and slow, :math:`\\theta`, state variables are typically
+        considered to represent a membrane potentials of nodes and the global inhibition term,
+        respectively:
+
+            .. math::
+                \\dot{x_{i}} &= 1 / \\tau_{x} (-x_{i} + sum(W_{i,j} * A_{j}) + \\sigma^{2}_{x} * \\eta_{i})
+                A_{i} &= 1/2 * (1 + tanh(G * (P * x_{i} - \\theta_{i})))
+
+        where :math:`\\eta` is a centered gaussian noise and :math:`\\sigma its standard deviation.
+        """
+
+        x = state_variables[0, :]
+        WAx = coupling[0]
+        dx = (- x + WAx) / self.taux
+
+        derivative = numpy.array([dx])
+        return derivative
+
+    # info for device_data
+    device_info = model_device_info(
+
+        pars=['taux'],
+
+        kernel="""
+        // read parameters
+        float taux = P(0)
+
+        // state variables
+            , x = X(0)
+
+        // aux variables
+            , WAx = I(0);
+
+        // set derivatives
+        DX(0) = (-x + WAx) / taux;
+        """
+    )
