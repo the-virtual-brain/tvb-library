@@ -3129,13 +3129,15 @@ class BreakspearRobinsonRennieWright(Model):
             The (:math:`V`, :math:`W`) phase-plane for the Robinson model.
     
     .. automethod:: BreakspearRobinsonRennieWright.__init__
-    
+    .. automethod:: BreakspearRobinsonRennieWright.dfun
+    .. automethod:: BreakspearRobinsonRennieWright.sigma_fun
+
     """
     
     _ui_name = "Breakspear-Robinson-Rennie-Wright"
     ui_configurable_parameters = ['Q_max', 'theta', 'sigma', 'gamma_e', 'alpha',
                                   'beta', 't_0', 'nu_ee', 'nu_ie', 'nu_ei', 'nu_ii',
-                                  'nu_es', 'nu_is', 'nu_se', 'nu_sr',  'nu_sn', 'nu_re',
+                                  'nu_es', 'nu_is', 'nu_se', 'nu_sr', 'nu_sn', 'nu_re',
                                   'nu_rs', 'nu_ss', 'nu_rr', 'chi', 'sigma_n']
     
     #Define traited attributes for this model, these represent possible kwargs.
@@ -3263,15 +3265,15 @@ class BreakspearRobinsonRennieWright(Model):
         label = r":math:`\chi`",
         default = numpy.array([0.64]),
         range = basic.Range(lo = 0.0, hi = 1.0, step = 0.01),
-        doc = """Ratio of multiplicative to additive noise (dimensionless). If :math:`Chi`=0
-                 then noise is only additive. """)
+        doc = r"""Ratio of multiplicative to additive noise (dimensionless). If :math:`\chi` is 0
+                 then noise is only additive.""")
     
     
     sigma_n = arrays.FloatArray(
         label = r":math:`\sigma_n`",
         default = numpy.array([0.56]),
         range = basic.Range(lo = 0.0, hi = 0.2, step = 0.01),
-        doc = """ SD of stochastic influence :math:`\phi_n` (fraction of the stable 
+        doc = """ SD of stochastic influence :math:`\phi_n` (fraction of the stable
                   limit cycle attractor amplitude) (dimensionless) """)
 
 
@@ -3297,7 +3299,7 @@ class BreakspearRobinsonRennieWright(Model):
                    "dV_r"  : numpy.array([-0.5, 0.5])},
         doc = """The values for each state-variable should be set to encompass
             the expected dynamic range of that state-variable for the current 
-            parameters, it is used as a mechanism for bounding random inital 
+            parameters, it is used as a mechanism for bounding random initial
             conditions when the simulation isn't started from an explicit
             history, it is also provides the default range of phase-plane plots.""")
     
