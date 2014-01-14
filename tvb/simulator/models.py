@@ -3505,7 +3505,7 @@ class ContinuousHopfield(Model):
                 \\dot{x_{i}} &= 1 / \\tau_{x} (-x_{i} + sum(W_{i,j} * A_{j}) + \\sigma^{2}_{x} * \\eta_{i})
                 A_{i} &= 1/2 * (1 + tanh(G * (P * x_{i} - \\theta_{i})))
 
-        where :math:`\\eta` is a centered gaussian noise and :math:`\\sigma its standard deviation.
+        where :math:`\\eta` is a centered gaussian noise and :math:`\\sigma` its standard deviation.
         """
 
         x = state_variables[0, :]
