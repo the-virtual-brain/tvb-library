@@ -465,11 +465,10 @@ class StaticSigmoidal(Coupling):
 
 
     def __call__(self, g_ij, x_i, x_j):
-        r"""
+        """
         Evaluate the StaticSigmoidal function for the arg ``x``. The equation being
         evaluated has the following form:
-            .. math::
-                H * (Q + \tanh(G * (P*x - \theta)))
+        .. math:: H * (Q + \tanh(G * (P*x - \theta)))
         
         """
         A_j = self.H * (self.Q + numpy.tanh(self.G * (self.P * x_j[:,0,:,:] - self.theta)[:,numpy.newaxis,:,:]))

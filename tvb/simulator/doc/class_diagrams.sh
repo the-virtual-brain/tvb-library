@@ -71,3 +71,4 @@ dot -Tfig classes_timeseries_interactive.dot > img/classes_timeseries_interactiv
 
 ## Clean up ##
 rm *dot
+#rm img/*.fig

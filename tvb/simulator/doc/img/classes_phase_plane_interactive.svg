@@ -9,8 +9,8 @@
 <g id="graph1" class="graph" transform="scale(1 1) rotate(0) translate(4 1072)">
 <title>classes_phase_plane_interactive</title>
 <polygon fill="white" stroke="white" points="-4,5 -4,-1072 265,-1072 265,5 -4,5"/>
-<!-- 2 -->
-<g id="node1" class="node"><title>2</title>
+<!-- 0 -->
+<g id="node1" class="node"><title>0</title>
 <polygon fill="none" stroke="black" points="-0.373535,-1.2 -0.373535,-1066.8 260.374,-1066.8 260.374,-1.2 -0.373535,-1.2"/>
 <text text-anchor="middle" x="130" y="-1048.8" font-family="Times,serif" font-size="14.00">PhasePlaneInteractive</text>
 <polyline fill="none" stroke="black" points="-0.373535,-1042 260.374,-1042 "/>

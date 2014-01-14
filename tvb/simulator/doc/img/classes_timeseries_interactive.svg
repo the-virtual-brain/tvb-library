@@ -9,8 +9,8 @@
 <g id="graph1" class="graph" transform="scale(1 1) rotate(0) translate(4 954)">
 <title>classes_timeseries_interactive</title>
 <polygon fill="white" stroke="white" points="-4,5 -4,-954 275,-954 275,5 -4,5"/>
-<!-- 2 -->
-<g id="node1" class="node"><title>2</title>
+<!-- 0 -->
+<g id="node1" class="node"><title>0</title>
 <polygon fill="none" stroke="black" points="-0.825195,-1 -0.825195,-949 270.825,-949 270.825,-1 -0.825195,-1"/>
 <text text-anchor="middle" x="135" y="-931" font-family="Times,serif" font-size="14.00">TimeSeriesInteractive</text>
 <polyline fill="none" stroke="black" points="-0.825195,-924.2 270.825,-924.2 "/>

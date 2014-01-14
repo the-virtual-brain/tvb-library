@@ -2468,7 +2468,7 @@ class LarterBreakspear(Model):
     | TNa          |      0.3   |
     | d_Na         |      0.15  |
     | d_V          |      0.65  |
-    | d_Z          |      d_V   |  # note, this parameter might be spatialized: ones(N,1).*0.65 + modn*(rand(N,1)-0.5);
+    | d_Z          |      d_V   |
     | QV_max       |      1.0   |
     | QZ_max       |      1.0   |
     +---------------------------+
@@ -2481,8 +2481,10 @@ class LarterBreakspear(Model):
     d_V
     For d_V < 0.55, uncoupled network, the system exhibits fixed point dynamics; 
     for 55 < lb.d_V < 0.59, limit cycle atractors; 
-    and for d_V > 0.59 chaotic attractors (eg, d_V=0.6,aee=0.5,aie=0.5, 
-                                               gNa=0, Iext=0.165)
+    and for d_V > 0.59 chaotic attractors (eg, d_V=0.6,aee=0.5,aie=0.5, gNa=0, Iext=0.165)
+
+    d_Z
+    this parameter might be spatialized: ones(N,1).*0.65 + modn*(rand(N,1)-0.5);
 
     C
     The long-range coupling 'C' is ‘weak’ in the sense that 
@@ -2495,7 +2497,7 @@ class LarterBreakspear(Model):
             
             The (:math:`V`, :math:`W`) phase-plane for the Larter-Breakspear model.
     
-    .. automethod:: __init__
+    .. automethod:: LarterBreakspear.__init__
     
     """
     
@@ -2801,7 +2803,7 @@ class ReducedWongWang(Model):
 
 
 
-    .. automethod:: __init__
+    .. automethod:: ReducedWongWang.__init__
 
     """
     _ui_name = "Reduced Wong-Wang"
@@ -2954,8 +2956,8 @@ class Kuramoto(Model):
     See:
 
         .. [YK_1975] Y. Kuramoto, in: H. Arakai (Ed.), International Symposium
-            on Mathematical Problems in Theoretical Physics, Lecture Notes in
-            Physics, page 420, vol. 39, 1975.
+            on Mathematical Problems in Theoretical Physics, *Lecture Notes in
+            Physics*, page 420, vol. 39, 1975.
 
         .. [SS_2000] S. H. Strogatz. *From Kuramoto to Crawford: exploring the
             onset of synchronization in populations of coupled oscillators*.
@@ -3081,7 +3083,7 @@ class BreakspearRobinsonRennieWright(Model):
     """
 
     A reduced version of a corticothalamic neural field model [Robinson_1997]_ as 
-    but without the second order derivative (Laplacian) [Robinson_2002][Breakspear_2005][Freyer_2011]_ .
+    but without the second order derivative (Laplacian) [Robinson_2002]_ [Breakspear_2005]_ [Freyer_2011]_
 
     The model describes the interaction of 4 neural populations:
       + cortical pyramidal cells
@@ -3095,34 +3097,38 @@ class BreakspearRobinsonRennieWright(Model):
 
 
 
-    References
-    ----------
+    **References**:
+    
+        .. [Robinson_2002]
+    
+        .. [Robinson_1997]
+
+        .. [Breakspear_2005]
+
+        .. [Wilson]
+
+        .. [LopesDaSilva]
+
+        .. [Freyer_2011]
+
+        .. [Freyer_2009]
+
+        .. [Freyer_2012_Model] Freyer, F.; Reinacher, M.; Nolte, G.; Dinse, H. R. and
+                                Ritter, P. *Repetitive tactile stimulation changes resting-state
+                                functional connectivity-implications for treatment of sensorimotor decline*.
+                                Front Hum Neurosci, Bernstein Focus State Dependencies of Learning and
+                                Bernstein Center for Computational Neuroscience Berlin, Germany., 2012, 6, 144
+    
+    Equations and default parameters are taken from [Freyer_2011]_.
+
 
     
-    .. [Robinson_2002] 
-    
-    .. [Robinson_1997]
-
-    .. [Wilson]
-
-    .. [LopesDaSilva] 
-
-    .. [Freyer_2011] 
-
-    .. [Freyer_2009] 
-
-    .. [Freyer_2012]
-    
-    Equations and default parameters are taken from [Freyer_2011]_. 
-
-
-    
-    .. figure :: img/Robinson_01_mode_0_pplane.svg
+    .. figure :: img/BreakspearRobinsonRennieWright_01_mode_0_pplane.svg
             :alt: Robinson phase plane (V, W)
             
             The (:math:`V`, :math:`W`) phase-plane for the Robinson model.
     
-    .. automethod:: __init__
+    .. automethod:: BreakspearRobinsonRennieWright.__init__
     
     """
     
@@ -3140,31 +3146,31 @@ class BreakspearRobinsonRennieWright(Model):
         doc = """Maximum firing rate [ms^-1].""")
     
     theta = arrays.FloatArray(
-        label = ":math:`\theta`",
+        label = r":math:`\theta`",
         default = numpy.array([15.]),
         range = basic.Range(lo = 14., hi= 16., step = 0.01),
         doc = """Mean neuronal threshold [mV]""")
     
     sigma = arrays.FloatArray(
-        label = ":math:`\sigma`",
+        label = r":math:`\sigma`",
         default = numpy.array([6.]),
         range = basic.Range(lo = 1.0 , hi = 10., step = 1.0),
         doc = """Threshold SD [mV]""")
     
     gamma_e = arrays.FloatArray(
-        label = ":math:`\gamma_e`",
+        label = r":math:`\gamma_e`",
         default = numpy.array([0.100]),
         range = basic.Range(lo = 0.05, hi = 0.15, step = 0.01),
         doc = """Ratio conduction velocity/mean range of axons [ms^-1]""")
     
     alpha = arrays.FloatArray(
-        label = ":math:`\alpha`",
+        label = r":math:`\alpha`",
         default = numpy.array([0.06]),
         range = basic.Range(lo = 0.04, hi = 0.01, step = 0.1),
         doc = """Inverse decay time of membrane potential [ms^-1]""")
     
     beta = arrays.FloatArray(
-        label = ":math:`\beta`",
+        label = r":math:`\beta`",
         default = numpy.array([0.240]),
         range = basic.Range(lo = 0.2, hi = 0.3, step = 0.02),
         doc = """Inverse rise time of membrane potential [ms^-1]""")
@@ -3176,85 +3182,85 @@ class BreakspearRobinsonRennieWright(Model):
         doc = "Corticothalamic return time (complete return loop) [ms]")
     
     nu_ee = arrays.FloatArray(
-        label = ":math:`\nu_{ee}`",
+        label = r":math:`\nu_{ee}`",
         default = numpy.array([1.06e3]),
         range = basic.Range(lo = 1.0e3, hi= 1.1e3, step = 10.),
         doc = "Excitatory-to-excitatory (cortico-cortical) synaptic strength [mVms].")
     
     nu_ie = arrays.FloatArray(
-        label = ":math:`\nu_{ie}`",
+        label = r":math:`\nu_{ie}`",
         default = numpy.array([1.06e3]),
         range = basic.Range(lo = 1.0e3, hi= 1.1e3, step = 10.),
         doc = "Excitatory-to-inhibitory (cortico-cortical) synaptic strength [mVms].")
     
     nu_ei = arrays.FloatArray(
-        label = ":math:`\nu_{ei}`",
+        label = r":math:`\nu_{ei}`",
         default = numpy.array([-1.8e3]),
         range = basic.Range(lo = -2.0e3, hi= -1.0e3, step = 10.),
         doc = "Inhibitory-to-excitatory (cortico-cortical) synaptic strength [mVms].")
     
     nu_ii = arrays.FloatArray(
-        label = ":math:`\nu_{ii}`",
+        label = r":math:`\nu_{ii}`",
         default = numpy.array([-1.8e3]),
         range = basic.Range(lo = -2.0e3, hi= -1.0e3, step = 10.),
         doc = "Inhibitory-to-inhibitory (cortico-cortical) synaptic strength [mVms].")
     
     nu_es = arrays.FloatArray(
-        label = ":math:`\nu_{es}`",
+        label = r":math:`\nu_{es}`",
         default = numpy.array([2.2e3]),
         range = basic.Range(lo = 2.0e3, hi= 2.5e3, step = 10.),
         doc = "Specific nucleus-to-excitatory (thalamo-cortical) synaptic strength [mVms].")
     
     nu_is = arrays.FloatArray(
-        label = ":math:`\nu_{is}`",
+        label = r":math:`\nu_{is}`",
         default = numpy.array([2.2e3]),
         range = basic.Range(lo = 2.0e3, hi= 2.5e3, step = 10.),
         doc = "Specific nucleus-to-inhibitory (thalamo-cortical) synaptic strength [mVms].")
 
     nu_se = arrays.FloatArray(
-        label = ":math:`\nu_{se}`",
+        label = r":math:`\nu_{se}`",
         default = numpy.array([2.28e3]),
         range = basic.Range(lo = 2.2e3, hi= 2.3e3, step = 1.),
         doc = "Excitatory-to-specific nucleus (cortico-thalamic) synaptic strength [mVms].")
     
     nu_sr = arrays.FloatArray(
-        label = ":math:`\nu_{sr}`",
+        label = r":math:`\nu_{sr}`",
         default = numpy.array([-0.845e3]),
         range = basic.Range(lo = -0.88e3, hi= -0.84e3, step = 0.01e3),
         doc = "Reticular-to-specific nucleus (thalamo-thalamic) synaptic strength [mVms].")
     
     nu_sn = arrays.FloatArray(
-        label = ":math:`\nu_{sn}`",
+        label = r":math:`\nu_{sn}`",
         default = numpy.array([1.2e3]),
         range = basic.Range(lo = 1.1e3, hi= 1.3e3, step = 0.1e3),
         doc = "Nonspecific-to-specific nucleus synaptic strength.")
     
     nu_re = arrays.FloatArray(
-        label = ":math:`\nu_{re}`",
+        label = r":math:`\nu_{re}`",
         default = numpy.array([0.91e3]),
         range = basic.Range(lo = 0.9e3, hi= 0.92e3, step = 0.005e3),
         doc = "Excitatory-to-reticular nucleus (cortico-thalamic) synaptic strength [mVms].")
     
     nu_rs = arrays.FloatArray(
-        label = ":math:`\nu_{rs}`",
+        label = r":math:`\nu_{rs}`",
         default = numpy.array([0.41e3]),
         range = basic.Range(lo = 0.4e3, hi= 0.42e3, step = 0.005e3),
         doc = "Specific nucleus-to-reticular nucleus (intra-thalamic) synaptic strength [mVms].")
 
     nu_ss = arrays.FloatArray(
-        label = ":math:`\nu_{ss}`",
+        label = r":math:`\nu_{ss}`",
         default = numpy.array([0.0e3]),
         range = basic.Range(lo = 0.0e3, hi= 0.0e3, step = 0.001e3),
         doc = "Specific nucleus self connection (intra-thalamic) synaptic strength [mVms].")
 
     nu_rr = arrays.FloatArray(
-        label = ":math:`\nu_{rr}`",
+        label = r":math:`\nu_{rr}`",
         default = numpy.array([0.0e3]),
         range = basic.Range(lo = 0.0e3, hi= 0.0e3, step = 0.001e3),
         doc = "Reticular nucleus self connection (intra-thalamic) synaptic strength [mVms].")
     
     chi = arrays.FloatArray(
-        label = ":math:`\Chi`",
+        label = r":math:`\chi`",
         default = numpy.array([0.64]),
         range = basic.Range(lo = 0.0, hi = 1.0, step = 0.01),
         doc = """Ratio of multiplicative to additive noise (dimensionless). If :math:`Chi`=0
@@ -3262,7 +3268,7 @@ class BreakspearRobinsonRennieWright(Model):
     
     
     sigma_n = arrays.FloatArray(
-        label = ":math:`\sigma_n`",    
+        label = r":math:`\sigma_n`",
         default = numpy.array([0.56]),
         range = basic.Range(lo = 0.0, hi = 0.2, step = 0.01),
         doc = """ SD of stochastic influence :math:`\phi_n` (fraction of the stable 
@@ -3298,7 +3304,7 @@ class BreakspearRobinsonRennieWright(Model):
     
     def __init__(self, **kwargs):
         """
-        .. May need to put kwargs back if we can't get them from trait...
+        We may need to put kwargs back if we can't get them from traits.
         
         """
         
@@ -3323,15 +3329,15 @@ class BreakspearRobinsonRennieWright(Model):
 
         * the mean soma membrane potentials :math:`V_a(x,t)` measured relative to resting;
 
-        * the mean firing rate at the cell soma :math:`Q_a(x,t)`; and 
+        * the mean firing rate at the cell soma :math:`Q_a(x,t)`; and
 
         * the local presynaptic activity :math:`\phi_a(x,t)`
-        
+
 
         a: (e, i, r, s, n)
 
 
-        Presynaptic activity :math:`\phi_a(x,t)` couples through synaptic 
+        Presynaptic activity :math:`\phi_a(x,t)` couples through synaptic
         transmission to post- synaptic potentials. Therefore in this framework,
         :math:`\phi_a(x,t)` is the coupling variable.
 
@@ -3424,22 +3430,25 @@ class ContinuousHopfield(Model):
     A possible output of the system is the final attractive state (interpreted as an associative memory).
 
     Various extensions of the initial model have been proposed, among which a noiseless and
-    continuous version [Hopfield 1984] having a slightly different Lyapunov function, but essentially
+    continuous version [Hopfield_1984]_ having a slightly different Lyapunov function, but essentially
     the same dynamical properties, with more straightforward physiological interpretation.
     A continuous Hopfield neural network (with a sigmoid transfer function) can indeed be interpreted
     as a network of neural masses with every node corresponding to the mean field activity of a local
-    brain region, with many bridges with the Wilson Cowan model [ref].
+    brain region, with many bridges with the Wilson Cowan model [WC_1973]_.
 
-    .. [Hopfield 1982] Hopfield, J. J., *Neural networks and physical systems with emergent collective
-    computational abilities*, Proc. Nat. Acad. Sci. (USA) 79, 2554–2558, 1982.
+    **References**:
 
-    .. [Hopfield 1984] Hopfield, J. J., *Neurons with graded response have collective computational
-    properties like those of two-sate neurons*, Proc. Nat. Acad. Sci. (USA) 81, 3088-3092, 1984.
+        .. [Hopfield_1982] Hopfield, J. J., *Neural networks and physical systems with emergent collective
+                        computational abilities*, Proc. Nat. Acad. Sci. (USA) 79, 2554–2558, 1982.
+
+        .. [Hopfield_1984] Hopfield, J. J., *Neurons with graded response have collective computational
+                        properties like those of two-sate neurons*, Proc. Nat. Acad. Sci. (USA) 81, 3088-3092, 1984.
+
 
     See also, http://www.scholarpedia.org/article/Hopfield_network
 
-    .. automethod:: Hopfield.__init__
-    .. automethod:: Hopfield.dfun
+    .. automethod:: ContinuousHopfield.__init__
+    .. automethod:: ContinuousHopfield.dfun
 
     """
 
@@ -3448,7 +3457,7 @@ class ContinuousHopfield(Model):
 
     #Define traited attributes for this model, these represent possible kwargs.
     taux = arrays.FloatArray(
-        label = ":math:`\\tau_{x}`",
+        label = r":math:`\tau_{x}`",
         default = numpy.array([1.]),
         range = basic.Range(lo = 0.01, hi = 100., step = 0.01),
         doc = """The fast time-scale for potential calculus :math:`x`, state-variable of the model.""",
