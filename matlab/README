@@ -11,7 +11,8 @@ the standard distribution of TVB.
 If you are not using the standard distribution of TVB, but rather just the
 scientific_library, you just need to make sure you've got cherrypy and h5py 
 installed. Prefer using pip, your package manger may not get the most
-recent versions.
+recent versions. You may then launch the tvb/api/http.py file to start
+the server.
 
 For the moment, Octave is not supported, but this would be easily remedied
 by writing a function to shell out to wget/curl to do the HTTP calls. Please
