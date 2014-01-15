@@ -46,6 +46,7 @@ import functools
 import threading
 import multiprocessing
 
+import h5py
 import numpy
 import cherrypy
 
@@ -75,16 +76,24 @@ def build_sim_part(mod, opt):
     from the module mod, where an entry 'class' in opt is 
     used to identify the class required.
 
+    If 'class' entry has multiple lines, and the first line
+    is used to identify the class; see the Burst.dir() 
+    method below. 
+
     """
 
-    obj = getattr(mod, opt.pop('class'))()
+    class_ = opt.pop('class')
+    if '\n' in class_:
+        class_ = class_.split('\n')[0]
+
+    obj = getattr(mod, class_)()
     for k, v in opt.iteritems():
         if type(v) in (list,):
             v = numpy.array(v)
         setattr(obj, k, v)
     return obj
 
-def build_and_run(spec):
+def build_and_run_(spec):
     """
     Builds a simulator from spec, run & collect output.
 
@@ -107,8 +116,9 @@ def build_and_run(spec):
 
     # noise # integrator 
     optint = opt['integrator']
-    optint['noise'] = build_sim_part(noise, optint['noise'])
-    simargs['integrator'] = build_sim_part(mod, optint)
+    if 'noise' in optint:
+        optint['noise'] = build_sim_part(noise, optint['noise'])
+    simargs['integrator'] = build_sim_part(integrators, optint)
 
     # monitors 
     if not type(opt['monitors']) in (list,):
@@ -137,7 +147,8 @@ def build_and_run(spec):
                 ys[j].append(y)
 
     # write data to hdf5 file
-    h5fname = os.path.join(spec['wd'], "tvb_%s.h5" % (spec['md5sum'], ))
+    path = os.path.abspath(opt.get('wd', './'))
+    h5fname = os.path.join(path, "tvb_%s.h5" % (spec['md5sum'], ))
     h5 = h5py.File(h5fname, 'w')
 
     for i, (mon, (t, y)) in enumerate(zip(simargs['monitors'], zip(ts, ys))):
@@ -152,6 +163,14 @@ def build_and_run(spec):
     print "pool finished", opt
     return h5fname
 
+def build_and_run(spec):
+    try:
+        r = build_and_run_(spec)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        r = e
+    return r
 
 class Burst(object):
 
@@ -223,12 +242,12 @@ class Burst(object):
 
         info = {}
 
-        for m in [models, coupling, integrators, noise]:
+        for m in [models, coupling, integrators, noise, monitors, connectivity, equations, surfaces, patterns]:
             minfo = {}
             for k in dir(m):
                 v = getattr(m, k)
                 if isinstance(v, type):
-                    minfo[k] = getattr(v, '__doc__', k)
+                    minfo[k] = k + '\n\n' + getattr(v, '__doc__', k)
             info[m.__name__.split('.')[-1]] = minfo
 
         return json.dumps(info)
