@@ -3,7 +3,7 @@
 % and use that address for all calls
 sv = vb_url('localhost', 8080)
 
-%% set the number of procs in the pool
+%% set the number of CPUs used for simulations
 vb_reset(sv, 2)
 
 %% get info on classes in TVB
