@@ -1020,19 +1020,19 @@ class Bold(Monitor):
         Cerebral Blood Flow and Oxygen Metabolism During Neural Stimulation*,
         17:64-72, 1997.
 
-    .. [F_2000] Friston, K., Mechelli, A., Turner, R., and Price, C., *Nonlinear 
+    .. [Fr_2000] Friston, K., Mechelli, A., Turner, R., and Price, C., *Nonlinear
         Responses in fMRI: The Balloon Model, Volterra Kernels, and Other 
         Hemodynamics*, NeuroImage, 12, 466 - 477, 2000.
 
-    .. [B_1996] Geoffrey M. Boynton, Stephen A. Engel, Gary H. Glover and David 
+    .. [Bo_1996] Geoffrey M. Boynton, Stephen A. Engel, Gary H. Glover and David
         J. Heeger (1996). Linear Systems Analysis of Functional Magnetic Resonance 
         Imaging in Human V1. J Neurosci 16: 4207-4221
 
-    .. [P_2000] Alex Polonsky, Randolph Blake, Jochen Braun and David J. Heeger
+    .. [Po_2000] Alex Polonsky, Randolph Blake, Jochen Braun and David J. Heeger
         (2000). Neuronal activity in human primary visual cortex correlates with
         perception during binocular rivalry. Nature Neuroscience 3: 1153-1159
 
-    .. [G_1999] Glover, G. *Deconvolution of Impulse Response in Event-Related BOLD fMRI*.
+    .. [Gl_1999] Glover, G. *Deconvolution of Impulse Response in Event-Related BOLD fMRI*.
         NeuroImage 9, 416-429, 1999.
 
   

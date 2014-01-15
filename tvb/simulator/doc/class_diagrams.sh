@@ -49,21 +49,21 @@ dot -Tfig classes_noise.dot > img/classes_noise.fig
 
 
 ## Phase-Plane Interactive ##
-pyreverse --project=phase_plane_interactive ../phase_plane_interactive.py
+pyreverse --project=phase_plane_interactive ../plot/phase_plane_interactive.py
 
 dot -Tsvg classes_phase_plane_interactive.dot > img/classes_phase_plane_interactive.svg
 dot -Tfig classes_phase_plane_interactive.dot > img/classes_phase_plane_interactive.fig
 
 
 ## Power-Spectra Interactive ##
-pyreverse --project=power_spectra_interactive ../power_spectra_interactive.py
+pyreverse --project=power_spectra_interactive ../plot/power_spectra_interactive.py
 
 dot -Tsvg classes_power_spectra_interactive.dot > img/classes_power_spectra_interactive.svg
 dot -Tfig classes_power_spectra_interactive.dot > img/classes_power_spectra_interactive.fig
 
 
 ## Time-Series Interactive ##
-pyreverse --project=timeseries_interactive ../timeseries_interactive.py
+pyreverse --project=timeseries_interactive ../plot/timeseries_interactive.py
 
 dot -Tsvg classes_timeseries_interactive.dot > img/classes_timeseries_interactive.svg
 dot -Tfig classes_timeseries_interactive.dot > img/classes_timeseries_interactive.fig
@@ -71,3 +71,4 @@ dot -Tfig classes_timeseries_interactive.dot > img/classes_timeseries_interactiv
 
 ## Clean up ##
 rm *dot
+#rm img/*.fig

@@ -40,6 +40,7 @@ dynamics.
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 .. moduleauthor:: Noelia Montejo <Noelia@tvb.invalid>
 .. moduleauthor:: Marmaduke Woodman <mw@eml.cc>
+.. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
 
 """
 
@@ -130,7 +131,7 @@ class coupling_device_info(object):
 
     """
 
-    def __init__(self, pars=[], kernel=""):
+    def __init__(self, pars, kernel=""):
         self._pars = pars
         self._kernel = kernel
 
@@ -268,15 +269,9 @@ class Scaling(Coupling):
 
 class HyperbolicTangent(Coupling):
     """
-    Hyperbolic tangent. 
-    This coupling will be used mainly when the delayed 
-    state needs to be transformed (eg, voltage to rate)
-
+    Hyperbolic tangent.
 
     """
-    #NOTE: The defaults here produce something close to the current default for
-    #      Linear (a=0.00390625, b=0) over the linear portion of the sigmoid,
-    #      with saturation at -1 and 1.
 
     a = arrays.FloatArray(
         label = ":math:`a`", 
@@ -294,9 +289,15 @@ class HyperbolicTangent(Coupling):
 
     sigma = arrays.FloatArray(
         label = r":math:`\sigma`",
-        default = numpy.array([0.0,]),
+        default = numpy.array([1.0,]),
         range = basic.Range(lo = 0.01, hi = 1000.0, step = 10.0),
         doc = """Standard deviation of the ...""",
+        order = 4)
+
+    normalise = basic.Bool(
+        label = "normalise by in-strength",
+        default = True,
+        doc = """Normalise the node coupling by the node's in-strenght""",
         order = 4)
 
 
@@ -306,13 +307,20 @@ class HyperbolicTangent(Coupling):
         evaluated has the following form:
 
             .. math::
-
+                        a * (1 + tanh((x - midpoint)/sigma))
 
         """
-        # Get Q_j 
         temp =  self.a * (1 +  numpy.tanh((x_j - self.midpoint) / self.sigma))
-        # Average
-        coupled_input = (g_ij*temp).mean(axis=0)
+
+        if self.normalise: # yeeeeahhh, let's make simulations slower ...
+            #NOTE: normalising by the strength or degrees may yield NaNs, so fill these values with inf
+            in_strength = g_ij.sum(axis=2)[:, :, numpy.newaxis, :]
+            in_strength[in_strength==0] = numpy.inf
+            temp *= (g_ij / in_strength) #region mode normalisation
+            
+            coupled_input = temp.mean(axis=0)
+        else: 
+            coupled_input = (g_ij*temp).mean(axis=0)
         
         return coupled_input
 
@@ -403,6 +411,86 @@ class Sigmoidal(Coupling):
         """
         )
 
+
+class StaticSigmoidal(Coupling):
+    """
+    Static Sigmoidal Coupling function (static threshold) pre-product.
+
+    .. automethod:: StaticSigmoidal.__init__
+    .. automethod:: StaticSigmoidal.__call__
+
+    """
+    #NOTE: Different from Sigmoidal coupling where the product is an input of the sigmoid.
+    #      Here the sigmoid is an input of the product.
+
+    H = arrays.FloatArray(
+        label = "H", 
+        default = numpy.array([0.5,]),
+        range = basic.Range(lo = -100.0, hi = 100.0, step = 1.0),
+        doc = """Global Factor""",
+        order = 1)
+
+    Q = arrays.FloatArray(
+        label = "Q", 
+        default = numpy.array([1.,]),
+        range = basic.Range(lo = -100.0, hi = 100.0, step = 1.0),
+        doc = """Average""",
+        order = 2)
+
+    G = arrays.FloatArray(
+        label = "G", 
+        default = numpy.array([60.,]),
+        range = basic.Range(lo = -1000.0, hi = 1000.0, step = 1.),
+        doc = """Gain""",
+        order = 3)
+
+    P = arrays.FloatArray(
+        label = "P",
+        default = numpy.array([1.,]),
+        range = basic.Range(lo = -100.0, hi = 100.0, step = 0.01),
+        doc = """Excitation on Inhibition ratio""",
+        order = 4)
+
+    theta = arrays.FloatArray(
+        label = ":math:`\\theta`",
+        default = numpy.array([1.,]),
+        range = basic.Range(lo = -100.0, hi = 100.0, step = 0.01),
+        doc = """Threshold""",
+        order = 5)
+
+
+    def __init__(self, **kwargs):
+        """Precompute a constant after the base __init__"""
+        super(StaticSigmoidal, self).__init__(**kwargs)
+
+
+    def __call__(self, g_ij, x_i, x_j):
+        """
+        Evaluate the StaticSigmoidal function for the arg ``x``. The equation being
+        evaluated has the following form:
+        .. math:: H * (Q + \tanh(G * (P*x - \theta)))
+        
+        """
+        A_j = self.H * (self.Q + numpy.tanh(self.G * (self.P * x_j[:,0,:,:] - self.theta)[:,numpy.newaxis,:,:]))
+        return numpy.array([ (g_ij * A_j).sum(axis=0) ])
+
+    device_info = coupling_device_info(
+        pars = ['H', 'Q', 'G', 'P', 'theta'],
+        kernel = """
+        // load parameters
+        float H     = P(0)
+            , Q     = P(1)
+            , G     = P(2)
+            , P     = P(3)
+            , theta = P(4);
+
+        I = 0.0;
+        for (int j_node=0; j_node<n_node; j_node++, idel++, conn++)
+            I += H * (Q + tanh(G * (P * XJ[0] - theta)));
+
+        I = GIJ * I;
+        """
+        )
 
 
 class Difference(Coupling):

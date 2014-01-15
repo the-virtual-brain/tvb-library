@@ -89,6 +89,7 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
     def read_time_page(self, current_page, page_size, max_size=None):
         """
         Compute time for current page.
+        :param current_page: Starting from 0
         """
         current_page = int(current_page)
         page_size = int(page_size)
@@ -169,11 +170,11 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
         self.store_data_chunk("time", partial_result, grow_dimension=0, close_file=False)
 
 
-    def write_data_slice(self, partial_result):
+    def write_data_slice(self, partial_result, grow_dimension=0):
         """
         Append a chunk of time-series data to the ``data`` attribute.
         """
-        self.store_data_chunk("data", partial_result, grow_dimension=0, close_file=False)
+        self.store_data_chunk("data", partial_result, grow_dimension=grow_dimension, close_file=False)
 
 
     def get_min_max_values(self):

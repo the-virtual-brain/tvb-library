@@ -69,14 +69,26 @@ LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
 oscilator = models.Generic2dOscillator()
 white_matter = connectivity.Connectivity()
-white_matter.speed = numpy.array([4.0])
+white_matter.speed = numpy.array([8.0])
 
 white_matter_coupling = coupling.Linear(a=0.0152)
 
 #Initialise an Integrator
-hiss = noise.Additive(nsig = numpy.array([2**-10,]))
-heunint = integrators.HeunStochastic(dt=2**-4, noise=hiss)
 
+
+my_rstr = noise.RandomStream(init_seed=13)
+
+# set numpy's seed
+#numpy.random.RandomState(seed=my_seed)
+#numpy.random.seed(my_seed)
+#my_rng = random.RandomState(my_seed)
+
+hiss = noise.Additive(random_stream=my_rstr, nsig = 0.08)
+heunint = integrators.HeunStochastic(dt=2**-2, noise=hiss)
+heunint.configure()
+#print heunint.noise.random_stream.trait.value.get_state()[1][0]
+
+#import pdb; pdb.set_trace()
 #Initialise some Monitors with period in physical time
 momo = monitors.Raw()
 mama = monitors.TemporalAverage(period=2**-1)
@@ -97,11 +109,12 @@ raw_data = []
 raw_time = []
 tavg_data = []
 tavg_time = []
-for raw, tavg in sim(simulation_length=2**8):
+for raw, tavg in sim(simulation_length=2**1):
+
     if not raw is None:
         raw_time.append(raw[0])
         raw_data.append(raw[1])
-    
+
     if not tavg is None:
         tavg_time.append(tavg[0])
         tavg_data.append(tavg[1])

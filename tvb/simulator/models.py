@@ -73,7 +73,7 @@ class Model(core.Type):
     .. automethod:: Model.update_derived_parameters
 
     """
-    _base_classes = ['Model', "LileySteynRoss", "JansenRitDavid"]
+    _base_classes = ['Model', "JRFast"]
     #NOTE: the parameters that are contained in the following list will be
     #      editable from the ui in an visual manner
     ui_configurable_parameters = []
@@ -173,6 +173,7 @@ class Model(core.Type):
         if self.noise.ntau > 0.0:
             self.noise.configure_coloured(dt, shape)
         else:
+            # The same applies for truncated rv
             self.noise.configure_white(dt, shape)
 
 
@@ -182,12 +183,22 @@ class Model(core.Type):
         these initial conditions be guaranteed to be sensible for the default
         parameter set.
 
+        It is often seen that initial conditions or initial history are filled
+        following ic = nsig * noise + loc, where noise is a stream of random
+        numbers drawn from a uniform or normal distribution.
+
+        Here, the noise is integrated, that is the initial conditions are
+        described by a diffusion process.
+
         """
-        #NOTE: The following factor is set such that it considers the worst
-        #case possible for the history array, that is, low conduction speed,
-        #small 'dt' and the longest fibre. With this we expect to bound the
-        #diffussion process used to set the initial history to the state
-        #variable ranges.  
+        #NOTE: The following max_history_length factor is set such that it
+        #considers the worst case possible for the history array, that is, low
+        #conduction speed and the longest white matter fibre. With this, plus
+        #drawing the random stream of numbers from a truncated normal
+        #distribution, we expect to bound the diffussion process used to set
+        #the initial history to the state variable ranges. (even for the case
+        #of rate based models)
+
         # Example:
         #        + longest fiber: 200 mm (Ref:)
         #        + min conduction speed: 3 mm/ms (Ref: http://www.scholarpedia.org/article/Axonal_conduction_delays) 
@@ -195,7 +206,7 @@ class Model(core.Type):
         #        + max time delay: tau = longest fibre / speed \approx 67 ms
         #        + let's hope for the best...
 
-        max_history_length = 67. 
+        max_history_length = 67. # ms
         #TODO: There is an issue of allignment when the current implementation 
         #      is used to pad out explicit inital conditions that aren't as long
         #      as the required history...
@@ -207,6 +218,10 @@ class Model(core.Type):
         #      temporally coloured noise hasn't un-whitened the spatial noise
         #      distribution to start with... [ie, spatial colour is a longer
         #      term problem to solve...])
+        #TODO: Ideally we'd like to have a independent random stream for each node.
+        #      Currently, if the number of nodes is different we'll get the
+        #      slightly different values further in the history array.
+
         initial_conditions = numpy.zeros(history_shape)
         tpts = history_shape[0]
         nvar = history_shape[1]
@@ -214,19 +229,28 @@ class Model(core.Type):
         
         self.configure_initial(dt, history_shape)
         noise = numpy.zeros((tpts, nvar) + history_shape)
+        nsig  = numpy.zeros(nvar)
+        loc   = numpy.zeros(nvar)  
 
         for tpt in range(tpts):
             for var in range(nvar):
-                noise[tpt, var, :] = self.noise.generate(history_shape)
+                loc[var]  = self.state_variable_range[self.state_variables[var]].mean()
+                nsig[var] = (self.state_variable_range[self.state_variables[var]][1] -
+                             self.state_variable_range[self.state_variables[var]][0]) / 2.0 
+                nsig[var] = nsig[var] / max_history_length
+
+                # define lower und upper bounds to truncate the random variates to the sv range.
+                lo = self.state_variable_range[self.state_variables[var]][0]
+                hi = self.state_variable_range[self.state_variables[var]][1]
+                lo_bound, up_bound = (lo - loc[var]) / nsig[var], (hi - loc[var]) / nsig[var]
+                
+                noise[tpt, var, :] = self.noise.generate(history_shape, truncate=True, 
+                                                         lo=lo_bound, hi=up_bound)
         
         for var in range(nvar):
-            loc = self.state_variable_range[self.state_variables[var]].mean()
-            nsig = (self.state_variable_range[self.state_variables[var]][1] -
-                    self.state_variable_range[self.state_variables[var]][0]) / 2.0 
-            nsig = nsig / max_history_length
-                #initial_conditions[:, var, :] = nsig * noise + loc
                 #TODO: Hackery, validate me...-noise.mean(axis=0) ... self.noise.nsig
-            initial_conditions[:, var, :] = numpy.sqrt(2.0 * nsig) * numpy.cumsum(noise[:, var, :],axis=0) + loc
+            initial_conditions[:, var, :] = numpy.sqrt(2.0 * nsig[var]) * numpy.cumsum(noise[:, var, :],axis=0) + loc[var]
+
         return initial_conditions
 
 
@@ -1871,6 +1895,7 @@ class JansenRit(Model):
         y5 = state_variables[5, :]
 
         lrc = coupling[0, :] -  coupling[1, :]
+        short_range_coupling =  local_coupling*(y1 -  y2)
 
         # NOTE: for local couplings
         # 0: pyramidal cells
@@ -1898,7 +1923,7 @@ class JansenRit(Model):
         dy0 = y3
         dy3 = self.A * self.a * sigm_y1_y2 - 2.0 * self.a * y3 - self.a ** 2 * y0
         dy1 = y4
-        dy4 = self.A * self.a * (self.mu + self.a_2 * self.J * sigm_y0_1 + lrc) - 2.0 * self.a * y4 - self.a ** 2 * y1
+        dy4 = self.A * self.a * (self.mu + self.a_2 * self.J * sigm_y0_1 + lrc + short_range_coupling) - 2.0 * self.a * y4 - self.a ** 2 * y1
         dy2 = y5
         dy5 = self.B * self.b * (self.a_4 * self.J * sigm_y0_3) - 2.0 * self.b * y5 - self.b ** 2 * y2
 
@@ -1952,7 +1977,8 @@ class JansenRit(Model):
         DX(4) = A * a * (mu + a_2 * J * sigm_y0_1 + c_0) - 2.0 * a * y4 - a*a*y1;
         DX(5) = B * b * (a_4 + J * sigm_y0_3) - 2.0 * b * y5 - b*b*y2;
         """
-    )
+
+
 
 class JRFast(JansenRit):
     """
@@ -1963,8 +1989,8 @@ class JRFast(JansenRit):
     the dfun method, so if you change the number of nodes or the parameters, you
     need to invalidate the cache by setting the invalid_dfun_cache attribute to
     True.
-
     """
+    _ui_name = "Jansen-Rit-Optimized"
 
     invalid_dfun_cache = True
 
@@ -1973,7 +1999,6 @@ class JRFast(JansenRit):
 
         if self.invalid_dfun_cache:
             self.dy = y.copy() * 0.0
-            self.y1m2 = y[1].copy()
             self.dfunlocals = {}
             for k in ['nu_max', 'r', 'v0', 'a_1', 'J', 'a_3', 'A', 'a', 'mu', 
                     'a_2', 'B', 'b', 'a_4']:
@@ -1989,18 +2014,15 @@ class JRFast(JansenRit):
         l['c0'], l['c1'] = coupling
 
         # self.cvar = numpy.array([1, 2], dtype=numpy.int32)
-        self.y1m2[:] = y[1]
-        self.y1m2 -= y[2]
-        l['lc'] = local_coupling * self.y1m2
+        l['lc0'], l['lc1'] = local_coupling * y[1], local_coupling * y[2]
 
         self.dy[:3] = y[3:]
 
         ev('A * a * (2.0 * nu_max / (1.0 + exp(r * (v0 - (y1 - y2))))) - 2.0 * a * y3 - a ** 2 * y0', l, g, out=self.dy[3], casting='no')
-        ev('A * a * (mu + a_2 * J * (2.0 * nu_max / (1.0 + exp(r * (v0 - (a_1 * J * y0))))) + (c0 - c1) + lc) - 2.0 * a * y4 - a ** 2 * y1', l, g, out=self.dy[4], casting='no')
+        ev('A * a * (mu + a_2 * J * (2.0 * nu_max / (1.0 + exp(r * (v0 - (a_1 * J * y0))))) + (c0 - c1) + (lc0 - lc1)) - 2.0 * a * y4 - a ** 2 * y1', l, g, out=self.dy[4], casting='no')
         ev('B * b * (a_4 * J * (2.0 * nu_max / (1.0 + exp(r * (v0 - (a_3 * J * y0)))))) - 2.0 * b * y5 - b ** 2 * y2', l, g, out=self.dy[5], casting='no')
 
         return self.dy
-
 
 
 class Generic2dOscillator(Model):
@@ -2206,7 +2228,7 @@ class Generic2dOscillator(Model):
         order=-1)
 
     alpha = arrays.FloatArray(
-        label=":math:`\alpha`",
+        label=r":math:`\alpha`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=-5.0, hi=5.0, step=0.0001),
         doc="""Constant parameter to scale the rate of feedback from the
@@ -2214,7 +2236,7 @@ class Generic2dOscillator(Model):
         order=-1)
 
     beta = arrays.FloatArray(
-        label=":math:`\beta`",
+        label=r":math:`\beta`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=-5.0, hi=5.0, step=0.0001),
         doc="""Constant parameter to scale the rate of feedback from the
@@ -2356,359 +2378,413 @@ class Generic2dOscillator(Model):
     )
 
 
-class LileySteynRoss(Model):     
+class LarterBreakspear(Model):
     """
-    Liley lumped model as presented in Steyn-Ross et al 1999.
+    A modified Morris-Lecar model that includes a third equation which simulates
+    the effect of a population of inhibitory interneurons synapsing on
+    the pyramidal cells.
+    
+    .. [Larteretal_1999] Larter et.al. *A coupled ordinary differential equation
+        lattice model for the simulation of epileptic seizures.* Chaos. 9(3):
+        795, 1999.
+    
+    .. [Breaksetal_2003_a] Breakspear, M.; Terry, J. R. & Friston, K. J.  *Modulation of excitatory
+        synaptic coupling facilitates synchronization and complex dynamics in an
+        onlinear model of neuronal dynamics*. Neurocomputing 52–54 (2003).151–158
 
-    This  model is to be use for modellin cortical dynamics in which "inputs"
-    to neuronal assemblies are treated as random Gaussian fluctuations about a
-    mean value. Anesthetic agent effects are modelled as as a modulation of the
-    inhibitory neurotransmitter rate constant.
+    .. [Breaksetal_2003_b] M. J. Breakspear et.al. *Modulation of excitatory 
+        synaptic coupling facilitates synchronization and complex dynamics in a
+        biophysical model of neuronal dynamics.* Network: Computation in Neural
+        Systems 14: 703-732, 2003.
 
-    The main state variable is h_e, the average excitatory soma potential,
-    coherent fluctuations of which are believed to be the source of scalp-measured
-    electroencephalogram ͑EEG͒ signals.
+    .. [Honeyetal_2007] Honey, C.; Kötter, R.; Breakspear, M. & Sporns, O. * Network structure of
+        cerebral cortex shapes functional connectivity on multiple time scales*. (2007)
+        PNAS, 104, 10240
 
-    Parameters are taken from Table 1 [Steyn-Ross_1999]
+    .. [Honeyetal_2009] Honey, C. J.; Sporns, O.; Cammoun, L.; Gigandet, X.; Thiran, J. P.; Meuli,
+        R. & Hagmann, P. *Predicting human resting-state functional connectivity
+        from structural connectivity.* (2009), PNAS, 106, 2035-2040
 
+    .. [Alstottetal_2009] Alstott, J.; Breakspear, M.; Hagmann, P.; Cammoun, L. & Sporns, O.
+        *Modeling the impact of lesions in the human brain*. (2009)),  PLoS Comput Biol, 5, e1000408
 
-    State variables:
-
-    h_e: exc population mean soma potential [mV]
-    h_i: exc population mean soma potential [mV]
-
-    I_ee: total 'exc' current input to 'exc' synapses [mV]
-    I_ie: total 'inh' current input to 'exc' synapses [mV]
-    I_ei: total 'exc' current input to 'inh' synapses [mV]
-    I_ii: total 'inh' current input to 'inh' synapses [mV]
-
-    :math:`\Psi_{jk}`:  weighting factors for the I_jk inputs [dimensionless]
-
-    :math:`phi_e`: long-range (cortico-cortical) spike input to exc population
-    :math:`phi_i`: long-range (cortico-cortical) spike input to inh population [ms-1]
-
-    EPSP: exc post-synaptic potential [mV]
-    IPSP: inh post-synaptic potential [mV]
-
-    Mean axonal conduction speed: 7 mm/ms
-
-    S_e(h_e): sigmoid function mapping soma potential to firing rate [ms]-1
-    S_i(h_i): sigmoid function mapping soma potential to firing rate [ms]-1
+    Equations and default parameters are taken from [Breaksetal_2003_b]_. 
+    All equations and parameters are non-dimensional and normalized.
+    For values of d_v  < 0.55, the dynamics of a single column settles onto a 
+    solitary fixed point attractor.
 
 
+    Parameters used for simulations in [Breaksetal_2003_a]_ Table 1. Page 153.
+    Two nodes were coupled. C=0.1
 
-    The models (:math:`h_e`, :math:h_i`) phase-plane, including a representation of
-    the vector field as well as its nullclines, using default parameters, can be
-    seen below:
+    +---------------------------+
+    |          Table 1          | 
+    +--------------+------------+
+    |Parameter     |  Value     |
+    +--------------+------------+
+    | I            |      0.3   |
+    | a_ee         |      0.4   |
+    | a_ei         |      0.1   |
+    | a_ie         |      1.0   |
+    | a_ne         |      1.0   |
+    | a_ni         |      0.4   |
+    | r_NMDA       |      0.2   |
+    | delta        |      0.001 |
+    +---------------------------+
+    |   Breakspear et al. 2003  |
+    +---------------------------+
 
-        .. _phase-plane-LSR:
-        .. figure :: img/LileySteynRoss_01_mode_0_pplane.svg
-            :alt: LileySteynRoss phase plane (E, I)
 
-            The (:math:`h_e`, :math:`hi`) phase-plane for the LileySteynRoss model.
+    +---------------------------+
+    |          Table 2          | 
+    +--------------+------------+
+    |Parameter     |  Value     |
+    +--------------+------------+
+    | gK           |      2.0   |
+    | gL           |      0.5   |
+    | gNa          |      6.7   |
+    | gCa          |      1.0   |
+    | a_ne         |      1.0   |
+    | a_ni         |      0.4   |
+    | a_ee         |      0.36  |
+    | a_ei         |      2.0   |
+    | a_ie         |      2.0   |
+    | VK           |     -0.7   |
+    | VL           |     -0.5   |
+    | VNa          |      0.53  |
+    | VCa          |      1.0   |
+    | phi          |      0.7   | 
+    | b            |      0.1   |
+    | I            |      0.3   |
+    | r_NMDA       |      0.25  |
+    | C            |      0.1   |
+    | TCa          |     -0.01  |
+    | d_Ca         |      0.15  |
+    | TK           |      0.0   |
+    | d_K          |      0.3   |
+    | VT           |      0.0   |
+    | ZT           |      0.0   |
+    | TNa          |      0.3   |
+    | d_Na         |      0.15  |
+    | d_V          |      0.65  |
+    | d_Z          |      d_V   |
+    | QV_max       |      1.0   |
+    | QZ_max       |      1.0   |
+    +---------------------------+
+    |   Alstott et al. 2009     |
+    +---------------------------+
 
 
+    NOTES about parameters
+
+    d_V
+    For d_V < 0.55, uncoupled network, the system exhibits fixed point dynamics; 
+    for 55 < lb.d_V < 0.59, limit cycle atractors; 
+    and for d_V > 0.59 chaotic attractors (eg, d_V=0.6,aee=0.5,aie=0.5, gNa=0, Iext=0.165)
+
+    d_Z
+    this parameter might be spatialized: ones(N,1).*0.65 + modn*(rand(N,1)-0.5);
+
+    C
+    The long-range coupling 'C' is ‘weak’ in the sense that 
+    they investigated parameter values for which C < a_ee and C << a_ie.
+
+
+    
+    .. figure :: img/LarterBreakspear_01_mode_0_pplane.svg
+            :alt: Larter-Breaskpear phase plane (V, W)
+            
+            The (:math:`V`, :math:`W`) phase-plane for the Larter-Breakspear model.
+    
+    .. automethod:: LarterBreakspear.__init__
+    
     """
-    _ui_name = "Liley-SteynRoss model"
-    #ui_configurable_parameters = []
-
+    
+    _ui_name = "Larter-Breakspear"
+    ui_configurable_parameters = ['gCa', 'gK', 'gL', 'phi', 'gNa', 'TK', 'TCa',
+                                  'TNa', 'VCa', 'VK', 'VL', 'VNa', 'd_K', 'tau_K',
+                                  'd_Na', 'd_Ca', 'aei', 'aie', 'b', 'C', 'ane',
+                                  'ani', 'aee', 'Iext', 'rNMDA', 'VT', 'd_V', 'ZT',
+                                  'd_Z', 'QV_max', 'QZ_max']
+    
     #Define traited attributes for this model, these represent possible kwargs.
+    gCa = arrays.FloatArray(
+        label = ":math:`g_{Ca}`",
+        default = numpy.array([1.1]),
+        range = basic.Range(lo = 0.9, hi = 1.5, step = 0.1),
+        doc = """Conductance of population of Ca++ channels.""")
+    
+    gK = arrays.FloatArray(
+        label = ":math:`g_{K}`",
+        default = numpy.array([2.0]),
+        range = basic.Range(lo = 1.95, hi= 2.05, step = 0.025),
+        doc = """Conductance of population of K channels.""")
+    
+    gL = arrays.FloatArray(
+        label = ":math:`g_{L}`",
+        default = numpy.array([0.5]),
+        range = basic.Range(lo = 0.45 , hi = 0.55, step = 0.05),
+        doc = """Conductance of population of leak channels.""")
+    
+    phi = arrays.FloatArray(
+        label = r":math:`\phi`",
+        default = numpy.array([0.7]),
+        range = basic.Range(lo = 0.3, hi = 0.9, step = 0.1),
+        doc = """Temperature scaling factor.""")
+    
+    gNa = arrays.FloatArray(
+        label = ":math:`g_{Na}`",
+        default = numpy.array([6.7]),
+        range = basic.Range(lo = 0.0, hi = 10.0, step = 0.1),
+        doc = """Conductance of population of Na channels.""")
+    
+    TK = arrays.FloatArray(
+        label = ":math:`T_{K}`",
+        default = numpy.array([0.0]),
+        range = basic.Range(lo = 0.0, hi = 0.0001, step = 0.00001),
+        doc = """Threshold value for K channels.""")
+    
+    TCa = arrays.FloatArray(
+        label = ":math:`T_{Ca}`",
+        default = numpy.array([-0.01]),
+        range = basic.Range(lo = -0.02, hi=-0.01, step = 0.0025),
+        doc = "Threshold value for Ca channels.")
+    
+    TNa = arrays.FloatArray(
+        label = ":math:`T_{Na}`",
+        default = numpy.array([0.3]),
+        range = basic.Range(lo = 0.25, hi= 0.3, step = 0.025),
+        doc = "Threshold value for Na channels.")
+    
+    VCa = arrays.FloatArray(
+        label = ":math:`V_{Ca}`",
+        default = numpy.array([1.0]),
+        range = basic.Range(lo = 0.9, hi = 1.1, step = 0.05),
+        doc = """Ca Nernst potential.""")
+    
+    VK = arrays.FloatArray(
+        label = ":math:`V_{K}`",
+        default = numpy.array([-0.7]),
+        range = basic.Range(lo = -0.8, hi = 1., step = 0.1),
+        doc = """K Nernst potential.""")
+    
+    VL = arrays.FloatArray(
+        label = ":math:`V_{L}`",
+        default = numpy.array([-0.5]),
+        range = basic.Range(lo = -0.7, hi = -0.4, step = 0.1),
+        doc = """Nernst potential leak channels.""")
+    
+    VNa = arrays.FloatArray(
+        label = ":math:`V_{Na}`",
+        default = numpy.array([0.53]),
+        range = basic.Range(lo = 0.51, hi = 0.55, step = 0.01),
+        doc = """Na Nernst potential.""")
+    
+    d_K = arrays.FloatArray(
+        label = r":math:`\delta_{K}`",
+        default = numpy.array([0.3]),
+        range = basic.Range(lo = 0.1, hi = 0.4, step = 0.1),
+        doc = """Variance of K channel threshold.""")
+    
+    tau_K = arrays.FloatArray(
+        label = r":math:`\tau_{K}`",
+        default = numpy.array([1.0]),
+        range = basic.Range(lo = 0.01, hi = 0.0, step = 0.1),
+        doc = """Time constant for K relaxation time (ms)""")
+    
+    d_Na = arrays.FloatArray(
+        label = r":math:`\delta_{Na}`",
+        default = numpy.array([0.15]),
+        range = basic.Range(lo = 0.1, hi = 0.2, step = 0.05),
+        doc = "Variance of Na channel threshold.")
+    
+    d_Ca = arrays.FloatArray(
+        label = r":math:`\delta_{Ca}`",
+        default = numpy.array([0.15]),
+        range = basic.Range(lo = 05.1, hi = 0.2, step = 0.05),
+        doc = "Variance of Ca channel threshold.")
+    
+    aei = arrays.FloatArray(
+        label = ":math:`a_{ei}`",
+        default = numpy.array([2.0]),
+        range = basic.Range(lo = 0.1, hi = 2.0, step = 0.1),
+        doc = """Excitatory-to-inhibitory synaptic strength.""")
+    
+    aie = arrays.FloatArray(
+        label = ":math:`a_{ie}`",
+        default = numpy.array([2.0]),
+        range = basic.Range(lo = 0.5, hi = 2.0, step = 0.1),
+        doc = """Inhibitory-to-excitatory synaptic strength.""")
+    
+    b = arrays.FloatArray(
+        label = ":math:`b`",
+        default = numpy.array([0.1]),
+        range = basic.Range(lo = 0.0001, hi = 1.0, step = 0.0001),
+        doc = """Time constant scaling factor. The original value is 0.1""")
+    
+    C = arrays.FloatArray(
+        label = ":math:`C`",    
+        default = numpy.array([0.1]),
+        range = basic.Range(lo = 0.0, hi = 0.2, step = 0.01),
+        doc = """Strength of excitatory coupling. Balance between internal and
+        local (and global) coupling strength. C > 0 introduces interdependences between 
+        consecutive columns/nodes. C=1 corresponds to maximum coupling.
+        This strenght should be set to sensible values when a whole network is connected. """)
+    
+    ane = arrays.FloatArray(
+        label = ":math:`a_{ne}`",
+        default = numpy.array([1.0]),
+        range = basic.Range(lo = 0.4, hi = 1.0, step = 0.05),
+        doc = """Non-specific-to-excitatory synaptic strength.""")
+    
+    ani = arrays.FloatArray(
+        label = ":math:`a_{ni}`",
+        default = numpy.array([0.4]),
+        range = basic.Range(lo = 0.3, hi = 0.5, step = 0.05),
+        doc = """Non-specific-to-inhibitory synaptic strength.""")
+    
+    aee = arrays.FloatArray(
+        label = ":math:`a_{ee}`",
+        default = numpy.array([0.4]),
+        range = basic.Range(lo = 0.4, hi = 0.6, step = 0.05),
+        doc = """Excitatory-to-excitatory synaptic strength.""")
+    
+    Iext = arrays.FloatArray(
+       label = ":math:`I_{ext}`",
+       default = numpy.array([0.3]),
+       range = basic.Range(lo = 0.165, hi = 0.3, step = 0.005),
+       doc = """Subcortical input strength. It represents a non-specific
+       excitation or thalamic inputs.""")
+    
+    rNMDA = arrays.FloatArray(
+        label = ":math:`r_{NMDA}`",
+        default = numpy.array([0.25]),
+        range = basic.Range(lo = 0.2, hi = 0.3, step = 0.05),
+        doc = """Ratio of NMDA to AMPA receptors.""")
+    
+    VT = arrays.FloatArray(
+        label = ":math:`V_{T}`",
+        default = numpy.array([0.0]),
+        range = basic.Range(lo = 0.0, hi = 0.7, step = 0.01),
+        doc = """Threshold potential (mean) for excitatory neurons. 
+        In [Breaksetal_2003_b]_ this values is 0.""")
+    
+    d_V = arrays.FloatArray(
+        label = r":math:`\delta_{V}`",
+        default = numpy.array([0.65]),
+        range = basic.Range(lo = 0.49, hi = 0.7, step = 0.01),
+        doc = """Variance of the excitatory threshold. It is one of the main
+        parameters explored in [Breaksetal_2003_b]_.""")
+    
+    ZT = arrays.FloatArray(
+        label = ":math:`Z_{T}`",
+        default = numpy.array([0.0]),
+        range = basic.Range(lo = 0.0, hi = 0.1, step = 0.005),
+        doc = """Threshold potential (mean) for inihibtory neurons.""")
+    
+    d_Z = arrays.FloatArray(
+        label = r":math:`\delta_{Z}`",
+        default = numpy.array([0.7]),
+        range = basic.Range(lo = 0.001, hi = 0.75, step = 0.05),
+        doc = """Variance of the inhibitory threshold.""")
+        
+    # NOTE: the values were not in the article. 
+    QV_max = arrays.FloatArray(
+        label = ":math:`Q_{max}`",
+        default = numpy.array([1.0]),
+        range = basic.Range(lo = 0.1, hi = 1., step = 0.001),
+        doc = """Maximal firing rate for excitatory populations (kHz)""")
 
-    tau_e = arrays.FloatArray(
-        label=r":math:`\tau_e`",
-        default=numpy.array([40.0]),
-        range=basic.Range(lo=5.0, hi=50.0, step=1.00),
-        doc="""Excitatory population, membrane time-constant [ms]""",
-        order=1)
+    QZ_max = arrays.FloatArray(
+        label = ":math:`Q_{max}`",
+        default = numpy.array([1.0]),
+        range = basic.Range(lo = 0.1, hi = 1., step = 0.001),
+        doc = """Maximal firing rate for excitatory populations (kHz)""")
 
-    tau_i = arrays.FloatArray(
-        label=r":math:`\tau_i`",
-        default=numpy.array([40.0]),
-        range=basic.Range(lo=5.0, hi=50.0, step=1.0),
-        doc="""Inhibitory population, membrane time-constant [ms]""",
-        order=2)
-
-    h_e_rest = arrays.FloatArray(
-        label=r":math:`h_e^{rest}`",
-        default=numpy.array([-70.0]),
-        range=basic.Range(lo=-90.0, hi=-50.0, step=10.00),
-        doc="""Excitatory population, cell resting potential [mV]""",
-        order=3)
-
-    h_i_rest = arrays.FloatArray(
-        label=r":math:`h_i^{rest}`",
-        default=numpy.array([-70.0]),
-        range=basic.Range(lo=-90.0, hi=-50.0, step=10.0),
-        doc="""Inhibitory population, cell resting potential [mV]""",
-        order=4)
-
-    h_e_rev = arrays.FloatArray(
-        label=r":math:`h_e^{rev}`",
-        default=numpy.array([45.0]),
-        range=basic.Range(lo=0.0, hi=50.0, step=5.00),
-        doc="""Excitatory population, cell reversal potential [mV]""",
-        order=42)
-
-    h_i_rev = arrays.FloatArray(
-        label=r":math:`h_i^{rev}`",
-        default=numpy.array([-90.0]),
-        range=basic.Range(lo=-90.0, hi=-50.0, step=10.0),
-        doc="""Inhibitory population, cell reversal potential [mV]""",
-        order=43)
-
-    p_ee = arrays.FloatArray(
-        label=":math:`p_{ee}`",
-        default=numpy.array([1.1]),
-        range=basic.Range(lo=1.0, hi=1.8, step=0.1),
-        doc="""Exogenous (subcortical) spike input to exc population [ms]-1 [kHz]. 
-               This could be replaced by a noise term""",
-        order=5)
-
-    p_ie = arrays.FloatArray(
-        label=":math:`p_{ie}`",
-        default=numpy.array([1.6]),
-        range=basic.Range(lo=1.0, hi=1.8, step=0.1),
-        doc="""Exogenous (subcortical) spike input to exc population [ms]-1 [kHz]. 
-               This could be replaced by a noise term""",
-        order=6)
-
-    p_ei = arrays.FloatArray(
-        label=":math:`p_{ei}`",
-        default=numpy.array([1.6]),
-        range=basic.Range(lo=1.0, hi=1.8, step=0.1),
-        doc="""Exogenous (subcortical) spike input to inh population [ms]-1 [kHz]. 
-               This could be replaced by a noise term""",
-        order=7)
-
-    p_ii = arrays.FloatArray(
-        label=":math:`p_{ii}`",
-        default=numpy.array([1.1]),
-        range=basic.Range(lo=1.0, hi=1.8, step=0.1),
-        doc="""Exogenous (subcortical) spike input to inh population [ms]-1 [kHz]. 
-               This could be replaced by a noise term""",
-        order=8)
-
-
-    A_ee = arrays.FloatArray(
-        label=r":math:`\Alpha_{ee}`",
-        default=numpy.array([0.04]),
-        range=basic.Range(lo=0.02, hi=0.06, step=0.01),
-        doc="""Characteristic cortico-cortical inverse length scale [mm]-1. Original: 0.4 cm-1""",
-        order=9)
-
-    A_ei = arrays.FloatArray(
-        label=r":math:`\Alpha_{ei}`",
-        default=numpy.array([0.065]),
-        range=basic.Range(lo=0.02, hi=0.08, step=0.01),
-        doc="""Characteristic cortico-cortical inverse length scale [mm]-1. Original: 0.4 cm-1""",
-        order=10)
-
-
-    gamma_e = arrays.FloatArray(
-        label=r":math:`\gamma_e`",
-        default=numpy.array([0.3]),
-        range=basic.Range(lo=0.1, hi=0.4, step=0.01),
-        doc="""Neurotransmitter rate constant"for EPSP [ms]-1""",
-        order=11)
-
-    gamma_i = arrays.FloatArray(
-        label=r":math:`\gamma_i`",
-        default=numpy.array([0.065]),
-        range=basic.Range(lo=0.005, hi=0.1, step=0.005),
-        doc="""Neurotransmitter rate constant"for IPSP [ms]-1""",
-        order=12)
-
-    G_e = arrays.FloatArray(
-        label=":math:`G_e`",
-        default=numpy.array([0.18]),
-        range=basic.Range(lo=0.1, hi=0.5, step=0.01),
-        doc="""peak ampplitude of EPSP [mV]""",
-        order=13)
-
-    G_i = arrays.FloatArray(
-        label=":math:`G_i`",
-        default=numpy.array([0.37]),
-        range=basic.Range(lo=0.1, hi=0.5, step=0.01),
-        doc="""peak ampplitude of IPSP [mV]""",
-        order=14)
-
-    N_b_ee = arrays.FloatArray(
-        label=":math:`N_{ee}^{\beta}`",
-        default=numpy.array([3034.0]),
-        range=basic.Range(lo=3000., hi=3050., step=10.0),
-        doc="""Total number of local exc to exc synaptic connections.""",
-        order=15)
-
-    N_b_ei = arrays.FloatArray(
-        label=":math:`N_{ei}^{\beta}`",
-        default=numpy.array([3034.0]),
-        range=basic.Range(lo=3000., hi=3050., step=10.0),
-        doc="""Total number of local exc to inh synaptic connections.""",
-        order=16)
-
-    N_b_ie = arrays.FloatArray(
-        label=":math:`N_{ie}^{\beta}`",
-        default=numpy.array([536.0]),
-        range=basic.Range(lo=500., hi=550., step=1.0),
-        doc="""Total number of local inh to exc synaptic connections.""",
-        order=17)
-
-    N_b_ii = arrays.FloatArray(
-        label=":math:`N_{ii}^{\beta}`",
-        default=numpy.array([536.0]),
-        range=basic.Range(lo=500., hi=550., step=1.0),
-        doc="""Total number of local inh to inh synaptic connections.""",
-        order=18)
-
-
-    N_a_ee = arrays.FloatArray(
-        label=":math:`N_{ee}^{\alpha}`",
-        default=numpy.array([4000.0]),
-        range=basic.Range(lo=3000., hi=5000., step=10.0),
-        doc="""Total number of synaptic connections from distant exc populations""",
-        order=19)
-
-    N_a_ei = arrays.FloatArray(
-        label=":math:`N_{ei}^{\alpha}`",
-        default=numpy.array([2000.0]),
-        range=basic.Range(lo=1000., hi=3000., step=1.0),
-        doc="""Total number of synaptic connections from distant exc populations""",
-        order=20)
-
-    theta_e = arrays.FloatArray(
-        label=":math:`\theta_e`",
-        default=numpy.array([-60.0]),
-        range=basic.Range(lo=-90.0, hi=-40.0, step=5.0),
-        doc="""inflection point voltage for sigmoid function [mV]""",
-        order=21)
-
-    theta_i = arrays.FloatArray(
-        label=":math:`\theta_i`",
-        default=numpy.array([-60.0]),
-        range=basic.Range(lo=-90.0, hi=-40.0, step=5.0),
-        doc="""inflection point voltage for sigmoid function [mV]""",
-        order=22)
-
-    g_e = arrays.FloatArray(
-        label=":math:`g_e`",
-        default=numpy.array([0.28]),
-        range=basic.Range(lo=0.0, hi=2.0, step=0.01),
-        doc="""Sigmoid slope at inflection point exc population [mV]-1""",
-        order=23)
-
-    g_i = arrays.FloatArray(
-        label=":math:`g_i`",
-        default=numpy.array([0.14]),
-        range=basic.Range(lo=0.0, hi=2.0, step=0.01),
-        doc="""Sigmoid slope at inflection point inh population [mV]-1""",
-        order=24)
-
-    lambd = arrays.FloatArray(
-        label=":math:`\lambda`",
-        default=numpy.array([1.0]),
-        range=basic.Range(lo=0.0, hi=2.0, step=0.01),
-        doc="""Anesthetic effects""",
-        order=24)
-
-    #Used for phase-plane axis ranges and to bound random initial() conditions.
-    state_variable_range = basic.Dict(
-        label="State Variable ranges [lo, hi]",
-        default={"he": numpy.array([-90.0, 70.0]),
-                 "hi": numpy.array([-90.0, 70.0])},
-        doc="""The values for each state-variable should be set to encompass
-        the expected dynamic range of that state-variable for the current 
-        parameters, it is used as a mechanism for bounding random inital 
-        conditions when the simulation isn't started from an explicit history,
-        it is also provides the default range of phase-plane plots.""",
-        order=25)
-
-    #    variables_of_interest = arrays.IntegerArray(
-    #        label = "Variables watched by Monitors",
-    #        range = basic.Range(lo = 0.0, hi = 2.0, step = 1.0),
-    #        default = numpy.array([0], dtype=numpy.int32),
-    #        doc = """This represents the default state-variables of this Model to be
-    #        monitored. It can be overridden for each Monitor if desired. The
-    #        corresponding state-variable indices for this model are :math:`E = 0`
-    #        and :math:`I = 1`.""",
-    #        order = 16)
 
     variables_of_interest = basic.Enumerate(
         label="Variables watched by Monitors",
-        options=["he", "hi"],
-        default=["he"],
+        options=["V", "W", "Z"],
+        default=["V"],
         select_multiple=True,
         doc="""This represents the default state-variables of this Model to be
-                                    monitored. It can be overridden for each Monitor if desired. The 
-                                    corresponding state-variable indices for this model are :math:`E = 0`
-                                    and :math:`I = 1`.""",
-        order=26)
-
-    #    coupling_variables = arrays.IntegerArray(
-    #        label = "Variables to couple activity through",
-    #        default = numpy.array([0], dtype=numpy.int32))
-
-    #    nsig = arrays.FloatArray(
-    #        label = "Noise dispersion",
-    #        default = numpy.array([0.0]),
-    #        range = basic.Range(lo = 0.0, hi = 1.0))
-
-
+        monitored. It can be overridden for each Monitor if desired.""",
+        order=10)
+    
+    #Informational attribute, used for phase-plane and initial()
+    state_variable_range = basic.Dict(
+        label = "State Variable ranges [lo, hi]",
+        default = {"V": numpy.array([-0.5, 0.5]),
+                   "W": numpy.array([-0.5, 0.5]),
+                   "Z": numpy.array([-0.5, 0.5])},
+        doc = """The values for each state-variable should be set to encompass
+            the expected dynamic range of that state-variable for the current 
+            parameters, it is used as a mechanism for bounding random inital 
+            conditions when the simulation isn't started from an explicit
+            history, it is also provides the default range of phase-plane plots.""")
+    
+    
     def __init__(self, **kwargs):
         """
-        Initialize the Liley Steyn-Ross model's traited attributes, any provided as
-        keywords will overide their traited default.
-
+        .. May need to put kwargs back if we can't get them from trait...
+        
         """
+        
         LOG.info('%s: initing...' % str(self))
-        super(LileySteynRoss, self).__init__(**kwargs)
-        #self._state_variables = ["E", "I"]
-        self._nvar = 2
-        self.cvar = numpy.array([0, 1], dtype=numpy.int32)
+        
+        super(LarterBreakspear, self).__init__(**kwargs)
+        
+        self._state_variables = ["V", "W", "Z"]
+        
+        self._nvar = 3
+        self.cvar = numpy.array([0], dtype=numpy.int32)
+        
         LOG.debug('%s: inited.' % repr(self))
-
-
+    
+    
     def dfun(self, state_variables, coupling, local_coupling=0.0):
-        r"""
-
-        TODO:  include equations
-
         """
+        .. math::
+             \\dot{V} &= - (g_{Ca} + (1 - C) \\, r_{NMDA} \\, a_{ee} Q_V^i +
+            C \\, r_{NMDA} \\, a_{ee} \\langle Q_V \\rangle) \\, m_{Ca} \\,(V - V_{Ca})
+            - g_K\\, W\\, (V - V_K) - g_L\\, (V - V_L)
+            - (g_{Na} m_{Na} + (1 - C) \\, a_{ee} Q_V^i + 
+            C \\, a_{ee} \\langle Q_V \\rangle) \\, (V - V_{Na})
+            - a_{ie}\\, Z \\, Q_Z^i + a_{ne} \\, I_{\\delta}
+            
+            \\dot{W} &= \\frac{\\phi \\, (m_K - W)}{\\tau_K} \\\\
+            \\dot{Z} &= b \\, (a_{ni} \\, I_{\\delta} + a_{ei} \\, V \\, Q_V)\\\\
+            
+            m_{ion}(X) &= 0.5 \\, (1 + tanh(\\frac{V-T_{ion}}{\\delta_{ion}})
+            
+        See Equations (7), (3), (6) and (2) respectively in [Breaksetal_2003]_.
+        Pag: 705-706
+        
+        """
+        V = state_variables[0, :]
+        W = state_variables[1, :]
+        Z = state_variables[2, :]
 
-        he = state_variables[0, :]
-        hi = state_variables[1, :]
+        c_0   = coupling[0, :]    
+        lc_0  = local_coupling
+        
+        # relationship between membrane voltage and channel conductance
+        m_Ca = 0.5 * (1 + numpy.tanh((V - self.TCa) / self.d_Ca))
+        m_Na = 0.5 * (1 + numpy.tanh((V - self.TNa) / self.d_Na))
+        m_K  = 0.5 * (1 + numpy.tanh((V - self.TK )  / self.d_K))
+        
+        # voltage to firing rate
+        QV  = 0.5 * self.QV_max * (1 + numpy.tanh((V - self.VT) / self.d_V))
+        QZ  = 0.5 * self.QZ_max * (1 + numpy.tanh((Z - self.ZT) / self.d_Z))
+        
+        dV = (- (self.gCa + (1.0 - self.C) * self.rNMDA * self.aee * QV + self.C * self.rNMDA * self.aee * c_0) * m_Ca * (V - self.VCa) - self.gK * W * (V - self.VK) -  self.gL * (V - self.VL) - (self.gNa * m_Na + (1.0 - self.C) * self.aee * QV + self.C * self.aee * c_0) * (V - self.VNa) - self.aei * Z * QZ + self.ane * self.Iext)
 
-        # long-range coupling - phi_e -> he / phi_e -> h_i
-        c_0 = coupling[0, :]
-
-        # short-range (local) coupling - local coupling functions should be different for exc and inh
-        #lc_0 = local_coupling * he
-        #lc_1 = local_coupling * hi 
-
-        # 
-        psi_ee = (self.h_e_rev - he) / abs(self.h_e_rev - self.h_e_rest) # usually > 0
-        psi_ei = (self.h_e_rev - hi) / abs(self.h_e_rev - self.h_i_rest) # usually > 0
-        psi_ie = (self.h_i_rev - he) / abs(self.h_i_rev - self.h_e_rest) # usually < 0
-        psi_ii = (self.h_i_rev - hi) / abs(self.h_i_rev - self.h_i_rest) # usually < 0
-
-
-        S_e = 1.0 / (1.0 + numpy.exp(-self.g_e * (he + c_0 - self.theta_e)))
-        S_i = 1.0 / (1.0 + numpy.exp(-self.g_i * (hi + c_0 - self.theta_i)))
-
-        F1 = ((self.h_e_rest - he) + psi_ee * ((self.N_a_ee + self.N_b_ee) * S_e  + self.p_ee) * (self.G_e/self.gamma_e) +\
-                                  self.lambd * psi_ie * (self.N_b_ie * S_i + self.p_ie) * (self.G_i/self.gamma_i)) / self.tau_e
-
-        F2 = ((self.h_i_rest - hi) + psi_ei * ((self.N_a_ei + self.N_b_ei) * S_e  + self.p_ei) * (self.G_e/self.gamma_e) +\
-                                  self.lambd * psi_ii * (self.N_b_ii * S_i + self.p_ii) * (self.G_i/self.gamma_i)) / self.tau_i
-
-
-
-
-
-        dhe = F1 
-        dhi = F2
-
-        derivative = numpy.array([dhe, dhi])
-
+        dW = (self.phi * (m_K - W) / self.tau_K)
+        
+        dZ = (self.b * (self.ani * self.Iext + self.aei * V * QV))
+        
+        derivative = numpy.array([dV, dW, dZ])
+        
         return derivative
 
 
@@ -2726,7 +2802,7 @@ class ReducedWongWang(Model):
 
 
 
-    .. automethod:: __init__
+    .. automethod:: ReducedWongWang.__init__
 
     """
     _ui_name = "Reduced Wong-Wang"
@@ -2869,6 +2945,7 @@ class ReducedWongWang(Model):
         return derivative
 
 
+
 class Kuramoto(Model):
     """
     The Kuramoto model is a model of synchronization phenomena derived by
@@ -2878,8 +2955,8 @@ class Kuramoto(Model):
     See:
 
         .. [YK_1975] Y. Kuramoto, in: H. Arakai (Ed.), International Symposium
-            on Mathematical Problems in Theoretical Physics, Lecture Notes in
-            Physics, page 420, vol. 39, 1975.
+            on Mathematical Problems in Theoretical Physics, *Lecture Notes in
+            Physics*, page 420, vol. 39, 1975.
 
         .. [SS_2000] S. H. Strogatz. *From Kuramoto to Crawford: exploring the
             onset of synchronization in populations of coupled oscillators*.
@@ -3001,231 +3078,469 @@ class Kuramoto(Model):
     )
 
 
-
-class JansenRitDavid(Model):
-    """
-    The Jansen and Rit models as studied by David et al., 2005
-    #TODO: finish this model
-
-
-   
-    .. #Currently there seems to be a clash betwen traits and autodoc, autodoc
-    .. #can't find the methods of the class, the class specific names below get
-    .. #us around this...
-    .. automethod:: JansenRit.__init__
-    .. automethod:: JansenRit.dfun
-
+class BreakspearRobinsonRennieWright(Model):
     """
 
-    _ui_name = "Jansen-Rit (David et al., 2005)"
-    ui_configurable_parameters = []
+    A reduced version of a corticothalamic neural field model [Robinson_1997]_ as 
+    but without the second order derivative (Laplacian) [Robinson_2002]_ [Breakspear_2005]_ [Freyer_2011]_
+
+    The model describes the interaction of 4 neural populations:
+      + cortical pyramidal cells
+      + cortical inhibitory cells
+      + thalamic specific nucleus cells
+      + thalamic reticular nucleaus cells
 
 
+    Cross check with:
+    https://github.com/stuart-knock/BrainNetworkModels/blob/master/BRRW_heun.m
+
+
+
+    **References**:
+    
+        .. [Robinson_2002]
+    
+        .. [Robinson_1997]
+
+        .. [Breakspear_2005]
+
+        .. [Wilson]
+
+        .. [LopesDaSilva]
+
+        .. [Freyer_2011]
+
+        .. [Freyer_2009]
+
+        .. [Freyer_2012_Model] Freyer, F.; Reinacher, M.; Nolte, G.; Dinse, H. R. and
+                                Ritter, P. *Repetitive tactile stimulation changes resting-state
+                                functional connectivity-implications for treatment of sensorimotor decline*.
+                                Front Hum Neurosci, Bernstein Focus State Dependencies of Learning and
+                                Bernstein Center for Computational Neuroscience Berlin, Germany., 2012, 6, 144
+    
+    Equations and default parameters are taken from [Freyer_2011]_.
+
+
+    
+    .. figure :: img/BreakspearRobinsonRennieWright_01_mode_0_pplane.svg
+            :alt: Robinson phase plane (V, W)
+            
+            The (:math:`V`, :math:`W`) phase-plane for the Robinson model.
+    
+    .. automethod:: BreakspearRobinsonRennieWright.__init__
+    .. automethod:: BreakspearRobinsonRennieWright.dfun
+    .. automethod:: BreakspearRobinsonRennieWright.sigma_fun
+
+    """
+    
+    _ui_name = "Breakspear-Robinson-Rennie-Wright"
+    ui_configurable_parameters = ['Q_max', 'theta', 'sigma', 'gamma_e', 'alpha',
+                                  'beta', 't_0', 'nu_ee', 'nu_ie', 'nu_ei', 'nu_ii',
+                                  'nu_es', 'nu_is', 'nu_se', 'nu_sr', 'nu_sn', 'nu_re',
+                                  'nu_rs', 'nu_ss', 'nu_rr', 'chi', 'sigma_n']
+    
     #Define traited attributes for this model, these represent possible kwargs.
-    He = arrays.FloatArray(
-        label=":math:`He`",
-        default=numpy.array([3.25]),
-        range=basic.Range(lo=2.6, hi=9.75, step=0.05),
-        doc="""Maximum amplitude of EPSP [mV]. Also called average synaptic gain.""",
-        order=1)
+    Q_max = arrays.FloatArray(
+        label = ":math:`Q_{max}`",
+        default = numpy.array([0.250]),
+        range = basic.Range(lo = 0.100, hi = 0.250, step = 0.01),
+        doc = """Maximum firing rate [ms^-1].""")
+    
+    theta = arrays.FloatArray(
+        label = r":math:`\theta`",
+        default = numpy.array([15.]),
+        range = basic.Range(lo = 14., hi= 16., step = 0.01),
+        doc = """Mean neuronal threshold [mV]""")
+    
+    sigma = arrays.FloatArray(
+        label = r":math:`\sigma`",
+        default = numpy.array([6.]),
+        range = basic.Range(lo = 1.0 , hi = 10., step = 1.0),
+        doc = """Threshold SD [mV]""")
+    
+    gamma_e = arrays.FloatArray(
+        label = r":math:`\gamma_e`",
+        default = numpy.array([0.100]),
+        range = basic.Range(lo = 0.05, hi = 0.15, step = 0.01),
+        doc = """Ratio conduction velocity/mean range of axons [ms^-1]""")
+    
+    alpha = arrays.FloatArray(
+        label = r":math:`\alpha`",
+        default = numpy.array([0.06]),
+        range = basic.Range(lo = 0.04, hi = 0.01, step = 0.1),
+        doc = """Inverse decay time of membrane potential [ms^-1]""")
+    
+    beta = arrays.FloatArray(
+        label = r":math:`\beta`",
+        default = numpy.array([0.240]),
+        range = basic.Range(lo = 0.2, hi = 0.3, step = 0.02),
+        doc = """Inverse rise time of membrane potential [ms^-1]""")
+    
+    t_0 = arrays.FloatArray(
+        label = ":math:`t_{0}`",
+        default = numpy.array([80.]),
+        range = basic.Range(lo = -0.02, hi=-0.01, step = 0.0025),
+        doc = "Corticothalamic return time (complete return loop) [ms]")
+    
+    nu_ee = arrays.FloatArray(
+        label = r":math:`\nu_{ee}`",
+        default = numpy.array([1.06e3]),
+        range = basic.Range(lo = 1.0e3, hi= 1.1e3, step = 10.),
+        doc = "Excitatory-to-excitatory (cortico-cortical) synaptic strength [mVms].")
+    
+    nu_ie = arrays.FloatArray(
+        label = r":math:`\nu_{ie}`",
+        default = numpy.array([1.06e3]),
+        range = basic.Range(lo = 1.0e3, hi= 1.1e3, step = 10.),
+        doc = "Excitatory-to-inhibitory (cortico-cortical) synaptic strength [mVms].")
+    
+    nu_ei = arrays.FloatArray(
+        label = r":math:`\nu_{ei}`",
+        default = numpy.array([-1.8e3]),
+        range = basic.Range(lo = -2.0e3, hi= -1.0e3, step = 10.),
+        doc = "Inhibitory-to-excitatory (cortico-cortical) synaptic strength [mVms].")
+    
+    nu_ii = arrays.FloatArray(
+        label = r":math:`\nu_{ii}`",
+        default = numpy.array([-1.8e3]),
+        range = basic.Range(lo = -2.0e3, hi= -1.0e3, step = 10.),
+        doc = "Inhibitory-to-inhibitory (cortico-cortical) synaptic strength [mVms].")
+    
+    nu_es = arrays.FloatArray(
+        label = r":math:`\nu_{es}`",
+        default = numpy.array([2.2e3]),
+        range = basic.Range(lo = 2.0e3, hi= 2.5e3, step = 10.),
+        doc = "Specific nucleus-to-excitatory (thalamo-cortical) synaptic strength [mVms].")
+    
+    nu_is = arrays.FloatArray(
+        label = r":math:`\nu_{is}`",
+        default = numpy.array([2.2e3]),
+        range = basic.Range(lo = 2.0e3, hi= 2.5e3, step = 10.),
+        doc = "Specific nucleus-to-inhibitory (thalamo-cortical) synaptic strength [mVms].")
 
-    Hi = arrays.FloatArray(
-        label=":math:`B`",
-        default=numpy.array([29.3]),
-        range=basic.Range(lo=17.6, hi=110.0, step=0.2),
-        doc="""Maximum amplitude of IPSP [mV]. Also called average synaptic gain.""",
-        order=2)
+    nu_se = arrays.FloatArray(
+        label = r":math:`\nu_{se}`",
+        default = numpy.array([2.28e3]),
+        range = basic.Range(lo = 2.2e3, hi= 2.3e3, step = 1.),
+        doc = "Excitatory-to-specific nucleus (cortico-thalamic) synaptic strength [mVms].")
+    
+    nu_sr = arrays.FloatArray(
+        label = r":math:`\nu_{sr}`",
+        default = numpy.array([-0.845e3]),
+        range = basic.Range(lo = -0.88e3, hi= -0.84e3, step = 0.01e3),
+        doc = "Reticular-to-specific nucleus (thalamo-thalamic) synaptic strength [mVms].")
+    
+    nu_sn = arrays.FloatArray(
+        label = r":math:`\nu_{sn}`",
+        default = numpy.array([1.2e3]),
+        range = basic.Range(lo = 1.1e3, hi= 1.3e3, step = 0.1e3),
+        doc = "Nonspecific-to-specific nucleus synaptic strength.")
+    
+    nu_re = arrays.FloatArray(
+        label = r":math:`\nu_{re}`",
+        default = numpy.array([0.91e3]),
+        range = basic.Range(lo = 0.9e3, hi= 0.92e3, step = 0.005e3),
+        doc = "Excitatory-to-reticular nucleus (cortico-thalamic) synaptic strength [mVms].")
+    
+    nu_rs = arrays.FloatArray(
+        label = r":math:`\nu_{rs}`",
+        default = numpy.array([0.41e3]),
+        range = basic.Range(lo = 0.4e3, hi= 0.42e3, step = 0.005e3),
+        doc = "Specific nucleus-to-reticular nucleus (intra-thalamic) synaptic strength [mVms].")
 
-    tau_e = arrays.FloatArray(
-        label=":math:`a`",
-        default=numpy.array([0.1]),
-        range=basic.Range(lo=0.05, hi=0.15, step=0.01),
-        doc="""time constant""",
-        order=3)
+    nu_ss = arrays.FloatArray(
+        label = r":math:`\nu_{ss}`",
+        default = numpy.array([0.0e3]),
+        range = basic.Range(lo = 0.0e3, hi= 0.0e3, step = 0.001e3),
+        doc = "Specific nucleus self connection (intra-thalamic) synaptic strength [mVms].")
 
-    tau_i = arrays.FloatArray(
-        label=":math:`b`",
-        default=numpy.array([0.15]),
-        range=basic.Range(lo=0.025, hi=0.075, step=0.005),
-        doc="""time constant""",
-        order=4)
+    nu_rr = arrays.FloatArray(
+        label = r":math:`\nu_{rr}`",
+        default = numpy.array([0.0e3]),
+        range = basic.Range(lo = 0.0e3, hi= 0.0e3, step = 0.001e3),
+        doc = "Reticular nucleus self connection (intra-thalamic) synaptic strength [mVms].")
+    
+    chi = arrays.FloatArray(
+        label = r":math:`\chi`",
+        default = numpy.array([0.64]),
+        range = basic.Range(lo = 0.0, hi = 1.0, step = 0.01),
+        doc = r"""Ratio of multiplicative to additive noise (dimensionless). If :math:`\chi` is 0
+                 then noise is only additive.""")
+    
+    
+    sigma_n = arrays.FloatArray(
+        label = r":math:`\sigma_n`",
+        default = numpy.array([0.56]),
+        range = basic.Range(lo = 0.0, hi = 0.2, step = 0.01),
+        doc = """ SD of stochastic influence :math:`\phi_n` (fraction of the stable
+                  limit cycle attractor amplitude) (dimensionless) """)
 
-    eo = arrays.FloatArray(
-        label=":math:`v_0`",
-        default=numpy.array([0.0025]),
-        range=basic.Range(lo=3.12, hi=6.0, step=0.02),
-        doc="""Firing threshold (PSP) for which a 50% firing rate is achieved.
-        In other words, it is the value of the average membrane potential
-        corresponding to the inflection point of the sigmoid [mV].""",
-        order=5)
-
-
-    r = arrays.FloatArray(
-        label=":math:`r`",
-        default=numpy.array([0.56]),
-        range=basic.Range(lo=0.28, hi=0.84, step=0.01),
-        doc="""Steepness of the sigmoidal transformation [mV^-1].""",
-        order=7)
-
-
-    gamma_1 = arrays.FloatArray(
-        label=r":math:`\alpha_1`",
-        default=numpy.array([50.0]),
-        range=basic.Range(lo=0.5, hi=1.5, step=0.1),
-        doc="""Average probability of synaptic contacts in the feedback
-        excitatory loop.""",
-        order=9)
-
-    gamma_2 = arrays.FloatArray(
-        label=r":math:`\alpha_2`",
-        default=numpy.array([40.]),
-        range=basic.Range(lo=0.4, hi=1.2, step=0.1),
-        doc="""Average probability of synaptic contacts in the feedback
-        excitatory loop.""",
-        order=10)
-
-    gamma_3 = arrays.FloatArray(
-        label=r":math:`\alpha_3`",
-        default=numpy.array([12.]),
-        range=basic.Range(lo=0.125, hi=0.375, step=0.005),
-        doc="""Average probability of synaptic contacts in the feedback
-        excitatory loop.""",
-        order=11)
-
-    gamma_4 = arrays.FloatArray(
-        label=r":math:`\alpha_4`",
-        default=numpy.array([12.]),
-        range=basic.Range(lo=0.125, hi=0.375, step=0.005),
-        doc="""Average probability of synaptic contacts in the slow feedback
-        inhibitory loop.""",
-        order=12)
-
-    #Used for phase-plane axis ranges and to bound random initial() conditions.
-    state_variable_range = basic.Dict(
-        label="State Variable ranges [lo, hi]",
-        default={"x0": numpy.array([-1.0, 1.0]),
-                 "x1": numpy.array([-1.0, 1.0]),
-                 "x2": numpy.array([-5.0, 5.0]),
-                 "x3": numpy.array([-6.0, 6.0]),
-                 "x4": numpy.array([-2.0, 2.0]),
-                 "x5": numpy.array([-5.0, 5.0]),
-                 "x6": numpy.array([-5.0, 5.0]),
-                 "x7": numpy.array([-5.0, 5.0])},
-        doc="""The values for each state-variable should be set to encompass
-        the expected dynamic range of that state-variable for the current 
-        parameters, it is used as a mechanism for bounding random inital 
-        conditions when the simulation isn't started from an explicit history,
-        it is also provides the default range of phase-plane plots.""",
-        order=16)
 
     variables_of_interest = basic.Enumerate(
         label="Variables watched by Monitors",
-        options=["x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7"],
-        default=["x0", "x1", "x2", "x3"],
+        options=["phi_e", "dphi_e", "V_e", "dV_e", "V_s", "dV_s", "V_r", "dV_r"],
+        default=["phi_e"],
         select_multiple=True,
         doc="""This represents the default state-variables of this Model to be
-                                    monitored. It can be overridden for each Monitor if desired. The 
-                                    corresponding state-variable indices for this model are :math:`y0 = 0`,
-                                    :math:`y1 = 1`, :math:`y2 = 2`, :math:`y3 = 3`, :math:`y4 = 4`, and
-                                    :math:`y5 = 5`""",
-        order=17)
+        monitored. It can be overridden for each Monitor if desired.""",
+        order=10)
+    
+    #Informational attribute, used for phase-plane and initial()
+    state_variable_range = basic.Dict(
+        label = "State Variable ranges [lo, hi]",
+        default = {"phi_e" : numpy.array([ 0.0, 0.25]),
+                   "dphi_e": numpy.array([-0.5, 0.5]),
+                   "V_e"   : numpy.array([-0.5, 0.5]),
+                   "dV_e"  : numpy.array([-0.5, 0.5]),
+                   "V_s"   : numpy.array([-0.5, 0.5]),
+                   "dV_s"  : numpy.array([-0.5, 0.5]),
+                   "V_r"   : numpy.array([-0.5, 0.5]),
+                   "dV_r"  : numpy.array([-0.5, 0.5])},
+        doc = """The values for each state-variable should be set to encompass
+            the expected dynamic range of that state-variable for the current 
+            parameters, it is used as a mechanism for bounding random initial
+            conditions when the simulation isn't started from an explicit
+            history, it is also provides the default range of phase-plane plots.""")
+    
+    
+    def __init__(self, **kwargs):
+        """
+        We may need to put kwargs back if we can't get them from traits.
+        
+        """
+        
+        LOG.info('%s: initing...' % str(self))
+        
+        super(BreakspearRobinsonRennieWright, self).__init__(**kwargs)
+        
+        self._state_variables = ["phi_e", "dphi_e", 
+                                 "V_e", "dV_e", 
+                                 "V_s", "dV_s",
+                                 "V_r", "dV_r"]
+        
+        self._nvar = 8
+        self.cvar = numpy.array([0,4], dtype=numpy.int32)
+        
+        LOG.debug('%s: inited.' % repr(self))
+    
+    
+    def dfun(self, state_variables, coupling, local_coupling=0.0):
+        """
+        The activity in each neural population is described by three state variables: 
 
-    #    variables_of_interest = arrays.IntegerArray(
-    #        label = "Variables watched by Monitors",
-    #        range = basic.Range(lo = 0.0, hi = 6.0, step = 1.0),
-    #        default = numpy.array([0, 3], dtype=numpy.int32),
-    #        doc = """This represents the default state-variables of this Model to be
-    #        monitored. It can be overridden for each Monitor if desired. The
-    #        corresponding state-variable indices for this model are :math:`y0 = 0`,
-    #        :math:`y1 = 1`, :math:`y2 = 2`, :math:`y3 = 3`, :math:`y4 = 4`, and
-    #        :math:`y5 = 5`""",
-    #        order = 17)
+        * the mean soma membrane potentials :math:`V_a(x,t)` measured relative to resting;
+
+        * the mean firing rate at the cell soma :math:`Q_a(x,t)`; and
+
+        * the local presynaptic activity :math:`\phi_a(x,t)`
+
+
+        a: (e, i, r, s, n)
+
+
+        Presynaptic activity :math:`\phi_a(x,t)` couples through synaptic
+        transmission to post- synaptic potentials. Therefore in this framework,
+        :math:`\phi_a(x,t)` is the coupling variable.
+
+        For stochastics simulations fluctuations the term is introduced 
+        to dV_e, dV_r, dV_s and it should be white noise with 0 mean and SD = sigma_n
+        and a scaling of ab * nu_sn.
+
+
+        """
+        phi_e  = state_variables[0, :]
+        dphi_e = state_variables[1, :]
+        V_e    = state_variables[2, :]
+        dV_e   = state_variables[3, :]
+        V_s    = state_variables[4, :]
+        dV_s   = state_variables[5, :]
+        V_r    = state_variables[6, :]
+        dV_r   = state_variables[7, :]
+
+        long_range_phi_e    =  coupling[0, :]
+        delayed_V_s         =  coupling[1, :] 
+
+        short_range_phi_e   = local_coupling * phi_e  
+
+        # voltage to firing rate
+        Q_e = self.sigma_fun(V_e)
+        Q_s = self.sigma_fun(V_s) # Note Qs should be the delayed activity from the specific nucleus of the thalamus
+        delayed_Q_s = self.sigma_fun(delayed_V_s)
+        Q_r = self.sigma_fun(V_r) 
+
+        v   = 10.**2  # NOTE: hardcode the conduction speed for short range connections
+        ab  = self.alpha * self.beta
+        apb = self.alpha + self.beta
+
+        # state-variables
+        d_phi_e  = (dphi_e)
+        d_dphi_e = (self.gamma_e**2 * (Q_e - phi_e) - 2.* self.gamma_e * dphi_e + v * short_range_phi_e)
+        d_V_e    = (dV_e)
+        d_dV_e   = (ab  *        (self.nu_ee * phi_e + self.nu_ee * long_range_phi_e
+                                + self.nu_ei * Q_e 
+                                + self.nu_es * delayed_Q_s 
+                                - V_e) - apb * dV_e)
+        d_V_s  = dV_s
+
+        d_dV_s = (ab  *          (self.nu_se * phi_e + self.nu_se * long_range_phi_e
+                                + self.nu_sr * Q_r 
+                                - V_s) - apb * dV_s)
+        d_V_r  = dV_r
+        d_dV_r = d_dV_s = (ab *  (self.nu_re * phi_e + self.nu_re * long_range_phi_e
+                                + self.nu_rs * Q_s 
+                                - V_r) - apb * dV_r)
+
+        
+        derivative = numpy.array([d_phi_e, d_dphi_e,
+                                  d_V_e, d_dV_e,
+                                  d_V_s, d_dV_s,
+                                  d_V_r, d_dV_r])
+        
+        return derivative
+
+    def sigma_fun(self, sv):
+        """
+        Neuronal activation function. This sigmoidal function 
+        increases from 0 to Q_max as "sv" increases.
+        sv represents a membrane potential state variable (V).
+
+        #TODO: test performance using equations.Sigmoid dtype. 
+        That's why they are implemented, right? 
+
+        """
+        #HACKERY: Hackery for exponential s that blow up. 
+        # Set to inf, so the result will be effectively zero.
+        magic_exp_number = 709
+        temp = (-numpy.pi * (sv - self.theta) / (self.sigma * numpy.sqrt(3.)))
+        temp = numpy.where(temp > magic_exp_number, numpy.inf, temp)
+        sigma_v_to_q = self.Q_max / (1. + numpy.exp(temp))
+
+
+        return sigma_v_to_q
+    
+
+class ContinuousHopfield(Model):
+    """
+    The Hopfield neural network is a discrete time dynamical system composed of multiple binary nodes,
+    with a connectivity matrix built from a predetermined set of patterns. The update, inspired
+    from the spin-glass model (used to describe magnetic properties of dilute alloys), is based
+    on a random scanning of every node. The existence of a fixed point dynamics is guaranteed
+    by a Lyapunov function. The Hopfield network is expected to have those multiple patterns as
+    attractors (multistable dynamical system). When the initial conditions are close to one of
+    the “learned” patterns, the dynamical system is expected to relax on the corresponding attractor.
+    A possible output of the system is the final attractive state (interpreted as an associative memory).
+
+    Various extensions of the initial model have been proposed, among which a noiseless and
+    continuous version [Hopfield_1984]_ having a slightly different Lyapunov function, but essentially
+    the same dynamical properties, with more straightforward physiological interpretation.
+    A continuous Hopfield neural network (with a sigmoid transfer function) can indeed be interpreted
+    as a network of neural masses with every node corresponding to the mean field activity of a local
+    brain region, with many bridges with the Wilson Cowan model [WC_1973]_.
+
+    **References**:
+
+        .. [Hopfield_1982] Hopfield, J. J., *Neural networks and physical systems with emergent collective
+                        computational abilities*, Proc. Nat. Acad. Sci. (USA) 79, 2554–2558, 1982.
+
+        .. [Hopfield_1984] Hopfield, J. J., *Neurons with graded response have collective computational
+                        properties like those of two-sate neurons*, Proc. Nat. Acad. Sci. (USA) 81, 3088-3092, 1984.
+
+
+    See also, http://www.scholarpedia.org/article/Hopfield_network
+
+    .. automethod:: ContinuousHopfield.__init__
+    .. automethod:: ContinuousHopfield.dfun
+
+    """
+
+    _ui_name = "Continuous Hopfield"
+    ui_configurable_parameters = ['taux']
+
+    #Define traited attributes for this model, these represent possible kwargs.
+    taux = arrays.FloatArray(
+        label = r":math:`\tau_{x}`",
+        default = numpy.array([1.]),
+        range = basic.Range(lo = 0.01, hi = 100., step = 0.01),
+        doc = """The fast time-scale for potential calculus :math:`x`, state-variable of the model.""",
+        order=1)
+
+    #Used for phase-plane axis ranges and to bound random initial() conditions.
+    state_variable_range = basic.Dict(
+        label = "State Variable ranges [lo, hi]",
+        default = {"x": numpy.array([-1., 2.])},
+        doc = """The values for each state-variable should be set to encompass
+            the expected dynamic range of that state-variable for the current
+            parameters, it is used as a mechanism for bounding random inital
+            conditions when the simulation isn't started from an explicit
+            history, it is also provides the default range of phase-plane plots.""",
+        order = 2)
+
+    variables_of_interest = basic.Enumerate(
+        label = "Variables watched by Monitors",
+        options=["x"],
+        default=["x"],
+        select_multiple=True,
+        doc = """The values for each state-variable should be set to encompass
+            the expected dynamic range of that state-variable for the current
+            parameters, it is used as a mechanism for bounding random inital
+            conditions when the simulation isn't started from an explicit
+            history, it is also provides the default range of phase-plane plots.""",
+        #doc="""This represents the default state-variables of this Model to be
+                                    #monitored. It can be overridden for each Monitor if desired. The
+                                    #corresponding state-variable indices for this model are :math:`E = 0`
+                                    #and :math:`I = 1`.""",
+        order = 3)
 
 
     def __init__(self, **kwargs):
-        """
-        Initialise parameters for the Jansen Rit column, [JR_1995]_.
-
+        """Initialize the Hopfield Based model's traited attributes, any provided as
+        keywords will overide their traited default.
         """
         LOG.info("%s: initing..." % str(self))
-        super(JansenRitDavid, self).__init__(**kwargs)
+        super(ContinuousHopfield, self).__init__(**kwargs)
 
-        #self._state_variables = ["y0", "y1", "y2", "y3", "y4", "y5"]
-        self._nvar = 8
+        self._state_variables = ["x"]
+        self._nvar = len(self._state_variables)
+        self.cvar = numpy.array([0], dtype=numpy.int32)
 
-        self.cvar = numpy.array([1,2], dtype=numpy.int32)
-
-        #TODO: adding an update_derived_parameters method to remove some of the
-        #      redundant parameter multiplication in dfun should gain about 7%
-        #      maybe not worth it... The three exp() kill us at ~90 times *
-        #self.nu_max2 = None #2.0 * self.nu_max
-        #self.Aa = None # self.A * self.a
-        #self.Bb = None # self.B * self.b
-        #self.aa = None # self.a**2
-        #self.a2 = None # 2.0 * self.a
-        #self.b2 = None # 2.0 * self.b
-        #self.a_1J = None # self.a_1 * self.J
-        #self.a_2J = None # self.a_2 * self.J
-        #self.a_3J = None # self.a_3 * self.J
-        #self.a_4J = None # self.a_4 * self.J
-
-        LOG.debug('%s: inited.' % repr(self))
+        LOG.debug("%s: inited." % repr(self))
 
 
     def dfun(self, state_variables, coupling, local_coupling=0.0):
-        r"""
-        The dynamic equations were taken from [JR_1995]_
+        """The fast, :math:`x`, and slow, :math:`\\theta`, state variables are typically
+        considered to represent a membrane potentials of nodes and the global inhibition term,
+        respectively:
 
-        .. math::
-            
+            .. math::
+                \\dot{x_{i}} &= 1 / \\tau_{x} (-x_{i} + sum(W_{i,j} * A_{j}) + \\sigma^{2}_{x} * \\eta_{i})
+                A_{i} &= 1/2 * (1 + tanh(G * (P * x_{i} - \\theta_{i})))
 
+        where :math:`\\eta` is a centered gaussian noise and :math:`\\sigma` its standard deviation.
         """
-        #NOTE: We could speed up this model by making the number below smaller,
-        #      because the exp() dominate runtime, though we'd need to validate
-        #      the trade-off in numerical accuracy...
-        magic_exp_number = 709
-        AF = 0.1
-        AB = 0.2
-        AL = 0.05
-        x0 = state_variables[0, :]
-        x1 = state_variables[1, :]
-        x2 = state_variables[2, :]
-        x3 = state_variables[3, :]
-        x4 = state_variables[4, :]
-        x5 = state_variables[5, :]
-        x6 = state_variables[6, :]
-        x7 = state_variables[7, :]
 
-        y   = x1 - x2
-        #delayed activity x1 - x2
-        c_12   = coupling[0, :] -  coupling[1, :] 
-        c_12_f = AF * ((2 * self.eo) / (1 + numpy.exp(self.r * c_12)) - self.eo)
-        c_12_b = AB * ((2 * self.eo) / (1 + numpy.exp(self.r * c_12)) - self.eo)
-        c_12_l = AL * ((2 * self.eo) / (1 + numpy.exp(self.r * c_12)) - self.eo)
+        x = state_variables[0, :]
+        WAx = coupling[0]
+        dx = (- x + WAx) / self.taux
 
-        lc_f  = (local_coupling *  y)  * AF
-        lc_l  = (local_coupling *  y)  * AL
-        lc_b  = (local_coupling *  y)  * AB
-
-        S_y  = (2 * self.eo) / (1 + numpy.exp(self.r * y))  - self.eo
-        S_x0 = (2 * self.eo) / (1 + numpy.exp(self.r * x0)) - self.eo
-        S_x6 = (2 * self.eo) / (1 + numpy.exp(self.r * x6)) - self.eo
-
-        # NOTE: for local couplings
-        # 0:3 pyramidal cells
-        # 1:4 excitatory interneurons
-        # 2:5 inhibitory interneurons
-        # 3:7 
-
-        dx0 = x3
-        dx3 = self.He / self.tau_e * (c_12_f + c_12_l + self.gamma_1 * S_y) - (2 * x3) / self.tau_e - (x0 / self.tau_e**2)
-        dx1 = x4
-        dx4 = self.He / self.tau_e * (c_12_b + c_12_l + self.gamma_2 * S_x0) - (2 * x4) / self.tau_e - (x1 / self.tau_e**2)
-        dx2 = x5
-        dx5 = self.Hi / self.tau_i * (self.gamma_4 * S_x6) - (2 * x5) / self.tau_i - (x2 / self.tau_i**2)
-        dx6 = x7
-        dx7 = self.He / self.tau_e * (c_12_b + c_12_l + self.gamma_3 * S_y) - (2 * x7) / self.tau_e - (x6 / self.tau_e**2)
-
-        derivative = numpy.array([dx0, dx1, dx2, dx3, dx4, dx5, dx6, dx7])
-
+        derivative = numpy.array([dx])
         return derivative
+
+    # info for device_data
+    device_info = model_device_info(
+
+        pars=['taux'],
+
+        kernel="""
+        // read parameters
+        float taux = P(0)
+
+        // state variables
+            , x = X(0)
+
+        // aux variables
+            , WAx = I(0);
+
+        // set derivatives
+        DX(0) = (-x + WAx) / taux;
+        """
+    )

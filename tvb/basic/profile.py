@@ -112,6 +112,11 @@ class TvbProfile():
                       If the script_argv contains the string '-profile' 
                       than the TVB profile will be set to the next element.
         :param remove_from_args: when True, script_argv will get stripped of profile strings.
+
+        :param try_reload: When set to true, try to reload all tvb.* modules
+                        This is needed when setting a profile different that default requires previously loaded tvb
+                        modules to get different (e.g. from deployment to developer we have a different
+                        tvb.interface path, already loaded as the starting point is tvb.interfaces.run)
         
         E.g.: if script_argv = ['$param1', ..., '-profile', 'TEST_SQLITE_PROFILE', ...] 
               than the  profile will be set to 'TEST_SQLITE_PROFILE'

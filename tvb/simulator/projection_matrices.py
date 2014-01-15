@@ -194,7 +194,7 @@ class ProjectionMatrix(core.Type):
 
         if isinstance(self.sensors, sensors_module.SensorsEEG):
             self.skin_air.sensors = self.sensors
-            self.skin_air.sensors_to_surface, self.skin_air.sensor_locations = self.sensors.sensors_to_surface(self.skin_air)
+            self.skin_air.sensor_locations = self.sensors.sensors_to_surface(self.skin_air)
 
         # Create OpenMEEG objects from TVB objects.
         self.om_head = self.create_om_head()

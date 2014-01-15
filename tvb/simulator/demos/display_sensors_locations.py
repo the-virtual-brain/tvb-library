@@ -71,7 +71,7 @@ sens_eeg = sensors.SensorsEEG()
 sens_eeg.configure()
 
 # Project eeg unit vector locations onto the surface space
-_, sensor_locations_eeg = sens_eeg.sensors_to_surface(skin)
+sensor_locations_eeg = sens_eeg.sensors_to_surface(skin)
 
 
 #-----------------------------------------------------------------------------##

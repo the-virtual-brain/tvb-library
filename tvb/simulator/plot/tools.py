@@ -42,6 +42,7 @@ import an usage for MAYAVI based plots should look like::
 """
 
 import numpy
+import networkx as nx
 from tvb.basic.logger.builder import get_logger
 
 LOG = get_logger(__name__)
@@ -461,7 +462,11 @@ if IMPORTED_MAYAVI:
         return sm_obj
 
 
-    def xmas_balls(connectivity, node_data=None, edge_data=False):
+    def xmas_balls(connectivity, node_data=None, edge_data=True, labels_data=True, balls_colormap='Blues', 
+                 bgcolor = (1, 1, 1),
+                 node_size=10.,
+                 edge_color=(0.8, 0.8, 0.8), edge_size=0.2,
+                 text_size=0.042, text_color=(0, 0, 0)):
         """
         Plots coloured balls at the region centres of connectivity, colour and
         size is determined by a vector of length number of regions (node_data).
@@ -469,27 +474,36 @@ if IMPORTED_MAYAVI:
         Optional: adds the connections between pair of nodes.
         
         """
-        centres = connectivity.centres
-        edges = numpy.array(numpy.nonzero(connectivity.weights))
-        edges = numpy.array([(start, stop) for (start, stop) in edges.T if start != stop])
+        G = nx.from_numpy_matrix(numpy.matrix(connectivity.weights))
 
+        mlab.figure(1, bgcolor=bgcolor)
+        mlab.clf()
+        # scalar colors
         if node_data is not None:
-            data_scale = 13.0 / node_data.max()
-            pts = mlab.points3d(centres[:, 0], centres[:, 1], centres[:, 2],
-                                node_data, transparent=True,
-                                scale_factor=data_scale,
-                                colormap='Blues')
-
+            scalars = node_data
             mlab.colorbar(orientation="vertical")
         else:
-            #NOTE: the magic numbers are used to align region centers and surface representation. 
-            #Do not ask ... 
-            pts = mlab.points3d(centres[:, 0] * 1.13, centres[:, 1] * 1.13 + 15, centres[:, 2] - 25)
+            scalars = numpy.array(G.nodes())*20
+
+        pts = mlab.points3d(connectivity.centres[:,0], connectivity.centres[:,1], connectivity.centres[:,2],
+                            scalars,
+                            scale_factor = node_size,
+                            scale_mode = 'none',
+                            colormap = balls_colormap,
+                            resolution = 20)
+
+        if labels_data:
+            for i, (x, y, z) in enumerate(connectivity.centres):
+                label = mlab.text(x, y, connectivity.region_labels[i], z=z,
+                              width=text_size, name=str(connectivity.region_labels[i]), color=text_color)
+                label.property.shadow = False
 
         if edge_data:
-            pts.mlab_source.dataset.lines = edges
-            tube = mlab.pipeline.tube(pts, tube_radius=0.5)
-            mlab.pipeline.surface(tube, colormap='binary', opacity=0.142)
+            pts.mlab_source.dataset.lines = numpy.array(G.edges())
+            tube = mlab.pipeline.tube(pts, tube_radius = edge_size)
+            mlab.pipeline.surface(tube, color=edge_color)
+
+        mlab.show()
 
             # stop the scene
             #mlab.show(stop=True)

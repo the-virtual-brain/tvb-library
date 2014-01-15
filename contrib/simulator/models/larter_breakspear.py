@@ -90,6 +90,48 @@ class LarterBreakspear(models.Model):
     | delta        |      0.001 |
     +---------------------------+
 
+
+
+    +---------------------------+
+    |          Table 2          | 
+    +--------------+------------+
+    |Parameter     |  Value     |
+    +--------------+------------+
+    | gK           |      2.0   |
+    | gL           |      0.5   |
+    | gNa          |      6.7   |
+    | gCa          |      1.0   |
+    | a_ne         |      1.0   |
+    | a_ni         |      0.4   |
+    | a_ee         |      0.36  |
+    | a_ei         |      2.0   |
+    | a_ie         |      2.0   |
+    | VK           |     -0.7   |
+    | VL           |     -0.5   |
+    | VNa          |      0.53  |
+    | VCa          |      1.0   |
+    | phi          |      0.7   | 
+    | b            |      0.1   |
+    | I            |      0.3   |
+    | r_NMDA       |      0.25  |
+    | C            |      0.1   |
+    | TCa          |     -0.01  |
+    | d_Ca         |      0.15  |
+    | TK           |      0.0   |
+    | d_K          |      0.3   |
+    | VT           |      0.0   |
+    | ZT           |      0.0   |
+    | TNa          |      0.3   |
+    | d_Na         |      0.15  |
+    | d_V          |      0.65  |
+    | d_Z          |      d_V   |  # note, this parameter might be spatialized: ones(N,1).*0.65 + modn*(rand(N,1)-0.5);
+    | QV_max       |      1.0   |
+    | QZ_max       |      1.0   |
+    +---------------------------+
+    |   Alstott et al. 2009     |
+    +---------------------------+
+
+
     NOTES about parameters
 
     d_V
@@ -118,7 +160,7 @@ class LarterBreakspear(models.Model):
                                   'TNa', 'VCa', 'VK', 'VL', 'VNa', 'd_K', 'tau_K',
                                   'd_Na', 'd_Ca', 'aei', 'aie', 'b', 'C', 'ane',
                                   'ani', 'aee', 'Iext', 'rNMDA', 'VT', 'd_V', 'ZT',
-                                  'd_Z', 'beta', 'QV_max', 'QZ_max', 't_scale']
+                                  'd_Z', 'beta', 'QV_max', 'QZ_max']
     
     #Define traited attributes for this model, these represent possible kwargs.
     gCa = arrays.FloatArray(
@@ -301,11 +343,6 @@ class LarterBreakspear(models.Model):
         range = basic.Range(lo = 0.001, hi = 0.75, step = 0.05),
         doc = """Variance of the inhibitory threshold.""")
     
-    beta = arrays.FloatArray(
-        label = ":math:`\\beta`",
-        default = numpy.array([0.0]),
-        range = basic.Range(lo = 0.0, hi = 0.1, step = 0.01),
-        doc = """Random modulation of subcortical input.""")
     
     # NOTE: the values were not in the article. 
     #I took these ones from DESTEXHE 2001
@@ -335,7 +372,7 @@ class LarterBreakspear(models.Model):
     state_variable_range = basic.Dict(
         label = "State Variable ranges [lo, hi]",
         default = {"V": numpy.array([-1.5, 1.5]),
-                   "W": numpy.array([ 0.0, 1.0]),
+                   "W": numpy.array([-1.0, 1.0]),
                    "Z": numpy.array([-1.5, 1.5])},
         doc = """The values for each state-variable should be set to encompass
             the expected dynamic range of that state-variable for the current 

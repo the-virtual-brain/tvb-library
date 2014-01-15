@@ -60,6 +60,6 @@ scaling_factor = node_data.max()
 ##----------------------------------------------------------------------------##
 
 if IMPORTED_MAYAVI:
-    xmas_balls(white_matter, node_data / scaling_factor,  edge_data=True)
+    xmas_balls(white_matter, node_data= node_data / scaling_factor)
     
 ###EoF###

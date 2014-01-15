@@ -37,6 +37,7 @@ Framework methods for the Connectivity datatype.
 import numpy
 import tvb.datatypes.connectivity_data as connectivity_data
 
+
 class ConnectivityFramework(connectivity_data.ConnectivityData):
     """ 
     This class exists to add framework methods and attributes to Connectivity.
@@ -66,12 +67,12 @@ class ConnectivityFramework(connectivity_data.ConnectivityData):
         for i in xrange(len(self.weights)):
             weight_line = []
             for j in xrange(len(self.weights)):
-                if (interest_areas and i in interest_areas and j in interest_areas):
+                if interest_areas and i in interest_areas and j in interest_areas:
                     weight_line.append(new_weights[i][j])
                 else:
                     weight_line.append(0)
             final_weights.append(weight_line)
-        final_conn = (self.__class__)()
+        final_conn = self.__class__()
         final_conn.parent_connectivity = self.gid
         final_conn.storage_path = storage_path
         final_conn.nose_correction = self.nose_correction
@@ -107,7 +108,7 @@ class ConnectivityFramework(connectivity_data.ConnectivityData):
     @staticmethod  
     def accepted_filters():
         filters = connectivity_data.ConnectivityData.accepted_filters()
-        filters.update({'datatype_class._number_of_regions': {'type': 'int', 'display':'No of Regions',
+        filters.update({'datatype_class._number_of_regions': {'type': 'int', 'display': 'No of Regions',
                                                               'operations': ['==', '<', '>']}})
         return filters
 
