@@ -38,22 +38,31 @@ import shutil
 
 
 LIBRARY_VERSION = "1.1"
-
-TVB_TEAM = "Stuart Knock, Marmaduke Woodman, Paula Sanz Leon"
-CONTACT_EMAIL = "tvb.admin@thevirtualbrain.org"
-
+TVB_TEAM = "Stuart Knock, Marmaduke Woodman, Paula Sanz Leon, Jan Fousek, Lia Domide, Noelia Montejo, Bogdan Neacsa, Laurent Pezard, Jochen Mersmann, Anthony R McIntosh, Viktor Jirsa"
 TVB_INSTALL_REQUIREMENTS = ["networkx", "nibabel", "numpy", "numexpr", "scikit-learn", "scipy", "gdist"]
 
-setuptools.setup(name='tvb',
-                 version=LIBRARY_VERSION,
-                 packages=setuptools.find_packages(),
-                 license='Not decided yet',
-                 author=TVB_TEAM,
-                 author_email=CONTACT_EMAIL,
-                 include_package_data=True,
-                 install_requires=TVB_INSTALL_REQUIREMENTS)
+setuptools.setup(
+    name = 'tvb',
+    description='A package for performing whole brain simulations',
+    url='https://github.com/the-virtual-brain/scientific_library',
+    version = LIBRARY_VERSION,
+    packages = setuptools.find_packages(),
+    license = 'GPL',
+    author = TVB_TEAM,
+    author_email = 'tvb-users@googlegroups.com',
+    include_package_data = True,
+    install_requires = TVB_INSTALL_REQUIREMENTS,
+    long_description="""
+This package contains the scientific library from the Virtual Brain 
+project which provides data handling and numerical routines 
+required to perform whole brain simulation. It is a work in 
+progress, and a subject of on-going research efforts. Please refer
+to the following article for more information: 
+
+http://www.frontiersin.org/Journal/10.3389/fninf.2013.00010/abstract
+
+"""
+    )
 
 ## Cleanup after EGG install.
 shutil.rmtree('tvb.egg-info', True)
-
- 

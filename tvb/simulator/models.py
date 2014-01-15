@@ -1977,7 +1977,6 @@ class JansenRit(Model):
         DX(4) = A * a * (mu + a_2 * J * sigm_y0_1 + c_0) - 2.0 * a * y4 - a*a*y1;
         DX(5) = B * b * (a_4 + J * sigm_y0_3) - 2.0 * b * y5 - b*b*y2;
         """
-    )
 
 class JRFast(JansenRit):
     """
