@@ -1,4 +1,4 @@
-function data = vb_load(id, keep, dsets)
+function data = vb_load(sv, id, keep, dsets)
 %
 % data = vb_load(id)
 %
@@ -28,12 +28,13 @@ function data = vb_load(id, keep, dsets)
 % the underlying storage format, HDF5 stores in C-order, while MATLAB
 % employs Fortran-ordered arrays. permute() as needed... 
 
-if nargin < 2; keep = 1; end
-if nargin < 3, dsets = {'ts' 'ys'}; end
 
-vb_wait(id);
+if nargin < 3; keep = 1; end
+if nargin < 4, dsets = {'ts' 'ys'}; end
 
-info = vb_stat;
+vb_wait(sv, id);
+
+info = vb_stat(sv);
 
 rfnm = info{id}.result;
 rinf = h5info(rfnm);

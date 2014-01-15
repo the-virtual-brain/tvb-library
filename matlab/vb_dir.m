@@ -1,4 +1,4 @@
-function info = vb_dir()
+function info = vb_dir(sv)
 %
 % info = vb_dir
 %
@@ -10,6 +10,6 @@ function info = vb_dir()
 % documentation for that class.
 %
 
-url = 'http://localhost:8042/api/burst/dir';
+url = [sv 'api/simulator/dir'];
 
-info = loadjson(urlread(url))
+info = loadjson(urlread(url));
