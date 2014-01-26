@@ -211,7 +211,7 @@ class GaussianFramework(equations_data.GaussianData, EquationFramework):
 
     @property
     def ui_equation(self):
-        return "amp * 2.71**(-((var-midpoint)**2 / (2.0 * sigma**2)))"
+        return "(amp * 2.71**(-((var-midpoint)**2 / (2.0 * sigma**2)))) + offset"
 
 
 
