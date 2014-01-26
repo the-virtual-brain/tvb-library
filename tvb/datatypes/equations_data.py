@@ -118,18 +118,21 @@ class LinearData(EquationData):
 class GaussianData(EquationData):
     """
     A Gaussian equation.
+    offset: parameter to extend the behaviour of this function 
+    when spatializing model parameters. 
+
     """
 
     equation = basic.String(
         label="Gaussian Equation",
-        default="amp * exp(-((var-midpoint)**2 / (2.0 * sigma**2)))",
+        default="(amp * exp(-((var-midpoint)**2 / (2.0 * sigma**2))))+offset",
         locked=True,
-        doc=""":math:`amp \\exp\\left(-\\left(\\left(x-midpoint\\right)^2 /
-        \\left(2.0 \\sigma^2\\right)\\right)\\right)`""")
+        doc=""":math:`(amp \\exp\\left(-\\left(\\left(x-midpoint\\right)^2 /
+        \\left(2.0 \\sigma^2\\right)\\right)\\right)) + offset`""")
 
     parameters = basic.Dict(
         label="Gaussian Parameters",
-        default={"amp": 1.0, "sigma": 1.0, "midpoint": 0.0})
+        default={"amp": 1.0, "sigma": 1.0, "midpoint": 0.0, "offset": 0.0})
 
 
 
