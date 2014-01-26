@@ -69,7 +69,7 @@ class EquationsTest(BaseTestCase):
         
     def test_gaussian(self):
         dt = equations.Gaussian()
-        self.assertEqual(dt.parameters, {'amp': 1.0, 'sigma': 1.0, 'midpoint': 0.0})
+        self.assertEqual(dt.parameters, {'amp': 1.0, 'sigma': 1.0, 'midpoint': 0.0, 'offset': 0.0})
         self.assertEqual(dt.ui_equation, 'amp * 2.71**(-((var-midpoint)**2 / (2.0 * sigma**2)))')
         
         
