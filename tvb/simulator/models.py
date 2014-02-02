@@ -2771,7 +2771,7 @@ class LarterBreakspear(Model):
         Z = state_variables[2, :]
 
         c_0   = coupling[0, :]    
-        lc_0  = local_coupling
+        
         
         # relationship between membrane voltage and channel conductance
         m_Ca = 0.5 * (1 + numpy.tanh((V - self.TCa) / self.d_Ca))
@@ -2779,10 +2779,12 @@ class LarterBreakspear(Model):
         m_K  = 0.5 * (1 + numpy.tanh((V - self.TK )  / self.d_K))
         
         # voltage to firing rate
-        QV  = 0.5 * self.QV_max * (1 + numpy.tanh((V - self.VT) / self.d_V))
-        QZ  = 0.5 * self.QZ_max * (1 + numpy.tanh((Z - self.ZT) / self.d_Z))
+        QV    = 0.5 * self.QV_max * (1 + numpy.tanh((V - self.VT) / self.d_V))
+        QZ    = 0.5 * self.QZ_max * (1 + numpy.tanh((Z - self.ZT) / self.d_Z))
+        lc_0  = local_coupling * Q_V
+
         
-        dV = (- (self.gCa + (1.0 - self.C) * self.rNMDA * self.aee * QV + self.C * self.rNMDA * self.aee * c_0) * m_Ca * (V - self.VCa) - self.gK * W * (V - self.VK) -  self.gL * (V - self.VL) - (self.gNa * m_Na + (1.0 - self.C) * self.aee * QV + self.C * self.aee * c_0) * (V - self.VNa) - self.aei * Z * QZ + self.ane * self.Iext)
+        dV = (- (self.gCa + (1.0 - self.C) * (self.rNMDA * self.aee) * (QV + lc_0)+ self.C * self.rNMDA * self.aee * c_0) * m_Ca * (V - self.VCa) - self.gK * W * (V - self.VK) -  self.gL * (V - self.VL) - (self.gNa * m_Na + (1.0 - self.C) * self.aee * (QV  + lc_0) + self.C * self.aee * c_0) * (V - self.VNa) - self.aei * Z * QZ + self.ane * self.Iext)
 
         dW = (self.phi * (m_K - W) / self.tau_K)
         
