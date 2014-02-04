@@ -49,7 +49,6 @@ except ImportError:
 import os
 from sys import argv
 from coverage import coverage
-from tvb.basic.config.settings import TVBSettings as cfg
 
 
 KEY_CONSOLE = 'console'
@@ -84,9 +83,7 @@ if __name__ == "__main__":
 
 import unittest
 import datetime
-# Make sure folder for Logging exists.   
-if not os.path.exists(cfg.TVB_STORAGE):
-    os.makedirs(cfg.TVB_STORAGE)
+from tvb.basic.config.settings import TVBSettings
 from tvb.tests.library.basic import basic_test_main
 from tvb.tests.library.datatypes import datatypes_test_main
 from tvb.tests.library.simulator import simulator_test_main
@@ -113,12 +110,13 @@ if __name__ == "__main__":
         TEST_SUITE = suite()
         TEST_RUNNER.run(TEST_SUITE)
     if KEY_XML in argv:
-        FILE_NAME = "TEST-LIBRARY-RESULTS.xml"
-        STREAM = file(FILE_NAME, "w")
-        TEST_RUNNER = XMLTestRunner(STREAM)
+        XML_STREAM = file(os.path.join("TEST_OUTPUT", "TEST-LIBRARY-RESULTS.xml"), "w")
+        OUT_STREAM = file(os.path.join("TEST_OUTPUT", "TEST-LIBRARY.out"), "w")
+        TEST_RUNNER = XMLTestRunner(XML_STREAM, OUT_STREAM)
         TEST_SUITE = suite()
-        TEST_RUNNER.run(TEST_SUITE) 
-        STREAM.close()
+        TEST_RUNNER.run(TEST_SUITE)
+        XML_STREAM.close()
+        OUT_STREAM.close()
         
     print 'It run tests for %d sec.' % (datetime.datetime.now() - START_TIME).seconds
     

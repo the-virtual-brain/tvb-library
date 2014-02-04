@@ -36,7 +36,7 @@ def setup_test_console_env():
     # We should have nothing inverse.
     sys.path = [path for path in sys.path if not path.endswith('framework_tvb')]
 
-    from tvb.basic.profile import TvbProfile as tvb_profile
+    from tvb.basic.profile import TvbProfile
     # Set the current environment to the test setup
-    tvb_profile.set_profile(["-profile", "LIBRARY_PROFILE"])
+    TvbProfile.set_profile(["-profile", "LIBRARY_PROFILE"])
 
