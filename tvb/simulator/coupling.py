@@ -172,7 +172,7 @@ class Linear(Coupling):
     a = arrays.FloatArray(
         label = ":math:`a`",
         default=numpy.array([0.00390625,]),
-        range = basic.Range(lo = 0.0, hi = 0.2, step = 0.01),
+        range = basic.Range(lo = 0.0, hi = 1.0, step = 0.01),
         doc = """Rescales the connection strength while maintaining the ratio
         between different values.""",
         order = 1)
@@ -233,7 +233,7 @@ class Scaling(Coupling):
     a = basic.Float(
         label="Scaling factor",
         default = 0.00390625,
-        range = basic.Range(lo = 0.0, hi = 0.2, step = 0.01),
+        range = basic.Range(lo = 0.0, hi = 1.0, step = 0.01),
         doc = """Rescales the connection strength while maintaining the ratio
         between different values.""")
 
@@ -312,7 +312,7 @@ class HyperbolicTangent(Coupling):
         """
         temp =  self.a * (1 +  numpy.tanh((x_j - self.midpoint) / self.sigma))
 
-        if self.normalise: # yeeeeahhh, let's make simulations slower ...
+        if self.normalise: 
             #NOTE: normalising by the strength or degrees may yield NaNs, so fill these values with inf
             in_strength = g_ij.sum(axis=2)[:, :, numpy.newaxis, :]
             in_strength[in_strength==0] = numpy.inf
