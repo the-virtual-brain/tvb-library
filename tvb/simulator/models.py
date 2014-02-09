@@ -2067,6 +2067,7 @@ class Generic2dOscillator(Model):
 
     The model with its default parameters exhibits FitzHugh-Nagumo like dynamics.
 
+    Table 1)
     +---------------------------+
     |  EXCITABLE CONFIGURATION  |
     +--------------+------------+
@@ -2084,7 +2085,9 @@ class Generic2dOscillator(Model):
     +--------------+------------+
     | * limit cylce if a = 2.0  |
     +---------------------------+
-    
+
+
+    Table 2)
     +---------------------------+
     |   BISTABLE CONFIGURATION  |
     +--------------+------------+
@@ -2105,6 +2108,7 @@ class Generic2dOscillator(Model):
     |* limit cylce if Iext=-1.0 |
     +---------------------------+
     
+    Table 3)
     +---------------------------+
     |  EXCITABLE CONFIGURATION  |
     |  (similar to Morris-Lecar)|
@@ -2125,7 +2129,7 @@ class Generic2dOscillator(Model):
     |* oscillatory if b=0.4     |
     +---------------------------+
 
-
+    Table 4)
     +---------------------------+     
     |  KnocketAl  2009          | 
     +--------------+------------+
@@ -2137,7 +2141,7 @@ class Generic2dOscillator(Model):
     +--------------+------------+
     | c            |    0.0     |
     +--------------+------------+
-    | d            |    1.0     |
+    | d            |    0.1     |
     +--------------+------------+
     | I            |    0.0     |
     +--------------+------------+
@@ -2154,12 +2158,11 @@ class Generic2dOscillator(Model):
     | tau          |    1.25    |
     +--------------+------------+
     |                           |
-    |* intrinsic frequency is   |
-    |  approx 10 Hz             |
+    |* frequency peak at 10Hz   |
     |                           |
     +---------------------------+
     
-    
+    Table 5)
     +---------------------------+     
     |  SanzLeonetAl  2013       | 
     +--------------+------------+
@@ -2248,7 +2251,7 @@ class Generic2dOscillator(Model):
         range=basic.Range(lo=0.0001, hi=1.0, step=0.0001),
         doc="""Temporal scale factor. Warning: do not use it unless
         you know what you are doing and know about time tides.""",
-        order=1350)
+        order=13)
 
     e = arrays.FloatArray(
         label=":math:`e`",
