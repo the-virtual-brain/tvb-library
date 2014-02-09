@@ -2163,7 +2163,7 @@ class Generic2dOscillator(Model):
     """
 
     _ui_name = "Generic 2d Oscillator"
-    ui_configurable_parameters = ['tau', 'a', 'b', 'c', 'I']
+    ui_configurable_parameters = ['tau', 'a', 'b', 'c', 'I', 'd', 'e', 'f', 'g', 'alpha', 'beta']
 
     #Define traited attributes for this model, these represent possible kwargs.
     tau = arrays.FloatArray(
@@ -2209,28 +2209,28 @@ class Generic2dOscillator(Model):
         range=basic.Range(lo=0.0001, hi=1.0, step=0.0001),
         doc="""Temporal scale factor. Warning: do not use it unless
         you know what you are doing and know about time tides.""",
-        order=-1)
+        order=13)
 
     e = arrays.FloatArray(
         label=":math:`e`",
         default=numpy.array([3.0]),
         range=basic.Range(lo=-5.0, hi=5.0, step=0.0001),
         doc="""Coefficient of the quadratic term of the cubic nullcline.""",
-        order=-1)
+        order=6)
 
     f = arrays.FloatArray(
         label=":math:`f`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=-5.0, hi=5.0, step=0.0001),
         doc="""Coefficient of the cubic term of the cubic nullcline.""",
-        order=-1)
+        order=7)
 
     g = arrays.FloatArray(
         label=":math:`f`",
         default=numpy.array([0.0]),
         range=basic.Range(lo=-5.0, hi=5.0, step=0.5),
         doc="""Coefficient of the linear term of the cubic nullcline.""",
-        order=-1)
+        order=8)
 
     alpha = arrays.FloatArray(
         label=r":math:`\alpha`",
@@ -2238,7 +2238,7 @@ class Generic2dOscillator(Model):
         range=basic.Range(lo=-5.0, hi=5.0, step=0.0001),
         doc="""Constant parameter to scale the rate of feedback from the
             slow variable to the fast variable.""",
-        order=-1)
+        order=9)
 
     beta = arrays.FloatArray(
         label=r":math:`\beta`",
@@ -2246,7 +2246,7 @@ class Generic2dOscillator(Model):
         range=basic.Range(lo=-5.0, hi=5.0, step=0.0001),
         doc="""Constant parameter to scale the rate of feedback from the
             slow variable to itself""",
-        order=-1)
+        order=10)
 
     #Informational attribute, used for phase-plane and initial()
     state_variable_range = basic.Dict(
@@ -2258,7 +2258,7 @@ class Generic2dOscillator(Model):
             parameters, it is used as a mechanism for bounding random initial 
             conditions when the simulation isn't started from an explicit
             history, it is also provides the default range of phase-plane plots.""",
-        order=6)
+        order=11)
 
     #    variables_of_interest = arrays.IntegerArray(
     #        label = "Variables watched by Monitors.",
@@ -2279,7 +2279,7 @@ class Generic2dOscillator(Model):
                                         monitored. It can be overridden for each Monitor if desired. The 
                                         corresponding state-variable indices for this model are :math:`V = 0`
                                         and :math:`W = 1`.""",
-        order=7)
+        order=12)
 
 
     def __init__(self, **kwargs):
