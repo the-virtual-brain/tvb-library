@@ -2265,7 +2265,7 @@ class Generic2dOscillator(Model):
         order=7)
 
     g = arrays.FloatArray(
-        label=":math:`f`",
+        label=":math:`g`",
         default=numpy.array([0.0]),
         range=basic.Range(lo=-5.0, hi=5.0, step=0.5),
         doc="""Coefficient of the linear term of the cubic nullcline.""",
