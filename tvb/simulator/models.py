@@ -2124,6 +2124,40 @@ class Generic2dOscillator(Model):
     |* excitable regime if b=0.6|
     |* oscillatory if b=0.4     |
     +---------------------------+
+
+
+    +---------------------------+     
+    |  KnocketAl  2009          | 
+    +--------------+------------+
+    |Parameter     |  Value     |
+    +==============+============+
+    | a            |    1.05    |
+    +--------------+------------+
+    | b            |   -1.00    |
+    +--------------+------------+
+    | c            |    0.0     |
+    +--------------+------------+
+    | d            |    1.0     |
+    +--------------+------------+
+    | I            |    0.0     |
+    +--------------+------------+
+    | alpha        |    1.0     |
+    +--------------+------------+
+    | beta         |   -0.2     |
+    +--------------+------------+
+    | e            |    0.0     |
+    +--------------+------------+
+    | g            |    1.0     |
+    +--------------+------------+
+    | f            |    1/3     | 
+    +--------------+------------+
+    | tau          |    1.25    |
+    +--------------+------------+
+    |                           |
+    |* intrinsic frequency is   |
+    |  approx 10 Hz             |
+    |                           |
+    +---------------------------+
     
     
     +---------------------------+     
@@ -2141,10 +2175,15 @@ class Generic2dOscillator(Model):
     +--------------+------------+
     | I            |      0.0   |
     +--------------+------------+
-    |* excitable regime if      |
+    |                           |
     |* intrinsic frequency is   |
     |  approx 10 Hz             |
+    |                           |
     +---------------------------+
+
+    NOTE: This regime, if I = 2.1, is called subthreshold regime.  
+    Unstable oscillations appear thorugh a subcritical Hopf bifurcation.
+                            |
 
     .. figure :: img/Generic2dOscillator_01_mode_0_pplane.svg
     .. _phase-plane-Generic2D:
@@ -2209,7 +2248,7 @@ class Generic2dOscillator(Model):
         range=basic.Range(lo=0.0001, hi=1.0, step=0.0001),
         doc="""Temporal scale factor. Warning: do not use it unless
         you know what you are doing and know about time tides.""",
-        order=13)
+        order=1350)
 
     e = arrays.FloatArray(
         label=":math:`e`",
