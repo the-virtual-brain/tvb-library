@@ -39,6 +39,8 @@ Filler analyzer: Takes a TimeSeries object and returns a Float.
 import tvb.analyzers.metrics_base as metrics_base
 import tvb.datatypes.time_series as time_series_module
 from tvb.basic.logger.builder import get_logger
+import tvb.basic.traits.types_basic as basic
+
 
 LOG = get_logger(__name__)
 
