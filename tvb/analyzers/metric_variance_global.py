@@ -39,6 +39,8 @@ Filler analyzer: Takes a TimeSeries object and returns a Float.
 import tvb.analyzers.metrics_base as metrics_base
 import tvb.datatypes.time_series as time_series_module
 from tvb.basic.logger.builder import get_logger
+import tvb.basic.traits.types_basic as basic
+
 
 LOG = get_logger(__name__)
 
@@ -64,6 +66,23 @@ class GlobalVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
         required=True,
         doc="""The TimeSeries for which the zero centered Global Variance is to
             be computed.""")
+
+
+    start_point = basic.Float(
+        label = "Start point (ms)",
+        default =  0.0,
+        required = False,
+        doc = """The timeseries may have a transient. The start point determines how
+              many points of the TimeSeries will be discarded before computing
+              the metric. By default it takes the entire TimeSeries""")
+
+    segment = basic.Integer(
+        label = "Segmentation factor",
+        default = 4,
+        required=False,
+        doc = """Divide the input time-series into discrete equally sized sequences 
+              and use the last one to compute the metric."""
+        )
     
     def evaluate(self):
         """
@@ -71,8 +90,24 @@ class GlobalVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
         """
         cls_attr_name = self.__class__.__name__ + ".time_series"
         self.time_series.trait["data"].log_debug(owner=cls_attr_name)
+
+
+        shape = self.time_series.data.shape
+        tpts  = self.time_series.data.shape[0]
+
+        if self.start_point != 0.0:
+            start_tpt = self.start_point / self.time_series.sample_period
+            LOG.debug("Will discard: %s time points" % start_tpt)
+        else: 
+            start_tpt = 0
+
+        if start_tpt > tpts:
+            LOG.waring("The time-series is shorter than the starting point")
+            LOG.debug("Will divide the time-series into %d segments." % self.segment)
+            # Lazy strategy
+            start_tpt = int((self.segment - 1) * (tpts//self.segment))
         
-        zero_mean_data = (self.time_series.data - self.time_series.data.mean(axis=0))
+        zero_mean_data = (self.time_series.data[start_tpt:, :] - self.time_series.data[start_tpt:, :].mean(axis=0))
         global_variance = zero_mean_data.var()
         return global_variance  
     

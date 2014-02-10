@@ -95,13 +95,14 @@ class VarianceNodeVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
         if self.start_point != 0.0:
             start_tpt = self.start_point / self.time_series.sample_period
             LOG.debug("Will discard: %s time points" % start_tpt)
+        else: 
+            start_tpt = 0
 
-        if seg_tpts > tpts:
+        if start_tpt > tpts:
             LOG.waring("The time-series is shorter than the starting point")
             LOG.debug("Will divide the time-series into %d segments." % self.segment)
             # Lazy strategy
             start_tpt = int((self.segment - 1) * (tpts//self.segment))
-            start_tpt = int((self.segment - 1) * (tpts // self.segment))
 
         
         zero_mean_data = (self.time_series.data[start_tpt:, :] - self.time_series.data[start_tpt:, :].mean(axis=0))

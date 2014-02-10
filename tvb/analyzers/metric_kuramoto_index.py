@@ -37,6 +37,7 @@ Filler analyzer: Takes a TimeSeries object and returns a Float.
 # standard library
 import cmath
 import numpy
+import tvb.basic.traits.types_basic as basic
 import tvb.analyzers.metrics_base as metrics_base
 import tvb.datatypes.time_series as time_series_module
 from tvb.basic.filters.chain import FilterChain
@@ -84,6 +85,22 @@ class KuramotoIndex(metrics_base.BaseTimeseriesMetricAlgorithm):
         required=True,
         doc="""The TimeSeries for which the Kuramoto Synchronization Index
         will be computed""")
+
+
+    start_point = basic.Float(
+        label = "Start point (ms)",
+        default =  0.0,
+        required = False,
+        doc = """PLACEHOLDER: The timeseries may have a transient. The start point determines how
+              many points of the TimeSeries will be discarded before computing
+              the metric. By default it takes the entire TimeSeries""")
+
+    segment = basic.Integer(
+        label = "Segmentation factor",
+        default = 4,
+        required=False,
+        doc = """PLACEHOLDER:Divide the input time-series into discrete equally sized sequences 
+              and use the last one to compute the metric.""")
 
     accept_filter = FilterChain(operations=["==", ">="], values=[4, 2],
                                 fields=[FilterChain.datatype + '._nr_dimensions', FilterChain.datatype + '._length_2d'])
