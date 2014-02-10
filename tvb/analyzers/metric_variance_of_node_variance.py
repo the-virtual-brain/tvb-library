@@ -35,11 +35,11 @@ Filler analyzer: Takes a TimeSeries object and returns a Float.
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 
 """
-#TODO: Currently built around the Simulator's 4D timeseries -- generalise...
+
 import tvb.analyzers.metrics_base as metrics_base
+import tvb.basic.traits.types_basic as basic
 import tvb.datatypes.time_series as time_series_module
 from tvb.basic.logger.builder import get_logger
-import tvb.basic.traits.types_basic as basic
 
 
 LOG = get_logger(__name__)
@@ -52,7 +52,7 @@ class VarianceNodeVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
     time-series and returns the variance of the node variances. 
 
     Input:
-    TimeSeries datatype 
+    TimeSeries DataType
     
     Output: 
     Float
@@ -67,20 +67,20 @@ class VarianceNodeVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
             variance is to be computed.""")
 
     start_point = basic.Float(
-        label = "Start point (ms)",
-        default = 1000.0,
-        required = False,
-        doc = """The timeseries may have a transient. The start point determines how
+        label="Start point (ms)",
+        default=1000.0,
+        required=False,
+        doc="""The timeseries may have a transient. The start point determines how
               many points of the TimeSeries will be discarded before computing
               the metric""")
 
     segment = basic.Integer(
-        label = "Segmentation factor",
-        default = 4,
+        label="Segmentation factor",
+        default=4,
         required=False,
-        doc = """Divide the input time-series into discrete equally sized sequences 
+        doc="""Divide the input time-series into discrete equally sized sequences
               and use the last one to compute the metric."""
-        )
+    )
 
 
     def evaluate(self):
@@ -95,26 +95,24 @@ class VarianceNodeVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
         start_tpt = self.start_point / self.time_series.sample_period
         LOG.debug("Will try to discard: %s time points" % start_tpt)
 
-        if seg_tpts > tpts:
-            LOG.waring("The time-series is shorter than the starting point")
+        if start_tpt > tpts:
+            LOG.warning("The time-series is shorter than the starting point")
             LOG.debug("Will divide the time-series into %d segments." % self.segment)
             # Lazy strategy
-            start_tpt = int( (self.segment - 1) * (tpts//self.segment))
-
-
+            start_tpt = int((self.segment - 1) * (tpts // self.segment))
         
         zero_mean_data = (self.time_series.data[start_tpt:, :] - self.time_series.data[start_tpt:, :].mean(axis=0))
         #reshape by concat the time-series of each var and modes for each node.
         zero_mean_data = zero_mean_data.transpose((0, 1, 3, 2))
-        cat_tpts = shape[0] * shape[1] * shape[3]
+        cat_tpts = zero_mean_data.shape[0] * shape[1] * shape[3]
         zero_mean_data = zero_mean_data.reshape((cat_tpts, shape[2]), order="F")
         #Variance over time-points, state-variables, and modes for each node.
         node_variance = zero_mean_data.var(axis=0)
         #Variance of that variance over nodes
         result = node_variance.var()
         return result
-    
-    
+
+
     def result_shape(self):
         """
         Returns the shape of the main result of the ... 
