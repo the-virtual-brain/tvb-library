@@ -99,7 +99,7 @@ class VarianceNodeVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
             start_tpt = 0
 
         if start_tpt > tpts:
-            LOG.waring("The time-series is shorter than the starting point")
+            LOG.warning("The time-series is shorter than the starting point")
             LOG.debug("Will divide the time-series into %d segments." % self.segment)
             # Lazy strategy
             start_tpt = int((self.segment - 1) * (tpts//self.segment))
