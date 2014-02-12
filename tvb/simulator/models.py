@@ -581,14 +581,14 @@ class WilsonCowan(Model):
         order=14)
 
     P = arrays.FloatArray(
-        label=":math:`k_i`",
+        label=":math:`P`",
         default=numpy.array([0.0]),
         range=basic.Range(lo=0.0, hi=2.0, step=0.01),
         doc="""External stimulus to the excitatory population. Constant intensity.Entry point for coupling.""",
         order=15)
 
     Q = arrays.FloatArray(
-        label=":math:`k_i`",
+        label=":math:`Q`",
         default=numpy.array([0.0]),
         range=basic.Range(lo=0.0, hi=2.0, step=0.01),
         doc="""External stimulus to the inhibitory population. Constant intensity.Entry point for coupling.""",
