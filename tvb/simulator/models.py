@@ -2067,8 +2067,9 @@ class Generic2dOscillator(Model):
 
     The model with its default parameters exhibits FitzHugh-Nagumo like dynamics.
 
-    Table 1)
     +---------------------------+
+    |  Table 1                  |
+    +--------------+------------+
     |  EXCITABLE CONFIGURATION  |
     +--------------+------------+
     |Parameter     |  Value     |
@@ -2083,12 +2084,13 @@ class Generic2dOscillator(Model):
     +--------------+------------+
     | I            |      0.0   |
     +--------------+------------+
-    | * limit cylce if a = 2.0  |
+    |  limit cycle if a is 2.0  |
     +---------------------------+
 
 
-    Table 2)
     +---------------------------+
+    |   Table 2                 |
+    +--------------+------------+
     |   BISTABLE CONFIGURATION  |
     +--------------+------------+
     |Parameter     |  Value     |
@@ -2103,14 +2105,17 @@ class Generic2dOscillator(Model):
     +--------------+------------+
     | I            |      0.0   |
     +--------------+------------+
-    |* monostable regime:       |
-    |* fixed point if Iext=-2.0 |
-    |* limit cylce if Iext=-1.0 |
+    | monostable regime:        |
+    | fixed point if Iext=-2.0  |
+    | limit cycle if Iext=-1.0  |
     +---------------------------+
-    
-    Table 3)
+
+
     +---------------------------+
+    |  Table 3                  |
+    +--------------+------------+
     |  EXCITABLE CONFIGURATION  |
+    +--------------+------------+
     |  (similar to Morris-Lecar)|
     +--------------+------------+
     |Parameter     |  Value     |
@@ -2125,12 +2130,14 @@ class Generic2dOscillator(Model):
     +--------------+------------+
     | I            |      0.0   |
     +--------------+------------+
-    |* excitable regime if b=0.6|
-    |* oscillatory if b=0.4     |
+    | excitable regime if b=0.6 |
+    | oscillatory if b=0.4      |
     +---------------------------+
 
-    Table 4)
-    +---------------------------+     
+
+    +---------------------------+
+    |  Table 4                  |
+    +--------------+------------+
     |  KnocketAl  2009          | 
     +--------------+------------+
     |Parameter     |  Value     |
@@ -2158,12 +2165,14 @@ class Generic2dOscillator(Model):
     | tau          |    1.25    |
     +--------------+------------+
     |                           |
-    |* frequency peak at 10Hz   |
+    |  frequency peak at 10Hz   |
     |                           |
     +---------------------------+
-    
-    Table 5)
-    +---------------------------+     
+
+
+    +---------------------------+
+    |  Table 5                  |
+    +--------------+------------+
     |  SanzLeonetAl  2013       | 
     +--------------+------------+
     |Parameter     |  Value     |
@@ -2179,24 +2188,24 @@ class Generic2dOscillator(Model):
     | I            |      0.0   |
     +--------------+------------+
     |                           |
-    |* intrinsic frequency is   |
+    |  intrinsic frequency is   |
     |  approx 10 Hz             |
     |                           |
     +---------------------------+
 
-    NOTE: This regime, if I = 2.1, is called subthreshold regime.  
-    Unstable oscillations appear thorugh a subcritical Hopf bifurcation.
-                            |
+    NOTE: This regime, if I = 2.1, is called subthreshold regime.
+    Unstable oscillations appear through a subcritical Hopf bifurcation.
+
 
     .. figure :: img/Generic2dOscillator_01_mode_0_pplane.svg
     .. _phase-plane-Generic2D:
         :alt: Phase plane of the generic 2D population model with (V, W)
 
-        The (:math:`V`, :math:`W`) phase-plane for the generic 2D population 
-        model for default parameters. The dynamical system has an equilibrium 
+        The (:math:`V`, :math:`W`) phase-plane for the generic 2D population
+        model for default parameters. The dynamical system has an equilibrium
         point.
 
-    .. #Currently there seems to be a clash betwen traits and autodoc, autodoc
+    .. #Currently there seems to be a clash between traits and autodoc, autodoc
     .. #can't find the methods of the class, the class specific names below get
     .. #us around this...
     .. automethod:: Generic2dOscillator.__init__
@@ -2341,9 +2350,8 @@ class Generic2dOscillator(Model):
         LOG.debug("%s: inited." % repr(self))
 
 
-    def dfun(self, state_variables, coupling, local_coupling=0.0,
-             ev=numexpr.evaluate):
-        r"""
+    def dfun(self, state_variables, coupling, local_coupling=0.0, ev=numexpr.evaluate):
+        """
         The two state variables :math:`V` and :math:`W` are typically considered 
         to represent a function of the neuron's membrane potential, such as the 
         firing rate or dendritic currents, and a recovery variable, respectively. 
@@ -2468,16 +2476,23 @@ class LarterBreakspear(Model):
     |          Table 1          | 
     +--------------+------------+
     |Parameter     |  Value     |
-    +--------------+------------+
+    +==============+============+
     | I            |      0.3   |
+    +--------------+------------+
     | a_ee         |      0.4   |
+    +--------------+------------+
     | a_ei         |      0.1   |
+    +--------------+------------+
     | a_ie         |      1.0   |
+    +--------------+------------+
     | a_ne         |      1.0   |
+    +--------------+------------+
     | a_ni         |      0.4   |
+    +--------------+------------+
     | r_NMDA       |      0.2   |
+    +--------------+------------+
     | delta        |      0.001 |
-    +---------------------------+
+    +--------------+------------+
     |   Breakspear et al. 2003  |
     +---------------------------+
 
@@ -2486,38 +2501,67 @@ class LarterBreakspear(Model):
     |          Table 2          | 
     +--------------+------------+
     |Parameter     |  Value     |
-    +--------------+------------+
+    +==============+============+
     | gK           |      2.0   |
+    +--------------+------------+
     | gL           |      0.5   |
+    +--------------+------------+
     | gNa          |      6.7   |
+    +--------------+------------+
     | gCa          |      1.0   |
+    +--------------+------------+
     | a_ne         |      1.0   |
+    +--------------+------------+
     | a_ni         |      0.4   |
+    +--------------+------------+
     | a_ee         |      0.36  |
+    +--------------+------------+
     | a_ei         |      2.0   |
+    +--------------+------------+
     | a_ie         |      2.0   |
+    +--------------+------------+
     | VK           |     -0.7   |
+    +--------------+------------+
     | VL           |     -0.5   |
+    +--------------+------------+
     | VNa          |      0.53  |
+    +--------------+------------+
     | VCa          |      1.0   |
-    | phi          |      0.7   | 
+    +--------------+------------+
+    | phi          |      0.7   |
+    +--------------+------------+
     | b            |      0.1   |
+    +--------------+------------+
     | I            |      0.3   |
+    +--------------+------------+
     | r_NMDA       |      0.25  |
+    +--------------+------------+
     | C            |      0.1   |
+    +--------------+------------+
     | TCa          |     -0.01  |
+    +--------------+------------+
     | d_Ca         |      0.15  |
+    +--------------+------------+
     | TK           |      0.0   |
+    +--------------+------------+
     | d_K          |      0.3   |
+    +--------------+------------+
     | VT           |      0.0   |
+    +--------------+------------+
     | ZT           |      0.0   |
+    +--------------+------------+
     | TNa          |      0.3   |
+    +--------------+------------+
     | d_Na         |      0.15  |
+    +--------------+------------+
     | d_V          |      0.65  |
+    +--------------+------------+
     | d_Z          |      d_V   |
+    +--------------+------------+
     | QV_max       |      1.0   |
+    +--------------+------------+
     | QZ_max       |      1.0   |
-    +---------------------------+
+    +--------------+------------+
     |   Alstott et al. 2009     |
     +---------------------------+
 
@@ -2526,7 +2570,7 @@ class LarterBreakspear(Model):
 
     d_V
     For d_V < 0.55, uncoupled network, the system exhibits fixed point dynamics; 
-    for 55 < lb.d_V < 0.59, limit cycle atractors; 
+    for 55 < lb.d_V < 0.59, limit cycle attractors;
     and for d_V > 0.59 chaotic attractors (eg, d_V=0.6,aee=0.5,aie=0.5, gNa=0, Iext=0.165)
 
     d_Z
