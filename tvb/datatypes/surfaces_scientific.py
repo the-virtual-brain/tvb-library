@@ -288,6 +288,7 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         angle they subtend at each vertex...
         """
         vert_norms = numpy.zeros((self.number_of_vertices, 3))
+        bad_normal_count = 0
         for k in xrange(self.number_of_vertices):
             try:
                 tri_list = list(self.vertex_triangles[k])
@@ -304,7 +305,9 @@ class SurfaceScientific(surfaces_data.SurfaceData):
                 # A nicer solution would be to detect degenerate triangles and ignore their
                 # contribution to the vertex normal
                 vert_norms[k, :] = self.vertices[k] / numpy.sqrt(self.vertices[k].dot(self.vertices[k]))
+                bad_normal_count += 1
 
+        self.logger.warn(" %d vertices have bad normals" % bad_normal_count)
         util.log_debug_array(LOG, vert_norms, "vertex_normals", owner=self.__class__.__name__)
         self.vertex_normals = vert_norms
 
