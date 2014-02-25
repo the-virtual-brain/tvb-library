@@ -37,8 +37,6 @@ Filler analyzer: Takes a TimeSeries object and returns a Float.
 """
 
 import tvb.analyzers.metrics_base as metrics_base
-import tvb.basic.traits.types_basic as basic
-import tvb.datatypes.time_series as time_series_module
 from tvb.basic.logger.builder import get_logger
 
 
@@ -60,27 +58,6 @@ class VarianceNodeVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
     This is a crude indicator of how different the "excitability" of the model is
     from node to node.
     """
-    time_series = time_series_module.TimeSeries(
-        label="Time Series",
-        required=True,
-        doc="""The TimeSeries for which the variance of the zero centered node
-            variance is to be computed.""")
-
-    start_point = basic.Float(
-        label = "Start point (ms)",
-        default =  0.0,
-        required = False,
-        doc = """The timeseries may have a transient. The start point determines how
-              many points of the TimeSeries will be discarded before computing
-              the metric. By default it takes the entire TimeSeries""")
-
-    segment = basic.Integer(
-        label="Segmentation factor",
-        default=4,
-        required=False,
-        doc="""Divide the input time-series into discrete equally sized sequences
-              and use the last one to compute the metric.""")
-
 
     def evaluate(self):
         """
@@ -90,7 +67,7 @@ class VarianceNodeVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
         self.time_series.trait["data"].log_debug(owner=cls_attr_name)
         
         shape = self.time_series.data.shape
-        tpts  = self.time_series.data.shape[0]
+        tpts  = shape[0]
 
         if self.start_point != 0.0:
             start_tpt = self.start_point / self.time_series.sample_period
@@ -102,11 +79,10 @@ class VarianceNodeVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
             LOG.warning("The time-series is shorter than the starting point")
             LOG.debug("Will divide the time-series into %d segments." % self.segment)
             # Lazy strategy
-            start_tpt = int((self.segment - 1) * (tpts//self.segment))
+            start_tpt = int((self.segment - 1) * (tpts // self.segment))
 
-        
         zero_mean_data = (self.time_series.data[start_tpt:, :] - self.time_series.data[start_tpt:, :].mean(axis=0))
-        #reshape by concat the time-series of each var and modes for each node.
+        #reshape by concatenating the time-series of each var and modes for each node.
         zero_mean_data = zero_mean_data.transpose((0, 1, 3, 2))
         cat_tpts = zero_mean_data.shape[0] * shape[1] * shape[3]
         zero_mean_data = zero_mean_data.reshape((cat_tpts, shape[2]), order="F")
@@ -115,27 +91,4 @@ class VarianceNodeVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
         #Variance of that variance over nodes
         result = node_variance.var()
         return result
-
-
-    def result_shape(self):
-        """
-        Returns the shape of the main result of the ... 
-        """
-        return (1, )
-    
-    
-    def result_size(self):
-        """
-        Returns the storage size in Bytes of the results of the ... .
-        """
-        return 8.0  # Bytes
-    
-    
-    def extended_result_size(self):
-        """
-        Returns the storage size in Bytes of the extended result of the ....
-        That is, it includes storage of the evaluated ...
-        """
-        return 8.0  # Bytes
-
 

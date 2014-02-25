@@ -37,9 +37,7 @@ Filler analyzer: Takes a TimeSeries object and returns a Float.
 """
 
 import tvb.analyzers.metrics_base as metrics_base
-import tvb.datatypes.time_series as time_series_module
 from tvb.basic.logger.builder import get_logger
-import tvb.basic.traits.types_basic as basic
 
 
 LOG = get_logger(__name__)
@@ -52,7 +50,7 @@ class GlobalVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
     data points.
     
     Input:
-    TimeSeries datatype 
+    TimeSeries DataType
     
     Output: 
     Float
@@ -60,29 +58,6 @@ class GlobalVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
     This is a crude indicator of "excitability" or oscillation amplitude of the
     models over the entire network.
     """
-
-    time_series = time_series_module.TimeSeries(
-        label="Time Series",
-        required=True,
-        doc="""The TimeSeries for which the zero centered Global Variance is to
-            be computed.""")
-
-
-    start_point = basic.Float(
-        label = "Start point (ms)",
-        default =  0.0,
-        required = False,
-        doc = """The timeseries may have a transient. The start point determines how
-              many points of the TimeSeries will be discarded before computing
-              the metric. By default it takes the entire TimeSeries""")
-
-    segment = basic.Integer(
-        label = "Segmentation factor",
-        default = 4,
-        required=False,
-        doc = """Divide the input time-series into discrete equally sized sequences 
-              and use the last one to compute the metric."""
-        )
     
     def evaluate(self):
         """
@@ -93,7 +68,7 @@ class GlobalVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
 
 
         shape = self.time_series.data.shape
-        tpts  = self.time_series.data.shape[0]
+        tpts  = shape[0]
 
         if self.start_point != 0.0:
             start_tpt = self.start_point / self.time_series.sample_period
@@ -105,32 +80,9 @@ class GlobalVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
             LOG.warning("The time-series is shorter than the starting point")
             LOG.debug("Will divide the time-series into %d segments." % self.segment)
             # Lazy strategy
-            start_tpt = int((self.segment - 1) * (tpts//self.segment))
+            start_tpt = int((self.segment - 1) * (tpts // self.segment))
         
         zero_mean_data = (self.time_series.data[start_tpt:, :] - self.time_series.data[start_tpt:, :].mean(axis=0))
         global_variance = zero_mean_data.var()
         return global_variance  
-    
-    
-    def result_shape(self):
-        """
-        Returns the shape of the main result of the ... 
-        """
-        return (1, )
-    
-    
-    def result_size(self):
-        """
-        Returns the storage size in Bytes of the results of the ... .
-        """
-        return 8.0  # Bytes
-    
-    
-    def extended_result_size(self):
-        """
-        Returns the storage size in Bytes of the extended result of the ....
-        That is, it includes storage of the evaluated ...
-        """
-        return 8.0  # Bytes
-
 

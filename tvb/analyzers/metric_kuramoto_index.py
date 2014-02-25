@@ -31,15 +31,13 @@
 """
 Filler analyzer: Takes a TimeSeries object and returns a Float.
 
-.. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
+.. moduleauthor:: Paula Sanz Leon <pau.sleon@gmail.com>
 
 """
-# standard library
+
 import cmath
 import numpy
-import tvb.basic.traits.types_basic as basic
 import tvb.analyzers.metrics_base as metrics_base
-import tvb.datatypes.time_series as time_series_module
 from tvb.basic.filters.chain import FilterChain
 from tvb.basic.logger.builder import get_logger
 
@@ -57,7 +55,7 @@ class KuramotoIndex(metrics_base.BaseTimeseriesMetricAlgorithm):
     The *order* parameters are :math:`r` and :math:`Psi`.
     
     .. math::
-		r e^{i * \\psi} = \\frac{1}{N}\\,\\sum_{k=1}^N(e^{i*\\theta_k})
+        r e^{i * \\psi} = \\frac{1}{N}\\,\\sum_{k=1}^N(e^{i*\\theta_k})
     
     The first is the phase coherence of the population of oscillators (KSI) 
     and the second is the average phase.
@@ -66,50 +64,27 @@ class KuramotoIndex(metrics_base.BaseTimeseriesMetricAlgorithm):
     
     
     Input:
-    TimeSeries datatype 
+    TimeSeries DataType
     
     Output: 
     Float
     
-    This is a crude indicator of synchronization among nodes over the entire 
-    network.
+    This is a crude indicator of synchronization among nodes over the entire network.
 
     #NOTE: For the time being it is meant to be another global metric.
     However, it should be consider to have a sort of TimeSeriesDatatype for this
     analyzer.
     
     """
-
-    time_series = time_series_module.TimeSeries(
-        label="Time Series",
-        required=True,
-        doc="""The TimeSeries for which the Kuramoto Synchronization Index
-        will be computed""")
-
-
-    start_point = basic.Float(
-        label = "Start point (ms)",
-        default =  0.0,
-        required = False,
-        doc = """PLACEHOLDER: The timeseries may have a transient. The start point determines how
-              many points of the TimeSeries will be discarded before computing
-              the metric. By default it takes the entire TimeSeries""")
-
-    segment = basic.Integer(
-        label = "Segmentation factor",
-        default = 4,
-        required=False,
-        doc = """PLACEHOLDER:Divide the input time-series into discrete equally sized sequences 
-              and use the last one to compute the metric.""")
-
     accept_filter = FilterChain(operations=["==", ">="], values=[4, 2],
                                 fields=[FilterChain.datatype + '._nr_dimensions', FilterChain.datatype + '._length_2d'])
-    
-    
+
+
     def evaluate(self):
         """
         Kuramoto Synchronization Index
         """
+
         cls_attr_name = self.__class__.__name__ + ".time_series"
         self.time_series.trait["data"].log_debug(owner=cls_attr_name)
 
@@ -124,35 +99,12 @@ class KuramotoIndex(metrics_base.BaseTimeseriesMetricAlgorithm):
         
         #TODO: Generalise. The Kuramoto order parameter is computed over sliding 
         #      time windows and then normalised    
-        
+
         theta_sum = numpy.sum(numpy.exp(0.0 + 1j * (numpy.vectorize(cmath.polar)
-                    (numpy.vectorize(complex)(self.time_series.data[:, 0, :, 0], 
+                    (numpy.vectorize(complex)(self.time_series.data[:, 0, :, 0],
                      self.time_series.data[:, 1, :, 0]))[1])), axis=1)
                      
         result = numpy.vectorize(cmath.polar)(theta_sum / self.time_series.data.shape[2])
 
         return result[0].mean()   
-    
-    
-    def result_shape(self):
-        """
-        Returns the shape of the main result of the ... 
-        """
-        return (1, )
-    
-    
-    def result_size(self):
-        """
-        Returns the storage size in Bytes of the results of the ... .
-        """
-        return 8.0  # Bytes
-    
-    
-    def extended_result_size(self):
-        """
-        Returns the storage size in Bytes of the extended result of the ....
-        That is, it includes storage of the evaluated ...
-        """
-        return 8.0  # Bytes
-
 
