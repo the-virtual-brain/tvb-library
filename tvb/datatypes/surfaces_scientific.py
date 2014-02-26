@@ -306,8 +306,8 @@ class SurfaceScientific(surfaces_data.SurfaceData):
                 # contribution to the vertex normal
                 vert_norms[k, :] = self.vertices[k] / numpy.sqrt(self.vertices[k].dot(self.vertices[k]))
                 bad_normal_count += 1
-
-        self.logger.warn(" %d vertices have bad normals" % bad_normal_count)
+        if bad_normal_count:
+            self.logger.warn(" %d vertices have bad normals" % bad_normal_count)
         util.log_debug_array(LOG, vert_norms, "vertex_normals", owner=self.__class__.__name__)
         self.vertex_normals = vert_norms
 
