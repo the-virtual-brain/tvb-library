@@ -71,6 +71,11 @@ class SurfaceData(MappedType):
 
     default = readers.File(folder_path="surfaces/cortex_reg13")
 
+    hemisphere_mask = arrays.BoolArray(
+        label="An array specifying if a vertex belongs to the right hemisphere",
+        file_storage=FILE_STORAGE_NONE,
+        required=False)
+
     vertices = arrays.PositionArray(
         label="Vertex positions",
         order=-1,
