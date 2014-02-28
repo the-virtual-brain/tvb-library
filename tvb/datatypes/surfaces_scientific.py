@@ -108,6 +108,7 @@ class SurfaceScientific(surfaces_data.SurfaceData):
                    "Number of vertices": self.number_of_vertices,
                    "Number of triangles": self.number_of_triangles,
                    "Number of edges": self.number_of_edges,
+                   "Has two hemispheres": self.bi_hemispheric,
                    "Edge lengths, mean (mm)": self.edge_length_mean,
                    "Edge lengths, shortest (mm)": self.edge_length_min,
                    "Edge lengths, longest (mm)": self.edge_length_max}
