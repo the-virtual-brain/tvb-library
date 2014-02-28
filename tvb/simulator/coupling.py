@@ -275,10 +275,17 @@ class HyperbolicTangent(Coupling):
 
     a = arrays.FloatArray(
         label = ":math:`a`", 
-        default = numpy.array([0.0]),
+        default = numpy.array([1.0]),
         range = basic.Range(lo = -1000.0, hi = 1000.0, step = 10.0),
         doc = """Minimum of the sigmoid function""",
         order = 1)
+
+    b = arrays.FloatArray(
+        label = ":math:`b`", 
+        default = numpy.array([1.0]),
+        range = basic.Range(lo = -1.0, hi = 1.0, step = 10.0),
+        doc = """Scaling factor for the variable""",
+        order = 2)
 
     midpoint = arrays.FloatArray(
         label = "midpoint", 
@@ -298,7 +305,7 @@ class HyperbolicTangent(Coupling):
         label = "normalise by in-strength",
         default = True,
         doc = """Normalise the node coupling by the node's in-strenght""",
-        order = 4)
+        order = 5)
 
 
     def __call__(self, g_ij, x_i, x_j):
@@ -310,7 +317,7 @@ class HyperbolicTangent(Coupling):
                         a * (1 + tanh((x - midpoint)/sigma))
 
         """
-        temp =  self.a * (1 +  numpy.tanh((x_j - self.midpoint) / self.sigma))
+        temp =  self.a * (1 +  numpy.tanh((self.b * x_j - self.midpoint) / self.sigma))
 
         if self.normalise: 
             #NOTE: normalising by the strength or degrees may yield NaNs, so fill these values with inf
@@ -337,7 +344,7 @@ class Sigmoidal(Coupling):
     .. automethod:: Sigmoidal.__call__
 
     """
-    #NOTE: The defaults here produce something close to the current default for
+    #NOTE: using a = numpy.pi / numpy.sqrt(3.0) and the default parameter produces something close to the current default for
     #      Linear (a=0.00390625, b=0) over the linear portion of the sigmoid,
     #      with saturation at -1 and 1.
 
@@ -362,12 +369,19 @@ class Sigmoidal(Coupling):
         doc = """Midpoint of the linear portion of the sigmoid""",
         order = 3)
 
+    a = arrays.FloatArray(
+        label = r":math:`a`",
+        default = numpy.array([1.0,]),
+        range = basic.Range(lo = 0.01, hi = 1000.0, step = 10.0),
+        doc = """Scaling of .... """,
+        order = 4)
+
     sigma = arrays.FloatArray(
         label = r":math:`\sigma`",
         default = numpy.array([230.0,]),
         range = basic.Range(lo = 0.01, hi = 1000.0, step = 10.0),
         doc = """Standard deviation of the ...""",
-        order = 4)
+        order = 5)
 
 
     def __init__(self, **kwargs):
@@ -382,34 +396,13 @@ class Sigmoidal(Coupling):
         evaluated has the following form:
 
             .. math::
-                c_{min} + (c_{max} - c_{min}) / (1.0 + \exp(-\pi/\sqrt(3.0)
-                (x-midpoint)/\sigma))
+                c_{min} + (c_{max} - c_{min}) / (1.0 + \exp(-a(x-midpoint)/\sigma))
 
 
         """
         coupled_input = (g_ij * x_j).sum(axis=0)
-        sig = self.cmin + ((self.cmax - self.cmin) / (1.0 +
-              numpy.exp(-self.pi_on_sqrt3 * ((coupled_input - self.midpoint) / self.sigma))))
+        sig = self.cmin + ((self.cmax - self.cmin) / (1.0 + numpy.exp(-a *((coupled_input - self.midpoint) / self.sigma))))
         return sig
-
-    device_info = coupling_device_info(
-        pars = ['cmin', 'cmax', 'midpoint', 'sigma'],
-        kernel = """
-        // load parameters
-        float cmin     = P(0)
-            , cmax     = P(1)
-            , midpoint = P(2)
-            , sigma    = P(3)
-
-            , pi_on_sqrt3 = 1.8137993642342178;
-
-        I = 0.0;
-        for (int j_node=0; j_node<n_node; j_node++, idel++, conn++)
-            I += GIJ*XJ;
-
-        I = cmin + ((cmax - cmin) / (1.0 + exp(-pi_on_sqrt3 * ((I - midpoint) / sigma))));
-        """
-        )
 
 
 class StaticSigmoidal(Coupling):
