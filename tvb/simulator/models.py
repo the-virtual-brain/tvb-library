@@ -2030,7 +2030,7 @@ class JRFast(JansenRit):
 
 
 
-class JansenRitFull(Model):
+class ZetterbergJansen(Model):
     """
     The Jansen and Rit is a biologically inspired mathematical framework
     originally conceived to simulate the spontaneous electrical activity of
@@ -2061,7 +2061,7 @@ class JansenRitFull(Model):
 
     """
 
-    _ui_name = "Jansen-Rit-Full"
+    _ui_name = "ZetterbergJansen"
     ui_configurable_parameters = ['He', 'Hi', 'ke', 'ki', 'e0', 'rho_2', 'rho_1', 'gamma_1',
                                   'gamma_2', 'gamma_3', 'gamma_4', 'gamma_5', 'P', 'U',
                                   'Q']
@@ -2160,6 +2160,26 @@ class JansenRitFull(Model):
         doc="""Connectivity constant (interneurons to interneurons)""",
         order=12)
 
+    gamma_1T = arrays.FloatArray(
+        label=":math:`\gamma_{1T}`",
+        default=numpy.array([1.0]),
+        range=basic.Range(lo=65.0, hi=1350.0, step=5.),
+        doc="""Coupling factor from the extrinisic input to the spiny stellate population.""",
+        order=17)
+
+    gamma_3T = arrays.FloatArray(
+        label=":math:`\gamma_{3T}`",
+        default=numpy.array([1.0]),
+        range=basic.Range(lo=65.0, hi=1350.0, step=5.),
+        doc="""Coupling factor from the extrinisic input to the pyramidal population.""",
+        order=18)
+
+    gamma_2T = arrays.FloatArray(
+        label=":math:`\gamma_{2T}`",
+        default=numpy.array([1.0]),
+        range=basic.Range(lo=65.0, hi=1350.0, step=5.),
+        doc="""Coupling factor from the extrinisic input to the inhibitory population.""",
+        order=19)
 
     P = arrays.FloatArray(
         label=":math:`P`",
@@ -2183,7 +2203,7 @@ class JansenRitFull(Model):
         range=basic.Range(lo=0.0, hi=0.350, step=0.01),
         doc="""Maximum firing rate to the interneurons population [ms^-1]. 
         (External stimulus. Constant intensity.Entry point for coupling.)""",
-        order=13)
+        order=15)
 
     #Used for phase-plane axis ranges and to bound random initial() conditions.
     state_variable_range = basic.Dict(
@@ -2217,18 +2237,17 @@ class JansenRitFull(Model):
                                     corresponding state-variable indices for this model are :math:`v_6 = 0`,
                                     :math:`v_7 = 1`, :math:`v_2 = 2`, :math:`v_3 = 3`, :math:`v_4 = 4`, and
                                     :math:`v_5 = 5`""",
-        order=17)
+        order=42)
 
 
     def __init__(self, **kwargs):
         """
-        Initialise parameters for the Jansen Rit column, [JR_1995]_.
+        Initialise parameters for the Zetterberg-Jansen model
 
         """
         LOG.info("%s: initing..." % str(self))
-        super(JansenRitFull, self).__init__(**kwargs)
+        super(ZetterbergJansen, self).__init__(**kwargs)
 
-        #self._state_variables = ["y0", "y1", "y2", "y3", "y4", "y5"]
         self._nvar = 12
 
         self.cvar = numpy.array([10], dtype=numpy.int32)
@@ -2246,7 +2265,7 @@ class JansenRitFull(Model):
 
     def configure(self):
         """  """
-        super(JansenRitFull, self).configure()
+        super(ZetterbergJansen, self).configure()
         self.update_derived_parameters()
 
 
@@ -2273,21 +2292,31 @@ class JansenRitFull(Model):
         v6 = state_variables[10, :]
         v7 = state_variables[11, :]
 
-        # long_range_coupling
-        # coupling variable: v2 - v3
+        # NOTE:
+        # long_range_coupling term: coupling variable is v6
+        # EQUATIONS ASSUME sigmoidal coupling is used. 'lrc' must represent mean firing rate. 
+        # alternative: use linear coupling and transform potential-to-rate inside the model equations. 
         lrc =  coupling[0, :]
 
+        # exc input to the excitatory interneurons
         dv1 = y1
-        dy1 = self.Heke * ((self.gamma_1 + local_coupling) * self.sigma_fun(v2 - v3) + self.U + self.gamma_1 * lrc) - self.ke_2 * y1 - self.keke * v1
+        dy1 = self.Heke * ((self.gamma_1 + local_coupling) * self.sigma_fun(v2 - v3) + self.U + self.gamma_1T * lrc) - self.ke_2 * y1 - self.keke * v1
+        # exc input to the pyramidal cells
         dv2 = y2 
-        dy2 = self.Heke * (self.gamma_2 * self.sigma_fun(v1) + self.P + self.gamma_1 * lrc + local_coupling * self.sigma_fun(v2 - v3)) - self.ke_2 * y2 - self.keke * v2
+        dy2 = self.Heke * (self.gamma_2 * self.sigma_fun(v1) + self.P + self.gamma_3T * lrc + local_coupling * self.sigma_fun(v2 - v3)) - self.ke_2 * y2 - self.keke * v2
+        # inh input to the pyramidal cells
         dv3 = y3 
         dy3 = self.Hiki * (self.gamma_4 * self.sigma_fun(v4 - v5)) - self.ki_2 * y3 - self.kiki * v3
         dv4 = y4
-        dy4 = self.Heke * ((self.gamma_3 + local_coupling) * self.sigma_fun(v2 - v3) + self.Q + self.gamma_3 * lrc ) - self.ke_2 * y4 - self.keke * v4
+        # exc input to the inhibitory interneurons
+        dy4 = self.Heke * ((self.gamma_3 + local_coupling) * self.sigma_fun(v2 - v3) + self.Q + self.gamma_2T * lrc ) - self.ke_2 * y4 - self.keke * v4
         dv5 = y5
+        # inh input to the inhibitory interneurons
         dy5 = self.Hiki * (self.gamma_5 * self.sigma_fun(v4 - v5)) - self.ki_2 * y5 - self.keke * v5
+        # aux variables (the sum gathering the postsynaptic inh & exc potentials)
+        # pyramidal cells
         dv6 = y2 - y3
+        # inhibitory cells
         dv7 = y4 - y5 
 
         derivative = numpy.array([dv1, dy1, dv2, dy2, dv3, dy3, dv4, dy4, dv5, dy5, dv6, dv7])
