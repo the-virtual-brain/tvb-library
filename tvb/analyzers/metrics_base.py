@@ -56,17 +56,19 @@ class BaseTimeseriesMetricAlgorithm(core.Type):
 
     start_point = basic.Float(
         label="Start point (ms)",
-        default=0.0,
+        default=500.0,
         required=False, order=2,
-        doc="The TimeSeries may have a transient. The start point determines how many points of the TimeSeries "
-            "will be discarded before computing the metric. By default it takes the entire TimeSeries.")
+        doc=""" The start point determines how many points of the TimeSeries will
+        be discarded before computing the metric. By default it drops the
+        first 500 ms.""")
 
     segment = basic.Integer(
         label="Segmentation factor",
         default=4,
         required=False, order=3,
-        doc="Divide the input time-series into discrete equally sized  sequences and use the "
-            "last one to compute the metric. Used only when Start Point is out of range.")
+        doc=""" Divide the input time-series into discrete equally sized sequences and
+        use the last segment to compute the metric. It is only used when
+        the start point is larger than the time-series length.""")
 
 
     def evaluate(self):
