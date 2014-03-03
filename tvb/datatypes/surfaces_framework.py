@@ -132,7 +132,7 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         """
         if not self.bi_hemispheric or self.split_slices is None:
             return None
-        result = [1 for _ in range(self.number_of_split_slices)]
+        result = [1] * self.number_of_split_slices
         for key, value in self.split_slices.iteritems():
             if value[KEY_HEMISPHERE] == HEMISPHERE_LEFT:
                 result[int(key)] = 0
@@ -141,8 +141,8 @@ class SurfaceFramework(surfaces_data.SurfaceData):
 
     def _triangles_to_lines(self, triangles):
         lines_array = []
-        for triangle in triangles:
-            lines_array.extend([triangle[0], triangle[1], triangle[1], triangle[2], triangle[2], triangle[0]])
+        for a, b, c in triangles:
+            lines_array.extend([a, b, b, c, c, a])
         return numpy.array(lines_array)
 
     
@@ -190,9 +190,9 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         LOG.debug("Start to compute surface split triangles and vertices")
         split_triangles = []
         ignored_triangles_counter = 0
-        self.split_slices = dict()
+        self.split_slices = {}
 
-        for i in range(self.number_of_split_slices):
+        for i in xrange(self.number_of_split_slices):
             split_triangles.append([])
             if not self.bi_hemispheric:
                 self.split_slices[i] = {KEY_VERTICES: {KEY_START: i * SPLIT_MAX_SIZE,
@@ -215,7 +215,7 @@ class SurfaceFramework(surfaces_data.SurfaceData):
                                             KEY_HEMISPHERE: HEMISPHERE_RIGHT}
 
         ### Iterate Triangles and find the slice where it fits best, based on its vertices indexes:
-        for i in range(self.number_of_triangles):
+        for i in xrange(self.number_of_triangles):
             current_triangle = [self.triangles[i][j] for j in range(3)]
             fit_slice, transformed_triangle = self._find_slice(current_triangle)
 
@@ -291,7 +291,7 @@ class SurfaceFramework(surfaces_data.SurfaceData):
     def _find_slice(self, triangle):
         mn = min(triangle)
         mx = max(triangle)
-        for i in range(self.number_of_split_slices):
+        for i in xrange(self.number_of_split_slices):
             slice_start = self.split_slices[i][KEY_VERTICES][KEY_START]
             if slice_start <= mn and mx < self.split_slices[i][KEY_VERTICES][KEY_END]:
                 return i, [triangle[j] - slice_start for j in range(3)]
@@ -336,7 +336,7 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         slice_number = int(slice_number)
         no_of_triangles = (min(self.number_of_triangles, (slice_number + 1) * SPLIT_PICK_MAX_TRIANGLE)
                            - slice_number * SPLIT_PICK_MAX_TRIANGLE)
-        triangles_array = numpy.array(range(0, no_of_triangles * 3)).reshape((no_of_triangles, 3))
+        triangles_array = numpy.arange(no_of_triangles * 3).reshape((no_of_triangles, 3))
         return triangles_array
             
          
@@ -351,7 +351,7 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         if self.number_of_triangles % SPLIT_PICK_MAX_TRIANGLE > 0:
             number_of_split += 1
             
-        for i in range(number_of_split):
+        for i in xrange(number_of_split):
             param = "slice_number=" + str(i)
             vertices.append(paths2url(self, 'get_pick_vertices_slice', parameter=param, flatten=True))
             triangles.append(paths2url(self, 'get_pick_triangles_slice', parameter=param, flatten=True))
