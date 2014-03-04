@@ -273,14 +273,22 @@ class SurfaceFramework(surfaces_data.SurfaceData):
 
 
     def _get_slice_vertex_boundaries(self, slice_idx):
-        start_idx = max(0, self.split_slices[str(slice_idx)][KEY_VERTICES][KEY_START])
-        end_idx = min(self.split_slices[str(slice_idx)][KEY_VERTICES][KEY_END], self.number_of_vertices)
-        return start_idx, end_idx
+        if str(slice_idx) in self.split_slices:
+            start_idx = max(0, self.split_slices[str(slice_idx)][KEY_VERTICES][KEY_START])
+            end_idx = min(self.split_slices[str(slice_idx)][KEY_VERTICES][KEY_END], self.number_of_vertices)
+            return start_idx, end_idx
+        else:
+            LOG.warn("Could not access slice indices, possibly due to an incompatibility with code update!")
+            return 0, min(SPLIT_BUFFER_SIZE, self.number_of_vertices)
 
     def _get_slice_triangle_boundaries(self, slice_idx):
-        start_idx = max(0, self.split_slices[str(slice_idx)][KEY_TRIANGLES][KEY_START])
-        end_idx = min(self.split_slices[str(slice_idx)][KEY_TRIANGLES][KEY_END], self.number_of_triangles)
-        return start_idx, end_idx
+        if str(slice_idx) in self.split_slices:
+            start_idx = max(0, self.split_slices[str(slice_idx)][KEY_TRIANGLES][KEY_START])
+            end_idx = min(self.split_slices[str(slice_idx)][KEY_TRIANGLES][KEY_END], self.number_of_triangles)
+            return start_idx, end_idx
+        else:
+            LOG.warn("Could not access slice indices, possibly due to an incompatibility with code update!")
+            return 0, self.number_of_triangles
 
     def _get_slices_number(self, vertices_number):
         slices_number = vertices_number // SPLIT_MAX_SIZE
