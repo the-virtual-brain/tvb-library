@@ -53,9 +53,12 @@ LOG = get_logger(__name__)
 ##-                  matplotlib based plotting functions                     -##
 ##---------------------------------------------------------------------------cd-##
 
+import matplotlib as mpl
 import matplotlib.pyplot as pyplot
 import matplotlib.colors
-
+import matplotlib.ticker as ticker
+import matplotlib.colors as colors
+from mpl_toolkits.axes_grid import make_axes_locatable  
 
 
 def _blob(x, y, area, colour):
@@ -295,6 +298,145 @@ def show_me_the_colours():
         ax.set_xticklabels([])
         ax.set_axis_bgcolor(colours[k])
         ax.text(0.05, 0.5, colours[k])
+
+
+def plot_tri_matrix(mat, num='plot_part_of_this_matrix', size=None, 
+                        cmap=pyplot.cm.RdBu_r, colourbar=True,
+                        color_anchor=None, node_labels=None, x_tick_rot=0, 
+                        title=None):
+    r"""Creates a lower-triangle of a square matrix. Very often found to display correlations or coherence.
+
+    Parameters
+    ----------
+
+    mat          : square matrix
+
+    node_labels  : list of strings with the labels to be applied to 
+                   the nodes. Defaults to '0','1','2', etc.
+
+    fig          : a matplotlib figure
+
+    cmap         : a matplotlib colormap.
+
+    title        : figure title (eg '$\alpha$')
+
+    color_anchor : determines the clipping for the colormap. 
+                   If None, the data min, max are used.
+                   If 0, min and max of colormap correspond to max abs(mat)
+                   If (a,b), min and max are set accordingly (a,b)
+
+    Returns
+    -------
+
+    fig: a figure object
+
+    """
+
+    def channel_formatter(x, pos=None):
+        thisidx = numpy.clip(int(x), 0, N - 1)
+        return node_labels[thisidx]
+
+    if num is None:
+        fig = pyplot.figure()
+    else:
+        fig = pyplot.figure(num=num) 
+
+    if size is not None:
+        fig.set_figwidth(size[0])
+        fig.set_figheight(size[1])
+
+    w = fig.get_figwidth()
+    h = fig.get_figheight()
+
+    ax_im = fig.add_subplot(1, 1, 1)
+
+    N   = mat.shape[0]
+    idx = numpy.arange(N)  
+    if colourbar:
+        divider = make_axes_locatable(ax_im)
+        ax_cb   = divider.new_vertical(size="10%", pad=0.1, pack_start=True)
+        fig.add_axes(ax_cb)
+
+
+    mat_copy = mat.copy()
+
+    #Null the upper triangle, including the main diagonal.
+    idx_null           = numpy.triu_indices(mat_copy.shape[0])
+    mat_copy[idx_null] = numpy.nan
+
+    #Min max values
+    max_val = numpy.nanmax(mat_copy)
+    min_val = numpy.nanmin(mat_copy)
+
+    if color_anchor is None:
+        color_min = min_val
+        color_max = max_val
+    elif color_anchor == 0:
+        bound = max(abs(max_val), abs(min_val))
+        color_min = -bound
+        color_max =  bound
+    else:
+        color_min = color_anchor[0]
+        color_max = color_anchor[1]
+
+    #The call to imshow produces the matrix plot:
+    im = ax_im.imshow(mat_copy, origin='upper', interpolation='nearest',
+                      vmin=color_min, vmax=color_max, cmap=cmap)
+
+    #Formatting:
+    ax = ax_im
+    ax.grid(True)
+    #Label each of the cells with the row and the column:
+    if node_labels is not None:
+        for i in xrange(0, mat_copy.shape[0]):
+            if i < (mat_copy.shape[0] - 1):
+                ax.text(i - 0.3, i, node_labels[i], rotation=x_tick_rot)
+            if i > 0:
+                ax.text(-1, i + 0.3, node_labels[i],
+                        horizontalalignment='right')
+
+        ax.set_axis_off()
+        ax.set_xticks(numpy.arange(N))
+        ax.xaxis.set_major_formatter(ticker.FuncFormatter(channel_formatter))
+        fig.autofmt_xdate(rotation=x_tick_rot)
+        ax.set_yticks(numpy.arange(N))
+        ax.set_yticklabels(node_labels)
+        ax.set_ybound([-0.5, N - 0.5])
+        ax.set_xbound([-0.5, N - 1.5])
+
+    #Make the tick-marks invisible:
+    for line in ax.xaxis.get_ticklines():
+        line.set_markeredgewidth(0)
+
+    for line in ax.yaxis.get_ticklines():
+        line.set_markeredgewidth(0)
+
+    ax.set_axis_off()
+
+    if title is not None:
+        ax.set_title(title)
+
+    if colourbar:
+        #Set the ticks - if 0 is in the interval of values, set that, as well
+        #as the min, max values:
+        if min_val < 0:
+            ticks = [color_min, min_val, 0, max_val, color_max]
+        #set the min, mid and  max values:
+        else:
+            ticks = [color_min, min_val, (color_max- color_min)/2., max_val, color_max]
+
+
+        #colourbar:
+        cb = fig.colorbar(im, cax=ax_cb, orientation='horizontal',
+                          cmap=cmap,
+                          norm=im.norm,
+                          boundaries=numpy.linspace(color_min, color_max, 256),
+                          ticks=ticks,
+                          format='%.2f')
+
+    fig.sca(ax)
+
+    return fig
 
 
 #import pdb; pdb.set_trace()
@@ -638,6 +780,10 @@ if IMPORTED_MAYAVI:
                             horizontalalignment='center',
                             verticalalignment='center',
                             fontsize=7)
+
+
+
+
 
 if __name__ == '__main__':
     # Do some stuff that tests or makes use of this module... 
