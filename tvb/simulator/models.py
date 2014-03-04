@@ -2038,11 +2038,11 @@ class ZetterbergJansen(Model):
     as measured by EEG. Later on, it was discovered that in addition to alpha
     activity, this model was also able to simulate evoked potentials.
 
-    .. [JR_1995]  Jansen, B., H. and Rit V., G., *Electroencephalogram and
+    .. [JB_1995]  Jansen, B., H. and Rit V., G., *Electroencephalogram and
         visual evoked potential generation in a mathematical model of
         coupled cortical columns*, Biological Cybernetics (73) 357:366, 1995.
 
-    .. [J_1993] Jansen, B., Zouridakis, G. and Brandt, M., *A
+    .. [JB_1993] Jansen, B., Zouridakis, G. and Brandt, M., *A
         neurophysiologically-based mathematical model of flash visual evoked
         potentials*
 
@@ -2056,15 +2056,14 @@ class ZetterbergJansen(Model):
         :alt: Jansen and Rit phase plane
 
 
-    .. automethod:: JansenRit.__init__
-    .. automethod:: JansenRit.dfun
+    .. automethod:: ZetterbergJansen.__init__
+    .. automethod:: ZetterbergJansen.dfun
 
     """
 
     _ui_name = "ZetterbergJansen"
     ui_configurable_parameters = ['He', 'Hi', 'ke', 'ki', 'e0', 'rho_2', 'rho_1', 'gamma_1',
-                                  'gamma_2', 'gamma_3', 'gamma_4', 'gamma_5', 'P', 'U',
-                                  'Q']
+                                  'gamma_2', 'gamma_3', 'gamma_4', 'gamma_5', 'P', 'U', 'Q']
 
     #Define traited attributes for this model, these represent possible kwargs.
     He = arrays.FloatArray(
@@ -2082,7 +2081,7 @@ class ZetterbergJansen(Model):
         order=2)
 
     ke = arrays.FloatArray(
-        label=":math:`\kappa_e`",
+        label=r":math:`\kappa_e`",
         default=numpy.array([0.1]),
         range=basic.Range(lo=0.05, hi=0.15, step=0.01),
         doc="""Reciprocal of the time constant of passive membrane and all
@@ -2091,7 +2090,7 @@ class ZetterbergJansen(Model):
         order=3)
 
     ki = arrays.FloatArray(
-        label=":math:`\kappa_i`",
+        label=r":math:`\kappa_i`",
         default=numpy.array([0.05]),
         range=basic.Range(lo=0.025, hi=0.075, step=0.005),
         doc="""Reciprocal of the time constant of passive membrane and all
@@ -2109,7 +2108,7 @@ class ZetterbergJansen(Model):
 
 
     rho_2 = arrays.FloatArray(
-        label=":math:`\rho_2`",
+        label=r":math:`\rho_2`",
         default=numpy.array([6.0]),
         range=basic.Range(lo=3.12, hi=10.0, step=0.02),
         doc="""Firing threshold (PSP) for which a 50% firing rate is achieved.
@@ -2118,14 +2117,14 @@ class ZetterbergJansen(Model):
         order=5)
 
     rho_1 = arrays.FloatArray(
-        label=":math:`\rho_1`",
+        label=r":math:`\rho_1`",
         default=numpy.array([0.56]),
         range=basic.Range(lo=0.28, hi=0.84, step=0.01),
         doc="""Steepness of the sigmoidal transformation [mV^-1].""",
         order=7)
 
     gamma_1 = arrays.FloatArray(
-        label=":math:`\gamma_1`",
+        label=r":math:`\gamma_1`",
         default=numpy.array([135.0]),
         range=basic.Range(lo=65.0, hi=1350.0, step=5.),
         doc="""Average number of synapses between populations (pyramidal to stellate).""",
@@ -2161,21 +2160,21 @@ class ZetterbergJansen(Model):
         order=12)
 
     gamma_1T = arrays.FloatArray(
-        label=":math:`\gamma_{1T}`",
+        label=r":math:`\gamma_{1T}`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=65.0, hi=1350.0, step=5.),
         doc="""Coupling factor from the extrinisic input to the spiny stellate population.""",
         order=17)
 
     gamma_3T = arrays.FloatArray(
-        label=":math:`\gamma_{3T}`",
+        label=r":math:`\gamma_{3T}`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=65.0, hi=1350.0, step=5.),
         doc="""Coupling factor from the extrinisic input to the pyramidal population.""",
         order=18)
 
     gamma_2T = arrays.FloatArray(
-        label=":math:`\gamma_{2T}`",
+        label=r":math:`\gamma_{2T}`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=65.0, hi=1350.0, step=5.),
         doc="""Coupling factor from the extrinisic input to the inhibitory population.""",
