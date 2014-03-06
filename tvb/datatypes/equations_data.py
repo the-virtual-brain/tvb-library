@@ -169,8 +169,8 @@ class SigmoidData(EquationData):
         label="Sigmoid Equation",
         default="(amp / (1.0 + exp(-1.8137993642342178 * (radius-var)/sigma))) + offset",
         locked=True,
-        doc=""":math:`amp / (1.0 + \\exp(-\\pi/\\sqrt(3.0)
-            (radius-x)/\\sigma)) + offset`""")
+        doc=""":math:`(amp / (1.0 + \\exp(-\\pi/\\sqrt(3.0)
+            (radius-x)/\\sigma))) + offset`""")
 
     parameters = basic.Dict(
         label="Sigmoid Parameters",
