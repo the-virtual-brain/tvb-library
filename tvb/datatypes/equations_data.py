@@ -161,19 +161,20 @@ class DoubleGaussianData(EquationData):
 class SigmoidData(EquationData):
     """
     A Sigmoid equation.
+    offset: parameter to extend the behaviour of this function 
+    when spatializing model parameters. 
     """
 
     equation = basic.String(
         label="Sigmoid Equation",
-        default="amp / (1.0 + exp(-1.8137993642342178 * (radius-var)/sigma))",
+        default="(amp / (1.0 + exp(-1.8137993642342178 * (radius-var)/sigma))) + offset",
         locked=True,
-        doc=""":math:`amp / (1.0 + \\exp(-\\pi/\\sqrt(3.0)
-            (radius-x)/\\sigma))`""")
+        doc=""":math:`(amp / (1.0 + \\exp(-\\pi/\\sqrt(3.0)
+            (radius-x)/\\sigma))) + offset`""")
 
     parameters = basic.Dict(
         label="Sigmoid Parameters",
-        default={"amp": 1.0, "radius": 5.0, "sigma": 1.0}) #"pi": numpy.pi,
-
+        default={"amp": 1.0, "radius": 5.0, "sigma": 1.0, "offset": 0.0}) #"pi": numpy.pi,
 
 
 class GeneralizedSigmoidData(EquationData):
