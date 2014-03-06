@@ -231,7 +231,7 @@ class SigmoidFramework(equations_data.SigmoidData, EquationFramework):
 
     @property
     def ui_equation(self):
-        return "amp / (1.0 + 2.71**(-1.8137993642342178 * (radius-var)/sigma))"
+        return "(amp / (1.0 + 2.71**(-1.8137993642342178 * (radius-var)/sigma))) + offset"
 
 
 
