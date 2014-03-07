@@ -80,7 +80,7 @@ class ProxyMetastabilitySynchrony(metrics_base.BaseTimeseriesMetricAlgorithm):
         self.time_series.trait["data"].log_debug(owner=cls_attr_name)
         
         shape = self.time_series.data.shape
-        tpts  = shape[0]
+        tpts = shape[0]
 
         if self.start_point != 0.0:
             start_tpt = self.start_point / self.time_series.sample_period
@@ -92,11 +92,13 @@ class ProxyMetastabilitySynchrony(metrics_base.BaseTimeseriesMetricAlgorithm):
             LOG.warning("The time-series is shorter than the starting point")
             LOG.debug("Will divide the time-series into %d segments." % self.segment)
             # Lazy strategy
-            start_tpt = int((self.segment - 1) * (tpts//self.segment))
+            start_tpt = int((self.segment - 1) * (tpts // self.segment))
 
-        av_mean_data = abs(self.time_series.data[start_tpt:, :] - self.time_series.data[start_tpt:, :].mean(axis=2, keepdims=True)).mean(axis=2)
+        av_mean_data = abs(self.time_series.data[start_tpt:, :] -
+                           self.time_series.data[start_tpt:, :].mean(axis=2, keepdims=True)).mean(axis=2)
         #std across time-points
         metastability = float(av_mean_data.std(axis=0).squeeze())
-        synchrony     = 1./ av_mean_data.mean(axis=0).squeeze()
-        return metastability, synchrony
+        synchrony = 1. / av_mean_data.mean(axis=0).squeeze()
+        return {"Metastability": metastability,
+                "Synchrony": synchrony}
 

@@ -76,7 +76,7 @@ class BaseTimeseriesMetricAlgorithm(core.Type):
         This method needs to be implemented in each subclass.
         Will describe current algorithm.
 
-        :return: single value
+        :return: single numeric value or a dictionary (displayLabel: numeric value) to be persisted.
         """
         raise Exception("Every metric algorithm should implement an 'evaluate' method that returns the metric result.")
 
