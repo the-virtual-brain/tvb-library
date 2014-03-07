@@ -339,7 +339,6 @@ class HeunStochastic(IntegratorStochastic):
                        noise_gfun.shape, (noise.shape[0], noise.shape[1])))
             raise Exception(msg)
 
-        #import pdb; pdb.set_trace()
         inter = (X + self.dt * dfun(X, coupling, local_coupling) +
                  noise_gfun * noise + self.dt * stimulus)
 

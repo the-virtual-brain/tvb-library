@@ -486,6 +486,85 @@ class StaticSigmoidal(Coupling):
         )
 
 
+class DynamicSigmoidal(Coupling):
+    """
+    Dynamic Sigmoidal Coupling function (dynamic threshold).
+
+    .. automethod:: DynamicSigmoidal.__init__
+    .. automethod:: DynamicSigmoidal.__call__
+
+    """
+
+    H = arrays.FloatArray(
+        label = "H", 
+        default = numpy.array([0.5,]),
+        range = basic.Range(lo = -100.0, hi = 100.0, step = 1.0),
+        doc = """Global Factor""",
+        order = 1)
+
+    Q = arrays.FloatArray(
+        label = "Q", 
+        default = numpy.array([1.,]),
+        range = basic.Range(lo = -100.0, hi = 100.0, step = 1.0),
+        doc = """Average""",
+        order = 2)
+
+    G = arrays.FloatArray(
+        label = "G", 
+        default = numpy.array([60.,]),
+        range = basic.Range(lo = -1000.0, hi = 1000.0, step = 1.),
+        doc = """Gain""",
+        order = 3)
+
+    P = arrays.FloatArray(
+        label = "P",
+        default = numpy.array([1.,]),
+        range = basic.Range(lo = -100.0, hi = 100.0, step = 0.01),
+        doc = """Excitation on Inhibition ratio""",
+        order = 4)
+
+
+    def __init__(self, **kwargs):
+        """Precompute a constant after the base __init__"""
+        super(DynamicSigmoidal, self).__init__(**kwargs)
+
+
+    def __call__(self, g_ij, x_i, x_j):
+        r"""
+        Evaluate the DynamicSigmoidal function for the arg ``x``. The equation being
+        evaluated has the following form:
+            .. math::
+                H * (Q + \tanh(G * (P*x - \theta)))
+        
+        """
+        # x[0] firing rate 
+        # x[1] dynamic threshold
+        
+        A_j = self.H * (self.Q + numpy.tanh(self.G * (self.P * x_j[:,0,:,:] - x_j[:,1,:,:])[:,numpy.newaxis,:,:]))
+        c_0 = (g_ij[:,0] * A_j[:,0]).sum(axis=0)
+        c_1 = A_j.mean(axis=0)[0]
+        return numpy.array([[c_0, c_1]])
+
+
+    device_info = coupling_device_info(
+        pars = ['H', 'Q', 'G', 'P'],
+        kernel = """
+        // load parameters
+        float H = P(0)
+            , Q = P(1)
+            , G = P(2)
+            , P = P(3);
+
+        I = 0.0;
+        for (int j_node=0; j_node<n_node; j_node++, idel++, conn++)
+            I += H * (Q + tanh(G * (P * XJ[0] - XJ[1])));
+
+        I(0) = GIJ * I;
+        I(1) = I;
+        """
+        )
+
+
 class Difference(Coupling):
 
     a = arrays.FloatArray(
