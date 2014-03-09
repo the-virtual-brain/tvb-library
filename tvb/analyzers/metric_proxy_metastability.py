@@ -38,8 +38,12 @@ Hellyer et al. The Control of Global Brain Dynamics: Opposing Actions
 of Frontoparietal Control and Default Mode Networks on Attention. 
 The Journal of Neuroscience, January 8, 2014,  34(2):451– 461
 
-Proxy metastability: the variability in spatial coherence of the signal
+Proxy of spatial coherence (V): 
+
+Proxy metastability (M): the variability in spatial coherence of the signal
 globally or locally (within a network) over time.
+
+Proxy synchrony (S) : the reciprocal of mean spatial variance across time.
 
 .. moduleauthor:: Paula Sanz Leon <paula.sanz-leon@univ-amu.fr>
 
@@ -67,8 +71,9 @@ class ProxyMetastabilitySynchrony(metrics_base.BaseTimeseriesMetricAlgorithm):
     The underlying dynamical model used in the article was the Kuramoto model.
 
     .. math:
-            V(t) = \frac{1}{N} \sum_{i=1}^{N} |S_i(t) - <S(t)>|
-
+            V(t) &= \frac{1}{N} \sum_{i=1}^{N} |S_i(t) - <S(t)>|\\
+            M    &   = \sqrt{E[V(t)^{2}]-(E[V(t)])^{2}} \\
+            S    &   = \frac{1}{\bar{V(t)}
 
     """
 
@@ -94,11 +99,15 @@ class ProxyMetastabilitySynchrony(metrics_base.BaseTimeseriesMetricAlgorithm):
             # Lazy strategy
             start_tpt = int((self.segment - 1) * (tpts // self.segment))
 
-        av_mean_data = abs(self.time_series.data[start_tpt:, :] -
+        v_data = abs(self.time_series.data[start_tpt:, :] -
                            self.time_series.data[start_tpt:, :].mean(axis=2, keepdims=True)).mean(axis=2)
+
+        #handle state-variables & modes
+        cat_tpts = v_data.shape[0] * shape[1] * shape[3]
+        v_data   = v_data.reshape((cat_tpts, ), order="F")
         #std across time-points
-        metastability = float(av_mean_data.std(axis=0).squeeze())
-        synchrony = 1. / av_mean_data.mean(axis=0).squeeze()
+        metastability = v_data.std(axis=0)
+        synchrony = 1. / v_data.mean(axis=0)
         return {"Metastability": metastability,
                 "Synchrony": synchrony}
 
