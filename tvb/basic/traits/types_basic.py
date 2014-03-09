@@ -255,21 +255,18 @@ class Range(core.Type):
 
         >>> range_values = list(Range(lo=0.0, hi=1.0, step=0.1))
 
-        [0.0, 
-        0.1, 
-        0.2, 
-        0.30000000000000004, 
-        0.4, 
-        0.5, 
-        0.6, 
-        0.7, 
-        0.7999999999999999, 
-        0.8999999999999999, 
-        0.9999999999999999]
+        [0.0,
+         0.1,
+         0.2,
+         0.30000000000000004,
+         0.4,
+         0.5,
+         0.6000000000000001,
+         0.7000000000000001,
+         0.8,
+         0.9]
 
-        there are some rounding problems due to the conversion to a list. 
-        The generator actually produces the good values. 
-        By direct iteration:
+        or by direct iteration:
 
         >>> for val in Range(lo=0.0, hi=1.0, step=0.1):
                 print val
@@ -283,7 +280,6 @@ class Range(core.Type):
         0.7
         0.8
         0.9
-        1.0
 
 
         >>> for val in Range(lo=0.0, hi=1.0, step=0.1):
@@ -328,9 +324,9 @@ class Range(core.Type):
                 LOG.error(msg % str(self.base))
             else:
                 if self.step:
-                    while val < self.hi:
-                        yield val
-                        val += self.step
+                    idx = (i for i in range(0, int((self.hi-self.lo)/self.step))) 
+                    for i in idx:
+                        yield self.lo + self.step * i
                 else:
                     if val == 0:
                         yield val
