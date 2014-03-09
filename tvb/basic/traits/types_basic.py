@@ -295,12 +295,14 @@ class Range(core.Type):
         2.0
 
     using a fixed multiplier
-        >>> for val in Range(lo=0.0, hi=5.O, base=2.0): print val
+        >>> for val in Range(lo=0.0, hi=5.O, base=2.0): 
+                print val
         0.0
         2.0
         4.0
 
-        >>> for val in Range(lo=1.0, hi=5.O, base=2.0): print val
+        >>> for val in Range(lo=1.0, hi=5.O, base=2.0): 
+                print val
         1.0
         2.0
         4.0
