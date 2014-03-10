@@ -321,11 +321,11 @@ class Range(core.Type):
     base = Float(default=2.0, doc='fixed multiplier between elements')
 
     # These modes/flags only work for additive step
-    exclude_both  = Integer(default=0, doc='flag to exclude both lower and upper bounds')
-    include_start = Integer(default=1, doc='flag to include lo, exclude hi')
-    include_stop  = Integer(default=2, doc='flag to exclude lo, include hi')
-    include_both  = Integer(default=3, doc='flag to include both lower and upper bounds')
-    mode          = Integer(default=1, doc='default behaviour, equivalent to include lo, exclude hi')
+    MODE_EXCLUDE_BOTH = 0   # flag to exclude both lower and upper bounds
+    MODE_INCLUDE_START = 1  # flag to include lo, exclude hi
+    MODE_INCLUDE_END = 2    # flag to exclude lo, include hi
+    MODE_INCLUDE_BOTH = 3   # flag to include both lower and upper bounds
+    mode = Integer(default=1, doc='default behaviour, equivalent to include lo, exclude hi')
 
 
     def __iter__(self):
@@ -335,7 +335,7 @@ class Range(core.Type):
             if self.step:
                 start, stop, step = self.args_to_decimal(self.lo, self.hi, self.step)
                 current = start
-                if not self.mode & self.include_start:
+                if not self.mode & self.MODE_INCLUDE_START:
                     current += step
          
                 while True:
@@ -359,9 +359,9 @@ class Range(core.Type):
         return gen()
 
     def out_of_range(self, current, stop, mode, step):
-        if mode & self.include_stop and step > 0:
+        if mode & self.MODE_INCLUDE_END and step > 0:
             return current > stop
-        if mode & self.include_stop and step < 0:
+        if mode & self.MODE_INCLUDE_END and step < 0:
             return current < stop
         elif step < 0:
             return current <= stop

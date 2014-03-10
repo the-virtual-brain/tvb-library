@@ -32,21 +32,13 @@ Original: https://gist.github.com/diogobaeder/1239977
 """
 
 
-
 if __name__ == "__main__":
     from tvb.tests.library import setup_test_console_env
     setup_test_console_env()
 
 import unittest
-from decimal import Decimal   
 from tvb.basic.traits.types_basic import Range
 
-
-# Global variables.
-EXCLUDE_BOTH  = 0
-INCLUDE_START = 1
-INCLUDE_STOP  = 2
-INCLUDE_BOTH = INCLUDE_START | INCLUDE_STOP
  
  
 class RangeTest(unittest.TestCase):
@@ -67,15 +59,15 @@ class RangeTest(unittest.TestCase):
         self.assertEqual(floats,[0.0, 0.333333333333, 0.666666666666, 0.999999999999])
  
     def test_generates_range_with_start_and_end_included(self):
-        floats = list(Range(lo=0.0, hi=3.0, step=1.0, mode=INCLUDE_BOTH))
+        floats = list(Range(lo=0.0, hi=3.0, step=1.0, mode=Range.MODE_INCLUDE_BOTH))
         self.assertEqual(floats, [0.0, 1.0, 2.0, 3.0])
  
     def test_generates_range_with_start_and_end_excluded(self):
-        floats = list(Range(lo=0.0, hi=3.0, step=1.0, mode=EXCLUDE_BOTH))
+        floats = list(Range(lo=0.0, hi=3.0, step=1.0, mode=Range.MODE_EXCLUDE_BOTH))
         self.assertEqual(floats, [1.0, 2.0])
  
     def test_generates_range_with_only_end_included(self):
-        floats = list(Range(lo=0.0, hi=3.0, step=1.0, mode=INCLUDE_STOP))
+        floats = list(Range(lo=0.0, hi=3.0, step=1.0, mode=Range.MODE_INCLUDE_END))
         self.assertEqual(floats, [1.0, 2.0, 3.0])
  
     def test_generates_range_with_negative_end(self):
@@ -83,11 +75,11 @@ class RangeTest(unittest.TestCase):
         self.assertEqual(floats, [1.0, 0.0, -1.0, -2.0])
  
     def test_generates_range_with_negative_end_including_both(self):
-        floats = list(Range(lo=1.0, hi=-3.0, step=1.0, mode=INCLUDE_BOTH))
+        floats = list(Range(lo=1.0, hi=-3.0, step=1.0, mode=Range.MODE_INCLUDE_BOTH))
         self.assertEqual(floats, [1.0, 0.0, -1.0, -2.0, -3.0])
  
     def test_generates_range_with_negative_end_but_excluding_start(self):
-        floats = list(Range(lo=1.0, hi=-3.0, step=1.0, mode=INCLUDE_STOP))
+        floats = list(Range(lo=1.0, hi=-3.0, step=1.0, mode=Range.MODE_INCLUDE_END))
         self.assertEqual(floats, [0.0, -1.0, -2.0, -3.0])
  
     def test_generates_range_with_challenging_float_point_arithmetics(self):
