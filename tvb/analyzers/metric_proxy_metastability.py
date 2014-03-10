@@ -48,6 +48,7 @@ Proxy synchrony (S) : the reciprocal of mean spatial variance across time.
 .. moduleauthor:: Paula Sanz Leon <paula.sanz-leon@univ-amu.fr>
 
 """
+import numpy
 
 import tvb.analyzers.metrics_base as metrics_base
 from tvb.basic.logger.builder import get_logger
@@ -55,6 +56,19 @@ from tvb.basic.logger.builder import get_logger
 
 LOG = get_logger(__name__)
 
+
+def remove_mean(x, axis):
+    """
+    Remove mean from numpy array along axis
+    """
+    # Example for demean(x, 2) with x.shape == 2,3,4,5
+    # m = x.mean(axis=2) collapses the 2'nd dimension making m and x incompatible
+    # so we add it back m[:,:, np.newaxis, :]
+    # Since the shape and axis are known only at runtime
+    # Calculate the slicing dynamically
+    idx = [slice(None)] * x.ndim
+    idx[axis] = numpy.newaxis
+    return x - x.mean(axis=axis)[idx]
 
 
 class ProxyMetastabilitySynchrony(metrics_base.BaseTimeseriesMetricAlgorithm):
@@ -99,8 +113,8 @@ class ProxyMetastabilitySynchrony(metrics_base.BaseTimeseriesMetricAlgorithm):
             # Lazy strategy
             start_tpt = int((self.segment - 1) * (tpts // self.segment))
 
-        v_data = abs(self.time_series.data[start_tpt:, :] -
-                           self.time_series.data[start_tpt:, :].mean(axis=2, keepdims=True)).mean(axis=2)
+        time_series_diffs = remove_mean(self.time_series.data[start_tpt:, :], axis=2)
+        v_data = abs(time_series_diffs).mean(axis=2)
 
         #handle state-variables & modes
         cat_tpts = v_data.shape[0] * shape[1] * shape[3]
