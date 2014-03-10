@@ -79,7 +79,11 @@ class TraitedInterfaceGenerator(object):
         if range_value:
             intr['minValue'] = range_value.lo
             intr['maxValue'] = range_value.hi
-            intr['stepValue'] = range_value.step
+            if range_value.step is not None:
+                intr['stepValue'] = range_value.step
+            else:
+                LOG.debug("Missing Range.step field for attribute %s, we will consider a default." % obj.trait.name)
+                intr['stepValue'] = (range_value.hi - range_value.hi) / 10
             
         noise_configurable = obj.trait.inits.kwd.get('configurable_noise', None)
         if noise_configurable is not None:
