@@ -78,14 +78,6 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
         return self.get_data('data', data_slice)
 
 
-    def read_data_shape1(self, ):
-        """
-        This is a hack around the fact that FlowController.read_datatype_attribute
-        will not call a method on an entity if there are no kwargs.
-        """
-        return numpy.array(self.read_data_shape())
-
-
     def read_time_page(self, current_page, page_size, max_size=None):
         """
         Compute time for current page.
