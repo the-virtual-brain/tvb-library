@@ -3589,9 +3589,9 @@ class ContinuousHopfield(Model):
         where :math:`\\eta` is a centered gaussian noise and :math:`\\sigma` its standard deviation.
         """
 
-        x = state_variables[0, :]
-        WAx = coupling[0]
-        dx = (- x + WAx) / self.taux
+        x = state_variables[0,:]
+        
+        dx = (- x + coupling[0]) / self.taux
 
         derivative = numpy.array([dx])
         return derivative
@@ -3648,12 +3648,11 @@ class HopfieldBased(Model):
 
     .. automethod:: HopfieldBased.__init__
     .. automethod:: HopfieldBased.dfun
-    .. automethod:: HopfieldBased.configure
 
     """
 
     _ui_name = "Hopfield Based"
-    ui_configurable_parameters = ['taux', 'tauT', 'globalT']
+    ui_configurable_parameters = ['taux', 'tauT']
 
     #Define traited attributes for this model, these represent possible kwargs.
     taux = arrays.FloatArray(
@@ -3670,13 +3669,6 @@ class HopfieldBased(Model):
         doc = """The slow time-scale for threshold calculus :math:`\\theta`, state-variable of the model.""",
         order = 2)
 
-    globalT = arrays.IntegerArray(
-        label = ":math:`global_{\\theta}`",
-        default = numpy.array([0]),
-        range = basic.Range(lo = 0, hi = 1., step = 1),
-        doc = """Boolean value for local/global threshold theta for (0/1).""",
-        order = 3)
-
     #Used for phase-plane axis ranges and to bound random initial() conditions.
     state_variable_range = basic.Dict(
         label = "State Variable ranges [lo, hi]",
@@ -3687,7 +3679,7 @@ class HopfieldBased(Model):
             parameters, it is used as a mechanism for bounding random inital
             conditions when the simulation isn't started from an explicit
             history, it is also provides the default range of phase-plane plots.""",
-        order = 4)
+        order = 3)
 
     variables_of_interest = basic.Enumerate(
         label = "Variables watched by Monitors",
@@ -3699,7 +3691,7 @@ class HopfieldBased(Model):
             parameters, it is used as a mechanism for bounding random inital
             conditions when the simulation isn't started from an explicit
             history, it is also provides the default range of phase-plane plots.""",
-        order = 5)
+        order = 4)
 
 
     def __init__(self, **kwargs):
@@ -3719,19 +3711,6 @@ class HopfieldBased(Model):
         LOG.debug("%s: inited." % repr(self))
         
 
-    def configure(self):
-        """  """
-        super(HopfieldBased, self).configure()
-        
-        # Global threshold (all the nodes having the same theta value)
-        if self.globalT:
-            self.meanOrNot = lambda arr: arr.mean() * numpy.ones(arr.shape)
-            
-        # Local thresholds
-        else:
-            self.meanOrNot = lambda arr: arr
-        
-
     def dfun(self, state_variables, coupling, local_coupling=0.0):
         """
         The fast, :math:`x`, and slow, :math:`\\theta`, state variables are typically
@@ -3746,19 +3725,15 @@ class HopfieldBased(Model):
 
         where :math:`A_{i}` is the node 'activity' and the threshold theta is calculated using the :math:`\\theta_{i}` formula
         when set as local and the :math:`\\theta` formula when set as global.
+        
         """
+        #NOTE: The coupling on the second state variable is made from the direct nodes output.
 
-        x = state_variables[0,:]
+        x     = state_variables[0,:]
         theta = state_variables[1,:]
         
-        # Classical coupling term on potentials.
-        WAx = coupling[0,0]
-        
-        # Coupling term on threshold(s) made from the nodes activity
-        AAN = self.meanOrNot(coupling[0,1])
-
-        dx     = (- x     + WAx) / self.taux
-        dtheta = (- theta + AAN) / self.tauT
+        dx     = (- x     + coupling[0]) / self.taux
+        dtheta = (- theta + coupling[1]) / self.tauT
 
         derivative = numpy.array([dx, dtheta])
         return derivative

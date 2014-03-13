@@ -523,10 +523,33 @@ class DynamicSigmoidal(Coupling):
         doc = """Excitation on Inhibition ratio""",
         order = 4)
 
+    globalT = arrays.IntegerArray(
+        label = ":math:`global_{\\theta}`",
+        default = numpy.array([0]),
+        range = basic.Range(lo = 0, hi = 1., step = 1),
+        doc = """Boolean value for local/global threshold theta for (0/1).""",
+        order = 5)
+
 
     def __init__(self, **kwargs):
         """Precompute a constant after the base __init__"""
         super(DynamicSigmoidal, self).__init__(**kwargs)
+        
+
+    def configure(self):
+        """  """
+        super(DynamicSigmoidal, self).configure()
+        
+        # Global threshold (all the nodes having the same theta value)
+        if self.globalT:
+            self.sliceT = 0
+            #self.meanOrNot = lambda arr: arr.mean() * numpy.ones((arr.shape[1],1))
+            self.meanOrNot = lambda arr: numpy.diag(arr[:,0,:,0]).mean() * numpy.ones((arr.shape[1],1))
+            
+        # Local thresholds
+        else:
+            self.sliceT = slice(None)
+            self.meanOrNot = lambda arr: numpy.diag(arr[:,0,:,0])[:,numpy.newaxis]
 
 
     def __call__(self, g_ij, x_i, x_j):
@@ -540,10 +563,10 @@ class DynamicSigmoidal(Coupling):
         # x[0] firing rate 
         # x[1] dynamic threshold
         
-        A_j = self.H * (self.Q + numpy.tanh(self.G * (self.P * x_j[:,0,:,:] - x_j[:,1,:,:])[:,numpy.newaxis,:,:]))
+        A_j = self.H * (self.Q + numpy.tanh(self.G * (self.P * x_j[:,0,:,:] - x_j[:,1,self.sliceT,:])[:,numpy.newaxis,:,:]))
         c_0 = (g_ij[:,0] * A_j[:,0]).sum(axis=0)
-        c_1 = A_j.mean(axis=0)[0]
-        return numpy.array([[c_0, c_1]])
+        c_1 = self.meanOrNot(A_j)
+        return numpy.array([c_0, c_1])
 
 
     device_info = coupling_device_info(
