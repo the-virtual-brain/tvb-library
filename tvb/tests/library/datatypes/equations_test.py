@@ -84,8 +84,8 @@ class EquationsTest(BaseTestCase):
 
     def test_sigmoid(self):
         dt = equations.Sigmoid()
-        self.assertEqual(dt.parameters, {'amp': 1.0, 'radius': 5.0, 'sigma': 1.0})
-        self.assertEqual(dt.ui_equation, 'amp / (1.0 + 2.71**(-1.8137993642342178 * (radius-var)/sigma))')
+        self.assertEqual(dt.parameters, {'amp': 1.0, 'radius': 5.0, 'sigma': 1.0, 'offset': 0.0})
+        self.assertEqual(dt.ui_equation, '(amp / (1.0 + 2.71**(-1.8137993642342178 * (radius-var)/sigma))) + offset')
         
         
     def test_generalizedsigmoid(self):

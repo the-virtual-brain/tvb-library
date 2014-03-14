@@ -12,7 +12,6 @@ The interaction with TVB source code is recommended for advanced users only, for
 
 "TVB Scientific Library" is a light-weight, stand-alone Python library that contains all the needed packages in order to run simulations and analysis on data without the need for the entire TVB Framework. This implies that no storage will be provided so data from each session will be lost on close. You need to either persist it yourself in some manner or use the full TVBFramework where HDF5 / database storage is provided as default. 
 
-
 For more details, check: http://www.thevirtualbrain.org/ 
 
 
@@ -55,4 +54,8 @@ Holds modules that can run various analysis of data resulted from the simulator.
 TVB is not strong in doing data analysis, we barely have a minimum set of analyzers for immediate needs.
 
 
+
+NOTE:
+
+To contribute to this repo, you are advised to first fork it under GitHub (through the web ui), and next clone that fork on your machine, and use it as you use any other git repository.
 

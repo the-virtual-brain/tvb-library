@@ -473,7 +473,7 @@ class Simulator(core.Type):
                 delayed_state = region_history[(step-1-idelays) % horizon, cvar, node_ids, :]
                 #coupling._set_pattern(npsum(delayed_state * weights, axis=0))
                 #region_coupling = coupling.pattern
-                region_coupling = coupling(weights, state[self.model.cvar], delayed_state)
+                region_coupling = coupling(weights, region_history[(step - 1) % horizon, self.model.cvar], delayed_state)
                 node_coupling = npdot(self.surface.vertex_mapping, region_coupling)
                 node_coupling = node_coupling.transpose((1, 0, 2))
                 #import pdb; pdb.set_trace()
