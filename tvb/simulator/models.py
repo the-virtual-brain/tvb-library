@@ -2906,6 +2906,7 @@ class LarterBreakspear(Model):
             The (:math:`V`, :math:`W`) phase-plane for the Larter-Breakspear model.
     
     .. automethod:: LarterBreakspear.__init__
+    .. automethod:: LarterBreakspear.dfun
     
     """
     
@@ -3166,7 +3167,7 @@ class LarterBreakspear(Model):
             
             m_{ion}(X) &= 0.5 \\, (1 + tanh(\\frac{V-T_{ion}}{\\delta_{ion}})
             
-        See Equations (7), (3), (6) and (2) respectively in [Breaksetal_2003]_.
+        See Equations (7), (3), (6) and (2) respectively in [Breaksetal_2003_a]_.
         Pag: 705-706
         
         """
@@ -3214,6 +3215,7 @@ class ReducedWongWang(Model):
 
 
     .. automethod:: ReducedWongWang.__init__
+    .. automethod:: ReducedWongWang.dfun
 
     """
     _ui_name = "Reduced Wong-Wang"
@@ -3332,7 +3334,7 @@ class ReducedWongWang(Model):
         r"""
         Equations taken from [DPA_2013]_ , page 11242
 
-        ..math:: 
+        .. math::
                 \frac{dS}{dt} &= -\frac{S}{\tau_s} + (1- S) \, H \, \gamma
                 H(x) &= \frac{ax - b}{1 - \exp(-d(ax -b))}
                 x &= wJ_{N}S + I_o + J_N c_0 + J_N lc_0 
@@ -3376,6 +3378,8 @@ class Kuramoto(Model):
         .. [JC_2011] J. Cabral, E. Hugues, O. Sporns, G. Deco. *Role of local
             network oscillations in resting-state functional connectivity*.
             NeuroImage, 57, 1, 2011.
+
+    .. automethod:: Kuramoto.dfun
 
     """
 
@@ -3635,11 +3639,13 @@ class HopfieldBased(Model):
     as a network of neural masses with every node corresponding to the mean field activity of a local
     brain region, with many bridges with the Wilson Cowan model [ref].
 
-    .. [Hopfield 1982] Hopfield, J. J., *Neural networks and physical systems with emergent collective
-    computational abilities*, Proc. Nat. Acad. Sci. (USA) 79, 2554–2558, 1982.
+    **References**:
 
-    .. [Hopfield 1984] Hopfield, J. J., *Neurons with graded response have collective computational
-    properties like those of two-sate neurons*, Proc. Nat. Acad. Sci. (USA) 81, 3088-3092, 1984.
+        .. [Hopfield1982] Hopfield, J. J., *Neural networks and physical systems with emergent collective
+                        computational abilities*, Proc. Nat. Acad. Sci. (USA) 79, 2554–2558, 1982.
+
+        .. [Hopfield1984] Hopfield, J. J., *Neurons with graded response have collective computational
+                        properties like those of two-sate neurons*, Proc. Nat. Acad. Sci. (USA) 81, 3088-3092, 1984.
 
     See also, http://www.scholarpedia.org/article/Hopfield_network
 

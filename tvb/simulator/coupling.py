@@ -556,7 +556,8 @@ class DynamicSigmoidal(Coupling):
         r"""
         Evaluate the DynamicSigmoidal function for the arg ``x``. The equation being
         evaluated has the following form:
-            .. math::
+
+        .. math::
                 H * (Q + \tanh(G * (P*x - \theta)))
         
         """

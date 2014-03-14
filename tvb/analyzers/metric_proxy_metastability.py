@@ -72,7 +72,7 @@ def remove_mean(x, axis):
 
 
 class ProxyMetastabilitySynchrony(metrics_base.BaseTimeseriesMetricAlgorithm):
-    """
+    r"""
     Subtract the mean time-series and compute. 
 
     Input:
@@ -84,10 +84,10 @@ class ProxyMetastabilitySynchrony(metrics_base.BaseTimeseriesMetricAlgorithm):
     The two metrics given by this analyzers are a proxy for metastability and synchrony. 
     The underlying dynamical model used in the article was the Kuramoto model.
 
-    .. math:
-            V(t) &= \frac{1}{N} \sum_{i=1}^{N} |S_i(t) - <S(t)>|\\
-            M    &   = \sqrt{E[V(t)^{2}]-(E[V(t)])^{2}} \\
-            S    &   = \frac{1}{\bar{V(t)}
+    .. math::
+            V(t) &= \frac{1}{N} \sum_{i=1}^{N} |S_i(t) - <S(t)>| \\
+            M(t) &= \sqrt{E[V(t)^{2}]-(E[V(t)])^{2}} \\
+            S(t) &= \frac{1}{\bar{V(t)}}
 
     """
 
@@ -118,7 +118,7 @@ class ProxyMetastabilitySynchrony(metrics_base.BaseTimeseriesMetricAlgorithm):
 
         #handle state-variables & modes
         cat_tpts = v_data.shape[0] * shape[1] * shape[3]
-        v_data   = v_data.reshape((cat_tpts, ), order="F")
+        v_data = v_data.reshape((cat_tpts, ), order="F")
         #std across time-points
         metastability = v_data.std(axis=0)
         synchrony = 1. / v_data.mean(axis=0)
