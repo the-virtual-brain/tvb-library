@@ -184,6 +184,19 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
         """
         return []
 
+    def get_default_selection(self):
+        """
+        :return: The measure point id's that have to be shown by default. By default show all.
+                 Assumes the id's are range(len(labels)) !
+        """
+        return range(len(self.get_space_labels()))
+
+    def get_measure_points_selection_gid(self):
+        """
+        :return: a datatype gid with which to obtain al valid measure point selection for this time series
+                 We have to decide if the default should be all selections or none
+        """
+        return ''
 
     @staticmethod
     def accepted_filters():
@@ -200,12 +213,10 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
 
 
 
-class TimeSeriesEEGFramework(time_series_data.TimeSeriesEEGData, TimeSeriesFramework):
+class TimeSeriesSensorsFramework(TimeSeriesFramework):
     """
-    This class exists to add framework methods to TimeSeriesEEGData.
+    Base class for all sensor datatypes
     """
-
-
     def get_space_labels(self):
         """
         :return: An array of strings with the sensors labels.
@@ -214,36 +225,10 @@ class TimeSeriesEEGFramework(time_series_data.TimeSeriesEEGData, TimeSeriesFrame
             return list(self.sensors.labels)
         return []
 
-
-
-class TimeSeriesMEGFramework(time_series_data.TimeSeriesMEGData, TimeSeriesFramework):
-    """
-    This class exists to add framework methods to TimeSeriesMEGData.
-    """
-
-
-    def get_space_labels(self):
-        """
-        :return: An array of strings with the sensors labels.
-        """
+    def get_measure_points_selection_gid(self):
         if self.sensors is not None:
-            return list(self.sensors.labels)
-        return []
-    
-    
-class TimeSeriesSEEGFramework(time_series_data.TimeSeriesSEEGData, TimeSeriesFramework):
-    """
-    This class exists to add framework methods to TimeSeriesMEGData.
-    """
-
-
-    def get_space_labels(self):
-        """
-        :return: An array of strings with the sensors labels.
-        """
-        if self.sensors is not None:
-            return list(self.sensors.labels)
-        return []
+            return self.sensors.gid
+        return ''
 
 
 
@@ -261,7 +246,26 @@ class TimeSeriesRegionFramework(time_series_data.TimeSeriesRegionData, TimeSerie
             return list(self.connectivity.region_labels)
         return []
 
+    def get_default_selection(self):
+        """
+        :return: If the connectivity of this time series is edited from another
+                 return the nodes of the parent that are present in the connectivity.
+        """
+        if self.connectivity is not None:
+            sel = self.connectivity.saved_selection
+            if sel is not None:
+                return sel
 
+        return super(TimeSeriesRegionFramework, self).get_default_selection()
+
+
+    def get_measure_points_selection_gid(self):
+        """
+        :return: the associated connectivity gid
+        """
+        if self.connectivity is not None:
+            return self.connectivity.gid
+        return ''
 
 class TimeSeriesSurfaceFramework(time_series_data.TimeSeriesSurfaceData, TimeSeriesFramework):
     """ This class exists to add framework methods to TimeSeriesSurfaceData. """
