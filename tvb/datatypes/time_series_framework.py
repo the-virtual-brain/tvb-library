@@ -236,8 +236,6 @@ class TimeSeriesRegionFramework(time_series_data.TimeSeriesRegionData, TimeSerie
     """
     This class exists to add framework methods to TimeSeriesRegionData.
     """
-
-
     def get_space_labels(self):
         """
         :return: An array of strings with the connectivity node labels.
