@@ -72,6 +72,7 @@ class ConnectivityTest(BaseTestCase):
         self.assertEqual(conn.idelays.shape, (0,))
         self.assertEqual(conn.delays.shape, (74, 74,))
         self.assertEqual(conn.number_of_regions, 74)
+        self.assertEqual(conn.number_of_connections, 1560)
         self.assertTrue(conn.parcellation_mask is None)
         self.assertTrue(conn.nose_correction is None)
         self.assertTrue(conn.saved_selection is None)
