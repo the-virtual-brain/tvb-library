@@ -2162,21 +2162,21 @@ class ZetterbergJansen(Model):
     gamma_1T = arrays.FloatArray(
         label=r":math:`\gamma_{1T}`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=65.0, hi=1350.0, step=5.),
+        range=basic.Range(lo=0.0, hi=1000.0, step=5.),
         doc="""Coupling factor from the extrinisic input to the spiny stellate population.""",
         order=17)
 
     gamma_3T = arrays.FloatArray(
         label=r":math:`\gamma_{3T}`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=65.0, hi=1350.0, step=5.),
+        range=basic.Range(lo=0.0, hi=1000.0, step=5.),
         doc="""Coupling factor from the extrinisic input to the pyramidal population.""",
         order=18)
 
     gamma_2T = arrays.FloatArray(
         label=r":math:`\gamma_{2T}`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=65.0, hi=1350.0, step=5.),
+        range=basic.Range(lo=0.0, hi=1000.0, step=5.),
         doc="""Coupling factor from the extrinisic input to the inhibitory population.""",
         order=19)
 

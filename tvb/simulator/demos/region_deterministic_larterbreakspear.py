@@ -59,9 +59,8 @@ from tvb.simulator.plot import timeseries_interactive as timeseries_interactive
 LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
 lb = models.LarterBreakspear(QV_max=1.0, QZ_max=1.0, 
-                             d_V=0.6, C=0.1, 
-                             aee=0.5, aie=0.5, ani=0.1, 
-                             VT=0.5,  gNa=0.0, Iext=0.165)
+                             d_V=0.65, d_Z=0.65, 
+                             aee=0.36, ani=0.4, ane=1.0, C=0.1)
 
 lb.variables_of_interest = ["V", "W", "Z"]
 
@@ -136,8 +135,10 @@ from mpl_toolkits.mplot3d import Axes3D
 fig = plt.figure(4)
 ax = fig.gca(projection='3d')
 
+
 for node in range(white_matter.number_of_regions):
   ax.plot(TAVG[:, 0, node, 0],  TAVG[:, 1, node, 0], TAVG[:, 2, node, 0], alpha=0.1)
+
 ax.set_xlabel('V')
 ax.set_ylabel('W')
 ax.set_zlabel('Z')
@@ -145,16 +146,31 @@ plt.show()
 
 
 
+<<<<<<< .mine
+# #Make the list a numpy.array.
+# LOG.info("Converting result to array...")
+# TAVG      = numpy.array(tavg_data)
+# TAVG_TIME = numpy.array(tavg_time)
+=======
 #Make the list a numpy.array.
 LOG.info("Converting result to array...")
 TAVG_TIME = numpy.array(tavg_time)
+>>>>>>> .r5330
 BOLD_TIME = numpy.array(bold_time)
 
+<<<<<<< .mine
+# #Save it
+# FILE_NAME = "demo_data_region_tavg_10s_500Hz_larterbreakspear"
+# LOG.info("Saving array to %s..." % FILE_NAME)
+# numpy.save(FILE_NAME + '.npy', TAVG)
+# numpy.save(FILE_NAME+'_time.npy', TAVG_TIME)
+=======
 #Save tavg output
 FILE_NAME = "demo_data_region_tavg_10s_500Hz_larterbreakspear"
 LOG.info("Saving array to %s..." % FILE_NAME)
 TAVG=numpy.load(FILE_NAME + '.npy')
 TAVG_TIME=numpy.load(FILE_NAME+'_time.npy')
+>>>>>>> .r5330
 
 #Save bold output
 FILE_NAME = "demo_data_region_bold_10s_500Hz_larterbreakspear"
@@ -162,26 +178,41 @@ LOG.info("Saving array to %s..." % FILE_NAME)
 numpy.save(FILE_NAME + '.npy', BOLD)
 numpy.save(FILE_NAME+'_time.npy', BOLD_TIME)
 
+<<<<<<< .mine
+# # Create TimeSeries instance
+# tsr = TimeSeriesRegion(connectivity = white_matter, 
+#                        data = TAVG,
+#                        time = TAVG_TIME,
+#                        sample_period = mon_tavg.period)
+# tsr.configure()
+=======
 
 #Create TimeSeries instance
 tsr = TimeSeriesRegion(data = TAVG,
                        time = TAVG_TIME,
                        sample_period = 2.)
 tsr.configure()
+>>>>>>> .r5330
 
-#Create and run the monitor/analyser
-bold_model = bold.BalloonModel(time_series = tsr)
-bold_data  = bold_model.evaluate()
+# #Create and run the monitor/analyser
+# bold_model = bold.BalloonModel(time_series = tsr)
+# bold_data  = bold_model.evaluate()
 
+<<<<<<< .mine
+# #Put the data into a TimeSeriesSurface datatype
+# bold_tsr = TimeSeriesRegion(connectivity = white_matter,
+#                                     data = bold_data.data)
+=======
 #Put the data into a TimeSeriesSurface datatype
 bold_tsr = TimeSeriesRegion(connectivity = white_matter,
                             data = bold_data.data, 
                             time = bold_data.time)
+>>>>>>> .r5330
 
-#Prutty puctures...
-tsi = timeseries_interactive.TimeSeriesInteractive(time_series = bold_tsr)
-tsi.configure()
-tsi.show()
+# #Prutty puctures...
+# tsi = timeseries_interactive.TimeSeriesInteractive(time_series = bold_tsr)
+# tsi.configure()
+# tsi.show()
 
 #Save bold-balloon output
 FILE_NAME = "demo_data_region_balloon_10s_500Hz_larterbreakspear"

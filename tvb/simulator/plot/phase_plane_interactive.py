@@ -83,7 +83,7 @@ HOVERCOLOUR = "darkred"
 
 #Set the resolution of the phase-plane and sample trajectories. 
 NUMBEROFGRIDPOINTS = 42
-TRAJ_STEPS = 1024
+TRAJ_STEPS = 4096
 
 import colorsys
 def get_color(num_colours):
@@ -820,7 +820,9 @@ class PhasePlaneInteractive(core.Type):
 if __name__ == "__main__":
     # Do some stuff that tests or makes use of this module...
     LOG.info("Testing %s module..." % __file__)
-    MODEL = models_module.Generic2dOscillator()
+    MODEL = models_module.LarterBreakspear()
+    MODEL.state_variable_range["V"] = numpy.array([-1.0, 1.0])
+    MODEL.state_variable_range["W"] = numpy.array([-1.0, 1.0])
     ppi_fig = PhasePlaneInteractive(model = MODEL)
     ppi_fig.show()
 

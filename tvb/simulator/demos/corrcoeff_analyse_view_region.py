@@ -75,10 +75,14 @@ corrcoeff_data = corrcoeff_analyser.evaluate()
 #Generate derived data, if any...
 corrcoeff_data.configure()
 
-# Plot matrix with numbers
+
 # For visualization purposes, the diagonal is set to zero.
 FC = corrcoeff_data.array_data[:, :, 0, 0]
-numpy.fill_diagonal(FC, 0.)
-pyplot.matshow(FC, cmap='RdBu', vmin=-0.5, vmax=0.5, interpolation='nearest')
-pyplot.colorbar()
+#Display the correlation matrix
+fig01 = plot_tri_matrix(white_matter.tract_lengths, cmap=pyplot.cm.RdYlBu_r, node_labels= white_matter.region_labels, size=[10., 10.], color_anchor=(0, white_matter.tract_lengths.max()))
+
 pyplot.show()
+#numpy.fill_diagonal(FC, 0.)
+#pyplot.matshow(FC, cmap='RdBu', vmin=-0.5, vmax=0.5, interpolation='nearest')
+#pyplot.colorbar()
+#pyplot.show()
