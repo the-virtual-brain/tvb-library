@@ -59,7 +59,13 @@ import matplotlib.pyplot as pyplot
 import matplotlib.colors
 import matplotlib.ticker as ticker
 import matplotlib.colors as colors
-from mpl_toolkits.axes_grid import make_axes_locatable  
+
+try:
+    from mpl_toolkits.axes_grid import make_axes_locatable  
+    IMPORTED_MPL_TOOLKITS = True
+except ImportError:
+    LOG.error("Update your matplotlib and mpl_toolkits version. Need version >= 1.3.1")
+    IMPORTED_MPL_TOOLKITS = False
 
 
 def _blob(x, y, area, colour):
@@ -352,12 +358,16 @@ def plot_tri_matrix(mat, num='plot_part_of_this_matrix', size=None,
     ax_im = fig.add_subplot(1, 1, 1)
 
     N   = mat.shape[0]
-    idx = numpy.arange(N)  
-    if colourbar:
-        divider = make_axes_locatable(ax_im)
-        ax_cb   = divider.new_vertical(size="10%", pad=0.1, pack_start=True)
-        fig.add_axes(ax_cb)
+    idx = numpy.arange(N) 
 
+     
+    if colourbar:
+        if IMPORTED_MPL_TOOLKITS:
+            divider = make_axes_locatable(ax_im)
+            ax_cb   = divider.new_vertical(size="10%", pad=0.1, pack_start=True)
+            fig.add_axes(ax_cb)
+        else:
+            pass
 
     mat_copy = mat.copy()
 
@@ -428,12 +438,21 @@ def plot_tri_matrix(mat, num='plot_part_of_this_matrix', size=None,
 
 
         #colourbar:
-        cb = fig.colorbar(im, cax=ax_cb, orientation='horizontal',
-                          cmap=cmap,
-                          norm=im.norm,
-                          boundaries=numpy.linspace(color_min, color_max, 256),
-                          ticks=ticks,
-                          format='%.2f')
+        if IMPORTED_MPL_TOOLKITS:
+            cb = fig.colorbar(im, cax=ax_cb, orientation='horizontal',
+                              cmap=cmap,
+                              norm=im.norm,
+                              boundaries=numpy.linspace(color_min, color_max, 256),
+                              ticks=ticks,
+                              format='%.2f')
+
+        else:
+            cb = fig.colorbar(im, orientation='horizontal',
+                              cmap=cmap,
+                              norm=im.norm,
+                              boundaries=numpy.linspace(color_min, color_max, 256),
+                              ticks=ticks,
+                              format='%.2f')
 
     fig.sca(ax)
 
