@@ -130,6 +130,10 @@ class ConnectivityData(MappedType):
         label="Number of regions",
         doc="""The number of regions represented in this Connectivity """)
 
+    number_of_connections = basic.Integer(
+        label="Number of connections",
+        doc="""The number of non-zero entries represented in this Connectivity """)
+
     # ------------- FRAMEWORK ATTRIBUTES -----------------------------
 
     # Rotation if positions are not normalized.

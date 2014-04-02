@@ -64,7 +64,9 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         super(ConnectivityScientific, self).configure()
         
         self.number_of_regions = self.weights.shape[0]
-        
+        # NOTE: In numpy 1.8 there is a function called count_zeros
+        self.number_of_connections = self.weights.nonzero()[0].shape[0]
+
         self.trait["weights"].log_debug(owner=self.__class__.__name__)
         self.trait["tract_lengths"].log_debug(owner=self.__class__.__name__)
         self.trait["speed"].log_debug(owner=self.__class__.__name__)
@@ -112,15 +114,29 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
                                                   self.METADATA_ARRAY_MIN, 
                                                   self.METADATA_ARRAY_MEAN]))
         summary.update(self.get_info_about_array('weights',
-                                                 [self.METADATA_ARRAY_MAX,
-                                                  self.METADATA_ARRAY_MIN, 
+                                                 [self.METADATA_ARRAY_MAX, 
+                                                  self.METADATA_ARRAY_MEAN,
+                                                  self.METADATA_ARRAY_VAR]))
+        summary.update(self.get_nonzero_info_about_array('weights', 'weights',
+                                                 [self.METADATA_ARRAY_MIN, 
                                                   self.METADATA_ARRAY_MEAN,
                                                   self.METADATA_ARRAY_VAR]))
         summary.update(self.get_info_about_array('tract_lengths',
                                                  [self.METADATA_ARRAY_MAX,
-                                                  self.METADATA_ARRAY_MIN, #TODO: Here, the min of only non-zero elements would be more informative.
                                                   self.METADATA_ARRAY_MEAN,
                                                   self.METADATA_ARRAY_VAR]))
+
+        summary.update(self.get_nonzero_info_about_array('tract_lengths', 'weights',
+                                                 [self.METADATA_ARRAY_MIN, 
+                                                  self.METADATA_ARRAY_MEAN,
+                                                  self.METADATA_ARRAY_VAR]))
+
+        summary.update(self.get_nonzero_info_about_array('tract_lengths', 'weights',
+                                                 [self.METADATA_ARRAY_MAX,
+                                                  self.METADATA_ARRAY_MIN, 
+                                                  self.METADATA_ARRAY_MEAN,
+                                                  self.METADATA_ARRAY_VAR], usemask=True))
+        
         return summary
     
     
