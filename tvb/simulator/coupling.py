@@ -401,7 +401,7 @@ class Sigmoidal(Coupling):
 
         """
         coupled_input = (g_ij * x_j).sum(axis=0)
-        sig = self.cmin + ((self.cmax - self.cmin) / (1.0 + numpy.exp(-a *((coupled_input - self.midpoint) / self.sigma))))
+        sig = self.cmin + ((self.cmax - self.cmin) / (1.0 + numpy.exp(-self.a *((coupled_input - self.midpoint) / self.sigma))))
         return sig
 
 
