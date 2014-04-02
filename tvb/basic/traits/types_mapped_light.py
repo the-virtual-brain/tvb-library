@@ -103,6 +103,25 @@ class MappedTypeLight(Type):
         return result
 
 
+    def get_nonzero_info_about_array(self, array_name, mask_array_name, included_info=None, usemask = False):
+        """
+        :return: dictionary {label: value} about an attribute of type mapped.Array
+                 Generic informations, like Max/Min/Mean/Var are to be retrieved for this array_attr
+        """
+        included_info = included_info or {}
+        usemask = usemask
+        summary = self.__get_nonzero_summary_info(array_name, mask_array_name, usemask, included_info)
+        non_zero_tag = ' (non-zero elements)'
+        
+        if usemask:
+            non_zero_tag = ' (connections)'
+        ### Before return, prepare names for UI display.                
+        result = dict()
+        for key, value in summary.iteritems():
+            result[array_name.capitalize().replace("_", " ") + non_zero_tag +" - " + key] = value
+        return result
+
+
     def __get_summary_info(self, array_name, included_info):
         """
         Get a summary from the metadata of the current array.
@@ -113,6 +132,27 @@ class MappedTypeLight(Type):
             for key in included_info:
                 if key in self.ALL_METADATA_ARRAY:
                     summary[key] = eval("array_attr." + self.ALL_METADATA_ARRAY[key] + "()")
+                else:
+                    self.logger.warning("Not supported meta-data will be ignored " + str(key))
+        return summary
+
+
+    def __get_nonzero_summary_info(self, array_name, mask_array_name, usemask, included_info):
+        """
+        Get a summary from the metadata of the current array.
+        """
+        summary = dict()
+        array_attr = getattr(self, array_name)
+        evaluate_this = "array_attr[array_attr.nonzero()]."
+
+        if usemask:
+            mask_array_attr = getattr(self, mask_array_name)
+            evaluate_this = "array_attr[mask_array_attr.nonzero()]."
+            
+        if isinstance(array_attr, numpy.ndarray):
+            for key in included_info:
+                if key in self.ALL_METADATA_ARRAY:
+                    summary[key] = eval(evaluate_this + self.ALL_METADATA_ARRAY[key] + "()")
                 else:
                     self.logger.warning("Not supported meta-data will be ignored " + str(key))
         return summary
