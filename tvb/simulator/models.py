@@ -2999,7 +2999,7 @@ class LarterBreakspear(Model):
     tau_K = arrays.FloatArray(
         label = r":math:`\tau_{K}`",
         default = numpy.array([1.0]),
-        range = basic.Range(lo = 0.01, hi = 0.0, step = 0.1),
+        range = basic.Range(lo = 1.0, hi = 10.0, step = 1.0),
         doc = """Time constant for K relaxation time (ms)""")
     
     d_Na = arrays.FloatArray(
