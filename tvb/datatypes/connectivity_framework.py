@@ -48,8 +48,7 @@ class ConnectivityFramework(connectivity_data.ConnectivityData):
 
     def generate_new_connectivity(self, new_weights, interest_areas, storage_path, new_tracts=None):
         """
-        Generate new Connectivity object based on current one, by changing
-        weights (e.g. simulate leasion).
+        Generate new Connectivity object based on current one, by changing weights (e.g. simulate lesion).
         """
         if isinstance(new_weights, str) or isinstance(new_weights, unicode):
             new_weights = eval(new_weights)

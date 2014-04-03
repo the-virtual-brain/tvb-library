@@ -90,9 +90,9 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         #      simulator non-functional. Inn the longer run it'll probably be
         #      necessary for delays to never be stored but always calculated 
         #      from tract-lengths and speed...
-        if self.speed is None: #TODO: this is a hack fix...
+        if self.speed is None:  # TODO: this is a hack fix...
             LOG.warning("Connectivity.speed attribute not initialized properly, setting it to 3.0...")
-            self.speed = numpy.array([3.0]) #F£$%^&*!!!#self.trait["speed"].value
+            self.speed = numpy.array([3.0])  # F£$%^&*!!!#self.trait["speed"].value
         
         #NOTE: Because of the conduction_speed hack for UI this must be evaluated here, even if delays 
         #already has a value, otherwise setting speed in the UI has no effect...
@@ -110,34 +110,34 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         """
         summary = {"Number of regions": self.number_of_regions,
                    "Number of connections": self.number_of_connections}
+
         summary.update(self.get_info_about_array('areas',
                                                  [self.METADATA_ARRAY_MAX,
                                                   self.METADATA_ARRAY_MIN, 
                                                   self.METADATA_ARRAY_MEAN]))
+
         summary.update(self.get_info_about_array('weights',
-                                                 [self.METADATA_ARRAY_MAX, 
+                                                 [self.METADATA_ARRAY_MAX,
                                                   self.METADATA_ARRAY_MEAN,
-                                                  self.METADATA_ARRAY_VAR]))
-        summary.update(self.get_nonzero_info_about_array('weights', 'weights',
-                                                 [self.METADATA_ARRAY_MIN, 
-                                                  self.METADATA_ARRAY_MEAN,
-                                                  self.METADATA_ARRAY_VAR]))
+                                                  self.METADATA_ARRAY_VAR,
+                                                  self.METADATA_ARRAY_MIN_NON_ZERO,
+                                                  self.METADATA_ARRAY_MEAN_NON_ZERO,
+                                                  self.METADATA_ARRAY_VAR_NON_ZERO]))
+
         summary.update(self.get_info_about_array('tract_lengths',
                                                  [self.METADATA_ARRAY_MAX,
                                                   self.METADATA_ARRAY_MEAN,
-                                                  self.METADATA_ARRAY_VAR]))
+                                                  self.METADATA_ARRAY_VAR,
+                                                  self.METADATA_ARRAY_MIN_NON_ZERO,
+                                                  self.METADATA_ARRAY_MEAN_NON_ZERO,
+                                                  self.METADATA_ARRAY_VAR_NON_ZERO]))
 
-        summary.update(self.get_nonzero_info_about_array('tract_lengths', 'weights',
-                                                 [self.METADATA_ARRAY_MIN, 
-                                                  self.METADATA_ARRAY_MEAN,
-                                                  self.METADATA_ARRAY_VAR]))
-
-        summary.update(self.get_nonzero_info_about_array('tract_lengths', 'weights',
-                                                 [self.METADATA_ARRAY_MAX,
-                                                  self.METADATA_ARRAY_MIN, 
-                                                  self.METADATA_ARRAY_MEAN,
-                                                  self.METADATA_ARRAY_VAR], 
-                                                  usemask=True))
+        summary.update(self.get_info_about_array('tract_lengths',
+                                                 [self.METADATA_ARRAY_MAX_NON_ZERO,
+                                                  self.METADATA_ARRAY_MIN_NON_ZERO,
+                                                  self.METADATA_ARRAY_MEAN_NON_ZERO,
+                                                  self.METADATA_ARRAY_VAR_NON_ZERO],
+                                                 mask_array_name='weights', key_suffix=" (connections)"))
         
         return summary
     
@@ -170,7 +170,7 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         #TODO: redundant by half, do half triangle then flip...
         for region in range(nor):
             temp = self.centres - self.centres[region, :][numpy.newaxis, :]
-            tract_lengths[region, :] = numpy.sqrt(numpy.sum(temp**2, axis=1))
+            tract_lengths[region, :] = numpy.sqrt(numpy.sum(temp ** 2, axis=1))
         
         self.tract_lengths = tract_lengths
         self.trait["tract_lengths"].log_debug(owner=self.__class__.__name__)
@@ -179,7 +179,7 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
     def compute_region_labels(self):
         """ """
         labels = ["region_%03d" % n for n in range(self.number_of_regions)]
-        self.region_labels = numpy.array(labels, dtype = "128a")
+        self.region_labels = numpy.array(labels, dtype="128a")
     
     def try_compute_hemispheres(self):
         """
@@ -274,7 +274,7 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         LOG.info("Transforming weighted matrix into unweighted matrix")
         
         result = copy(self.weights)
-        result = numpy.where(results > 0, 1, result)
+        result = numpy.where(result > 0, 1, result)
         
         
     def switch_distribution(self, matrix='tract_lengths', mode='none'):

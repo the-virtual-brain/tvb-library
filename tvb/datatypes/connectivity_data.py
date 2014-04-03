@@ -68,6 +68,7 @@ class ConnectivityData(MappedType):
     weights = arrays.FloatArray(
         label="Connection strengths",
         console_default=default.read_data(file_name="weights.txt.bz2", field="weights"),
+        stored_metadata=[key for key in MappedType.DEFAULT_WITH_ZERO_METADATA],
         doc="""Matrix of values representing the strength of connections between regions, arbitrary units.""")
 
     unidirectional = basic.Integer(
@@ -77,6 +78,7 @@ class ConnectivityData(MappedType):
     tract_lengths = arrays.FloatArray(
         label="Tract lengths",
         console_default=default.read_data(file_name="tract_lengths.txt.bz2", field="tract_lengths"),
+        stored_metadata=[key for key in MappedType.DEFAULT_WITH_ZERO_METADATA],
         doc="""The length of myelinated fibre tracts between regions.
         If not provided Euclidean distance between region centres is used.""")
 

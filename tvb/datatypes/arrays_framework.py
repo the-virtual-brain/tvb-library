@@ -37,8 +37,9 @@ Framework methods for the Array datatypes.
 
 """
 import numpy
-from tvb.basic.traits.types_mapped import Array
 import tvb.datatypes.arrays_data as arrays_data
+from tvb.basic.traits.types_mapped import Array
+from tvb.basic.traits.types_mapped import MappedType
 
 
 class BaseArrayFramework(Array):
@@ -58,17 +59,20 @@ class IntegerArrayFramework(arrays_data.IntegerArrayData, BaseArrayFramework):
 
 class ComplexArrayFramework(arrays_data.ComplexArrayData, BaseArrayFramework):
     """ This class exists to add framework methods to ComplexArrayData """
-    pass
+
+    stored_metadata = [key for key in MappedType.DEFAULT_STORED_ARRAY_METADATA if key != MappedType.METADATA_ARRAY_VAR]
 
 
 class BoolArrayFramework(arrays_data.BoolArrayData, BaseArrayFramework):
     """ This class exists to add framework methods to BoolArrayData """
-    pass
+
+    stored_metadata = [MappedType.METADATA_ARRAY_SHAPE]
 
 
 class StringArrayFramework(arrays_data.StringArrayData, BaseArrayFramework):
     """ This class exists to add framework methods to StringArrayData """
-    pass
+
+    stored_metadata = [MappedType.METADATA_ARRAY_SHAPE]
 
 
 class PositionArrayFramework(arrays_data.PositionArrayData,
@@ -118,12 +122,12 @@ class MappedArrayFramework(arrays_data.MappedArrayData):
     @staticmethod
     def accepted_filters():
         filters = arrays_data.MappedArrayData.accepted_filters()
-        filters.update({'datatype_class._nr_dimensions':
-                            {'type': 'int', 'display': 'Dimensionality', 'operations': ['==', '<', '>']},
-                        'datatype_class._length_1d':
-                            {'type': 'int', 'display': 'Shape 1', 'operations': ['==', '<', '>']},
-                        'datatype_class._length_2d':
-                            {'type': 'int', 'display': 'Shape 2', 'operations': ['==', '<', '>']}})
+        filters.update({'datatype_class._nr_dimensions': {'type': 'int', 'display': 'Dimensionality',
+                                                          'operations': ['==', '<', '>']},
+                        'datatype_class._length_1d': {'type': 'int', 'display': 'Shape 1',
+                                                      'operations': ['==', '<', '>']},
+                        'datatype_class._length_2d': {'type': 'int', 'display': 'Shape 2',
+                                                      'operations': ['==', '<', '>']}})
         return filters
     
     
