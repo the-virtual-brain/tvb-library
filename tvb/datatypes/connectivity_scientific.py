@@ -108,8 +108,8 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         Gather scientifically interesting summary information from an instance
         of this dataType.
         """
-        summary = {"Number of regions": self.number_of_regions}
-        summary = {"Number of connections": self.number_of_connections}
+        summary = {"Number of regions": self.number_of_regions,
+                   "Number of connections": self.number_of_connections}
         summary.update(self.get_info_about_array('areas',
                                                  [self.METADATA_ARRAY_MAX,
                                                   self.METADATA_ARRAY_MIN, 
@@ -218,9 +218,7 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         """
 
         nor    = self.number_of_regions
-        result = copy(self.weights)
-        result = self.weights - self.weights * numpy.eye(nor, nor)  
-        return result          
+        return self.weights - self.weights * numpy.eye(nor, nor)
      
      
     def normalised_weights(self, mode='tract'):
