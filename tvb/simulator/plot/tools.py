@@ -60,14 +60,12 @@ import matplotlib.colors
 import matplotlib.ticker as ticker
 import matplotlib.colors as colors
 
+
 try:
-    from mpl_toolkits.axes_grid import make_axes_locatable  
+    from mpl_toolkits.axes_grid1 import make_axes_locatable  
     IMPORTED_MPL_TOOLKITS = True
 except ImportError:
-    LOG.error("Update your matplotlib and mpl_toolkits version. Need version >= 1.3.1")
-    from mpl_toolkits.axes_grid1 import make_axes_locatable
-    IMPORTED_MPL_TOOLKITS = True
-
+    LOG.error("You need mpl_toolkits")
 
 def _blob(x, y, area, colour):
     """
