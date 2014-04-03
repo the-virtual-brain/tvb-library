@@ -308,7 +308,7 @@ def show_me_the_colours():
         ax.text(0.05, 0.5, colours[k])
 
 
-def plot_tri_matrix(mat, num='plot_part_of_this_matrix', size=None, 
+def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
                         cmap=pyplot.cm.RdBu_r, colourbar=True,
                         color_anchor=None, node_labels=None, x_tick_rot=0, 
                         title=None):
@@ -344,10 +344,13 @@ def plot_tri_matrix(mat, num='plot_part_of_this_matrix', size=None,
         thisidx = numpy.clip(int(x), 0, N - 1)
         return node_labels[thisidx]
 
-    if num is None:
-        fig = pyplot.figure()
-    else:
-        fig = pyplot.figure(num=num) 
+    if figure is not None:
+        fig = figure
+    else :
+        if num is None:
+            fig = pyplot.figure()
+        else:
+            fig = pyplot.figure(num=num)
 
     if size is not None:
         fig.set_figwidth(size[0])
