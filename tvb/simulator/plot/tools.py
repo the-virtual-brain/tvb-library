@@ -62,9 +62,10 @@ import matplotlib.colors as colors
 
 
 try:
-    from mpl_toolkits.axes_grid1 import make_axes_locatable  
+    from mpl_toolkits.axes_grid import make_axes_locatable
     IMPORTED_MPL_TOOLKITS = True
 except ImportError:
+    IMPORTED_MPL_TOOLKITS = False
     LOG.error("You need mpl_toolkits")
 
 def _blob(x, y, area, colour):
