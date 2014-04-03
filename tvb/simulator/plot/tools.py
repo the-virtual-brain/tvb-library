@@ -65,7 +65,8 @@ try:
     IMPORTED_MPL_TOOLKITS = True
 except ImportError:
     LOG.error("Update your matplotlib and mpl_toolkits version. Need version >= 1.3.1")
-    IMPORTED_MPL_TOOLKITS = False
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    IMPORTED_MPL_TOOLKITS = True
 
 
 def _blob(x, y, area, colour):
@@ -447,6 +448,7 @@ def plot_tri_matrix(mat, num='plot_part_of_this_matrix', size=None,
                               format='%.2f')
 
         else:
+            # the colourbar will be wider than the matrix
             cb = fig.colorbar(im, orientation='horizontal',
                               cmap=cmap,
                               norm=im.norm,
