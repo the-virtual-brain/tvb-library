@@ -27,11 +27,11 @@
 #   Frontiers in Neuroinformatics (7:10. doi: 10.3389/fninf.2013.00010)
 #
 #
-"""
-Created on Mar 20, 2013
 
+"""
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
+
 if __name__ == "__main__":
     from tvb.tests.library import setup_test_console_env
     setup_test_console_env()
@@ -83,15 +83,16 @@ class ConnectivityTest(BaseTestCase):
         conn.compute_tract_lengths()
         conn.compute_region_labels()
         conn.try_compute_hemispheres()
-        self.assertEqual(conn.normalised_weights().shape, (74, 74))
-        for mode in ['normal', 'shuffle', 'mean', 'analytical']:
+        self.assertEqual(conn.scaled_weights().shape, (74, 74))
+        for mode in ['none', 'tract', 'region']:
             # Empirical seems to fail on some scipy installations. Error is not pinned down
             # so far, it seems to only happen on some machines. Most relevant related to this:
             #
             # http://projects.scipy.org/scipy/ticket/1735
             # http://comments.gmane.org/gmane.comp.python.scientific.devel/14816
             # http://permalink.gmane.org/gmane.comp.python.numeric.general/42082
-            conn.switch_distribution(mode=mode)
+            #conn.switch_distribution(mode=mode)
+            self.assertEqual(conn.scaled_weights(mode=mode).shape, (74, 74))
         
         
     def test_connectivity_reload(self):
