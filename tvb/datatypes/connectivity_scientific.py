@@ -218,7 +218,9 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         """
 
         nor    = self.number_of_regions
-        return self.weights - self.weights * numpy.eye(nor, nor)
+        result = copy(self.weights)
+        result = result - result * numpy.eye(nor, nor)
+        return result
      
      
     def scaled_weights(self, mode='tract'):
@@ -281,6 +283,7 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         
         result = copy(self.weights)
         result = numpy.where(result > 0, 1, result)
+        return result
         
         
     def switch_distribution(self, matrix='tract_lengths', mode='none'):
