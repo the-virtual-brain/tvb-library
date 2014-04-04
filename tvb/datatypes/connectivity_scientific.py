@@ -211,7 +211,7 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
                 self.hemispheres = numpy.array(hemispheres, dtype=numpy.bool)
 
 
-    def remove_self_connections(self):
+    def transform_remove_self_connections(self):
         """
         Remove the values from the main diagonal (self-connections)
 
@@ -221,23 +221,23 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         return self.weights - self.weights * numpy.eye(nor, nor)
      
      
-    def normalised_weights(self, mode='tract'):
+    def scaled_weights(self, mode='tract'):
         """
-        Normalise the connection strengths (weights) and return normalized matrix. 
-        Three simple types of normalisation are supported. 
-        The ``normalisation_mode`` of normalisation is one of the following:
+        Scale the connection strengths (weights) and return the scaled matrix. 
+        Three simple types of scaling are supported. 
+        The ``scaling_mode``  is one of the following:
             
-            'tract': Normalise such that the maximum abssolute value of a single
-                connection is 1.0.
+            'tract': Scale by a value such that the maximum absolute value of a single
+                connection is 1.0. (Global scaling)
             
-            'region': Normalise such that the maximum abssolute value of the
-                cumulative input to any region is 1.0.
+            'region': Scale by a value such that the maximum absolute value of the
+                cumulative input to any region is 1.0. (Node-wise scaling)
             
             None: does nothing.
             
-        NOTE: Currently multiple 'tract' and/or 'region' normalisations without
-            intermediate 'none' normalisations destroy the ability to recover
-            the original un-normalised weights matrix.
+        NOTE: Currently multiple 'tract' and/or 'region' scalings without
+            intermediate 'none' scaling mode destroy the ability to recover
+            the original un-scaled weights matrix.
         
         """
         #NOTE: It is not yet clear how or if we will integrate this functinality
@@ -246,13 +246,18 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         #      situations, things are simplified by starting from a normalised
         #      weights matrix. However, in other situations it is not desirable
         #      to have a simple normalisation of this sort.
+        #NOTE: We should probably separate the two cases implemented here into
+        #      'scaling' and 'normalisation'. Normalisation implies that the norm 
+        #      of the samples is equal to 1, while here it is only scaling by a factor.
         
         LOG.info("Starting to normalize to mode: %s" % str(mode))
         
         normalisation_factor = None
         if mode in ("tract", "edge"):
+            # global scaling
             normalisation_factor = numpy.abs(self.weights).max()
         elif mode in ("region", "node"):
+            # node-wise scaling
             normalisation_factor = numpy.max(numpy.abs(self.weights.sum(axis=1)))
         elif mode in (None, "none"):
             normalisation_factor = 1.0
@@ -267,7 +272,8 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         result[mask] = self.weights[mask] / normalisation_factor
         return result
 
-    def binarize_matrix(self):
+
+    def transform_binarize_matrix(self):
         """
         Transforms the weights matrix into a binary (unweighted) matrix 
         """
