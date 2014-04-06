@@ -184,6 +184,13 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
         """
         return []
 
+    def get_grouped_space_labels(self):
+        """
+        :return: A list of label groups. A label group is a tuple (name, [labels]).
+                 Default all labels in a group named ''
+        """
+        return [('', self.get_space_labels())]
+
     def get_default_selection(self):
         """
         :return: The measure point id's that have to be shown by default. By default show all.
@@ -243,6 +250,26 @@ class TimeSeriesRegionFramework(time_series_data.TimeSeriesRegionData, TimeSerie
         if self.connectivity is not None:
             return list(self.connectivity.region_labels)
         return []
+
+
+    def get_grouped_space_labels(self):
+        """
+        :return: A list [('left', [lh_labels)], ('right': [rh_labels])]
+        """
+        conn = self.connectivity
+
+        if conn is not None and conn.hemispheres is not None:
+            l, r = [], []
+
+            for is_right, label in zip(conn.hemispheres, conn.region_labels):
+                if is_right:
+                    r.append(label)
+                else:
+                    l.append(label)
+            return [('left', l), ('right', r)]
+        else:
+            return [('', self.get_space_labels())]
+
 
     def get_default_selection(self):
         """
