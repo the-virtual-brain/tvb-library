@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 #
 #
-#  TheVirtualBrain-Scientific Package. This package holds all simulators, and 
+#  TheVirtualBrain-Scientific Package. This package holds all simulators, and
 # analysers necessary to run brain-simulations. You can use it stand alone or
 # in conjunction with TheVirtualBrain-Framework Package. See content of the
 # documentation-folder for more details. See also http://www.thevirtualbrain.org
 #
 # (c) 2012-2013, Baycrest Centre for Geriatric Care ("Baycrest")
 #
-# This program is free software; you can redistribute it and/or modify it under 
+# This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License version 2 as published by the Free
 # Software Foundation. This program is distributed in the hope that it will be
-# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
-# License for more details. You should have received a copy of the GNU General 
+# License for more details. You should have received a copy of the GNU General
 # Public License along with this program; if not, you can download it here
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0
 #
@@ -31,7 +31,7 @@
 """
 Coupling functions
 
-The activity (state-variables) that 
+The activity (state-variables) that
 have been propagated over the long-range Connectivity pass through these
 functions before entering the equations (Model.dfun()) describing the local
 dynamics.
@@ -64,7 +64,7 @@ LOG = get_logger(__name__)
 
 class Coupling(core.Type):
     """
-    The base class for Coupling functions. 
+    The base class for Coupling functions.
     """
     _base_classes = ["Coupling"]
 
@@ -74,13 +74,13 @@ class Coupling(core.Type):
         default parameter set should be provided via the trait mechanism.
 
         """
-        super(Coupling, self).__init__(**kwargs) 
+        super(Coupling, self).__init__(**kwargs)
         LOG.debug(str(kwargs))
 
 
     def __repr__(self):
         """A formal, executable, representation of a Coupling object."""
-        class_name = self.__class__.__name__ 
+        class_name = self.__class__.__name__
         traited_kwargs = self.trait.keys()
         formal = class_name + "(" + "=%s, ".join(traited_kwargs) + "=%s)"
         return formal % eval("(self." + ", self.".join(traited_kwargs) + ")")
@@ -88,7 +88,7 @@ class Coupling(core.Type):
 
     def __str__(self):
         """An informal, human readable, representation of a Coupling object."""
-        class_name = self.__class__.__name__ 
+        class_name = self.__class__.__name__
         traited_kwargs = self.trait.keys()
         informal = class_name + "(" + ", ".join(traited_kwargs) + ")"
         return informal
@@ -106,10 +106,10 @@ class Coupling(core.Type):
         where g_ij is the connectivity weight matrix, x_i is the current state,
         x_j is the delayed state of the coupling variables chosen for the
         simulation, and k_i is the input to the ith node due to the coupling
-        between the nodes. 
+        between the nodes.
 
         Normally, all Coupling types compute a dot product between some
-        function of current and past state and the connectivity matrix to 
+        function of current and past state and the connectivity matrix to
         produce k_i, e.g.
 
         ::
@@ -244,7 +244,7 @@ class Scaling(Coupling):
         evaluated has the following form:
 
             .. math::
-                a x 
+                a x
 
 
         """
@@ -274,21 +274,21 @@ class HyperbolicTangent(Coupling):
     """
 
     a = arrays.FloatArray(
-        label = ":math:`a`", 
+        label = ":math:`a`",
         default = numpy.array([1.0]),
         range = basic.Range(lo = -1000.0, hi = 1000.0, step = 10.0),
         doc = """Minimum of the sigmoid function""",
         order = 1)
 
     b = arrays.FloatArray(
-        label = ":math:`b`", 
+        label = ":math:`b`",
         default = numpy.array([1.0]),
         range = basic.Range(lo = -1.0, hi = 1.0, step = 10.0),
         doc = """Scaling factor for the variable""",
         order = 2)
 
     midpoint = arrays.FloatArray(
-        label = "midpoint", 
+        label = "midpoint",
         default = numpy.array([0.0,]),
         range = basic.Range(lo = -1000.0, hi = 1000.0, step = 10.0),
         doc = """Midpoint of the linear portion of the sigmoid""",
@@ -319,16 +319,16 @@ class HyperbolicTangent(Coupling):
         """
         temp =  self.a * (1 +  numpy.tanh((self.b * x_j - self.midpoint) / self.sigma))
 
-        if self.normalise: 
+        if self.normalise:
             #NOTE: normalising by the strength or degrees may yield NaNs, so fill these values with inf
             in_strength = g_ij.sum(axis=2)[:, :, numpy.newaxis, :]
             in_strength[in_strength==0] = numpy.inf
             temp *= (g_ij / in_strength) #region mode normalisation
-            
+
             coupled_input = temp.mean(axis=0)
-        else: 
+        else:
             coupled_input = (g_ij*temp).mean(axis=0)
-        
+
         return coupled_input
 
 
@@ -349,21 +349,21 @@ class Sigmoidal(Coupling):
     #      with saturation at -1 and 1.
 
     cmin = arrays.FloatArray(
-        label = ":math:`c_{min}`", 
+        label = ":math:`c_{min}`",
         default = numpy.array([-1.0,]),
         range = basic.Range(lo = -1000.0, hi = 1000.0, step = 10.0),
         doc = """Minimum of the sigmoid function""",
         order = 1)
 
     cmax = arrays.FloatArray(
-        label = ":math:`c_{max}`", 
+        label = ":math:`c_{max}`",
         default = numpy.array([1.0,]),
         range = basic.Range(lo = -1000.0, hi = 1000.0, step = 10.0),
         doc = """Maximum of the sigmoid function""",
         order = 2)
 
     midpoint = arrays.FloatArray(
-        label = "midpoint", 
+        label = "midpoint",
         default = numpy.array([0.0,]),
         range = basic.Range(lo = -1000.0, hi = 1000.0, step = 10.0),
         doc = """Midpoint of the linear portion of the sigmoid""",
@@ -417,21 +417,21 @@ class StaticSigmoidal(Coupling):
     #      Here the sigmoid is an input of the product.
 
     H = arrays.FloatArray(
-        label = "H", 
+        label = "H",
         default = numpy.array([0.5,]),
         range = basic.Range(lo = -100.0, hi = 100.0, step = 1.0),
         doc = """Global Factor""",
         order = 1)
 
     Q = arrays.FloatArray(
-        label = "Q", 
+        label = "Q",
         default = numpy.array([1.,]),
         range = basic.Range(lo = -100.0, hi = 100.0, step = 1.0),
         doc = """Average""",
         order = 2)
 
     G = arrays.FloatArray(
-        label = "G", 
+        label = "G",
         default = numpy.array([60.,]),
         range = basic.Range(lo = -1000.0, hi = 1000.0, step = 1.),
         doc = """Gain""",
@@ -462,7 +462,7 @@ class StaticSigmoidal(Coupling):
         Evaluate the StaticSigmoidal function for the arg ``x``. The equation being
         evaluated has the following form:
         .. math:: H * (Q + \tanh(G * (P*x - \theta)))
-        
+
         """
         A_j = self.H * (self.Q + numpy.tanh(self.G * (self.P * x_j[:,0,:,:] - self.theta)[:,numpy.newaxis,:,:]))
         return numpy.array([ (g_ij * A_j).sum(axis=0) ])
@@ -496,21 +496,21 @@ class DynamicSigmoidal(Coupling):
     """
 
     H = arrays.FloatArray(
-        label = "H", 
+        label = "H",
         default = numpy.array([0.5,]),
         range = basic.Range(lo = -100.0, hi = 100.0, step = 1.0),
         doc = """Global Factor""",
         order = 1)
 
     Q = arrays.FloatArray(
-        label = "Q", 
+        label = "Q",
         default = numpy.array([1.,]),
         range = basic.Range(lo = -100.0, hi = 100.0, step = 1.0),
         doc = """Average""",
         order = 2)
 
     G = arrays.FloatArray(
-        label = "G", 
+        label = "G",
         default = numpy.array([60.,]),
         range = basic.Range(lo = -1000.0, hi = 1000.0, step = 1.),
         doc = """Gain""",
@@ -534,18 +534,18 @@ class DynamicSigmoidal(Coupling):
     def __init__(self, **kwargs):
         """Precompute a constant after the base __init__"""
         super(DynamicSigmoidal, self).__init__(**kwargs)
-        
+
 
     def configure(self):
         """  """
         super(DynamicSigmoidal, self).configure()
-        
+
         # Global threshold (all the nodes having the same theta value)
         if self.globalT:
             self.sliceT = 0
             #self.meanOrNot = lambda arr: arr.mean() * numpy.ones((arr.shape[1],1))
             self.meanOrNot = lambda arr: numpy.diag(arr[:,0,:,0]).mean() * numpy.ones((arr.shape[1],1))
-            
+
         # Local thresholds
         else:
             self.sliceT = slice(None)
@@ -559,11 +559,11 @@ class DynamicSigmoidal(Coupling):
 
         .. math::
                 H * (Q + \tanh(G * (P*x - \theta)))
-        
+
         """
-        # x[0] firing rate 
+        # x[0] firing rate
         # x[1] dynamic threshold
-        
+
         A_j = self.H * (self.Q + numpy.tanh(self.G * (self.P * x_j[:,0,:,:] - x_j[:,1,self.sliceT,:])[:,numpy.newaxis,:,:]))
         c_0 = (g_ij[:,0] * A_j[:,0]).sum(axis=0)
         c_1 = self.meanOrNot(A_j)
@@ -593,8 +593,8 @@ class Difference(Coupling):
 
     a = arrays.FloatArray(
         label = ":math:`a`",
-        default=numpy.array([0.00390625,]),
-        range = basic.Range(lo = 0.0, hi = 0.2, step = 0.01),
+        default=numpy.array([0.1,]),
+        range = basic.Range(lo = 0.0, hi = 10., step = 0.1),
         doc = """Rescales the connection strength while maintaining the ratio
         between different values.""",
         order = 1)
