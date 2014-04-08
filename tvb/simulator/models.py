@@ -3959,11 +3959,11 @@ class Modified_Epileptor(Model):
     Modified version of the Epileptor model:
 
     - The third state variable equation is modified to account for the time difference
-    between interictal and ictal states
-    - The equations are scales in time to have realist time lenghts
+        between interictal and ictal states
+    - The equations are scales in time to have realist time lengths
     - A seventh state variable is added to directly calculate the correct 
-    output of the model for the monitors (not strictly correct mathematically
-    except for Euler integration method)
+        output of the model for the monitors (not strictly correct mathematically
+        except for Euler integration method)
     - There is a possible coupling between fast and slow time scales
 
     .. automethod:: Modified_Epileptor.__init__
