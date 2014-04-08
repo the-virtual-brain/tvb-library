@@ -48,7 +48,6 @@ from scipy.integrate import trapz as scipy_integrate_trapz
 from scipy.stats import norm as scipy_stats_norm
 from tvb.simulator.common import get_logger
 import tvb.datatypes.arrays as arrays
-import tvb.datatypes.lookup_tables as lookup_tables
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
 import tvb.simulator.noise as noise_module
@@ -57,35 +56,31 @@ import tvb.simulator.noise as noise_module
 LOG = get_logger(__name__)
 
 
-#TODO: For UI convinience set the step in all parameters ranges such that there
-#      are apporximately 10 steps from lo to hi...
+#NOTE: For UI convenience set the step in all parameters ranges such that there
+#      are approximately 10 steps from lo to hi...
 
 
 class Model(core.Type):
     """
     Defines the abstract class for neuronal models.
 
-    .. #Currently there seems to be a clash betwen traits and autodoc, autodoc
-    .. #can't find the methods of the class, the class specific names below get
-    .. #us around this...
     .. automethod:: Model.__init__
     .. automethod:: Model.dfun
     .. automethod:: Model.update_derived_parameters
 
     """
     _base_classes = ['Model', "JRFast"]
-    #NOTE: the parameters that are contained in the following list will be
-    #      editable from the ui in an visual manner
+    #NOTE: the parameters that are contained in the following list will be editable from the ui in an visual manner
     ui_configurable_parameters = []
 
     noise = noise_module.Noise(
-        fixed_type=True, #Can only be Noise in UI, and not a subclass of Noise
+        fixed_type=True, # Can only be Noise in UI, and not a subclass of Noise
         label="Initial Conditions Noise",
         default=noise_module.Noise,
         doc="""A noise source used to provide random initial conditions when
         no, or insufficient, explicit initial conditions are provided. 
         NOTE: Dispersion is computed based on ``state_variable_range``.""",
-        order=42 ** 42) #NOTE: Hoping this order will always make it last...
+        order=42 ** 42) # to be displayed last
 
 
     def __init__(self, **kwargs):
@@ -2052,9 +2047,8 @@ class ZetterbergJansen(Model):
 
     .. [A_2012] Auburn
 
-    .. figure :: img/
+    .. figure :: img/ZetterbergJansen_01_mode_0_pplane.svg
         :alt: Jansen and Rit phase plane
-
 
     .. automethod:: ZetterbergJansen.__init__
     .. automethod:: ZetterbergJansen.dfun
@@ -3649,6 +3643,9 @@ class HopfieldBased(Model):
 
     See also, http://www.scholarpedia.org/article/Hopfield_network
 
+    .. figure :: img/HopfieldBased_01_mode_0_pplane.svg
+        :alt: HopfieldBased phase plane
+
     .. #This model use a global threshold instead of a local one permitting multistable dynamic for
     .. #a positive structural connectivity matrix.
 
@@ -3774,6 +3771,9 @@ class Epileptor(Model):
     The Epileptor is a composite neural mass model of six dimensions which
     has been crafted to model the phenomenology of epileptic seizures.
     (see Jirsa et al, 2014, Brain, in press)
+
+    .. figure :: img/Epileptor_01_mode_0_pplane.svg
+        :alt: Epileptor phase plane
 
     .. automethod:: Epileptor.__init__
     .. automethod:: Epileptor.dfun
@@ -3965,6 +3965,9 @@ class Modified_Epileptor(Model):
         output of the model for the monitors (not strictly correct mathematically
         except for Euler integration method)
     - There is a possible coupling between fast and slow time scales
+
+    .. figure :: img/Modified_Epileptor_01_mode_0_pplane.svg
+        :alt: Epileptor phase plane
 
     .. automethod:: Modified_Epileptor.__init__
     .. automethod:: Modified_Epileptor.dfun
