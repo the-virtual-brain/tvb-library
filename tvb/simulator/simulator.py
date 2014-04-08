@@ -276,6 +276,7 @@ class Simulator(core.Type):
         if self.stimulus:
             self.stimulus.configure()
 
+        self.coupling.configure()
         self.model.configure()
         self.integrator.configure()
 
