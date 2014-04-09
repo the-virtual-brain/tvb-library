@@ -112,3 +112,35 @@ class ConnectivityFramework(connectivity_data.ConnectivityData):
         return filters
 
 
+    def get_grouped_space_labels(self):
+        """
+        :return: A list [('left', [lh_labels)], ('right': [rh_labels])]
+        """
+        if self.hemispheres is not None:
+            l, r = [], []
+
+            for i, (is_right, label) in enumerate(zip( self.hemispheres, self.region_labels)):
+                if is_right:
+                    r.append((i, label))
+                else:
+                    l.append((i, label))
+            return [('left', l), ('right', r)]
+        else:
+            return [('', list(enumerate(self.region_labels)))]
+
+
+    def get_default_selection(self):
+        # should this be subselection or all always?
+        sel = self.saved_selection
+        if sel is not None:
+            return sel
+        else:
+            return range(len(self.region_labels))
+
+
+    def get_measure_points_selection_gid(self):
+        """
+        :return: the associated connectivity gid
+        """
+        return self.gid
+

@@ -186,15 +186,14 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
 
     def get_grouped_space_labels(self):
         """
-        :return: A list of label groups. A label group is a tuple (name, [labels]).
+        :return: A list of label groups. A label group is a tuple (name, [(label_idx, label)...]).
                  Default all labels in a group named ''
         """
-        return [('', self.get_space_labels())]
+        return [('', list(enumerate(self.get_space_labels())))]
 
     def get_default_selection(self):
         """
-        :return: The measure point id's that have to be shown by default. By default show all.
-                 Assumes the id's are range(len(labels)) !
+        :return: The measure point indices that have to be shown by default. By default show all.
         """
         return range(len(self.get_space_labels()))
 
@@ -254,21 +253,12 @@ class TimeSeriesRegionFramework(time_series_data.TimeSeriesRegionData, TimeSerie
 
     def get_grouped_space_labels(self):
         """
-        :return: A list [('left', [lh_labels)], ('right': [rh_labels])]
+        :return: A structure of this form [('left', [(idx, lh_label)...]), ('right': [(idx, rh_label) ...])]
         """
-        conn = self.connectivity
-
-        if conn is not None and conn.hemispheres is not None:
-            l, r = [], []
-
-            for is_right, label in zip(conn.hemispheres, conn.region_labels):
-                if is_right:
-                    r.append(label)
-                else:
-                    l.append(label)
-            return [('left', l), ('right', r)]
+        if self.connectivity is not None:
+            return self.connectivity.get_grouped_space_labels()
         else:
-            return [('', self.get_space_labels())]
+            return super(TimeSeriesRegionFramework, self).get_grouped_space_labels()
 
 
     def get_default_selection(self):
@@ -277,11 +267,9 @@ class TimeSeriesRegionFramework(time_series_data.TimeSeriesRegionData, TimeSerie
                  return the nodes of the parent that are present in the connectivity.
         """
         if self.connectivity is not None:
-            sel = self.connectivity.saved_selection
-            if sel is not None:
-                return sel
-
-        return super(TimeSeriesRegionFramework, self).get_default_selection()
+            return self.connectivity.get_default_selection()
+        else:
+            return super(TimeSeriesRegionFramework, self).get_default_selection()
 
 
     def get_measure_points_selection_gid(self):
@@ -289,8 +277,9 @@ class TimeSeriesRegionFramework(time_series_data.TimeSeriesRegionData, TimeSerie
         :return: the associated connectivity gid
         """
         if self.connectivity is not None:
-            return self.connectivity.gid
-        return ''
+            return self.connectivity.get_measure_points_selection_gid()
+        else:
+            return super(TimeSeriesRegionFramework, self).get_measure_points_selection_gid()
 
 class TimeSeriesSurfaceFramework(time_series_data.TimeSeriesSurfaceData, TimeSeriesFramework):
     """ This class exists to add framework methods to TimeSeriesSurfaceData. """
