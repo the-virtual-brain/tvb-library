@@ -29,7 +29,7 @@
 #
 
 """
-Calculate an FFT on a TimeSeries datatype and return a FourierSpectrum datatype.
+Calculate an FFT on a TimeSeries DataType and return a FourierSpectrum DataType.
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 
@@ -38,7 +38,6 @@ Calculate an FFT on a TimeSeries datatype and return a FourierSpectrum datatype.
 import numpy
 from scipy import signal as sp_signal
 from tvb.basic.logger.builder import get_logger
-#TODO: Currently built around the Simulator's 4D timeseries -- generalise...
 import tvb.datatypes.time_series as time_series
 import tvb.datatypes.spectral as spectral
 import tvb.basic.traits.core as core
@@ -59,28 +58,33 @@ class FFT(core.Type):
     optionally specified. By default the time series is segmented into 1 second
     blocks and no windowing function is applied.
     """
-    
+
     time_series = time_series.TimeSeries(
-        label = "Time Series",
-        required = True,
-        doc = """The timeseries to which the FFT is to be applied.""")
-    
+        label="Time Series",
+        required=True,
+        doc="""The TimeSeries to which the FFT is to be applied.""",
+        order=1)
+
     segment_length = basic.Float(
-        label = "Segment(window) length (ms)",
-        default = 1000.0,
-        required = False,
-        doc = """The timeseries can be segmented into equally sized blocks
-            (overlapping if necessary). The segement length determines the
+        label="Segment(window) length (ms)",
+        default=1000.0,
+        required=False,
+        doc="""The TimeSeries can be segmented into equally sized blocks
+            (overlapping if necessary). The segment length determines the
             frequency resolution of the resulting power spectra -- longer
-            windows produce finer frequency resolution.""")
-    
-    window_function = basic.String(
-        label = "Windowing function",
-        default = None,
-        required = False,
-        doc = """Windowing functions can be applied before the FFT is performed.
+            windows produce finer frequency resolution.""",
+        order=2)
+
+    window_function = basic.Enumerate(
+        label="Windowing function",
+        options=SUPPORTED_WINDOWING_FUNCTIONS,
+        default=None,
+        required=False,
+        select_multiple=False,
+        doc="""Windowing functions can be applied before the FFT is performed.
              Default is None, possibilities are: 'hamming'; 'bartlett';
-            'blackman'; and 'hanning'. See, numpy.<function_name>.""")
+            'blackman'; and 'hanning'. See, numpy.<function_name>.""",
+        order=3)
     
     
     def evaluate(self):
@@ -88,8 +92,8 @@ class FFT(core.Type):
         Calculate the FFT of time_series broken into segments of length
         segment_length and filtered by window_function.
         """
-        cls_attr_name = self.__class__.__name__+".time_series"
-        self.time_series.trait["data"].log_debug(owner = cls_attr_name)
+        cls_attr_name = self.__class__.__name__ + ".time_series"
+        self.time_series.trait["data"].log_debug(owner=cls_attr_name)
         
         tpts = self.time_series.data.shape[0]
         time_series_length = tpts * self.time_series.sample_period
@@ -97,11 +101,11 @@ class FFT(core.Type):
         #Segment time-series, overlapping if necessary
         nseg = int(numpy.ceil(time_series_length / self.segment_length))
         if nseg > 1:
-            seg_tpts = self.segment_length / self.time_series.sample_period
-            overlap = ((seg_tpts * nseg) - tpts) / (nseg-1)
-            starts = [max(seg*(seg_tpts - overlap), 0) for seg in range(nseg)]
-            segments =  [self.time_series.data[start:start+seg_tpts]
-                         for start in starts]
+            seg_tpts = numpy.ceil(self.segment_length / self.time_series.sample_period)
+            overlap = (seg_tpts * nseg - tpts) / (nseg - 1.0)
+            starts = [max(seg * (seg_tpts - overlap), 0) for seg in range(nseg)]
+            segments = [self.time_series.data[start:start + seg_tpts]
+                        for start in starts]
             segments = [segment[:, :, :, numpy.newaxis] for segment in segments]
             time_series = numpy.concatenate(segments, axis=4)
         else:
@@ -116,28 +120,27 @@ class FFT(core.Type):
         util.log_debug_array(LOG, time_series, "time_series")
         
         #Apply windowing function
-        if self.window_function is not None:
+        if self.window_function is not None and self.window_function != [None]:
             if self.window_function not in SUPPORTED_WINDOWING_FUNCTIONS:
                 LOG.error("Windowing function is: %s" % self.window_function)
                 LOG.error("Must be in: %s" % str(SUPPORTED_WINDOWING_FUNCTIONS))
-            
-            window_function = eval("".join(("numpy.", self.window_function)))
-            window_mask = numpy.reshape(window_function(seg_tpts), 
-                                        (seg_tpts, 1, 1, 1, 1))
-            time_series = time_series * window_mask
-        
+            else:
+                window_function = eval("".join(("numpy.", self.window_function[0])))
+                window_mask = numpy.reshape(window_function(seg_tpts),
+                                            (seg_tpts, 1, 1, 1, 1))
+                time_series = time_series * window_mask
+
         #Calculate the FFT
-        result =  numpy.fft.fft(time_series, axis=0)
+        result = numpy.fft.fft(time_series, axis=0)
         nfreq = result.shape[0] / 2
-        result = result[1:nfreq+1, :]
+        result = result[1:nfreq + 1, :]
         util.log_debug_array(LOG, result, "result")
-        
-        spectra = spectral.FourierSpectrum(source = self.time_series, 
-                                  segment_length = self.segment_length,
-                                  window_function = self.window_function,
-                                  array_data = result,
-                                  use_storage = False)
-        
+
+        spectra = spectral.FourierSpectrum(source=self.time_series,
+                                           segment_length=self.segment_length,
+                                           array_data=result,
+                                           use_storage=False)
+
         return spectra
     
     
@@ -156,10 +159,10 @@ class FFT(core.Type):
         the FFT.
         """
         result_size = numpy.prod(self.result_shape(input_shape, segment_length,
-                                                   sample_period)) * 2.0 * 8.0 #complex*Bytes
+                                                   sample_period)) * 2.0 * 8.0  # complex*Bytes
         return result_size
-    
-    
+
+
     def extended_result_size(self, input_shape, segment_length, sample_period):
         """
         Returns the storage size in Bytes of the extended result of the FFT. 
@@ -168,13 +171,13 @@ class FFT(core.Type):
         """
         result_shape = self.result_shape(input_shape, segment_length, sample_period)
         result_size = self.result_size(input_shape, segment_length, sample_period)
-        extend_size = result_size #Main array
-        extend_size = extend_size + 0.5 * result_size #Amplitude
-        extend_size = extend_size + 0.5 * result_size #Phase
-        extend_size = extend_size + 0.5 * result_size #Power
-        extend_size = extend_size + 0.5 * result_size / result_shape[4] #Average power
-        extend_size = extend_size + 0.5 * result_size / result_shape[4] #Normalised Average power
-        extend_size = extend_size + result_shape[0] * 8.0 #Frequency
+        extend_size = result_size           # Main array
+        extend_size += 0.5 * result_size    # Amplitude
+        extend_size += 0.5 * result_size    # Phase
+        extend_size += 0.5 * result_size    # Power
+        extend_size += 0.5 * result_size / result_shape[4]  # Average power
+        extend_size += 0.5 * result_size / result_shape[4]  # Normalised Average power
+        extend_size += result_shape[0] * 8.0    # Frequency
         return extend_size
 
 
