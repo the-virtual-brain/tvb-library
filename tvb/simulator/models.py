@@ -2450,7 +2450,8 @@ class Generic2dOscillator(Model):
     +---------------------------+
     |  Table 4                  |
     +--------------+------------+
-    |  KnocketAl  2009          | 
+    |  GhoshetAl,  2008         | 
+    |  KnocketAl,  2009         | 
     +--------------+------------+
     |Parameter     |  Value     |
     +==============+============+
@@ -2467,6 +2468,8 @@ class Generic2dOscillator(Model):
     | alpha        |    1.0     |
     +--------------+------------+
     | beta         |    0.2     |
+    +--------------+------------+
+    | gamma        |    -1.0    |
     +--------------+------------+
     | e            |    0.0     |
     +--------------+------------+
@@ -2541,7 +2544,7 @@ class Generic2dOscillator(Model):
     I = arrays.FloatArray(
         label=":math:`I_{ext}`",
         default=numpy.array([0.0]),
-        range=basic.Range(lo=-2.0, hi=2.0, step=0.01),
+        range=basic.Range(lo=-5.0, hi=5.0, step=0.01),
         doc="""Baseline shift of the cubic nullcline""",
         order=2)
 
@@ -2610,6 +2613,16 @@ class Generic2dOscillator(Model):
         doc="""Constant parameter to scale the rate of feedback from the
             slow variable to itself""",
         order=10)
+
+    # This parameter is basically a hack to avoid having a negative lower boundary in the global coupling strength.
+    gamma = arrays.FloatArray(
+        label=r":math:`\gamma`",
+        default=numpy.array([1.0]),
+        range=basic.Range(lo=-1.0, hi=1.0, step=0.1),
+        doc="""Constant parameter to reproduce FHN dynamics where 
+               excitatory input currents are negative. 
+               It scales both I and the long range coupling term.""",
+        order=13)
 
     #Informational attribute, used for phase-plane and initial()
     state_variable_range = basic.Dict(
@@ -2700,6 +2713,7 @@ class Generic2dOscillator(Model):
         g = self.g
         beta = self.beta
         alpha = self.alpha
+        gamma = self.gamma
 
         lc_0 = local_coupling * V
 
@@ -2708,7 +2722,7 @@ class Generic2dOscillator(Model):
         #    self.derivative = numpy.empty((2,)+V.shape)
 
         ## numexpr       
-        dV = ev('d * tau * (alpha * W - f * V**3 + e * V**2 + g * V + I + c_0 + lc_0)')
+        dV = ev('d * tau * (alpha * W - f * V**3 + e * V**2 + g * V + gamma * I + gamma *c_0 + lc_0)')
         dW = ev('d * (a + b * V + c * V**2 - beta * W) / tau')
 
         ## regular ndarray operation
