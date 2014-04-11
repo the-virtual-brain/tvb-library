@@ -2529,7 +2529,7 @@ class Generic2dOscillator(Model):
     """
 
     _ui_name = "Generic 2d Oscillator"
-    ui_configurable_parameters = ['tau', 'a', 'b', 'c', 'I', 'd', 'e', 'f', 'g', 'alpha', 'beta']
+    ui_configurable_parameters = ['tau', 'a', 'b', 'c', 'I', 'd', 'e', 'f', 'g', 'alpha', 'beta', 'gamma']
 
     #Define traited attributes for this model, these represent possible kwargs.
     tau = arrays.FloatArray(
