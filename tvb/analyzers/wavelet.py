@@ -110,7 +110,7 @@ class ContinuousWaveletTransform(core.Type):
         label = "Q-ratio",
         default = 5.0,
         required = True,
-        doc = """NFC. Must be greater than 5.""")
+        doc = """NFC. Must be greater than 5. Ratios of the center frequencies to bandwidths.""")
     
     
     
