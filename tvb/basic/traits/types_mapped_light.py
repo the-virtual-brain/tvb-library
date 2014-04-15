@@ -59,7 +59,7 @@ class MappedTypeLight(Type):
     Current light implementation is to be used with the scientific-library stand-alone mode.
     """
 
-    METADATA_EXCLUDE_PARAMS = ['id', 'LINKS', 'fk_datatype_group', 'visible', 'disk_size',
+    METADATA_EXCLUDE_PARAMS = ['id', 'LINKS', 'fk_datatype_group', 'disk_size',
                                'fk_from_operation', 'parent_operation', 'fk_parent_burst']
 
     ### Constants when retrieving meta-data about Array attributes on the current instance.
