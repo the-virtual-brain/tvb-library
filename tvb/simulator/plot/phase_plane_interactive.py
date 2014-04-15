@@ -820,9 +820,7 @@ class PhasePlaneInteractive(core.Type):
 if __name__ == "__main__":
     # Do some stuff that tests or makes use of this module...
     LOG.info("Testing %s module..." % __file__)
-    MODEL = models_module.LarterBreakspear()
-    MODEL.state_variable_range["V"] = numpy.array([-1.0, 1.0])
-    MODEL.state_variable_range["W"] = numpy.array([-1.0, 1.0])
+    MODEL = models_module.Generic2dOscillator()
     ppi_fig = PhasePlaneInteractive(model = MODEL)
     ppi_fig.show()
 

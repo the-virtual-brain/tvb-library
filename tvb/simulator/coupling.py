@@ -47,8 +47,6 @@ dynamics.
 #TODO: Once the issues around traits and the UI are resolved, this should be
 #      replaced by the datatype version...
 
-# From standard python libraries
-
 # Third party python libraries
 import numpy
 
