@@ -426,11 +426,15 @@ class CortexData(CorticalSurfaceData):
 
     meg_projection = arrays.FloatArray(
         label="MEG projection",
-        required=False, order=-1,
+        console_default=CorticalSurfaceData.default.read_data(matlab_data_name="ProjectionMatrix", lazy_load=True,
+                                                              field="meg_projection",
+                                                              file_name="projection_brainstorm_meg_4D_248.mat"),
         #linked = ?sensors, skull, skin, etc?
         doc="""A 2-D array which projects the neural activity on the cortical
-            surface to a set of MEG sensors.""")
+            surface to a set of MEG sensors.""",
+        required=False, order=-1,)
     #  requires linked SensorsMEG and Skull/Skin/Air
+    
 
     internal_projection = arrays.FloatArray(
         label="Internal projection",

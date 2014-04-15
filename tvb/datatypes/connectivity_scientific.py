@@ -312,8 +312,8 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         # http://projects.scipy.org/scipy/ticket/1735
         # http://comments.gmane.org/gmane.comp.python.scientific.devel/14816
         # http://permalink.gmane.org/gmane.comp.python.numeric.general/42082
-        D = eval("self." + matrix)
-        
+        temp = eval("self." + matrix)
+        D = copy(temp)
         msg = "The distribution of the %s matrix will be changed" % matrix
         LOG.info(msg)
         
@@ -327,22 +327,24 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
                 D[i, :], D[j, :] = D[j, :].copy(), D[i, :].copy()
 
         elif mode == 'mean':
-            D = D.mean()
+            D[:] = D.mean()
             
         elif mode == 'empirical':
             # NOTE: the seed should be fixed to get reproducible results if 
             # we run the same simulation
             
             from scipy import stats
-            kernel = stats.gaussian_kde(D.flatten())
+            kernel = stats.gaussian_kde(D[D>0].flatten())
             D = kernel.resample(size=(D.shape))
-            
+           
             if numpy.any(D < 0) :
                 # NOTE: The KDE method is not perfect, there are still very 
                 #       small probabilities for negative values around 0.
                 # TODO: change the kde bandwidth method 
                 LOG.warning("Found negative values. Setting them to 0.0")
                 D = numpy.where(D < 0.0, 0.0, D)
+
+            
                 
             # NOTE: if we need the cdf: kernel.integrate_box_1d(lo, hi)
             # TODO: make a subclass using rv_continous, might be more accurate
@@ -350,7 +352,7 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         elif mode == 'analytical': 
             LOG.warning("Analytical mode has not been implemented yet.")
             #NOTE: pdf name could be an argument.
-            
+        D[temp==0] = 0 
         #NOTE: Consider saving a copy of the original delays matrix?
         exec("self." + matrix + "[:] = D")
         

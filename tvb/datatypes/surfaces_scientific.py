@@ -795,7 +795,7 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
         """ 
         Set self._region_average attribute based on region mapping...
         """
-        number_of_nodes = self.region_mapping.shape[0]  # TODO: need to support non-cortical regions here
+        number_of_nodes = self.region_mapping.shape[0]     # TODO: need to support non-cortical regions here
         number_of_areas = len(numpy.unique(spatial_mask))  # TODO: need to support non-cortical regions here
         #import pdb; pdb.set_trace()
         vertex_mapping = numpy.zeros((number_of_nodes, number_of_areas))
