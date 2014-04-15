@@ -434,6 +434,10 @@ class WilsonCowan(Model):
     .. [WC_1973] Wilson, H.R. and Cowan, J.D  *A Mathematical Theory of the 
         Functional Dynamics of Cortical and Thalamic Nervous Tissue*
 
+    .. [D_2011] Daffertshofer, A. and van Wijk, B. *On the influence of amplitude 
+        on the connectivity between phases*
+        Frontiers in Neuroinformatics, July, 2011
+
     Used Eqns 11 and 12 from [WC_1972]_ in ``dfun``.  P and Q represent external inputs,
     which when exploring the phase portrait of the local model are set to
     constant values. However in the case of a full network, P and Q are the
@@ -450,6 +454,62 @@ class WilsonCowan(Model):
       E_i-> I_j 
       I_i-> I_j  
       I_i-> E_j
+
+
+    +---------------------------+
+    |          Table 1          |
+    +--------------+------------+
+    |  Daffertshofer,  2011     |
+    |  SanzLeonetAl,   2014     |
+    +--------------+------------+
+    |Parameter     |  Value     |
+    +==============+============+
+    | k_e, k_i     |    1.00    |
+    +--------------+------------+
+    | r_e, r_i     |    0.00    |
+    +--------------+------------+
+    | tau_e, tau_i |    1.0     |
+    +--------------+------------+
+    | c_1          |    10.0    |
+    +--------------+------------+
+    | c_2          |    6.0     |
+    +--------------+------------+
+    | c_3          |    1.0     |
+    +--------------+------------+
+    | c_4          |    1.0     |
+    +--------------+------------+
+    | a_e, a_i     |    1.0     |
+    +--------------+------------+
+    | b_e, b_i     |    0.0     |
+    +--------------+------------+
+    | theta_e      |    2.0     |
+    +--------------+------------+
+    | theta_i      |    3.5     |
+    +--------------+------------+
+    | alpha_e      |    1.2     |
+    +--------------+------------+
+    | alpha_i      |    2.0     |
+    +--------------+------------+
+    | P            |    0.5     |
+    +--------------+------------+
+    | Q            |    0       |
+    +--------------+------------+
+    | c_e, c_i     |    1.0     |
+    +--------------+------------+
+    | alpha_e      |    1.2     |
+    +--------------+------------+
+    | alpha_i      |    2.0     |
+    +--------------+------------+
+    |                           |
+    |  frequency peak at 212 Hz |
+    |                           |
+    +---------------------------+
+
+
+    Model bifurcation parameters:
+        * :math:`c_1`
+        * :math:`P`
+
  
 
     The models (:math:`E`, :math:`I`) phase-plane, including a representation of
@@ -471,8 +531,9 @@ class WilsonCowan(Model):
     """
     _ui_name = "Wilson-Cowan model"
     ui_configurable_parameters = ['c_1', 'c_2', 'c_3', 'c_4', 'tau_e', 'tau_i',
-                                  'a_e', 'theta_e', 'c_e', 'a_i', 'theta_i', 'c_i', 'r_e',
-                                  'r_i', 'k_e', 'k_i', 'P', 'Q']
+                                  'a_e', 'b_e', 'c_e', 'a_i', 'b_i', 'c_i', 'r_e',
+                                  'r_i', 'k_e', 'k_i', 'P', 'Q', 'theta_e', 'theta_i', 
+                                  'alpha_e', 'alpha_i']
 
     #Define traited attributes for this model, these represent possible kwargs.
     c_1 = arrays.FloatArray(
@@ -506,116 +567,144 @@ class WilsonCowan(Model):
     tau_e = arrays.FloatArray(
         label=r":math:`\tau_e`",
         default=numpy.array([10.0]),
-        range=basic.Range(lo=5.0, hi=15.0, step=0.01),
+        range=basic.Range(lo=0.0, hi=150.0, step=0.01),
         doc="""Excitatory population, membrane time-constant [ms]""",
         order=5)
 
     tau_i = arrays.FloatArray(
         label=r":math:`\tau_i`",
         default=numpy.array([10.0]),
-        range=basic.Range(lo=5.0, hi=15.0, step=0.01),
+        range=basic.Range(lo=0.0, hi=150.0, step=0.01),
         doc="""Inhibitory population, membrane time-constant [ms]""",
         order=6)
 
     a_e = arrays.FloatArray(
         label=":math:`a_e`",
         default=numpy.array([1.2]),
-        range=basic.Range(lo=1.0, hi=1.4, step=0.01),
+        range=basic.Range(lo=0.0, hi=1.4, step=0.01),
         doc="""The slope parameter for the excitatory response function""",
         order=7)
 
+    b_e = arrays.FloatArray(
+        label=":math:`b_e`",
+        default=numpy.array([2.8]),
+        range=basic.Range(lo=1.4, hi=6.0, step=0.01),
+        doc="""Position of the maximum slope of the excitatory sigmoid function""",
+        order=8)
+
 
     c_e = arrays.FloatArray(
-        label=":math:`a_e`",
+        label=":math:`c_e`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=1.0, hi=20.0, step=1.0),
         doc="""The amplitude parameter for the excitatory response function""",
-        order=8)
+        order=9)
 
     theta_e = arrays.FloatArray(
         label=r":math:`\theta_e`",
         default=numpy.array([2.8]),
-        range=basic.Range(lo=1.4, hi=4.2, step=0.01),
-        doc="""Position of the maximum slope of a sigmoid function [in
-        threshold units].""",
-        order=9)
+        range=basic.Range(lo=1.4, hi=60., step=0.01),
+        doc="""Excitatory threshold""",
+        order=10)
 
     a_i = arrays.FloatArray(
         label=":math:`a_i`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=0.0, hi=2.0, step=0.01),
         doc="""The slope parameter for the inhibitory response function""",
-        order=10)
+        order=11)
 
-    theta_i = arrays.FloatArray(
-        label=r":math:`\theta_i`",
+
+    b_i = arrays.FloatArray(
+        label=r":math:`b_i`",
         default=numpy.array([4.0]),
         range=basic.Range(lo=2.0, hi=6.0, step=0.01),
         doc="""Position of the maximum slope of a sigmoid function [in
         threshold units]""",
-        order=11)
+        order=12)
+
+    theta_i = arrays.FloatArray(
+        label=r":math:`\theta_i`",
+        default=numpy.array([4.0]),
+        range=basic.Range(lo=2.0, hi=60.0, step=0.01),
+        doc="""Inhibitory threshold""",
+        order=13)
 
     c_i = arrays.FloatArray(
-        label=":math:`a_e`",
+        label=":math:`c_i`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=1.0, hi=20.0, step=1.0),
         doc="""The amplitude parameter for the inhibitory response function""",
-        order=7)
+        order=14)
 
     r_e = arrays.FloatArray(
         label=":math:`r_e`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=0.5, hi=2.0, step=0.01),
         doc="""Excitatory refractory period""",
-        order=12)
+        order=15)
 
     r_i = arrays.FloatArray(
         label=":math:`r_i`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=0.5, hi=2.0, step=0.01),
         doc="""Inhibitory refractory period""",
-        order=13)
+        order=16)
 
     k_e = arrays.FloatArray(
         label=":math:`k_e`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=0.5, hi=2.0, step=0.01),
         doc="""Maximum value of the excitatory response function""",
-        order=14)
+        order=17)
 
     k_i = arrays.FloatArray(
         label=":math:`k_i`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=0.0, hi=2.0, step=0.01),
         doc="""Maximum value of the inhibitory response function""",
-        order=15)
+        order=18)
 
     P = arrays.FloatArray(
         label=":math:`P`",
         default=numpy.array([0.0]),
-        range=basic.Range(lo=0.0, hi=2.0, step=0.01),
+        range=basic.Range(lo=0.0, hi=20.0, step=0.01),
         doc="""External stimulus to the excitatory population. Constant intensity.Entry point for coupling.""",
-        order=16)
+        order=19)
 
     Q = arrays.FloatArray(
         label=":math:`Q`",
         default=numpy.array([0.0]),
-        range=basic.Range(lo=0.0, hi=2.0, step=0.01),
+        range=basic.Range(lo=0.0, hi=20.0, step=0.01),
         doc="""External stimulus to the inhibitory population. Constant intensity.Entry point for coupling.""",
-        order=17)
+        order=20)
+
+    alpha_e = arrays.FloatArray(
+        label=r":math:`\alpha_e`",
+        default=numpy.array([1.0]),
+        range=basic.Range(lo=0.0, hi=20.0, step=0.01),
+        doc="""External stimulus to the excitatory population. Constant intensity.Entry point for coupling.""",
+        order=21)
+
+    alpha_i = arrays.FloatArray(
+        label=r":math:`\alpha_i`",
+        default=numpy.array([1.0]),
+        range=basic.Range(lo=0.0, hi=20.0, step=0.01),
+        doc="""External stimulus to the inhibitory population. Constant intensity.Entry point for coupling.""",
+        order=22)
 
 
     #Used for phase-plane axis ranges and to bound random initial() conditions.
     state_variable_range = basic.Dict(
         label="State Variable ranges [lo, hi]",
-        default={"E": numpy.array([0.0, 0.5]),
-                 "I": numpy.array([0.0, 0.5])},
+        default={"E": numpy.array([0.0, 1.0]),
+                 "I": numpy.array([0.0, 1.0])},
         doc="""The values for each state-variable should be set to encompass
         the expected dynamic range of that state-variable for the current 
         parameters, it is used as a mechanism for bounding random inital 
         conditions when the simulation isn't started from an explicit history,
         it is also provides the default range of phase-plane plots.""",
-        order=18)
+        order=23)
 
     #    variables_of_interest = arrays.IntegerArray(
     #        label = "Variables watched by Monitors",
@@ -636,7 +725,7 @@ class WilsonCowan(Model):
                                     monitored. It can be overridden for each Monitor if desired. The 
                                     corresponding state-variable indices for this model are :math:`E = 0`
                                     and :math:`I = 1`.""",
-        order=19)
+        order=24)
 
     #    coupling_variables = arrays.IntegerArray(
     #        label = "Variables to couple activity through",
@@ -667,7 +756,7 @@ class WilsonCowan(Model):
 
         .. math::
             \tau \dot{x}(t) &= -z(t) + \phi(z(t)) \\
-            \phi(x) &= \frac{c}{1-exp(-a (x-\theta))}
+            \phi(x) &= \frac{c}{1-exp(-a (x-b))}
 
         """
 
@@ -681,14 +770,16 @@ class WilsonCowan(Model):
         lc_0 = local_coupling * E
         lc_1 = local_coupling * I 
 
-        x_e = self.c_1 * E - self.c_2 * I + 1.25 + c_0 + lc_0 + lc_1
-        x_i = self.c_3 * E - self.c_4 * I + c_0 + lc_0 + lc_1
+        x_e = self.alpha_e * (self.c_1 * E - self.c_2 * I + self.P  - self.theta_e +  c_0 + lc_0 + lc_1)
+        x_i = self.alpha_i * (self.c_3 * E - self.c_4 * I + self.Q  - self.theta_i + lc_0 + lc_1)
 
-        s_e = self.c_e / (1.0 + numpy.exp(-self.a_e * (x_e - self.theta_e)))
-        s_i = self.c_i / (1.0 + numpy.exp(-self.a_i * (x_i - self.theta_i)))
+        s_e = self.c_e / (1.0 + numpy.exp(-self.a_e * (x_e - self.b_e))) 
+        s_i = self.c_i / (1.0 + numpy.exp(-self.a_i * (x_i - self.b_i))) 
+        
 
         dE = (-E + (self.k_e - self.r_e * E) * s_e) / self.tau_e
         dI = (-I + (self.k_i - self.r_i * I) * s_i) / self.tau_i
+
 
         derivative = numpy.array([dE, dI])
 
