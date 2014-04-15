@@ -684,8 +684,8 @@ class WilsonCowan(Model):
         x_e = self.c_1 * E - self.c_2 * I + 1.25 + c_0 + lc_0 + lc_1
         x_i = self.c_3 * E - self.c_4 * I + c_0 + lc_0 + lc_1
 
-        s_e = 1.0 / (self.c_e + numpy.exp(-self.a_e * (x_e - self.theta_e)))
-        s_i = 1.0 / (self.c_i + numpy.exp(-self.a_i * (x_i - self.theta_i)))
+        s_e = self.c_e / (1.0 + numpy.exp(-self.a_e * (x_e - self.theta_e)))
+        s_i = self.c_i / (1.0 + numpy.exp(-self.a_i * (x_i - self.theta_i)))
 
         dE = (-E + (self.k_e - self.r_e * E) * s_e) / self.tau_e
         dI = (-I + (self.k_i - self.r_i * I) * s_i) / self.tau_i
