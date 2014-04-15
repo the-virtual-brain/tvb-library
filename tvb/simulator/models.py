@@ -471,7 +471,7 @@ class WilsonCowan(Model):
     """
     _ui_name = "Wilson-Cowan model"
     ui_configurable_parameters = ['c_1', 'c_2', 'c_3', 'c_4', 'tau_e', 'tau_i',
-                                  'a_e', 'theta_e', 'a_i', 'theta_i', 'r_e',
+                                  'a_e', 'theta_e', 'c_e', 'a_i', 'theta_i', 'c_i', 'r_e',
                                   'r_i', 'k_e', 'k_i', 'P', 'Q']
 
     #Define traited attributes for this model, these represent possible kwargs.
@@ -524,20 +524,28 @@ class WilsonCowan(Model):
         doc="""The slope parameter for the excitatory response function""",
         order=7)
 
+
+    c_e = arrays.FloatArray(
+        label=":math:`a_e`",
+        default=numpy.array([1.0]),
+        range=basic.Range(lo=1.0, hi=20.0, step=1.0),
+        doc="""The amplitude parameter for the excitatory response function""",
+        order=8)
+
     theta_e = arrays.FloatArray(
         label=r":math:`\theta_e`",
         default=numpy.array([2.8]),
         range=basic.Range(lo=1.4, hi=4.2, step=0.01),
         doc="""Position of the maximum slope of a sigmoid function [in
         threshold units].""",
-        order=8)
+        order=9)
 
     a_i = arrays.FloatArray(
         label=":math:`a_i`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=0.0, hi=2.0, step=0.01),
         doc="""The slope parameter for the inhibitory response function""",
-        order=9)
+        order=10)
 
     theta_i = arrays.FloatArray(
         label=r":math:`\theta_i`",
@@ -545,49 +553,56 @@ class WilsonCowan(Model):
         range=basic.Range(lo=2.0, hi=6.0, step=0.01),
         doc="""Position of the maximum slope of a sigmoid function [in
         threshold units]""",
-        order=10)
+        order=11)
+
+    c_i = arrays.FloatArray(
+        label=":math:`a_e`",
+        default=numpy.array([1.0]),
+        range=basic.Range(lo=1.0, hi=20.0, step=1.0),
+        doc="""The amplitude parameter for the inhibitory response function""",
+        order=7)
 
     r_e = arrays.FloatArray(
         label=":math:`r_e`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=0.5, hi=2.0, step=0.01),
         doc="""Excitatory refractory period""",
-        order=11)
+        order=12)
 
     r_i = arrays.FloatArray(
         label=":math:`r_i`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=0.5, hi=2.0, step=0.01),
         doc="""Inhibitory refractory period""",
-        order=12)
+        order=13)
 
     k_e = arrays.FloatArray(
         label=":math:`k_e`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=0.5, hi=2.0, step=0.01),
         doc="""Maximum value of the excitatory response function""",
-        order=13)
+        order=14)
 
     k_i = arrays.FloatArray(
         label=":math:`k_i`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=0.0, hi=2.0, step=0.01),
         doc="""Maximum value of the inhibitory response function""",
-        order=14)
+        order=15)
 
     P = arrays.FloatArray(
         label=":math:`P`",
         default=numpy.array([0.0]),
         range=basic.Range(lo=0.0, hi=2.0, step=0.01),
         doc="""External stimulus to the excitatory population. Constant intensity.Entry point for coupling.""",
-        order=15)
+        order=16)
 
     Q = arrays.FloatArray(
         label=":math:`Q`",
         default=numpy.array([0.0]),
         range=basic.Range(lo=0.0, hi=2.0, step=0.01),
         doc="""External stimulus to the inhibitory population. Constant intensity.Entry point for coupling.""",
-        order=16)
+        order=17)
 
 
     #Used for phase-plane axis ranges and to bound random initial() conditions.
@@ -600,7 +615,7 @@ class WilsonCowan(Model):
         parameters, it is used as a mechanism for bounding random inital 
         conditions when the simulation isn't started from an explicit history,
         it is also provides the default range of phase-plane plots.""",
-        order=15)
+        order=18)
 
     #    variables_of_interest = arrays.IntegerArray(
     #        label = "Variables watched by Monitors",
@@ -621,7 +636,7 @@ class WilsonCowan(Model):
                                     monitored. It can be overridden for each Monitor if desired. The 
                                     corresponding state-variable indices for this model are :math:`E = 0`
                                     and :math:`I = 1`.""",
-        order=16)
+        order=19)
 
     #    coupling_variables = arrays.IntegerArray(
     #        label = "Variables to couple activity through",
@@ -652,7 +667,7 @@ class WilsonCowan(Model):
 
         .. math::
             \tau \dot{x}(t) &= -z(t) + \phi(z(t)) \\
-            \phi(x) &= \frac{c}{1-exp(-a (x-b))}
+            \phi(x) &= \frac{c}{1-exp(-a (x-\theta))}
 
         """
 
@@ -669,8 +684,8 @@ class WilsonCowan(Model):
         x_e = self.c_1 * E - self.c_2 * I + 1.25 + c_0 + lc_0 + lc_1
         x_i = self.c_3 * E - self.c_4 * I + c_0 + lc_0 + lc_1
 
-        s_e = 1.0 / (1.0 + numpy.exp(-self.a_e * (x_e - self.theta_e)))
-        s_i = 1.0 / (1.0 + numpy.exp(-self.a_i * (x_i - self.theta_i)))
+        s_e = 1.0 / (self.c_e + numpy.exp(-self.a_e * (x_e - self.theta_e)))
+        s_i = 1.0 / (self.c_i + numpy.exp(-self.a_i * (x_i - self.theta_i)))
 
         dE = (-E + (self.k_e - self.r_e * E) * s_e) / self.tau_e
         dI = (-I + (self.k_i - self.r_i * I) * s_i) / self.tau_i
