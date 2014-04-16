@@ -2394,24 +2394,26 @@ class ZetterbergJansen(Model):
         v6 = state_variables[10, :]
         v7 = state_variables[11, :]
 
-        # NOTE:
-        # long_range_coupling term: coupling variable is v6
-        # EQUATIONS ASSUME sigmoidal coupling is used. 'lrc' must represent mean firing rate. 
-        # alternative: use linear coupling and transform potential-to-rate inside the model equations. 
-        lrc =  coupling[0, :]
+        # NOTE: long_range_coupling term: coupling variable is v6 . EQUATIONS
+        #       ASSUME linear coupling is used. 'coupled_input' represents a rate. It
+        #       is very likely that coeffs gamma_xT should be independent for each of the
+        #       terms considered as extrinsic input (P, Q, U) (long range coupling) (local coupling)
+        #       and noise.
+
+        coupled_input =  self.sigma_fun(coupling[0, :] + local_coupling * v6)
 
         # exc input to the excitatory interneurons
         dv1 = y1
-        dy1 = self.Heke * ((self.gamma_1 + local_coupling) * self.sigma_fun(v2 - v3) + self.U + self.gamma_1T * lrc) - self.ke_2 * y1 - self.keke * v1
+        dy1 = self.Heke * (self.gamma_1 * self.sigma_fun(v2 - v3) + self.gamma_1T * (self.U + coupled_input )) - self.ke_2 * y1 - self.keke * v1
         # exc input to the pyramidal cells
         dv2 = y2 
-        dy2 = self.Heke * (self.gamma_2 * self.sigma_fun(v1) + self.P + self.gamma_3T * lrc + local_coupling * self.sigma_fun(v2 - v3)) - self.ke_2 * y2 - self.keke * v2
+        dy2 = self.Heke * (self.gamma_2 * self.sigma_fun(v1)      + self.gamma_2T * (self.P + coupled_input )) - self.ke_2 * y2 - self.keke * v2
         # inh input to the pyramidal cells
         dv3 = y3 
         dy3 = self.Hiki * (self.gamma_4 * self.sigma_fun(v4 - v5)) - self.ki_2 * y3 - self.kiki * v3
         dv4 = y4
         # exc input to the inhibitory interneurons
-        dy4 = self.Heke * ((self.gamma_3 + local_coupling) * self.sigma_fun(v2 - v3) + self.Q + self.gamma_2T * lrc ) - self.ke_2 * y4 - self.keke * v4
+        dy4 = self.Heke * (self.gamma_3 * self.sigma_fun(v2 - v3) + self.gamma_3T * (self.Q + coupled_input)) - self.ke_2 * y4 - self.keke * v4
         dv5 = y5
         # inh input to the inhibitory interneurons
         dy5 = self.Hiki * (self.gamma_5 * self.sigma_fun(v4 - v5)) - self.ki_2 * y5 - self.keke * v5
