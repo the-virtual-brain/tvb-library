@@ -459,7 +459,7 @@ class WilsonCowan(Model):
     +---------------------------+
     |          Table 1          |
     +--------------+------------+
-    |  Daffertshofer,  2011     |
+    |                           |
     |  SanzLeonetAl,   2014     |
     +--------------+------------+
     |Parameter     |  Value     |
@@ -468,7 +468,7 @@ class WilsonCowan(Model):
     +--------------+------------+
     | r_e, r_i     |    0.00    |
     +--------------+------------+
-    | tau_e, tau_i |    1.0     |
+    | tau_e, tau_i |    10.0    |
     +--------------+------------+
     | c_1          |    10.0    |
     +--------------+------------+
@@ -501,10 +501,13 @@ class WilsonCowan(Model):
     | alpha_i      |    2.0     |
     +--------------+------------+
     |                           |
-    |  frequency peak at 212 Hz |
+    |  frequency peak at 20  Hz |
     |                           |
     +---------------------------+
 
+
+    The parameters in Table 1 reproduce Figure A1 in  [D_2011]_
+    but set the limit cycle frequency to a sensible value (eg, 20Hz).
 
     Model bifurcation parameters:
         * :math:`c_1`
@@ -530,35 +533,35 @@ class WilsonCowan(Model):
 
     """
     _ui_name = "Wilson-Cowan model"
-    ui_configurable_parameters = ['c_1', 'c_2', 'c_3', 'c_4', 'tau_e', 'tau_i',
+    ui_configurable_parameters = ['c_ee', 'c_ei', 'c_ie', 'c_ii', 'tau_e', 'tau_i',
                                   'a_e', 'b_e', 'c_e', 'a_i', 'b_i', 'c_i', 'r_e',
                                   'r_i', 'k_e', 'k_i', 'P', 'Q', 'theta_e', 'theta_i', 
                                   'alpha_e', 'alpha_i']
 
     #Define traited attributes for this model, these represent possible kwargs.
-    c_1 = arrays.FloatArray(
-        label=":math:`c_1`",
+    c_ee = arrays.FloatArray(
+        label=":math:`c_{ee}`",
         default=numpy.array([12.0]),
         range=basic.Range(lo=11.0, hi=16.0, step=0.01),
         doc="""Excitatory to excitatory  coupling coefficient""",
         order=1)
 
-    c_2 = arrays.FloatArray(
-        label=":math:`c_2`",
+    c_ie = arrays.FloatArray(
+        label=":math:`c_{ei}`",
         default=numpy.array([4.0]),
         range=basic.Range(lo=2.0, hi=15.0, step=0.01),
         doc="""Inhibitory to excitatory coupling coefficient""",
         order=2)
 
-    c_3 = arrays.FloatArray(
-        label=":math:`c_3`",
+    c_ei = arrays.FloatArray(
+        label=":math:`c_{ie}`",
         default=numpy.array([13.0]),
         range=basic.Range(lo=2.0, hi=22.0, step=0.01),
         doc="""Excitatory to inhibitory coupling coefficient.""",
         order=3)
 
-    c_4 = arrays.FloatArray(
-        label=":math:`c_4`",
+    c_ee = arrays.FloatArray(
+        label=":math:`c_{ii}`",
         default=numpy.array([11.0]),
         range=basic.Range(lo=2.0, hi=15.0, step=0.01),
         doc="""Inhibitory to inhibitory coupling coefficient.""",
@@ -770,8 +773,8 @@ class WilsonCowan(Model):
         lc_0 = local_coupling * E
         lc_1 = local_coupling * I 
 
-        x_e = self.alpha_e * (self.c_1 * E - self.c_2 * I + self.P  - self.theta_e +  c_0 + lc_0 + lc_1)
-        x_i = self.alpha_i * (self.c_3 * E - self.c_4 * I + self.Q  - self.theta_i + lc_0 + lc_1)
+        x_e = self.alpha_e * (self.c_ee * E - self.c_ei * I + self.P  - self.theta_e +  c_0 + lc_0 + lc_1)
+        x_i = self.alpha_i * (self.c_ie * E - self.c_ii * I + self.Q  - self.theta_i + lc_0 + lc_1)
 
         s_e = self.c_e / (1.0 + numpy.exp(-self.a_e * (x_e - self.b_e))) 
         s_i = self.c_i / (1.0 + numpy.exp(-self.a_i * (x_i - self.b_i))) 
