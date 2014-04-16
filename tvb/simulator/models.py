@@ -560,7 +560,7 @@ class WilsonCowan(Model):
         doc="""Excitatory to inhibitory coupling coefficient.""",
         order=3)
 
-    c_ee = arrays.FloatArray(
+    c_ii = arrays.FloatArray(
         label=":math:`c_{ii}`",
         default=numpy.array([11.0]),
         range=basic.Range(lo=2.0, hi=15.0, step=0.01),
