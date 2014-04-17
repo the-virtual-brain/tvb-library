@@ -352,7 +352,7 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         elif mode == 'analytical': 
             LOG.warning("Analytical mode has not been implemented yet.")
             #NOTE: pdf name could be an argument.
-        D[temp==0] = 0 
+        D = numpy.where(temp > 0, D, 0) 
         #NOTE: Consider saving a copy of the original delays matrix?
         exec("self." + matrix + "[:] = D")
         
