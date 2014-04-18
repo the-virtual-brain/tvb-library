@@ -111,6 +111,44 @@ class ConnectivityFramework(connectivity_data.ConnectivityData):
                                                               'operations': ['==', '<', '>']}})
         return filters
 
+    @property
+    def hemisphere_order_indices(self):
+        """
+        A sequence of indices of rows/colums.
+        These permute rows/columns so that the first half would belong to the first hemisphere
+        If there is no hemisphere information returns the identity permutation
+        """
+        if self.hemispheres is not None:
+            li, ri = [], []
+            for i, is_right in enumerate(self.hemispheres):
+                if is_right:
+                    ri.append(i)
+                else:
+                    li.append(i)
+            return numpy.array(li + ri)
+        else:
+            return numpy.arange(len(self.hemispheres))
+
+
+    @property
+    def ordered_weights(self):
+        permutation = self.hemisphere_order_indices
+        return self.weights[permutation, :][:,permutation]
+
+    @property
+    def ordered_tracts(self):
+        permutation = self.hemisphere_order_indices
+        return self.tract_lengths[permutation, :][:,permutation]
+
+    @property
+    def ordered_labels(self):
+        permutation = self.hemisphere_order_indices
+        return self.region_labels[permutation]
+
+    @property
+    def ordered_centres(self):
+        permutation = self.hemisphere_order_indices
+        return self.centres[permutation]
 
     def get_grouped_space_labels(self):
         """
