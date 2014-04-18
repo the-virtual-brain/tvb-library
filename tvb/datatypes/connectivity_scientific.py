@@ -181,6 +181,7 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         labels = ["region_%03d" % n for n in range(self.number_of_regions)]
         self.region_labels = numpy.array(labels, dtype="128a")
     
+    
     def try_compute_hemispheres(self):
         """
         If all region labels are prefixed with L or R, then compute hemisphere side with that.
@@ -327,7 +328,7 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
                 D[i, :], D[j, :] = D[j, :].copy(), D[i, :].copy()
 
         elif mode == 'mean':
-            D[:] = D.mean()
+            D[:] = D[D>0].mean()
             
         elif mode == 'empirical':
             # NOTE: the seed should be fixed to get reproducible results if 
