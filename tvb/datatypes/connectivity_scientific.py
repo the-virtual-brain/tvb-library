@@ -181,7 +181,7 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         labels = ["region_%03d" % n for n in range(self.number_of_regions)]
         self.region_labels = numpy.array(labels, dtype="128a")
     
-    
+
     def try_compute_hemispheres(self):
         """
         If all region labels are prefixed with L or R, then compute hemisphere side with that.
@@ -287,7 +287,7 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         return result
         
         
-    def switch_distribution(self, matrix='tract_lengths', mode='none'):
+    def switch_distribution(self, matrix='tract_lengths', mode='none', seed=42):
         """
         Permutation and resampling methods for the weights and distance 
         (tract_lengths) matrices.
@@ -313,6 +313,7 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         # http://projects.scipy.org/scipy/ticket/1735
         # http://comments.gmane.org/gmane.comp.python.scientific.devel/14816
         # http://permalink.gmane.org/gmane.comp.python.numeric.general/42082
+        numpy.random.RandomState(seed)
         temp = eval("self." + matrix)
         D = copy(temp)
         msg = "The distribution of the %s matrix will be changed" % matrix
@@ -322,17 +323,16 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
             LOG.info("Maybe not ... Doing nothing")
             
         elif mode == 'shuffle':
+
             for i in reversed(xrange(1, D.shape[0])):
                 j = int(numpy.random.rand() * (i + 1))
                 D[:, i], D[:, j] = D[:, j].copy(), D[:, i].copy()
                 D[i, :], D[j, :] = D[j, :].copy(), D[i, :].copy()
 
         elif mode == 'mean':
-            D[:] = D[D>0].mean()
+            D[:] = D[self.weights>0].mean()
             
         elif mode == 'empirical':
-            # NOTE: the seed should be fixed to get reproducible results if 
-            # we run the same simulation
             
             from scipy import stats
             kernel = stats.gaussian_kde(D[D>0].flatten())
