@@ -605,7 +605,7 @@ class WilsonCowan(Model):
 
     theta_e = arrays.FloatArray(
         label=r":math:`\theta_e`",
-        default=numpy.array([2.8]),
+        default=numpy.array([0]),
         range=basic.Range(lo=1.4, hi=60., step=0.01),
         doc="""Excitatory threshold""",
         order=10)
@@ -628,7 +628,7 @@ class WilsonCowan(Model):
 
     theta_i = arrays.FloatArray(
         label=r":math:`\theta_i`",
-        default=numpy.array([4.0]),
+        default=numpy.array([0]),
         range=basic.Range(lo=2.0, hi=60.0, step=0.01),
         doc="""Inhibitory threshold""",
         order=13)
@@ -1293,7 +1293,7 @@ class ReducedSetHindmarshRose(Model):
     r = arrays.FloatArray(
         label=":math:`r`",
         default=numpy.array([0.006]),
-        range=basic.Range(lo=0.0, hi=1.0, step=0.01),
+        range=basic.Range(lo=0.0, hi=0.1, step=0.0005),
         doc="""Adaptation parameter""",
         order=1)
 
@@ -3130,7 +3130,7 @@ class LarterBreakspear(Model):
     d_Ca = arrays.FloatArray(
         label = r":math:`\delta_{Ca}`",
         default = numpy.array([0.15]),
-        range = basic.Range(lo = 05.1, hi = 0.2, step = 0.05),
+        range = basic.Range(lo = 0.1, hi = 0.2, step = 0.05),
         doc = "Variance of Ca channel threshold.")
     
     aei = arrays.FloatArray(
@@ -3175,7 +3175,7 @@ class LarterBreakspear(Model):
     aee = arrays.FloatArray(
         label = ":math:`a_{ee}`",
         default = numpy.array([0.4]),
-        range = basic.Range(lo = 0.4, hi = 0.6, step = 0.05),
+        range = basic.Range(lo = 0.0, hi = 0.6, step = 0.05),
         doc = """Excitatory-to-excitatory synaptic strength.""")
     
     Iext = arrays.FloatArray(
@@ -3243,9 +3243,9 @@ class LarterBreakspear(Model):
     #Informational attribute, used for phase-plane and initial()
     state_variable_range = basic.Dict(
         label = "State Variable ranges [lo, hi]",
-        default = {"V": numpy.array([-0.5, 0.5]),
-                   "W": numpy.array([-0.5, 0.5]),
-                   "Z": numpy.array([-0.5, 0.5])},
+        default = {"V": numpy.array([-1.5, 1.5]),
+                   "W": numpy.array([-1.5, 1.5]),
+                   "Z": numpy.array([-1.5, 1.5])},
         doc = """The values for each state-variable should be set to encompass
             the expected dynamic range of that state-variable for the current 
             parameters, it is used as a mechanism for bounding random inital 
@@ -3344,21 +3344,21 @@ class ReducedWongWang(Model):
         label=":math:`a`",
         default=numpy.array([0.270, ]),
         range=basic.Range(lo=0.0, hi=0.270),
-        doc=""" [nC]^{-1}. Parameter chosen to ﬁt numerical solutions.""",
+        doc=""" [nC]^{-1}. Parameter chosen to fit numerical solutions.""",
         order=1)
 
     b = arrays.FloatArray(
         label=":math:`b`",
         default=numpy.array([0.108, ]),
         range=basic.Range(lo=0.0, hi=1.0),
-        doc="""[kHz]. Parameter chosen to ﬁt numerical solutions.""",
+        doc="""[kHz]. Parameter chosen to fit numerical solutions.""",
         order=2)
 
     d = arrays.FloatArray(
         label=":math:`d`",
         default=numpy.array([154., ]),
         range=basic.Range(lo=0.0, hi=200.0),
-        doc="""[ms]. Parameter chosen to ﬁt numerical solutions.""",
+        doc="""[ms]. Parameter chosen to fit numerical solutions.""",
         order=3)
 
     gamma = arrays.FloatArray(
