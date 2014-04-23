@@ -146,7 +146,7 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         return numpy.array(lines_array)
 
     
-    def _configure(self):
+    def configure(self):
         """
         Before storing Surface in DB, make sure vertices/triangles are split in
         slices that are readable by WebGL.
