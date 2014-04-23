@@ -1062,10 +1062,10 @@ class ReducedSetFitzHughNagumo(Model):
 
         """
 
-        xi = state_variables[0, :]
+        xi  = state_variables[0, :]
         eta = state_variables[1, :]
         alpha = state_variables[2, :]
-        beta = state_variables[3, :]
+        beta  = state_variables[3, :]
 
         # sum the activity from the modes
         c_0 = coupling[0, :].sum(axis=1)[:, numpy.newaxis]
@@ -1082,7 +1082,7 @@ class ReducedSetFitzHughNagumo(Model):
 
         dalpha = (self.tau * (alpha - self.f_i * alpha ** 3 / 3.0 - beta) +
                   self.K21 * (numpy.dot(xi, self.Cik) - alpha) +
-                  self.tau * (self.II_i + c_0 + local_coupling * alpha))
+                  self.tau * (self.II_i + c_0 + local_coupling * xi))
 
         dbeta = (alpha - self.b * beta + self.n_i) / self.tau
 
@@ -1536,7 +1536,7 @@ class ReducedSetHindmarshRose(Model):
 
         dalpha = (beta - self.e_i * alpha ** 3 + self.f_i * alpha ** 2 - gamma +
                   self.K21 * (numpy.dot(xi, self.C_ik) - alpha) +
-                  self.II_i + c_0 + local_coupling * alpha)
+                  self.II_i + c_0 + local_coupling * xi)
 
         dbeta = self.h_i - self.p_i * alpha ** 2 - beta
 
