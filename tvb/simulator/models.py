@@ -605,8 +605,8 @@ class WilsonCowan(Model):
 
     theta_e = arrays.FloatArray(
         label=r":math:`\theta_e`",
-        default=numpy.array([0]),
-        range=basic.Range(lo=1.4, hi=60., step=0.01),
+        default=numpy.array([0.0]),
+        range=basic.Range(lo=0.0, hi=60., step=0.01),
         doc="""Excitatory threshold""",
         order=10)
 
@@ -628,8 +628,8 @@ class WilsonCowan(Model):
 
     theta_i = arrays.FloatArray(
         label=r":math:`\theta_i`",
-        default=numpy.array([0]),
-        range=basic.Range(lo=2.0, hi=60.0, step=0.01),
+        default=numpy.array([0.0]),
+        range=basic.Range(lo=0.0, hi=60.0, step=0.01),
         doc="""Inhibitory threshold""",
         order=13)
 
