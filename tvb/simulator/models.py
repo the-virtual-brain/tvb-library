@@ -4169,7 +4169,7 @@ class Epileptor_permittivity_coupling(Model):
 
         LOG.info("%s: init'ing..." % (str(self),))
 
-        super(Modified_Epileptor, self).__init__(**kwargs)
+        super(Epileptor_permittivity_coupling, self).__init__(**kwargs)
 
         self._nvar = 7
         self.cvar = numpy.array([0,3], dtype=numpy.int32)
