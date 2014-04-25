@@ -3649,10 +3649,10 @@ class Hopfield(Model):
     .. #This model can use a global threshold permitting multistable dynamic for
     .. #a positive structural connectivity matrix.
 
-    .. automethod:: HopfieldBased.__init__
-    .. automethod:: HopfieldBased.configure
-    .. automethod:: HopfieldBased.dfun
-    .. automethod:: HopfieldBased.dfunDyn
+    .. automethod:: Hopfield.__init__
+    .. automethod:: Hopfield.configure
+    .. automethod:: Hopfield.dfun
+    .. automethod:: Hopfield.dfunDyn
 
     """
 
@@ -4028,11 +4028,11 @@ class Epileptor_permittivity_coupling(Model):
     - There is a possible coupling between fast and slow time scales, call the
       permittivity coupling.
 
-    .. figure :: img/Modified_Epileptor_01_mode_0_pplane.svg
+    .. figure :: img/Epileptor_permittivity_coupling_01_mode_0_pplane.svg
         :alt: Epileptor phase plane
 
-    .. automethod:: Modified_Epileptor.__init__
-    .. automethod:: Modified_Epileptor.dfun
+    .. automethod:: Epileptor_permittivity_coupling.__init__
+    .. automethod:: Epileptor_permittivity_coupling.dfun
     """
 
     _ui_name = "Epileptor_permittivity_coupling"
@@ -4053,7 +4053,7 @@ class Epileptor_permittivity_coupling(Model):
     c = arrays.FloatArray(
         label="c",
         default=numpy.array([1]),
-        doc="Additive coefficient for the second state variable, called :math:`\\y_0` in Jirsa paper",
+        doc="Additive coefficient for the second state variable, called :math:`y_{0}` in Jirsa paper",
         order=-1)
 
     d = arrays.FloatArray(

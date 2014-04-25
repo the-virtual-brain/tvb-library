@@ -413,11 +413,11 @@ class PreSigmoidal(Coupling):
     """Pre-Sigmoidal Coupling function (pre-product) with a Static/Dynamic 
     and Local/Global threshold.
 
-    .. automethod:: DynamicSigmoidal.__init__
-    .. automethod:: DynamicSigmoidal.configure
-    .. automethod:: DynamicSigmoidal.__call__
-    .. automethod:: DynamicSigmoidal.call_static
-    .. automethod:: DynamicSigmoidal.call_dynamic
+    .. automethod:: PreSigmoidal.__init__
+    .. automethod:: PreSigmoidal.configure
+    .. automethod:: PreSigmoidal.__call__
+    .. automethod:: PreSigmoidal.call_static
+    .. automethod:: PreSigmoidal.call_dynamic
 
     """
     #NOTE: Different from Sigmoidal coupling where the product is an input of the sigmoid.
