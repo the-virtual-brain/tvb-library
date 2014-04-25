@@ -3942,7 +3942,7 @@ class Epileptor(Model):
 
     def dfun(self, state_variables, coupling, local_coupling=0.0,
              array=numpy.array, where=numpy.where, concat=numpy.concatenate):
-        """
+        r"""
         Computes the derivatives of the state variables of the Epileptor
         with respect to time.
 
@@ -3955,29 +3955,31 @@ class Epileptor(Model):
         Variables of interest to be used by monitors: -y[0] + y[3]
 
             .. math::
-                \\dot{x_{1}} &= y_{1} - f_{1}(x_{1}, x_{2}) - z + I_{ext1}
-                \\dot{y_{1}} &= c - d x_{1}^{2} - y{1}
-                \\dot{z}} &=
-                \\begin{cases}
-                r(4 (x_{1} - x_{0}) - z-0.1 z^{7}) & \\text{if } x<0\\\
-                r(4 (x_{1} - x_{0}) - z) & \\text{if } x \\geq 0
-                \\end{cases}
-                \\dot{x_{2}} &= -y_{2} + x_{2} - x_{2}^{3} + I_{ext2} + 0.002 g(x_{1}) - 0.3 (z-3.5)
-                \\dot{y_{2}} &= 1 / \\tau (-y_{2} + f_{2}(x_{1}, x_{2}))
-                \\dot{g} &= -0.01 (g - 0.1 x_{1})
+                \dot{x_{1}} &=& y_{1} - f_{1}(x_{1}, x_{2}) - z + I_{ext1} \\
+                \dot{y_{1}} &=& c - d x_{1}^{2} - y{1} \\
+                \dot{z} &=&
+                \begin{cases}
+                r(4 (x_{1} - x_{0}) - z-0.1 z^{7}) & \text{if } x<0 \\
+                r(4 (x_{1} - x_{0}) - z) & \text{if } x \geq 0
+                \end{cases} \\
+                \dot{x_{2}} &=& -y_{2} + x_{2} - x_{2}^{3} + I_{ext2} + 0.002 g(x_{1}) - 0.3 (z-3.5) \\
+                \dot{y_{2}} &=& 1 / \tau (-y_{2} + f_{2}(x_{1}, x_{2}))\\
+                \dot{g} &=& -0.01 (g - 0.1 x_{1})
 
         where:
             .. math::
-                f_{1}(x_{1}, x_{2}) &=
-                \\begin{cases}
-                a x_{1}^{3} - b x_{1}^2 & \\text{if } x_{1} <0\\\
-                -(slope - x_{2} + 0.6(z-4)^2) x_{1} \\text{if }x_{1} \\geq 0
-                \\end{cases}
-                f_{2}(x_{2}) &=
-                \\begin{cases}
-                0 & \\text{if } x_{2} <-0.25\\\
-                a_{2}(x_{2} + 0.25) & \\text{if } x_{2} \\geq -0.25
-                \\end{cases}
+                f_{1}(x_{1}, x_{2}) =
+                \begin{cases}
+                a x_{1}^{3} - b x_{1}^2 & \text{if } x_{1} <0\\
+                -(slope - x_{2} + 0.6(z-4)^2) x_{1} &\text{if }x_{1} \geq 0
+                \end{cases}
+
+            .. math::
+                f_{2}(x_{2}) =
+                \begin{cases}
+                0 & \text{if } x_{2} <-0.25\\
+                a_{2}(x_{2} + 0.25) & \text{if } x_{2} \geq -0.25
+                \end{cases}
 
         """
 
@@ -4033,7 +4035,7 @@ class Epileptor_permittivity_coupling(Model):
     .. automethod:: Modified_Epileptor.dfun
     """
 
-    _ui_name = "Modified_Epileptor"
+    _ui_name = "Epileptor_permittivity_coupling"
     ui_configurable_parameters = ["Iext", "Iext2", "r", "x0", "slope"]
 
     a = arrays.FloatArray(
@@ -4180,7 +4182,7 @@ class Epileptor_permittivity_coupling(Model):
 
     def dfun(self, state_variables, coupling, local_coupling=0.0,
              array=numpy.array, where=numpy.where, concat=numpy.concatenate):
-        """
+        r"""
         Computes the derivatives of the state variables of the Epileptor
         with respect to time.
 
@@ -4193,25 +4195,27 @@ class Epileptor_permittivity_coupling(Model):
         Variables of interest to be used by monitors: y[6] = -y[0] + y[3]
 
             .. math::
-                \\dot{x_{1}} &= y_{1} - f_{1}(x_{1}, x_{2}) - z + I_{ext1}
-                \\dot{y_{1}} &= c - d x_{1}^{2} - y{1}
-                \\dot{z}} &= r(x_{0} + 3/(1 + \\exp((-x_{1}-0.5)/0.1)) - z)
-                \\dot{x_{2}} &= -y_{2} + x_{2} - x_{2}^{3} + I_{ext2} + 0.002 g(x_{1}) - 0.3 (z-3.5)
-                \\dot{y_{2}} &= 1 / \\tau (-y_{2} + f_{2}(x_{1}, x_{2}))
-                \\dot{g} &= -0.01 (g - 0.1 x_{1})
+                \dot{x_{1}} &=& y_{1} - f_{1}(x_{1}, x_{2}) - z + I_{ext1} \\
+                \dot{y_{1}} &=& c - d x_{1}^{2} - y{1} \\
+                \dot{z} &=& r(x_{0} + 3/(1 + \exp((-x_{1}-0.5)/0.1)) - z)\\
+                \dot{x_{2}} &=& -y_{2} + x_{2} - x_{2}^{3} + I_{ext2} + 0.002 g(x_{1}) - 0.3 (z-3.5) \\
+                \dot{y_{2}} &=& 1 / \tau (-y_{2} + f_{2}(x_{1}, x_{2}))\\
+                \dot{g} &=& -0.01 (g - 0.1 x_{1})
 
         where:
             .. math::
-                f_{1}(x_{1}, x_{2}) &=
-                \\begin{cases}
-                a x_{1}^{3} - b x_{1}^2 & \\text{if } x_{1} <0\\\
-                -(slope - x_{2} + 0.6(z-4)^2) x_{1} \\text{if }x_{1} \\geq 0
-                \\end{cases}
-                f_{2}(x_{2}) &=
-                \\begin{cases}
-                0 & \\text{if } x_{2} <-0.25\\\
-                a_{2}(x_{2} + 0.25) & \\text{if } x_{2} \\geq -0.25
-                \\end{cases}
+                f_{1}(x_{1}, x_{2}) =
+                \begin{cases}
+                a x_{1}^{3} - b x_{1}^2 & \text{if } x_{1} <0\\
+                -(slope - x_{2} + 0.6(z-4)^2) x_{1} &\text{if }x_{1} \geq 0
+                \end{cases}
+
+            .. math::
+                f_{2}(x_{2}) =
+                \begin{cases}
+                0 & \text{if } x_{2} <-0.25\\
+                a_{2}(x_{2} + 0.25) & \text{if } x_{2} \geq -0.25
+                \end{cases}
 
 """
 
