@@ -29,32 +29,54 @@
 #
 
 """
+.. moduleauthor:: Paula Sanz Leon <pau.sleon@gmail.com>
 .. moduleauthor:: bogdan.neacsa <bogdan.neacsa@codemart.ro>
 """
 
 import tvb.basic.traits.core as core
+import tvb.basic.traits.types_basic as basic
+import tvb.datatypes.time_series as time_series_module
 
 
 class BaseTimeseriesMetricAlgorithm(core.Type):
     """
     This is a base class for all metrics on timeSeries dataTypes.
     Metric means an algorithm computing a single value for an entire TimeSeries.
+
     """
     ### Make sure this "abstract" class does not get listed in UI.
     _base_classes = ['BaseTimeseriesMetricAlgorithm']
-    
+
     accept_filter = None
-    
-    
+
+    time_series = time_series_module.TimeSeries(
+        label="Time Series",
+        required=True, order=1,
+        doc="The TimeSeries for which the metric(s) will be computed.")
+
+    start_point = basic.Float(
+        label="Start point (ms)",
+        default=500.0,
+        required=False, order=2,
+        doc=""" The start point determines how many points of the TimeSeries will
+        be discarded before computing the metric. By default it drops the
+        first 500 ms.""")
+
+    segment = basic.Integer(
+        label="Segmentation factor",
+        default=4,
+        required=False, order=3,
+        doc=""" Divide the input time-series into discrete equally sized sequences and
+        use the last segment to compute the metric. It is only used when
+        the start point is larger than the time-series length.""")
+
+
     def evaluate(self):
         """
         This method needs to be implemented in each subclass.
-        Will describe current algorithms.
-        :return: single value
+        Will describe current algorithm.
+
+        :return: single numeric value or a dictionary (displayLabel: numeric value) to be persisted.
         """
-        msg = " ".join(("Every metric algorithm should implement an 'evaluate'",
-                        "method that returns the metric result."))
-        raise Exception(msg)
-
-
+        raise Exception("Every metric algorithm should implement an 'evaluate' method that returns the metric result.")
 

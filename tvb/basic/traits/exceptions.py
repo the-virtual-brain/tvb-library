@@ -41,7 +41,7 @@ class TVBException(Exception):
 
     def __init__(self, message, parent_exception=None):
         Exception.__init__(self, message, parent_exception)
-        self.message = message
+        self.message = str(message)
 
 
     def __str__(self):

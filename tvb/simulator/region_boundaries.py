@@ -169,7 +169,6 @@ def find_boundary_edges(cortex):
 
     tb20 = numpy.nonzero(cortex.region_mapping[cortex.triangles][:, 2] -
                          cortex.region_mapping[cortex.triangles][:, 0])
-    #import pdb; pdb.set_trace()
     ed01 = numpy.vstack((cortex.triangles[tb01, 0], cortex.triangles[tb01, 1]))
     ed12 = numpy.vstack((cortex.triangles[tb12, 1], cortex.triangles[tb12, 2]))
     ed20 = numpy.vstack((cortex.triangles[tb20, 2], cortex.triangles[tb20, 0]))
@@ -178,8 +177,10 @@ def find_boundary_edges(cortex):
     all_boundary_edges.sort()
     boundary_edge_set = set(map(tuple, all_boundary_edges.tolist()))
     unique_boundary_edges = numpy.zeros((2, len(boundary_edge_set)), dtype=numpy.int32)
-    for k in range(len(boundary_edge_set)):
+    k =0
+    while boundary_edge_set:
         unique_boundary_edges[:, k] = numpy.array(boundary_edge_set.pop())
+        k+=1
     return unique_boundary_edges
 
 
@@ -188,7 +189,7 @@ def find_region_boundaries(cortex, boundary_triangles):
     boundary_vertices = numpy.unique(cortex.triangles[boundary_triangles, :])
     vertex_regions = cortex.region_mapping[boundary_vertices]
     region_boundaries = []
-    for k in range(len(numpy.unique(cortex.region_mapping))):
+    for k in numpy.unique(cortex.region_mapping):
         region_boundaries.append(boundary_vertices[vertex_regions==k])
     return region_boundaries
 
@@ -200,8 +201,10 @@ def find_neighbouring_regions(cortex, boundary_edges):
     nr.sort()
     neighbouring_region_set = set(map(tuple, nr.tolist()))
     unique_neighbouring_regions = numpy.zeros((2, len(neighbouring_region_set)), dtype=numpy.int32)
-    for k in range(len(neighbouring_region_set)):
+    k = 0
+    while neighbouring_region_set:
         unique_neighbouring_regions[:, k] = numpy.array(neighbouring_region_set.pop())
+        k+=1
     return unique_neighbouring_regions
 
 
@@ -234,7 +237,7 @@ def find_region_neighbours(region_adjacency):
     number_of_regions = region_adjacency.shape[0]
     xxx = numpy.nonzero(region_adjacency + region_adjacency.T)
     neighbours = {}
-    for key in range(number_of_regions):
+    for key in xrange(number_of_regions):
         #Assign 
         neighbours[key] = list(xxx[1][xxx[0]==key])
 #        # Extend neighbours to include "colourbar neighbours"
@@ -249,7 +252,7 @@ def find_number_of_neighbours(neighbours):
     """
     number_of_regions = len(neighbours)
     number_of_neighbours = numpy.zeros(number_of_regions, dtype=numpy.uint8)
-    for k in range(number_of_regions):
+    for k in xrange(number_of_regions):
         number_of_neighbours[k] = len(neighbours[k])
 
 

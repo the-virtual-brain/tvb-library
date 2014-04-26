@@ -10,7 +10,6 @@ from __future__ import with_statement
 
 __version__ = "0.1"
 
-import os.path
 import sys
 import time
 import traceback
@@ -151,7 +150,7 @@ class _XMLTestResult(unittest.TestResult):
         unittest.TestResult.addSkip(self, test, reason)
         self._skipped = reason
 
-    def print_report(self, stream, time_taken, out, err):
+    def print_report(self, stream, logs_stream, time_taken, out, err):
         """
         Prints the XML report to the supplied stream.
         The time the tests took to perform as well as the captured standard
@@ -167,9 +166,13 @@ class _XMLTestResult(unittest.TestResult):
                       })
         for info in self._tests:
             info.print_report(stream)
-        stream.write('  <system-out><![CDATA[%s]]></system-out>\n' % out)
-        stream.write('  <system-err><![CDATA[%s]]></system-err>\n' % err)
+
         stream.write('</testsuite>\n')
+
+        logs_stream.write("OUTPUT: \n \n\n")
+        logs_stream.write(out)
+        logs_stream.write("\n\n\n ERRORS: \n \n\n")
+        logs_stream.write(err)
 
 
 
@@ -185,20 +188,16 @@ class XMLTestRunner(object):
     where <module> and <class> are the module and class name of the test class.
     """
 
-    def __init__(self, stream=None):
+    def __init__(self, stream, logs_stream):
         self._stream = stream
+        self._logs_stream = logs_stream
         self._path = "."
+
 
     def run(self, test):
         """Run the given test case or test suite."""
         class_ = test.__class__
         classname = class_.__module__ + "." + class_.__name__
-        if self._stream is None:
-            filename = "TEST-%s.xml" % classname
-            stream = file(os.path.join(self._path, filename), "w")
-            stream.write('<?xml version="1.0" encoding="utf-8"?>\n')
-        else:
-            stream = self._stream
 
         result = _XMLTestResult(classname)
         start_time = time.time()
@@ -215,9 +214,7 @@ class XMLTestRunner(object):
                 err_s = ""
 
         time_taken = time.time() - start_time
-        result.print_report(stream, time_taken, "out_s", err_s)
-        if self._stream is None:
-            stream.close()
+        result.print_report(self._stream, self._logs_stream, time_taken, out_s, err_s)
 
         return result
 

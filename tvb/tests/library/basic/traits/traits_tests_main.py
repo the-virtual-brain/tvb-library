@@ -43,6 +43,7 @@ from tvb.tests.library.basic.traits import data_readers_test
 from tvb.tests.library.basic.traits import parameters_factory_test
 from tvb.tests.library.basic.traits import start_console
 from tvb.tests.library.basic.traits import traits_test
+from tvb.tests.library.basic.traits import types_basic_test
 
 
 def suite():
@@ -55,6 +56,7 @@ def suite():
     test_suite.addTest(traits_test.suite())
     test_suite.addTest(parameters_factory_test.suite())
     test_suite.addTest(start_console.suite())
+    test_suite.addTest(types_basic_test.suite())
     return test_suite
 
 

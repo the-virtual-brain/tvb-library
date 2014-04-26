@@ -63,31 +63,39 @@ def paths2url(datatype_entity, attribute_name, flatten=False, parameter=None, da
 ##--------------------- CLOSE SURFACES Start Here---------------------------------------##
 
 
+#### Slices are for vertices [0.....SPLIT_MAX_SIZE + SPLIT_BUFFER_SIZE]
+#### [SPLIT_MAX_SIZE ..... 2 * SPLIT_BUFFER_SIZE + SPLIT_BUFFER_SIZE]
+#### Triangles [0, 1, 2], [3, 4, 5], [6, 7, 8].....
+#### Vertices -  no of triangles * 3
+
+SPLIT_MAX_SIZE = 40000
+SPLIT_BUFFER_SIZE = 15000
+SPLIT_PICK_MAX_TRIANGLE = 20000
+
+KEY_TRIANGLES = "triangles"
+KEY_VERTICES = "vertices"
+KEY_HEMISPHERE = "hemisphere"
+KEY_START = "start_idx"
+KEY_END = "end_idx"
+
+HEMISPHERE_LEFT = "LEFT"
+HEMISPHERE_RIGHT = "RIGHT"
+HEMISPHERE_UNKNOWN = "NONE"
+
+
 class SurfaceFramework(surfaces_data.SurfaceData):
     """ 
     This class exists to add framework methods to SurfacesData.
     """
-    
     __tablename__ = None
 
-    #### Slices are for vertices [0.....SPLIT_MAX_SIZE + SPLIT_BUFFER_SIZE]
-    #### [SPLIT_MAX_SIZE ..... 2 * SPLIT_BUFFER_SIZE + SPLIT_BUFFER_SIZE]
-    #### Triangles [0, 1, 2], [3, 4, 5], [6, 7, 8].....
-    #### Vertices -  no of triangles * 3
-
-    SPLIT_MAX_SIZE = 40000
-    SPLIT_BUFFER_SIZE = 15000
-    SPLIT_PICK_MAX_TRIANGLE = 20000
-     
      
     def get_vertices_slice(self, slice_number=0):
         """
         Read vertices slice, to be used by WebGL visualizer.
         """
         slice_number = int(slice_number)
-        start_idx = slice_number * self.SPLIT_MAX_SIZE
-        end_idx = (slice_number + 1) * self.SPLIT_MAX_SIZE + self.SPLIT_BUFFER_SIZE
-        end_idx = min(end_idx, self.number_of_vertices)
+        start_idx, end_idx = self._get_slice_vertex_boundaries(slice_number)
         return self.get_data('vertices', slice(start_idx, end_idx, 1))
     
     
@@ -96,9 +104,7 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         Read vertex-normal slice, to be used by WebGL visualizer.
         """
         slice_number = int(slice_number)
-        start_idx = slice_number * self.SPLIT_MAX_SIZE
-        end_idx = (slice_number + 1) * self.SPLIT_MAX_SIZE + self.SPLIT_BUFFER_SIZE
-        end_idx = min(end_idx, self.number_of_vertices)
+        start_idx, end_idx = self._get_slice_vertex_boundaries(slice_number)
         return self.get_data('vertex_normals', slice(start_idx, end_idx, 1))
     
     
@@ -109,8 +115,7 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         if self.number_of_split_slices == 1:
             return self.triangles
         slice_number = int(slice_number)
-        start_idx = self.split_triangles_indices[slice_number]
-        end_idx = self.split_triangles_indices[slice_number + 1]
+        start_idx, end_idx = self._get_slice_triangle_boundaries(slice_number)
         return self.get_data('split_triangles', slice(start_idx, end_idx, 1))
     
     
@@ -120,21 +125,26 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         """
         return self._triangles_to_lines(self.get_triangles_slice(slice_number))
     
-    
+
+    def get_slices_to_hemisphere_mask(self):
+        """
+        :return: a vector af length number_of_slices, with 1 when current chunk belongs to the Right hemisphere
+        """
+        if not self.bi_hemispheric or self.split_slices is None:
+            return None
+        result = [1] * self.number_of_split_slices
+        for key, value in self.split_slices.iteritems():
+            if value[KEY_HEMISPHERE] == HEMISPHERE_LEFT:
+                result[int(key)] = 0
+        return result
+
+
     def _triangles_to_lines(self, triangles):
         lines_array = []
-        for triangle in triangles:
-            lines_array.extend([triangle[0], triangle[1], triangle[1], triangle[2], triangle[2], triangle[0]])
+        for a, b, c in triangles:
+            lines_array.extend([a, b, b, c, c, a])
         return numpy.array(lines_array)
-    
-    
-    def get_flatten_triangles(self):
-        """
-        Return a flatten list of all the triangles to be used for stimulus view.
-        """
-        all_triangles = self.get_data('triangles')
-        return all_triangles.flatten().tolist()
-        
+
     
     def configure(self):
         """
@@ -142,57 +152,99 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         slices that are readable by WebGL.
         WebGL only supports triangle indices in interval [0.... 2^16] 
         """
-        super(SurfaceFramework, self).configure()
-        
-        ### Don't split when size is convenient
-        if self.number_of_vertices <= self.SPLIT_MAX_SIZE + self.SPLIT_BUFFER_SIZE:
+        #super(SurfaceFramework, self).configure()
+
+        self.number_of_vertices = self.vertices.shape[0]
+        self.number_of_triangles = self.triangles.shape[0]
+
+        ### Do not split again, if split-data is already computed:
+        if 1 < self.number_of_split_slices == len(self.split_slices):
+            return
+
+        ### Do not split when size is conveniently small:
+        self.bi_hemispheric = self.hemisphere_mask is not None and numpy.unique(self.hemisphere_mask).size > 1
+        if self.number_of_vertices <= SPLIT_MAX_SIZE + SPLIT_BUFFER_SIZE and not self.bi_hemispheric:
             self.number_of_split_slices = 1
+            self.split_slices = {0: {KEY_TRIANGLES: {KEY_START: 0, KEY_END: self.number_of_triangles},
+                                     KEY_VERTICES: {KEY_START: 0, KEY_END: self.number_of_vertices},
+                                     KEY_HEMISPHERE: HEMISPHERE_UNKNOWN}}
             return
-        
-        ### Compute the number of split slices.
-        self.number_of_split_slices = self.number_of_vertices // self.SPLIT_MAX_SIZE
-        if self.number_of_vertices % self.SPLIT_MAX_SIZE > self.SPLIT_BUFFER_SIZE:
-            self.number_of_split_slices += 1
-        
-        ### Do not split again, if split-data is already loaded:
-        if (self.split_triangles is not None and self.split_triangles_indices is not None 
-                and len(self.split_triangles_indices) == self.number_of_split_slices + 1):
-            return
+
+        ### Compute the number of split slices:
+        left_hemisphere_slices = 0
+        left_hemisphere_vertices_no = 0
+        if self.bi_hemispheric:
+            ## when more than one hemisphere
+            right_hemisphere_vertices_no = numpy.count_nonzero(self.hemisphere_mask)
+            left_hemisphere_vertices_no = self.number_of_vertices - right_hemisphere_vertices_no
+            LOG.debug("Right %d Left %d" % (right_hemisphere_vertices_no, left_hemisphere_vertices_no))
+            left_hemisphere_slices = self._get_slices_number(left_hemisphere_vertices_no)
+            self.number_of_split_slices = left_hemisphere_slices
+            self.number_of_split_slices += self._get_slices_number(right_hemisphere_vertices_no)
+            LOG.debug("Hemispheres Total %d Left %d" % (self.number_of_split_slices, left_hemisphere_slices))
+        else:
+            ## when a single hemisphere
+            self.number_of_split_slices = self._get_slices_number(self.number_of_vertices)
+
         
         LOG.debug("Start to compute surface split triangles and vertices")
         split_triangles = []
-        for i in range(self.number_of_split_slices):
+        ignored_triangles_counter = 0
+        self.split_slices = {}
+
+        for i in xrange(self.number_of_split_slices):
             split_triangles.append([])
-        ### Iterate Triangles and find the slice where it fits, based on its vertices    
-        for i in range(self.number_of_triangles):
-            current_slice = 0
-            transformed_triangle = [self.triangles[i][j] for j in range(3)]
-            while min(transformed_triangle) > self.SPLIT_MAX_SIZE and current_slice < self.number_of_split_slices - 1:
-                transformed_triangle = [transformed_triangle[j] - self.SPLIT_MAX_SIZE for j in range(3)]
-                current_slice += 1
-            
-            if max(transformed_triangle) > self.SPLIT_MAX_SIZE + self.SPLIT_BUFFER_SIZE:
-                # triangle ignored, as it has vertices over multiple slices.
-                continue
+            if not self.bi_hemispheric:
+                self.split_slices[i] = {KEY_VERTICES: {KEY_START: i * SPLIT_MAX_SIZE,
+                                                       KEY_END: min(self.number_of_vertices,
+                                                                    (i + 1) * SPLIT_MAX_SIZE + SPLIT_BUFFER_SIZE)},
+                                        KEY_HEMISPHERE: HEMISPHERE_UNKNOWN}
             else:
-                split_triangles[current_slice].append(transformed_triangle)
-         
+                if i < left_hemisphere_slices:
+                    self.split_slices[i] = {KEY_VERTICES: {KEY_START: i * SPLIT_MAX_SIZE,
+                                                           KEY_END: min(left_hemisphere_vertices_no,
+                                                                        (i + 1) * SPLIT_MAX_SIZE + SPLIT_BUFFER_SIZE)},
+                                            KEY_HEMISPHERE: HEMISPHERE_LEFT}
+                else:
+                    self.split_slices[i] = {KEY_VERTICES: {KEY_START: left_hemisphere_vertices_no +
+                                                                      (i - left_hemisphere_slices) * SPLIT_MAX_SIZE,
+                                                           KEY_END: min(self.number_of_vertices,
+                                                                        left_hemisphere_vertices_no + SPLIT_MAX_SIZE *
+                                                                        (i + 1 - left_hemisphere_slices)
+                                                                        + SPLIT_BUFFER_SIZE)},
+                                            KEY_HEMISPHERE: HEMISPHERE_RIGHT}
+
+        ### Iterate Triangles and find the slice where it fits best, based on its vertices indexes:
+        for i in xrange(self.number_of_triangles):
+            current_triangle = [self.triangles[i][j] for j in range(3)]
+            fit_slice, transformed_triangle = self._find_slice(current_triangle)
+
+            if fit_slice is not None:
+                split_triangles[fit_slice].append(transformed_triangle)
+            else:
+                # triangle ignored, as it has vertices over multiple slices.
+                ignored_triangles_counter += 1
+                continue
+
         final_split_triangles = []
-        triangles_split_indices = [0]
+        last_triangles_idx = 0
+
         ### Concatenate triangles, to be stored in a single HDF5 array.
-        for split_ in split_triangles:
-            triangles_split_indices.append(triangles_split_indices[-1] + len(split_))
+        for slice_idx, split_ in enumerate(split_triangles):
+            self.split_slices[slice_idx][KEY_TRIANGLES] = {KEY_START: last_triangles_idx,
+                                                           KEY_END: last_triangles_idx + len(split_)}
             final_split_triangles.extend(split_)
+            last_triangles_idx += len(split_)
         self.split_triangles = numpy.array(final_split_triangles, dtype=numpy.int32)
-        self.split_triangles_indices = triangles_split_indices
-       
-        LOG.debug("End compute surface split triangles and vertices")
+
+        if ignored_triangles_counter > 0:
+            LOG.warning("Ignored triangles from multiple hemispheres: " + str(ignored_triangles_counter))
+        LOG.debug("End compute surface split triangles and vertices " + str(self.split_slices))
        
        
     def get_urls_for_rendering(self, include_alphas=False, region_mapping=None): 
         """
-        Compose URLs for the JS code to retrieve a surface from the UI for
-        rendering.
+        Compose URLs for the JS code to retrieve a surface from the UI for rendering.
         """
         url_vertices = []
         url_triangles = []
@@ -208,11 +260,10 @@ class SurfaceFramework(surfaces_data.SurfaceData):
             url_normals.append(paths2url(self, 'get_vertex_normals_slice', parameter=param, flatten=True))
             if not include_alphas or region_mapping is None:
                 continue
+
+            start_idx, end_idx = self._get_slice_vertex_boundaries(i)
             alphas.append(paths2url(region_mapping, "get_alpha_array", flatten=True,
                                     parameter="size=" + str(self.number_of_vertices)))
-            start_idx = self.SPLIT_MAX_SIZE * i 
-            end_idx = self.SPLIT_MAX_SIZE * (i + 1) + self.SPLIT_BUFFER_SIZE
-            end_idx = min(end_idx, self.number_of_vertices)
             alphas_indices.append(paths2url(region_mapping, "get_alpha_indices_array", flatten=True,
                                             parameter="start_idx=" + str(start_idx) + " ;end_idx=" + str(end_idx)))
           
@@ -221,6 +272,39 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         return url_vertices, url_normals, url_lines, url_triangles
 
 
+    def _get_slice_vertex_boundaries(self, slice_idx):
+        if str(slice_idx) in self.split_slices:
+            start_idx = max(0, self.split_slices[str(slice_idx)][KEY_VERTICES][KEY_START])
+            end_idx = min(self.split_slices[str(slice_idx)][KEY_VERTICES][KEY_END], self.number_of_vertices)
+            return start_idx, end_idx
+        else:
+            LOG.warn("Could not access slice indices, possibly due to an incompatibility with code update!")
+            return 0, min(SPLIT_BUFFER_SIZE, self.number_of_vertices)
+
+    def _get_slice_triangle_boundaries(self, slice_idx):
+        if str(slice_idx) in self.split_slices:
+            start_idx = max(0, self.split_slices[str(slice_idx)][KEY_TRIANGLES][KEY_START])
+            end_idx = min(self.split_slices[str(slice_idx)][KEY_TRIANGLES][KEY_END], self.number_of_triangles)
+            return start_idx, end_idx
+        else:
+            LOG.warn("Could not access slice indices, possibly due to an incompatibility with code update!")
+            return 0, self.number_of_triangles
+
+    def _get_slices_number(self, vertices_number):
+        slices_number = vertices_number // SPLIT_MAX_SIZE
+        if vertices_number % SPLIT_MAX_SIZE > SPLIT_BUFFER_SIZE:
+            slices_number += 1
+        return slices_number
+
+    def _find_slice(self, triangle):
+        mn = min(triangle)
+        mx = max(triangle)
+        for i in xrange(self.number_of_split_slices):
+            slice_start = self.split_slices[i][KEY_VERTICES][KEY_START]
+            if slice_start <= mn and mx < self.split_slices[i][KEY_VERTICES][KEY_END]:
+                return i, [triangle[j] - slice_start for j in range(3)]
+        return None, triangle
+
     ####################################### Split for Picking
     #######################################
     def get_pick_vertices_slice(self, slice_number=0):
@@ -228,8 +312,8 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         Read vertices slice, to be used by WebGL visualizer with pick.
         """
         slice_number = int(slice_number)
-        slice_triangles = self.get_data('triangles', slice(slice_number * self.SPLIT_PICK_MAX_TRIANGLE,
-                                    min(self.number_of_triangles, (slice_number + 1) * self.SPLIT_PICK_MAX_TRIANGLE)))
+        slice_triangles = self.get_data('triangles', slice(slice_number * SPLIT_PICK_MAX_TRIANGLE,
+                                    min(self.number_of_triangles, (slice_number + 1) * SPLIT_PICK_MAX_TRIANGLE)))
         result_vertices = []
         for triang in slice_triangles:
             result_vertices.append(self.vertices[triang[0]])
@@ -243,8 +327,8 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         Read vertex-normals slice, to be used by WebGL visualizer with pick.
         """
         slice_number = int(slice_number)
-        slice_triangles = self.get_data('triangles', slice(slice_number * self.SPLIT_PICK_MAX_TRIANGLE, 
-                                    min(self.number_of_triangles, (slice_number + 1) * self.SPLIT_PICK_MAX_TRIANGLE)))
+        slice_triangles = self.get_data('triangles', slice(slice_number * SPLIT_PICK_MAX_TRIANGLE,
+                                    min(self.number_of_triangles, (slice_number + 1) * SPLIT_PICK_MAX_TRIANGLE)))
         result_normals = []
         for triang in slice_triangles:
             result_normals.append(self.vertex_normals[triang[0]])
@@ -258,9 +342,9 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         Read triangles slice, to be used by WebGL visualizer with pick.
         """
         slice_number = int(slice_number)
-        no_of_triangles = (min(self.number_of_triangles, (slice_number + 1) * self.SPLIT_PICK_MAX_TRIANGLE)
-                           - slice_number * self.SPLIT_PICK_MAX_TRIANGLE)
-        triangles_array = numpy.array(range(0, no_of_triangles * 3)).reshape((no_of_triangles, 3))
+        no_of_triangles = (min(self.number_of_triangles, (slice_number + 1) * SPLIT_PICK_MAX_TRIANGLE)
+                           - slice_number * SPLIT_PICK_MAX_TRIANGLE)
+        triangles_array = numpy.arange(no_of_triangles * 3).reshape((no_of_triangles, 3))
         return triangles_array
             
          
@@ -271,11 +355,11 @@ class SurfaceFramework(surfaces_data.SurfaceData):
         vertices = []
         triangles = []
         normals = []
-        number_of_split = self.number_of_triangles // self.SPLIT_PICK_MAX_TRIANGLE
-        if self.number_of_triangles % self.SPLIT_PICK_MAX_TRIANGLE > 0:
+        number_of_split = self.number_of_triangles // SPLIT_PICK_MAX_TRIANGLE
+        if self.number_of_triangles % SPLIT_PICK_MAX_TRIANGLE > 0:
             number_of_split += 1
             
-        for i in range(number_of_split):
+        for i in xrange(number_of_split):
             param = "slice_number=" + str(i)
             vertices.append(paths2url(self, 'get_pick_vertices_slice', parameter=param, flatten=True))
             triangles.append(paths2url(self, 'get_pick_triangles_slice', parameter=param, flatten=True))
@@ -309,7 +393,7 @@ class SurfaceFramework(surfaces_data.SurfaceData):
             slice_triangles = self.get_triangles_slice(slice_idx)
             slice_vertices = self.get_vertices_slice(slice_idx)
             slice_normals = self.get_vertex_normals_slice(slice_idx)
-            first_index_in_slice = self.SPLIT_MAX_SIZE * slice_idx
+            first_index_in_slice = self.split_slices[str(slice_idx)][KEY_VERTICES][KEY_START]
             # These will keep track of the vertices / triangles / normals for this slice that have
             # been processed and were found as a part of the boundary
             processed_vertices = []
@@ -320,7 +404,7 @@ class SurfaceFramework(surfaces_data.SurfaceData):
                 triangle[1] += first_index_in_slice
                 triangle[2] += first_index_in_slice
                 # Check if there are two points from a triangles that are in separate regions
-                # then send this to further processing that will generate the coresponding
+                # then send this to further processing that will generate the corresponding
                 # region separation lines depending on the 3rd point from the triangle
                 if region_mapping.array_data[triangle[0]] - region_mapping.array_data[triangle[1]]:
                     lines_vert, lines_ind, lines_norm = self._process_triangle(triangle, 0, 1, 2, first_index_in_slice, 

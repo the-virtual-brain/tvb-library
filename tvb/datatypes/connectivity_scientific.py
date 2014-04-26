@@ -191,6 +191,18 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
                         break
             if hemispheres is not None:
                 self.hemispheres = numpy.array(hemispheres, dtype=numpy.bool)
+
+
+    def remove_self_connections(self):
+        """
+        Remove the values from the main diagonal (self-connections)
+
+        """
+
+        nor    = self.number_of_regions
+        result = copy(self.weights)
+        result = self.weights - self.weights * numpy.eye(nor, nor)  
+        return result          
      
      
     def normalised_weights(self, mode='tract'):
@@ -239,11 +251,11 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         result[mask] = self.weights[mask] / normalisation_factor
         return result
 
-    def compute_adjacency_matrix(self):
+    def binarize_matrix(self):
         """
-        Transforms the weights matrix into the binary (adjaceny) matrix 
+        Transforms the weights matrix into a binary (unweighted) matrix 
         """
-        LOG.info("Transforming weighted matrix into binary matrix")
+        LOG.info("Transforming weighted matrix into unweighted matrix")
         
         result = copy(self.weights)
         result = numpy.where(results > 0, 1, result)

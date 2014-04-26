@@ -39,6 +39,7 @@ import an usage for MAYAVI based plots should look like::
         plt = plot_function(...)
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
+.. moduleauthor:: Paula Sanz Leon <paula.sanz-leon@univ-amu.fr>
 """
 
 import numpy
@@ -52,9 +53,12 @@ LOG = get_logger(__name__)
 ##-                  matplotlib based plotting functions                     -##
 ##---------------------------------------------------------------------------cd-##
 
+import matplotlib as mpl
 import matplotlib.pyplot as pyplot
 import matplotlib.colors
-
+import matplotlib.ticker as ticker
+import matplotlib.colors as colors
+from mpl_toolkits.axes_grid import make_axes_locatable  
 
 
 def _blob(x, y, area, colour):
@@ -296,6 +300,145 @@ def show_me_the_colours():
         ax.text(0.05, 0.5, colours[k])
 
 
+def plot_tri_matrix(mat, num='plot_part_of_this_matrix', size=None, 
+                        cmap=pyplot.cm.RdBu_r, colourbar=True,
+                        color_anchor=None, node_labels=None, x_tick_rot=0, 
+                        title=None):
+    r"""Creates a lower-triangle of a square matrix. Very often found to display correlations or coherence.
+
+    Parameters
+    ----------
+
+    mat          : square matrix
+
+    node_labels  : list of strings with the labels to be applied to 
+                   the nodes. Defaults to '0','1','2', etc.
+
+    fig          : a matplotlib figure
+
+    cmap         : a matplotlib colormap.
+
+    title        : figure title (eg '$\alpha$')
+
+    color_anchor : determines the clipping for the colormap. 
+                   If None, the data min, max are used.
+                   If 0, min and max of colormap correspond to max abs(mat)
+                   If (a,b), min and max are set accordingly (a,b)
+
+    Returns
+    -------
+
+    fig: a figure object
+
+    """
+
+    def channel_formatter(x, pos=None):
+        thisidx = numpy.clip(int(x), 0, N - 1)
+        return node_labels[thisidx]
+
+    if num is None:
+        fig = pyplot.figure()
+    else:
+        fig = pyplot.figure(num=num) 
+
+    if size is not None:
+        fig.set_figwidth(size[0])
+        fig.set_figheight(size[1])
+
+    w = fig.get_figwidth()
+    h = fig.get_figheight()
+
+    ax_im = fig.add_subplot(1, 1, 1)
+
+    N   = mat.shape[0]
+    idx = numpy.arange(N)  
+    if colourbar:
+        divider = make_axes_locatable(ax_im)
+        ax_cb   = divider.new_vertical(size="10%", pad=0.1, pack_start=True)
+        fig.add_axes(ax_cb)
+
+
+    mat_copy = mat.copy()
+
+    #Null the upper triangle, including the main diagonal.
+    idx_null           = numpy.triu_indices(mat_copy.shape[0])
+    mat_copy[idx_null] = numpy.nan
+
+    #Min max values
+    max_val = numpy.nanmax(mat_copy)
+    min_val = numpy.nanmin(mat_copy)
+
+    if color_anchor is None:
+        color_min = min_val
+        color_max = max_val
+    elif color_anchor == 0:
+        bound = max(abs(max_val), abs(min_val))
+        color_min = -bound
+        color_max =  bound
+    else:
+        color_min = color_anchor[0]
+        color_max = color_anchor[1]
+
+    #The call to imshow produces the matrix plot:
+    im = ax_im.imshow(mat_copy, origin='upper', interpolation='nearest',
+                      vmin=color_min, vmax=color_max, cmap=cmap)
+
+    #Formatting:
+    ax = ax_im
+    ax.grid(True)
+    #Label each of the cells with the row and the column:
+    if node_labels is not None:
+        for i in xrange(0, mat_copy.shape[0]):
+            if i < (mat_copy.shape[0] - 1):
+                ax.text(i - 0.3, i, node_labels[i], rotation=x_tick_rot)
+            if i > 0:
+                ax.text(-1, i + 0.3, node_labels[i],
+                        horizontalalignment='right')
+
+        ax.set_axis_off()
+        ax.set_xticks(numpy.arange(N))
+        ax.xaxis.set_major_formatter(ticker.FuncFormatter(channel_formatter))
+        fig.autofmt_xdate(rotation=x_tick_rot)
+        ax.set_yticks(numpy.arange(N))
+        ax.set_yticklabels(node_labels)
+        ax.set_ybound([-0.5, N - 0.5])
+        ax.set_xbound([-0.5, N - 1.5])
+
+    #Make the tick-marks invisible:
+    for line in ax.xaxis.get_ticklines():
+        line.set_markeredgewidth(0)
+
+    for line in ax.yaxis.get_ticklines():
+        line.set_markeredgewidth(0)
+
+    ax.set_axis_off()
+
+    if title is not None:
+        ax.set_title(title)
+
+    if colourbar:
+        #Set the ticks - if 0 is in the interval of values, set that, as well
+        #as the min, max values:
+        if min_val < 0:
+            ticks = [color_min, min_val, 0, max_val, color_max]
+        #set the min, mid and  max values:
+        else:
+            ticks = [color_min, min_val, (color_max- color_min)/2., max_val, color_max]
+
+
+        #colourbar:
+        cb = fig.colorbar(im, cax=ax_cb, orientation='horizontal',
+                          cmap=cmap,
+                          norm=im.norm,
+                          boundaries=numpy.linspace(color_min, color_max, 256),
+                          ticks=ticks,
+                          format='%.2f')
+
+    fig.sca(ax)
+
+    return fig
+
+
 #import pdb; pdb.set_trace()
 ##----------------------------------------------------------------------------##
 ##-                   mayavi based plotting functions                        -##
@@ -405,6 +548,9 @@ if IMPORTED_MAYAVI:
     def surface_parcellation(cortex_boundaries, colouring, mapping_colours, colour_rgb, interaction=False):
         """
         """
+        number_of_vertices = cortex_boundaries.cortex.vertices.shape[0]
+        number_of_triangles = cortex_boundaries.cortex.triangles.shape[0]
+
         number_of_regions = len(cortex_boundaries.region_neighbours)
         alpha = 255
         lut = numpy.zeros((number_of_regions, 4), dtype=numpy.uint8)
@@ -412,11 +558,11 @@ if IMPORTED_MAYAVI:
             lut[k] = numpy.hstack((colour_rgb[mapping_colours[colouring[k]]], alpha))
 
         fig = mlab.figure(figure="surface parcellation", bgcolor=(0.0, 0.0, 0.0), fgcolor=(0.5, 0.5, 0.5))
-        surf_mesh = mlab.triangular_mesh(cortex_boundaries.cortex.vertices[:, 0],
-                                         cortex_boundaries.cortex.vertices[:, 1],
-                                         cortex_boundaries.cortex.vertices[:, 2],
-                                         cortex_boundaries.cortex.triangles,
-                                         scalars=cortex_boundaries.cortex.region_mapping,
+        surf_mesh = mlab.triangular_mesh(cortex_boundaries.cortex.vertices[:number_of_vertices//2, 0],
+                                         cortex_boundaries.cortex.vertices[:number_of_vertices//2, 1],
+                                         cortex_boundaries.cortex.vertices[:number_of_vertices//2, 2],
+                                         cortex_boundaries.cortex.triangles[:number_of_triangles//2, :],
+                                         scalars=cortex_boundaries.cortex.region_mapping[:number_of_vertices//2],
                                          figure=fig)
         surf_mesh.module_manager.scalar_lut_manager.lut.number_of_colors = number_of_regions
         surf_mesh.module_manager.scalar_lut_manager.lut.table = lut
@@ -462,11 +608,15 @@ if IMPORTED_MAYAVI:
         return sm_obj
 
 
-    def xmas_balls(connectivity, node_data=None, edge_data=True, labels_data=True, balls_colormap='Blues', 
-                 bgcolor = (1, 1, 1),
-                 node_size=10.,
-                 edge_color=(0.8, 0.8, 0.8), edge_size=0.2,
-                 text_size=0.042, text_color=(0, 0, 0)):
+    def xmas_balls(connectivity, 
+                 labels=True, labels_indices=None, 
+                 balls_colormap='Blues', 
+                 bgcolor = (0.5, 0.5, 0.5),
+                 node_data=None, node_size=4.,
+                 edge_data=True, edge_color=(0.8, 0.8, 0.8), edge_size=0.2,
+                 text_size=0.042, text_color=(0, 0, 0),
+                 remove_nodes=False, nbunch=[], 
+                 remove_edges=False, ebunch=[]):
         """
         Plots coloured balls at the region centres of connectivity, colour and
         size is determined by a vector of length number of regions (node_data).
@@ -474,36 +624,66 @@ if IMPORTED_MAYAVI:
         Optional: adds the connections between pair of nodes.
         
         """
-        G = nx.from_numpy_matrix(numpy.matrix(connectivity.weights))
 
         mlab.figure(1, bgcolor=bgcolor)
-        mlab.clf()
+
+        # Get graph
+        G = nx.from_numpy_matrix(numpy.matrix(connectivity.weights))
+
+        # Get the subgraph of nodes in nbunch
+        if remove_nodes:
+            G.remove_nodes_from([n for n in G if n not in set(nbunch)])
+            #G.remove_nodes_from([node for node,degree in G.degree().items() if degree < 2])
+
+        if remove_edges:
+            G.remove_edges_from([e for e in G.edges() if e not in ebunch])
+
+
         # scalar colors
         if node_data is not None:
             scalars = node_data
-            mlab.colorbar(orientation="vertical")
+            #mlab.colorbar(orientation="vertical")
         else:
             scalars = numpy.array(G.nodes())*20
 
-        pts = mlab.points3d(connectivity.centres[:,0], connectivity.centres[:,1], connectivity.centres[:,2],
+        pts = mlab.points3d(connectivity.centres[:,0], 
+                            connectivity.centres[:,1], 
+                            connectivity.centres[:,2],
                             scalars,
+                            #mask_points=1,
                             scale_factor = node_size,
                             scale_mode = 'none',
                             colormap = balls_colormap,
-                            resolution = 20)
+                            resolution = 5,
+                            opacity=0.01)
 
-        if labels_data:
-            for i, (x, y, z) in enumerate(connectivity.centres):
-                label = mlab.text(x, y, connectivity.region_labels[i], z=z,
-                              width=text_size, name=str(connectivity.region_labels[i]), color=text_color)
-                label.property.shadow = False
+        if labels:
+            if labels_indices is not None:
+                for i, (idx) in enumerate(labels_indices):
+                    x = connectivity.centres[idx, 0]
+                    y = connectivity.centres[idx, 1]
+                    z = connectivity.centres[idx, 2]
+                    label = mlab.text(x, y, connectivity.region_labels[idx], 
+                              z=z,
+                              width=text_size, 
+                              name=str(connectivity.region_labels[idx]), 
+                              color=text_color)
+                    label.property.shadow = False
+            else:
+                for i, (x, y, z) in enumerate(connectivity.centres):
+                    label = mlab.text(x, y, connectivity.region_labels[i], 
+                              z=z,
+                              width=text_size, 
+                              name=str(connectivity.region_labels[i]), 
+                              color=text_color)
+                    label.property.shadow = False
 
         if edge_data:
             pts.mlab_source.dataset.lines = numpy.array(G.edges())
             tube = mlab.pipeline.tube(pts, tube_radius = edge_size)
-            mlab.pipeline.surface(tube, color=edge_color)
+            mlab.pipeline.surface(tube, color=edge_color, representation='wireframe', opacity=0.3)
 
-        mlab.show()
+        #mlab.show()
 
             # stop the scene
             #mlab.show(stop=True)
@@ -600,6 +780,10 @@ if IMPORTED_MAYAVI:
                             horizontalalignment='center',
                             verticalalignment='center',
                             fontsize=7)
+
+
+
+
 
 if __name__ == '__main__':
     # Do some stuff that tests or makes use of this module... 

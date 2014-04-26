@@ -74,6 +74,7 @@ class CouplingTest(BaseTestCase):
         self.assertEqual(k.cmax, 1.0)
         self.assertEqual(k.midpoint, 0.0)
         self.assertEqual(k.sigma, 230.)
+        self.assertEqual(k.a, 1.0)
 
 
 

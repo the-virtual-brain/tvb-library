@@ -172,7 +172,7 @@ class Linear(Coupling):
     a = arrays.FloatArray(
         label = ":math:`a`",
         default=numpy.array([0.00390625,]),
-        range = basic.Range(lo = 0.0, hi = 0.2, step = 0.01),
+        range = basic.Range(lo = 0.0, hi = 1.0, step = 0.01),
         doc = """Rescales the connection strength while maintaining the ratio
         between different values.""",
         order = 1)
@@ -233,7 +233,7 @@ class Scaling(Coupling):
     a = basic.Float(
         label="Scaling factor",
         default = 0.00390625,
-        range = basic.Range(lo = 0.0, hi = 0.2, step = 0.01),
+        range = basic.Range(lo = 0.0, hi = 1.0, step = 0.01),
         doc = """Rescales the connection strength while maintaining the ratio
         between different values.""")
 
@@ -275,10 +275,17 @@ class HyperbolicTangent(Coupling):
 
     a = arrays.FloatArray(
         label = ":math:`a`", 
-        default = numpy.array([0.0]),
+        default = numpy.array([1.0]),
         range = basic.Range(lo = -1000.0, hi = 1000.0, step = 10.0),
         doc = """Minimum of the sigmoid function""",
         order = 1)
+
+    b = arrays.FloatArray(
+        label = ":math:`b`", 
+        default = numpy.array([1.0]),
+        range = basic.Range(lo = -1.0, hi = 1.0, step = 10.0),
+        doc = """Scaling factor for the variable""",
+        order = 2)
 
     midpoint = arrays.FloatArray(
         label = "midpoint", 
@@ -298,7 +305,7 @@ class HyperbolicTangent(Coupling):
         label = "normalise by in-strength",
         default = True,
         doc = """Normalise the node coupling by the node's in-strenght""",
-        order = 4)
+        order = 5)
 
 
     def __call__(self, g_ij, x_i, x_j):
@@ -310,9 +317,9 @@ class HyperbolicTangent(Coupling):
                         a * (1 + tanh((x - midpoint)/sigma))
 
         """
-        temp =  self.a * (1 +  numpy.tanh((x_j - self.midpoint) / self.sigma))
+        temp =  self.a * (1 +  numpy.tanh((self.b * x_j - self.midpoint) / self.sigma))
 
-        if self.normalise: # yeeeeahhh, let's make simulations slower ...
+        if self.normalise: 
             #NOTE: normalising by the strength or degrees may yield NaNs, so fill these values with inf
             in_strength = g_ij.sum(axis=2)[:, :, numpy.newaxis, :]
             in_strength[in_strength==0] = numpy.inf
@@ -337,7 +344,7 @@ class Sigmoidal(Coupling):
     .. automethod:: Sigmoidal.__call__
 
     """
-    #NOTE: The defaults here produce something close to the current default for
+    #NOTE: using a = numpy.pi / numpy.sqrt(3.0) and the default parameter produces something close to the current default for
     #      Linear (a=0.00390625, b=0) over the linear portion of the sigmoid,
     #      with saturation at -1 and 1.
 
@@ -362,12 +369,19 @@ class Sigmoidal(Coupling):
         doc = """Midpoint of the linear portion of the sigmoid""",
         order = 3)
 
+    a = arrays.FloatArray(
+        label = r":math:`a`",
+        default = numpy.array([1.0,]),
+        range = basic.Range(lo = 0.01, hi = 1000.0, step = 10.0),
+        doc = """Scaling of .... """,
+        order = 4)
+
     sigma = arrays.FloatArray(
         label = r":math:`\sigma`",
         default = numpy.array([230.0,]),
         range = basic.Range(lo = 0.01, hi = 1000.0, step = 10.0),
         doc = """Standard deviation of the ...""",
-        order = 4)
+        order = 5)
 
 
     def __init__(self, **kwargs):
@@ -382,34 +396,13 @@ class Sigmoidal(Coupling):
         evaluated has the following form:
 
             .. math::
-                c_{min} + (c_{max} - c_{min}) / (1.0 + \exp(-\pi/\sqrt(3.0)
-                (x-midpoint)/\sigma))
+                c_{min} + (c_{max} - c_{min}) / (1.0 + \exp(-a(x-midpoint)/\sigma))
 
 
         """
         coupled_input = (g_ij * x_j).sum(axis=0)
-        sig = self.cmin + ((self.cmax - self.cmin) / (1.0 +
-              numpy.exp(-self.pi_on_sqrt3 * ((coupled_input - self.midpoint) / self.sigma))))
+        sig = self.cmin + ((self.cmax - self.cmin) / (1.0 + numpy.exp(-a *((coupled_input - self.midpoint) / self.sigma))))
         return sig
-
-    device_info = coupling_device_info(
-        pars = ['cmin', 'cmax', 'midpoint', 'sigma'],
-        kernel = """
-        // load parameters
-        float cmin     = P(0)
-            , cmax     = P(1)
-            , midpoint = P(2)
-            , sigma    = P(3)
-
-            , pi_on_sqrt3 = 1.8137993642342178;
-
-        I = 0.0;
-        for (int j_node=0; j_node<n_node; j_node++, idel++, conn++)
-            I += GIJ*XJ;
-
-        I = cmin + ((cmax - cmin) / (1.0 + exp(-pi_on_sqrt3 * ((I - midpoint) / sigma))));
-        """
-        )
 
 
 class StaticSigmoidal(Coupling):
@@ -489,6 +482,108 @@ class StaticSigmoidal(Coupling):
             I += H * (Q + tanh(G * (P * XJ[0] - theta)));
 
         I = GIJ * I;
+        """
+        )
+
+
+class DynamicSigmoidal(Coupling):
+    """
+    Dynamic Sigmoidal Coupling function (dynamic threshold).
+
+    .. automethod:: DynamicSigmoidal.__init__
+    .. automethod:: DynamicSigmoidal.__call__
+
+    """
+
+    H = arrays.FloatArray(
+        label = "H", 
+        default = numpy.array([0.5,]),
+        range = basic.Range(lo = -100.0, hi = 100.0, step = 1.0),
+        doc = """Global Factor""",
+        order = 1)
+
+    Q = arrays.FloatArray(
+        label = "Q", 
+        default = numpy.array([1.,]),
+        range = basic.Range(lo = -100.0, hi = 100.0, step = 1.0),
+        doc = """Average""",
+        order = 2)
+
+    G = arrays.FloatArray(
+        label = "G", 
+        default = numpy.array([60.,]),
+        range = basic.Range(lo = -1000.0, hi = 1000.0, step = 1.),
+        doc = """Gain""",
+        order = 3)
+
+    P = arrays.FloatArray(
+        label = "P",
+        default = numpy.array([1.,]),
+        range = basic.Range(lo = -100.0, hi = 100.0, step = 0.01),
+        doc = """Excitation on Inhibition ratio""",
+        order = 4)
+
+    globalT = arrays.IntegerArray(
+        label = ":math:`global_{\\theta}`",
+        default = numpy.array([0]),
+        range = basic.Range(lo = 0, hi = 1., step = 1),
+        doc = """Boolean value for local/global threshold theta for (0/1).""",
+        order = 5)
+
+
+    def __init__(self, **kwargs):
+        """Precompute a constant after the base __init__"""
+        super(DynamicSigmoidal, self).__init__(**kwargs)
+        
+
+    def configure(self):
+        """  """
+        super(DynamicSigmoidal, self).configure()
+        
+        # Global threshold (all the nodes having the same theta value)
+        if self.globalT:
+            self.sliceT = 0
+            #self.meanOrNot = lambda arr: arr.mean() * numpy.ones((arr.shape[1],1))
+            self.meanOrNot = lambda arr: numpy.diag(arr[:,0,:,0]).mean() * numpy.ones((arr.shape[1],1))
+            
+        # Local thresholds
+        else:
+            self.sliceT = slice(None)
+            self.meanOrNot = lambda arr: numpy.diag(arr[:,0,:,0])[:,numpy.newaxis]
+
+
+    def __call__(self, g_ij, x_i, x_j):
+        r"""
+        Evaluate the DynamicSigmoidal function for the arg ``x``. The equation being
+        evaluated has the following form:
+            .. math::
+                H * (Q + \tanh(G * (P*x - \theta)))
+        
+        """
+        # x[0] firing rate 
+        # x[1] dynamic threshold
+        
+        A_j = self.H * (self.Q + numpy.tanh(self.G * (self.P * x_j[:,0,:,:] - x_j[:,1,self.sliceT,:])[:,numpy.newaxis,:,:]))
+        c_0 = (g_ij[:,0] * A_j[:,0]).sum(axis=0)
+        c_1 = self.meanOrNot(A_j)
+        return numpy.array([c_0, c_1])
+
+
+    device_info = coupling_device_info(
+        pars = ['H', 'Q', 'G', 'P'],
+        kernel = """
+        // load parameters
+        float H = P(0)
+            , Q = P(1)
+            , G = P(2)
+            , P = P(3);
+
+        I = 0.0;
+        for (int j_node=0; j_node<n_node; j_node++, idel++, conn++)
+            I += H * (Q + tanh(G * (P * XJ[0] - XJ[1])));
+
+        I(0) = GIJ * I;
+        I(1) = I;
         """
         )
 

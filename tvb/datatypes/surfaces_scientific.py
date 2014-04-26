@@ -108,6 +108,7 @@ class SurfaceScientific(surfaces_data.SurfaceData):
                    "Number of vertices": self.number_of_vertices,
                    "Number of triangles": self.number_of_triangles,
                    "Number of edges": self.number_of_edges,
+                   "Has two hemispheres": self.bi_hemispheric,
                    "Edge lengths, mean (mm)": self.edge_length_mean,
                    "Edge lengths, shortest (mm)": self.edge_length_min,
                    "Edge lengths, longest (mm)": self.edge_length_max}
@@ -288,17 +289,26 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         angle they subtend at each vertex...
         """
         vert_norms = numpy.zeros((self.number_of_vertices, 3))
+        bad_normal_count = 0
         for k in xrange(self.number_of_vertices):
-            tri_list = list(self.vertex_triangles[k])
-            angle_mask = self.triangles[tri_list, :] == k
-            angles = self.triangle_angles[tri_list, :]
-            angles = angles[angle_mask][:, numpy.newaxis]
-            angle_scaling = angles / numpy.sum(angles, axis=0)
-            vert_norms[k, :] = numpy.mean(angle_scaling * self.triangle_normals[tri_list, :], axis=0)
-            #Scale by angle subtended.
-            vert_norms[k, :] = vert_norms[k, :] / numpy.sqrt(numpy.sum(vert_norms[k, :] ** 2, axis=0))
-            #Normalise to unit vectors.
-
+            try:
+                tri_list = list(self.vertex_triangles[k])
+                angle_mask = self.triangles[tri_list, :] == k
+                angles = self.triangle_angles[tri_list, :]
+                angles = angles[angle_mask][:, numpy.newaxis]
+                angle_scaling = angles / numpy.sum(angles, axis=0)
+                vert_norms[k, :] = numpy.mean(angle_scaling * self.triangle_normals[tri_list, :], axis=0)
+                #Scale by angle subtended.
+                vert_norms[k, :] = vert_norms[k, :] / numpy.sqrt(numpy.sum(vert_norms[k, :] ** 2, axis=0))
+                #Normalise to unit vectors.
+            except (ValueError, FloatingPointError):
+                # If normals are bad, default to position vector
+                # A nicer solution would be to detect degenerate triangles and ignore their
+                # contribution to the vertex normal
+                vert_norms[k, :] = self.vertices[k] / numpy.sqrt(self.vertices[k].dot(self.vertices[k]))
+                bad_normal_count += 1
+        if bad_normal_count:
+            self.logger.warn(" %d vertices have bad normals" % bad_normal_count)
         util.log_debug_array(LOG, vert_norms, "vertex_normals", owner=self.__class__.__name__)
         self.vertex_normals = vert_norms
 
@@ -360,6 +370,7 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         """
         verts = self.vertices
         # TODO: Should be possible with arrays, ie not nested loops...
+        # A short profile indicates this function takes 95% of the time to compute normals
         # (this was a direct translation of some old matlab code)
         angles = numpy.zeros((self.number_of_triangles, 3))
         for tt in xrange(self.number_of_triangles):

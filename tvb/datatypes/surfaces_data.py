@@ -113,13 +113,22 @@ class SurfaceData(MappedType):
         doc="""The number of triangles making up this surface.""")
 
     ##--------------------- FRAMEWORK ATTRIBUTES -----------------------------##
+
+    hemisphere_mask = arrays.BoolArray(
+        label="An array specifying if a vertex belongs to the right hemisphere",
+        file_storage=FILE_STORAGE_NONE,
+        required=False,
+        order=-1)
+
     zero_based_triangles = basic.Bool(order=-1)
 
     split_triangles = arrays.IndexArray(order=-1, required=False)
 
     number_of_split_slices = basic.Integer(order=-1)
 
-    split_triangles_indices = basic.List(order=-1)
+    split_slices = basic.Dict(order=-1)
+
+    bi_hemispheric = basic.Bool(order=-1)
 
     surface_type = basic.String
 
@@ -340,7 +349,7 @@ class LocalConnectivityData(MappedType):
         neg_hf_diag = sparse.csc_matrix((neg_hf, (ind, ind)), shape=(nv, nv))
         homogenious_conn = (pos_hf_diag * pos_con) + (neg_hf_diag * neg_con)
 
-        #Then replace unhomogenised result with the spatially homogenious one...
+        #Then replace unhomogenised result with the spatially homogeneous one...
         if not homogenious_conn.has_sorted_indices:
             homogenious_conn.sort_indices()
 
