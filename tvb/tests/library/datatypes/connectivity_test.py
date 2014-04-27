@@ -54,7 +54,7 @@ class ConnectivityTest(BaseTestCase):
         """
         conn = connectivity.Connectivity()
         conn.configure()
-        # Check for value from demo_data/connectivity/o52r00_irp2008
+        # Check for value from tvb_data/connectivity/o52r00_irp2008
         self.assertEqual(conn.weights.shape, (74, 74))
         self.assertEqual(conn.weights.max(), 3.0)
         self.assertEqual(conn.weights.min(), 0.0)
