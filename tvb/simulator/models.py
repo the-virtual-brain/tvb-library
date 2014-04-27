@@ -788,6 +788,7 @@ class WilsonCowan(Model):
 
         return derivative
 
+
     # info for device_data
     device_info = model_device_info(
 
@@ -829,6 +830,7 @@ class WilsonCowan(Model):
         DX(1) = (-i + (k_i - r_i * i) * s_i) / tau_e;
         """
     )
+
 
 
 class ReducedSetFitzHughNagumo(Model):
@@ -1242,6 +1244,7 @@ class ReducedSetFitzHughNagumo(Model):
 #undef ALPHA_dot_B
         """
     )
+
 
 
 class ReducedSetHindmarshRose(Model):
@@ -1731,6 +1734,7 @@ class ReducedSetHindmarshRose(Model):
 
 """
     )
+
 
 
 class JansenRit(Model):
@@ -2453,6 +2457,7 @@ class ZetterbergJansen(Model):
         self.kiki = self.ki**2
 
 
+
 class Generic2dOscillator(Model):
     """
     The Generic2dOscillator model is a generic dynamic system with two state
@@ -2868,6 +2873,7 @@ class Generic2dOscillator(Model):
         DX(1) = d * ((a + b*v + c*v*v - w) / tau);
         """
     )
+
 
 
 class LarterBreakspear(Model):
@@ -3319,6 +3325,7 @@ class LarterBreakspear(Model):
         return derivative
 
 
+
 class ReducedWongWang(Model):
     """
     .. [WW_2006] Kong-Fatt Wong and Xiao-Jing Wang,  *A Recurrent Network
@@ -3612,6 +3619,7 @@ class Kuramoto(Model):
     )
 
 
+
 class Hopfield(Model):
     """
 
@@ -3700,7 +3708,7 @@ class Hopfield(Model):
         select_multiple=True,
         doc = """The values for each state-variable should be set to encompass
             the expected dynamic range of that state-variable for the current
-            parameters, it is used as a mechanism for bounding random inital
+            parameters, it is used as a mechanism for bounding random initial
             conditions when the simulation isn't started from an explicit
             history, it is also provides the default range of phase-plane plots.""",
         order = 5)
@@ -3714,8 +3722,7 @@ class Hopfield(Model):
         LOG.info("%s: initing..." % str(self))
         super(Hopfield, self).__init__(**kwargs)
 
-        self._state_variables = ["x"]
-        self._nvar = len(self._state_variables)
+        self._nvar = 2
         self.cvar = numpy.array([0], dtype=numpy.int32)
 
         LOG.debug("%s: inited." % repr(self))
@@ -3727,10 +3734,9 @@ class Hopfield(Model):
 
         if self.dynamic:
             self.dfun = self.dfunDyn
-            self._state_variables = ["x", "theta"]
-            self._nvar = len(self._state_variables)
-            self.cvar = numpy.array([0,1], dtype=numpy.int32)
-            self.variables_of_interest = ["x","theta"]
+            self._nvar = 2
+            self.cvar = numpy.array([0, 1], dtype=numpy.int32)
+            #self.variables_of_interest = ["x", "theta"]
 
 
     def dfun(self, state_variables, coupling, local_coupling=0.0):
@@ -3744,10 +3750,12 @@ class Hopfield(Model):
 
         """
 
-        x = state_variables[0,:]
+        x = state_variables[0, :]
         dx = (- x + coupling[0]) / self.taux
 
-        derivative = numpy.array([dx])
+        ## We return 2 arrays here, because we have 2 possible state Variable, even if not dynamic
+        ## Otherwise the phase-plane display will fail.
+        derivative = numpy.array([dx, dx])
         return derivative
 
 
@@ -3772,6 +3780,7 @@ class Hopfield(Model):
 
         derivative = numpy.array([dx, dtheta])
         return derivative
+
 
 
 class Epileptor(Model):
@@ -4035,7 +4044,7 @@ class Epileptor_permittivity_coupling(Model):
     .. automethod:: Epileptor_permittivity_coupling.dfun
     """
 
-    _ui_name = "Epileptor_permittivity_coupling"
+    _ui_name = "Epileptor Permittivity Coupling"
     ui_configurable_parameters = ["Iext", "Iext2", "r", "x0", "slope"]
 
     a = arrays.FloatArray(
