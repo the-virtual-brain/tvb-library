@@ -3518,7 +3518,7 @@ class Kuramoto(Model):
         default=numpy.array([1.0]),
         range=basic.Range(lo=0.01, hi=200.0, step=0.1),
         doc=""":math:`\omega` sets the base line frequency for the
-            Kuramoto oscillator""",
+            Kuramoto oscillator in [rad/ms]""",
         order=1)
 
     #Informational attribute, used for phase-plane and initial()
@@ -3544,14 +3544,6 @@ class Kuramoto(Model):
                             is not necessary to change the default here.""",
         order=7)
 
-    #    variables_of_interest = arrays.IntegerArray(
-    #        label = "Variables watched by Monitors.",
-    #        default = numpy.array([0], dtype=numpy.int32),
-    #        doc = """This represents the default state-variables of this Model to be
-    #        monitored. It can be overridden for each Monitor if desired. The Kuramoto
-    #        model, however, only has one state variable with and index of 0, so it
-    #        is not necessary to change the default here.""",
-    #        order = 7)
 
 
     def __init__(self, **kwargs):
@@ -3585,15 +3577,11 @@ class Kuramoto(Model):
 
         """
 
-        # reset if over 2*pi
-        state_variables[state_variables > pi2] -= pi2
-
         theta = state_variables[0, :]
-
-
-        #                   TODO CHECKME FIXME ME ME
-        I = coupling[0, :] + sin(local_coupling * theta)
-
+        #local_range_coupling = numpy.sin(local_coupling * theta - theta)# gets distance dependent phase shifts (eg, time delays)
+        
+        I = coupling[0, :]
+        
         if not hasattr(self, 'derivative'):
             self.derivative = numpy.empty((1,) + theta.shape)
 
@@ -3606,13 +3594,12 @@ class Kuramoto(Model):
     device_info = model_device_info(
         pars=['omega'],
         kernel="""
-        float omega = P(0)
+        float omega = P(0) 
             , theta = X(0)
             , c_0 = I(0) ;
 
                     // update state array
         if (theta>(2*PI)) X(0)-= 2*PI;
-
         DX(0) = omega + c_0;
 
         """
