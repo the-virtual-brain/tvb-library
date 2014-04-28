@@ -564,14 +564,16 @@ class Difference(Coupling):
         """
         )
 
+
 class Kuramoto(Coupling):
 
     a = arrays.FloatArray(
-        label = ":math:`a`",
-        default=numpy.array([0.00390625,]),
-        range = basic.Range(lo = 0.0, hi = 0.2, step = 0.01),
-        doc = """Rescales the connection strength while maintaining the ratio
-        between different values.""",
+        label   = ":math:`a`",
+        default = numpy.array([1.0,]),
+        range   = basic.Range(lo = 0.0, hi = 1.0, step = 0.01),
+        doc = """ Rescales the connection strength while maintaining the ratio between
+        different values. Notice that the coupling term is also automatically
+        rescaled by the number of nodes.""",
         order = 1)
 
 
@@ -580,11 +582,16 @@ class Kuramoto(Coupling):
         Evaluates the Kuramoto-style coupling, a periodic difference:
 
             .. math::
-                a \sum_j^N g_ij sin(x_j - x_i)
+                a / N \sum_j^N g_ij sin(x_j - x_i - alpha_ij)
+                x_i: current state
+                x_j: past state
+                
+        Assumes heterogenous coupling.        
 
         """
+        number_of_regions = g_ij.shape[0]
 
-        return self.a*(g_ij*sin(x_j - x_i)).sum(axis=0)
+        return (self.a / number_of_regions)*(g_ij*sin(x_j-x_i)).sum(axis=0)
 
     device_info = coupling_device_info(
         pars = ['a'],
