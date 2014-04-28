@@ -2792,7 +2792,7 @@ class Generic2dOscillator(Model):
 
 
     def dfun(self, state_variables, coupling, local_coupling=0.0, ev=numexpr.evaluate):
-        """
+        r"""
         The two state variables :math:`V` and :math:`W` are typically considered
         to represent a function of the neuron's membrane potential, such as the
         firing rate or dendritic currents, and a recovery variable, respectively.
@@ -3285,7 +3285,7 @@ class LarterBreakspear(Model):
             - g_K\\, W\\, (V - V_K) - g_L\\, (V - V_L)
             - (g_{Na} m_{Na} + (1 - C) \\, a_{ee} Q_V^i +
             C \\, a_{ee} \\langle Q_V \\rangle) \\, (V - V_{Na})
-            - a_{ie}\\, Z \\, Q_Z^i + a_{ne} \\, I_{\\delta}
+            - a_{ie}\\, Z \\, Q_Z^i + a_{ne} \\, I_{\\delta} \\\\
 
             \\dot{W} &= \\frac{\\phi \\, (m_K - W)}{\\tau_K} \\\\
             \\dot{Z} &= b \\, (a_{ni} \\, I_{\\delta} + a_{ei} \\, V \\, Q_V)\\\\
@@ -3461,8 +3461,8 @@ class ReducedWongWang(Model):
         Equations taken from [DPA_2013]_ , page 11242
 
         .. math::
-                \frac{dS}{dt} &= -\frac{S}{\tau_s} + (1- S) \, H \, \gamma
-                H(x) &= \frac{ax - b}{1 - \exp(-d(ax -b))}
+                \frac{dS}{dt} &= -\frac{S}{\tau_s} + (1- S) \, H \, \gamma \\
+                H(x) &= \frac{ax - b}{1 - \exp(-d(ax -b))} \\
                 x &= wJ_{N}S + I_o + J_N c_0 + J_N lc_0
 
         """
