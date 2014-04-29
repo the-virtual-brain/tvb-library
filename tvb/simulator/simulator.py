@@ -479,6 +479,7 @@ class Simulator(core.Type):
 
             #import pdb; pdb.set_trace()
             state = scheme(state, dfun, node_coupling, local_coupling, stimulus)
+            self.dx = self.integrator.dX
             history[step % horizon, :] = state
 
             if self.surface is not None:

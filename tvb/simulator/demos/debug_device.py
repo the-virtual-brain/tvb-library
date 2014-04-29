@@ -64,6 +64,10 @@ ugly
 HeunStoch doesn't like ReducedHMR, makes lots of NaaN.
 
 
+debugging (july/2013)
+---------------------
+
+
 .. moduleauthor:: marmaduke woodman <mw@eml.cc>
 
 """
@@ -71,87 +75,170 @@ HeunStoch doesn't like ReducedHMR, makes lots of NaaN.
 import time
 import itertools
 
+
 from numpy import *
+import numpy
 
 from tvb.simulator import lab
+# can't reload individual modules, must reboot ipython
 from tvb.simulator.backend import driver_conf
-driver_conf.using_gpu = 0
-from tvb.simulator.backend import driver
+driver_conf.using_gpu = 1
+from tvb.simulator.backend import driver, util
 reload(driver)
 
-sim = lab.simulator.Simulator(
-    model = lab.models.Generic2dOscillator(),
-    connectivity = lab.connectivity.Connectivity(speed=4.0),
-    coupling = lab.coupling.Linear(a=1e-2),                                         # shape must match model..
-    integrator = lab.integrators.HeunStochastic(dt=2**-5, noise=lab.noise.Additive(nsig=ones((2, 1, 1))*1e-2)),
-    monitors = lab.monitors.Raw()
-)
+def makesim():
+    sim = lab.simulator.Simulator(
+        model = lab.models.Generic2dOscillator(b=-10.0, c=0., d=0.02, I=0.0),
+        connectivity = lab.connectivity.Connectivity(speed=4.0),
+        coupling = lab.coupling.Linear(a=1e-2),                                         # shape must match model..
+        integrator = lab.integrators.EulerDeterministic(dt=2**-5),
+        #integrator = lab.integrators.HeunStochastic(dt=2**-5, noise=lab.noise.Additive(nsig=ones((2, 1, 1))*1e-2)),
+        monitors = lab.monitors.Raw()
+    )
+    sim.configure()
+    return sim
 
-sim.configure()
+"""
+Parameter sweep scenario : we sweep in two dimensions over the coupling
+function's scale parameter ``a``, and the excitability parameter of the 
+oscillator ``a``
+"""
+
+sims = []
+for i, coupling_a in enumerate(r_[:0.1:32j]):
+    for j, model_a in enumerate(r_[-2.0:2.0:32j]):
+        simi = makesim()
+        simi.coupling.a[:] = coupling_a
+        simi.model.a[:] = model_a
+        sims.append(simi)
+        print 'simulation %d generated' % (i*32+j,)
+
 
 # then build device handler and pack it iwht simulation
-dh = driver.device_handler.init_like(sim)
-dh.n_thr = 1
-dh.fill_with(0, sim)
+dh = driver.device_handler.init_like(sims[0])
+dh.n_thr = dh.n_rthr = len(sims)
+for i, simi in enumerate(sims):
+    dh.fill_with(i, simi)
+
+nsteps = 10000
+ds = 50
+ys1 = zeros((nsteps/ds, dh.n_node, dh.n_svar, len(sims)))
+ys2 = zeros((nsteps/ds, dh.n_node, dh.n_svar, len(sims)))
+dys1 = zeros((nsteps/ds, dh.n_node, dh.n_svar, len(sims)))
+dys2 = zeros((nsteps/ds, dh.n_node, dh.n_svar, len(sims)))
+print ys1.nbytes/2**30.0
+
+simgens = [s(simulation_length=1000) for s in sims]
+
+tc, tg = util.timer(), util.timer()
+for i in range(nsteps):
+
+    # iterate each simulation
+    with tc:
+        for j, (sgj, smj) in enumerate(zip(simgens, sims)):
+            ((t, y), ) = next(sgj)
+            # y.shape==(svar, nnode, nmode)
+            ys1[i/ds, ..., j] = y[..., 0].T
+            dys1[i/ds, ..., j] = smj.dx[..., 0].T
+
+    with tg:
+        dh()
+
+    ys2[i/ds, ...] = dh.x.device.get()
+    dys2[i/ds, ...] = dh.dx1.device.get()
+
+    if i/ds and not i%ds:
+        err = ((ys1[:i/ds] - ys2[:i/ds])**2).sum()/ys1[:i/ds].ptp()/len(sims)
+        print t, tc.elapsed, tg.elapsed, err
 
 
-# run both with raw monitoring, compare output
-simgen = sim(simulation_length=100)
-cont = True
+print tc.elapsed, tg.elapsed
 
-ys1,ys2 = [], []
-while cont:
+savez('debug.npz', ys1=ys1, ys2=ys2, dys1=dys1, dys2=dys2)
 
-    # simulator output
-    try:
-        # history & indicies
-        histidx = ((sim.current_step - 1 - sim.connectivity.idelays)%sim.horizon)[:4, :4].flat[:]*74 + r_[:4, :4, :4, :4]
-        histval = [sim.history[(sim.current_step - 1 - sim.connectivity.idelays[10,j])%sim.horizon, 0, j, 0] for j in range(dh.n_node)]
-        #print 'histidx', histidx
-        #print 'hist[idx]', histval
+import pylab as pl
 
-        t1, y1 = next(simgen)[0]
-        ys1.append(y1)
-    except StopIteration:
-        break
+_y1, _y2, _dy1, _dy2 = [_y[:, 0, 0, ::64].T 
+                         for _y in (ys1, ys2, dys1, dys2)]
 
+pl.figure(1)
+pl.clf()
+pl.subplot(321)
+for y in _y1:
+    pl.plot(y, 'k-')
+pl.title("X(t)")
+pl.ylabel("Python")
+pl.grid(True)
+pl.xticks(pl.xticks()[0], ())
 
-    #print 'state sim', sim.integrator.X[:, -1, 0]
-    #print 'state dh ', dh.x.value.transpose((1, 0, 2))[:, -1, 0]
+pl.subplot(323)
+for y in _y2:
+    pl.plot(y, 'k-')
+pl.ylabel("CUDA")
+pl.grid(True)
+pl.xticks(pl.xticks()[0], ())
 
+pl.subplot(322)
+for y in _dy1:
+    pl.plot(y, 'k-')
+pl.title("d/dt X(t)")
+pl.grid(True)
+pl.xticks(pl.xticks()[0], ())
 
-    # dh output
-    driver.gen_noise_into(dh.ns, dh.inpr.value[0])
-    dh()
+pl.subplot(324)
+for y in _dy2:
+    pl.plot(y, 'k-')
+pl.grid(True)
+pl.xticks(pl.xticks()[0], ())
 
-    #print 'I sim', sim.coupling.ret[0, 10:15, 0]
+pl.subplot(326)
+for y1, y2 in zip(_dy1, _dy2):
+    pl.plot((y1-y2)/y1.ptp(), 'k-')
+pl.xlabel('Time (ms)')
+pl.grid(True)
 
-    # compare dx
-    #print 'dx1 sim', sim.integrator.dX[:, -1, 0]
-    #print 'dx1 dh ', dh.dx1.value.flat[:]
-    
-    t2 = dh.i_step*dh.inpr.value[0]
-    y2 = dh.x.value.reshape((dh.n_node, -1, dh.n_mode)).transpose((1, 0, 2))
-    ys2.append(y2)
+pl.subplot(325)
+for y1, y2 in zip(_y1, _y2):
+    pl.plot((y1-y2)/y1.ptp(), 'k-')
+pl.xlabel('Time (ms)')
+pl.grid(True)
+pl.ylabel('% Rel. Error')
 
-    if dh.i_step % 100 == 0:
-        stmt = "%4.2f\t%4.2f\t%.3f"
-        print stmt % (t1, t2, ((y1 - y2)**2).sum()/y1.ptp())
+pl.tight_layout()
 
-ys1 = array(ys1)
-ys2 = array(ys2)
+X, Y = [], []
+for i, coupling_a in enumerate(r_[:0.1:32j]):
+    for j, model_a in enumerate(r_[-2.0:2.0:32j]):
+        X.append(model_a)
+        Y.append(coupling_a)
+X = array(X).reshape((32, 32))
+Y = array(Y).reshape((32, 32))
 
-print ys1.flat[::450]
-print ys2.flat[::450]
+pl.figure(2)
+levels=r_[1.0 : 2.0 : 6j]
+pl.clf()
+pl.contour(X, Y, ys1[..., 0, :].std(0).mean(0).reshape((32, 32)), 
+           levels, linestyles='dashed')
+pl.contour(X, Y, ys2[..., 0, :].std(0).mean(0).reshape((32, 32)), 
+           levels)
+pl.ylabel('k')
+pl.xlabel('a')
+pl.title('Mean std dev (k, a)')
+pl.grid(True)
+pl.colorbar()
+pl.tight_layout()
+pl.show()
 
-savez('debug.npz', ys1=ys1, ys2=ys2)
+# would be nice to add insets for low and high variability
 
+"""
 from matplotlib import pyplot as pl
 
 pl.figure(2)
 pl.clf()
 pl.subplot(311), pl.imshow(ys1[:, 0, :, 0].T, aspect='auto', interpolation='nearest'), pl.colorbar()
-pl.subplot(312), pl.imshow(ys2[:, 0, :, 0].T, aspect='auto', interpolation='nearest'), pl.colorbar()
-pl.subplot(313), pl.imshow(((ys1 - ys2)/ys1.ptp())[:, 0, :, 0].T, aspect='auto', interpolation='nearest'), pl.colorbar()
+pl.subplot(312), pl.imshow(ys2[:,    :, 0].T, aspect='auto', interpolation='nearest'), pl.colorbar()
+pl.subplot(313), pl.imshow(100*((ys1[:, 0] - ys2)/ys1.ptp())[..., 0].T, aspect='auto', interpolation='nearest'), pl.colorbar()
 
 pl.show()
+"""

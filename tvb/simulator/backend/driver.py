@@ -63,8 +63,9 @@ if using_gpu:
     # FIXME should be on the noise objects, but has different interface
     # FIXME this is additive white noise
     def gen_noise_into(devary, dt):
-        rng.fill_normal(devary.device)
-        devary *= sqrt(dt)
+        gary = devary.device
+        rng.fill_normal(gary)
+        gary.set(gary.get()*sqrt(dt))
 
 else: # using Cpu
     import psutil
@@ -249,6 +250,18 @@ class device_array(object):
                 self._device = ascontiguousarray(self.cpu).ctypes.data_as(ptrtype)
         return self._device
 
+    def set(self, ary):
+        """
+        In place update the device array.
+        """
+        _ = self.device
+        if using_gpu:
+            self._device.set(ary)
+        else:
+            delattr(self, '_device')
+            self._cpu[:] = ary
+            _ = self.cpu
+
     @property
     def value(self):
         return self.device.get() if using_gpu else self.cpu.copy()
@@ -316,11 +329,11 @@ class device_handler(object):
 
     # possibly but not currently thread varying, call invariant
     conn  = device_array('conn',  float32, ('n_node', 'n_node'))
-    cfpr  = device_array('cfpr',  float32, ('n_cfpr', ))
 
     # thread varying, call invariant
     nspr  = device_array('nspr',  float32, ('n_node', 'n_nspr', 'n_thr'))
     mmpr  = device_array('mmpr',  float32, ('n_node', 'n_mmpr', 'n_thr'))
+    cfpr  = device_array('cfpr',  float32, (          'n_cfpr', 'n_thr'))
 
     # thread varying, call varying
     input = device_array('input', float32, (                     'n_cvar', 'n_thr'))
@@ -352,13 +365,14 @@ class device_handler(object):
 
             # could eventually vary with idx
             self.conn  .cpu[:] = sim.connectivity.weights.T
-            self.cfpr  .cpu[:] = sim.coupling.device_info.cfpr
+
+        self.cfpr  .cpu[..., idx] = sim.coupling.device_info.cfpr
+        self.mmpr  .cpu[..., idx] = sim.model.device_info.mmpr
 
         # each device_info should know the required shape, so none of these
         # assignments should fail with a shape error
         if hasattr(sim.integrator, 'noise'):
             self.nspr  .cpu[..., idx] = sim.integrator.noise.device_info.nspr
-        self.mmpr  .cpu[..., idx] = sim.model.device_info.mmpr
 
         # sim's history shape is (horizon, n_svars, n_nodes, n_modes)
 
@@ -467,7 +481,7 @@ class device_handler(object):
                 'n_cfpr' : sim.coupling         .device_info.n_cfpr,
                 'n_mmpr' : sim.model            .device_info.n_mmpr,
                 'n_inpr' : sim.integrator       .device_info.n_inpr,
-                'n_nspr' : sim.integrator.noise .device_info.n_nspr if stoch else 0,
+                'n_nspr' : sim.integrator.noise .device_info.n_nspr if stoch else 1,
                 'n_mode' : sim.model            .device_info.n_mode,
 
                 'n_tavg' : n_tavg, 'n_msik' : n_msik }
@@ -522,8 +536,14 @@ class device_handler(object):
     @property
     def extra_args(self):
         if using_gpu:
-            return {'block': (self.n_thr % 1024, 1, 1),
-                    'grid' : (self.n_thr / 1024, 1)}
+            bs = int(self.n_thr)%1024
+            gs = int(self.n_thr)/1024
+            if bs == 0:
+                bs = 1024
+            if gs == 0:
+                gs = 1
+            return {'block': (bs, 1, 1),
+                    'grid' : (gs, 1)}
         else:
             return {}
 
@@ -531,7 +551,16 @@ class device_handler(object):
         args  = [step_type(self.i_step)]
         for k in self.device_state:
             args.append(getattr(self, k).device)
-        self._device_update(*args, **(extra or self.extra_args))
+        try:
+            kwds = extra or self.extra_args
+            self._device_update(*args, **kwds)
+        except cuda.LogicError as e:
+            print 0, 'i_step', type(args[0])
+            for i, k in enumerate(self.device_state):
+                attr = getattr(self, k).device
+                print i+1, k, type(attr), attr.dtype
+            print kwds
+            raise e
         self.i_step += self.n_msik
         if using_gpu:
             cuda.Context.synchronize()

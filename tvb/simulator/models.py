@@ -630,8 +630,8 @@ class WilsonCowan(Model):
     # info for device_data
     device_info = model_device_info(
 
-        pars=[c_1, c_2, c_3, c_4, tau_e, tau_i, a_e, theta_e,
-              a_i, theta_i, r_e, r_i, k_e, k_i],
+        pars=['c_1', 'c_2', 'c_3', 'c_4', 'tau_e', 'tau_i', 'a_e', 'theta_e',
+              'a_i', 'theta_i', 'r_e', 'r_i', 'k_e', 'k_i'],
 
         kernel="""
         // read parameters
@@ -999,7 +999,7 @@ class ReducedSetFitzHughNagumo(Model):
     device_info = model_device_info(
         pars=[
             # given parameters
-            tau, a, b, K11, K12, K21, sigma, mu,
+            'tau', 'a', 'b', 'K11', 'K12', 'K21', 'sigma', 'mu',
 
             # derived parameters
             'Aik', 'Bik', 'Cik', 'e_i', 'f_i', 'IE_i', 'II_i', 'm_i', 'n_i'
@@ -1462,7 +1462,7 @@ class ReducedSetHindmarshRose(Model):
     device_info = model_device_info(
         pars=[
             # given parameters
-            r, a, b, c, d, s, xo, K11, K12, K21, sigma, mu,
+            'r', 'a', 'b', 'c', 'd', 's', 'xo', 'K11', 'K12', 'K21', 'sigma', 'mu',
             # derived parameters
             'A_ik', 'B_ik', 'C_ik', 'a_i', 'b_i', 'c_i', 'd_i', 'e_i',
             'f_i', 'h_i', 'p_i', 'IE_i', 'II_i', 'm_i', 'n_i'],
@@ -1839,6 +1839,15 @@ class JansenRit(Model):
 
         c_0 = coupling[0, :]
 
+        # NOTE: for local couplings
+        # 0: pyramidal cells
+        # 1: excitatory interneurons
+        # 2: inhibitory interneurons
+        # 0 -> 1,
+        # 0 -> 2,  
+        # 1 -> 0,
+        # 2 -> 0,
+
         #p_min = self.p_min
         #p_max = self.p_max
         #p = p_min + (p_max - p_min) * numpy.random.uniform()
@@ -1866,8 +1875,8 @@ class JansenRit(Model):
 
     device_info = model_device_info(
 
-        pars=[A, B, a, b, v0, nu_max, r, J, a_1, a_2, a_3, a_4,
-              p_min, p_max, mu],
+        pars=['A', 'B', 'a', 'b', 'v0', 'nu_max', 'r', 'J', 'a_1', 'a_2', 'a_3', 'a_4',
+              'p_min', 'p_max', 'mu'],
 
         kernel="""
         // read parameters
@@ -1972,7 +1981,7 @@ class Generic2dOscillator(Model):
     | a            |      1.0   |
     | b            |      0.0   |
     | c            |     -5.0   |
-    | d            |      0.1   |
+    | d            |      0.02  |
     | I            |      0.0   |
     -----------------------------
     |* monostable regime:       |
@@ -1988,7 +1997,7 @@ class Generic2dOscillator(Model):
     | a            |      0.5   |
     | b            |      0.6   |
     | c            |     -4.0   |
-    | d            |      0.1   |
+    | d            |      0.02  |
     | I            |      0.0   |
     -----------------------------
     |* excitable regime if b=0.6|
@@ -2035,7 +2044,7 @@ class Generic2dOscillator(Model):
     tau = arrays.FloatArray(
         label=r":math:`\tau`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=0.00001, hi=5.0, step=0.01),
+        range=basic.Range(lo=1.0, hi=5.0, step=0.01),
         doc="""A time-scale hierarchy can be introduced for the state
         variables :math:`V` and :math:`W`. Default parameter is 1, which means
         no time-scale hierarchy.""",
@@ -2214,7 +2223,7 @@ class Generic2dOscillator(Model):
         return self.derivative
 
     device_info = model_device_info(
-        pars=[tau, a, b, c, d, I],
+        pars=['tau', 'a', 'b', 'c', 'd', 'I'],
         kernel="""
 
         // read parameters
@@ -3096,7 +3105,7 @@ class Kuramoto(Model):
         return self.derivative
 
     device_info = model_device_info(
-        pars=[omega],
+        pars=['omega'],
         kernel="""
         float omega = P(0)
             , theta = X(0)
