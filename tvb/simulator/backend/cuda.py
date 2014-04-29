@@ -246,7 +246,7 @@ class Handler(driver.Handler):
             args.append(getattr(self, k).device)
         kwds = extra or self.extra_args
         #try:
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         self._device_update(*args, **kwds)
         """
         except cuda.LogicError as e:

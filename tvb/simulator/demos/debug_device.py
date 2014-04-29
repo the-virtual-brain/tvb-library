@@ -68,12 +68,15 @@ debugging (july/2013)
 ---------------------
 
 
-.. moduleauthor:: marmaduke woodman <mw@eml.cc>
+.. moduleauthor:: marmaduke woodman <marmaduke.woodman@univ-amu.fr>
 
 """
 
 import time
 import itertools
+
+import matplotlib as mpl
+mpl.use('Agg')
 
 from numpy import *
 
