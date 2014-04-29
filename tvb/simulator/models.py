@@ -3578,9 +3578,16 @@ class Kuramoto(Model):
         """
 
         theta = state_variables[0, :]
-        #local_range_coupling = numpy.sin(local_coupling * theta - theta)# gets distance dependent phase shifts (eg, time delays)
+        #import pdb; pdb.set_trace()
+
+        #A) Distribution of phases according to the local connectivity kernel
+        local_range_coupling = numpy.sin(local_coupling * theta)
+
+        # NOTE: To evaluate. 
+        #B) Strength of the interactions
+        #local_range_coupling = local_coupling * numpy.sin(theta)
         
-        I = coupling[0, :]
+        I = coupling[0, :] + local_range_coupling   
         
         if not hasattr(self, 'derivative'):
             self.derivative = numpy.empty((1,) + theta.shape)
