@@ -75,6 +75,8 @@ debugging (july/2013)
 import time
 import itertools
 
+import matplotlib as mpl
+mpl.use('Agg')
 
 from numpy import *
 import numpy
@@ -105,8 +107,8 @@ oscillator ``a``
 """
 
 sims = []
-for i, coupling_a in enumerate(r_[:0.1:32j]):
-    for j, model_a in enumerate(r_[-2.0:2.0:32j]):
+for i, coupling_a in enumerate(r_[:0.1:16j]):
+    for j, model_a in enumerate(r_[-2.0:2.0:16j]):
         simi = makesim()
         simi.coupling.a[:] = coupling_a
         simi.model.a[:] = model_a
@@ -156,89 +158,3 @@ print tc.elapsed, tg.elapsed
 
 savez('debug.npz', ys1=ys1, ys2=ys2, dys1=dys1, dys2=dys2)
 
-import pylab as pl
-
-_y1, _y2, _dy1, _dy2 = [_y[:, 0, 0, ::64].T 
-                         for _y in (ys1, ys2, dys1, dys2)]
-
-pl.figure(1)
-pl.clf()
-pl.subplot(321)
-for y in _y1:
-    pl.plot(y, 'k-')
-pl.title("X(t)")
-pl.ylabel("Python")
-pl.grid(True)
-pl.xticks(pl.xticks()[0], ())
-
-pl.subplot(323)
-for y in _y2:
-    pl.plot(y, 'k-')
-pl.ylabel("CUDA")
-pl.grid(True)
-pl.xticks(pl.xticks()[0], ())
-
-pl.subplot(322)
-for y in _dy1:
-    pl.plot(y, 'k-')
-pl.title("d/dt X(t)")
-pl.grid(True)
-pl.xticks(pl.xticks()[0], ())
-
-pl.subplot(324)
-for y in _dy2:
-    pl.plot(y, 'k-')
-pl.grid(True)
-pl.xticks(pl.xticks()[0], ())
-
-pl.subplot(326)
-for y1, y2 in zip(_dy1, _dy2):
-    pl.plot((y1-y2)/y1.ptp(), 'k-')
-pl.xlabel('Time (ms)')
-pl.grid(True)
-
-pl.subplot(325)
-for y1, y2 in zip(_y1, _y2):
-    pl.plot((y1-y2)/y1.ptp(), 'k-')
-pl.xlabel('Time (ms)')
-pl.grid(True)
-pl.ylabel('% Rel. Error')
-
-pl.tight_layout()
-
-X, Y = [], []
-for i, coupling_a in enumerate(r_[:0.1:32j]):
-    for j, model_a in enumerate(r_[-2.0:2.0:32j]):
-        X.append(model_a)
-        Y.append(coupling_a)
-X = array(X).reshape((32, 32))
-Y = array(Y).reshape((32, 32))
-
-pl.figure(2)
-levels=r_[1.0 : 2.0 : 6j]
-pl.clf()
-pl.contour(X, Y, ys1[..., 0, :].std(0).mean(0).reshape((32, 32)), 
-           levels, linestyles='dashed')
-pl.contour(X, Y, ys2[..., 0, :].std(0).mean(0).reshape((32, 32)), 
-           levels)
-pl.ylabel('k')
-pl.xlabel('a')
-pl.title('Mean std dev (k, a)')
-pl.grid(True)
-pl.colorbar()
-pl.tight_layout()
-pl.show()
-
-# would be nice to add insets for low and high variability
-
-"""
-from matplotlib import pyplot as pl
-
-pl.figure(2)
-pl.clf()
-pl.subplot(311), pl.imshow(ys1[:, 0, :, 0].T, aspect='auto', interpolation='nearest'), pl.colorbar()
-pl.subplot(312), pl.imshow(ys2[:,    :, 0].T, aspect='auto', interpolation='nearest'), pl.colorbar()
-pl.subplot(313), pl.imshow(100*((ys1[:, 0] - ys2)/ys1.ptp())[..., 0].T, aspect='auto', interpolation='nearest'), pl.colorbar()
-
-pl.show()
-"""
