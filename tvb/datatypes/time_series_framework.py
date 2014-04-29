@@ -236,6 +236,12 @@ class TimeSeriesSensorsFramework(TimeSeriesFramework):
             return self.sensors.gid
         return ''
 
+    def get_default_selection(self):
+        if self.sensors is not None:
+            # select only the first 8 channels
+            return range(min(8, len(self.get_space_labels())))
+        return []
+
 
 
 class TimeSeriesRegionFramework(time_series_data.TimeSeriesRegionData, TimeSeriesFramework):
