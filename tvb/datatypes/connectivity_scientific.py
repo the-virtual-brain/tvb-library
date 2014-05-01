@@ -37,6 +37,7 @@ Scientific methods for the Connectivity datatype.
 """
 
 from copy import copy
+import scipy.stats as sstats
 import numpy
 import tvb.datatypes.connectivity_data as connectivity_data
 from tvb.basic.logger.builder import get_logger
@@ -140,7 +141,25 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
                                                  mask_array_name='weights', key_suffix=" (connections)"))
         
         return summary
-    
+
+
+    def wipe_out(self):
+        """
+        NOTE: this really really REALLY should be a temporary thing until we redefine the 
+        connectivity dtypes. I'm sure this will bring some inconsistencies and probably 
+        some headaches. 
+
+        """
+
+        self.weights = None
+        self.tract_lengths = None
+        self.centres = None
+        self.region_labels = None
+        self.orientations = None
+        self.cortical = None
+        self.hemispheres = None
+        self.areas = None
+
     
     def set_idelays(self, dt):
         """
@@ -234,7 +253,7 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
                 connection is 1.0. (Global scaling)
             
             'region': Scale by a value such that the maximum absolute value of the
-                cumulative input to any region is 1.0. (Node-wise scaling)
+                cumulative input to any region is 1.0. (Global-wise scaling)
             
             None: does nothing.
             
@@ -343,9 +362,7 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
                 #       small probabilities for negative values around 0.
                 # TODO: change the kde bandwidth method 
                 LOG.warning("Found negative values. Setting them to 0.0")
-                D = numpy.where(D < 0.0, 0.0, D)
-
-            
+                D = numpy.where(D < 0.0, 0.0, D)           
                 
             # NOTE: if we need the cdf: kernel.integrate_box_1d(lo, hi)
             # TODO: make a subclass using rv_continous, might be more accurate
@@ -355,7 +372,258 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
             #NOTE: pdf name could be an argument.
         D = numpy.where(temp > 0, D, 0) 
         #NOTE: Consider saving a copy of the original delays matrix?
-        exec("self." + matrix + "[:] = D")
+        #exec("self." + matrix + "[:] = D")
+
+
+
+    def motif_linear_directed(self, number_of_regions=4, max_radius=100., return_type=None):
+        """
+        Generates a linear (open chain) unweighted directed graph with equidistant nodes.
+        """
+
+        iu1 = numpy.triu_indices(number_of_regions, 1)
+        iu2 = numpy.triu_indices(number_of_regions, 2)
+
+        self.weights = numpy.zeros((number_of_regions, number_of_regions))
+        self.weights[iu1] = 1.0
+        self.weights[iu2] = 0.0
+
+        self.tract_lengths     = max_radius * copy(self.weights)
+        self.number_of_regions = number_of_regions
+        self.create_region_labels(mode='numeric')
+
+        if return_type is not None:
+            return self.weights, self.tract_lengths
+        else:
+            pass
+
+
+    def motif_linear_undirected(self, number_of_regions=4, max_radius=42.):
+        """
+        Generates a linear (open chain) unweighted undirected graph with equidistant nodes.
+        """
+
+        self.weights, self.tract_lengths = self.motif_linear_directed(number_of_regions=number_of_regions, 
+                                                            max_radius=max_radius,
+                                                            return_type=True)
+
+        self.weights       += self.weights.T
+        self.tract_lengths += self.tract_lengths.T
+        self.number_of_regions = number_of_regions
+        self.create_region_labels(mode='numeric')
+
+
+
+    def motif_chain_directed(self, number_of_regions=4, max_radius=42., return_type=None):
+        """
+        Generates a closed unweighted directed graph with equidistant nodes.
+        Depending on the centres it could be a box or a ring.
+        """
+
+        self.weights, self.tract_lengths = self.motif_linear_directed(number_of_regions=number_of_regions, 
+                                                                      max_radius=max_radius,
+                                                                      return_type=True)
+
+        self.weights[-1, 0]       = 1.0
+        self.tract_lengths[-1, 0] = max_radius
+        self.number_of_regions = number_of_regions
+        self.create_region_labels(mode='numeric')
+        
+        if return_type is not None:
+            return self.weights, self.tract_lengths
+        else:
+            pass
+
+
+
+    def motif_chain_undirected(self, number_of_regions=4, max_radius=42.):
+        """
+        Generates a closed unweighted undirected graph with equidistant nodes.
+        Depending on the centres it could be a box or a ring.
+        """
+
+        self.weights, self.tract_lengths = self.motif_chain_directed(number_of_regions=number_of_regions, 
+                                                                     max_radius=max_radius,
+                                                                     return_type=True)
+
+        self.weights[0, -1]       = 1.0
+        self.tract_lengths[0, -1] = max_radius
+        self.number_of_regions = number_of_regions
+        self.create_region_labels(mode='numeric')
+
+
+
+    def motif_all_to_all(self, number_of_regions=4, max_radius=42.):
+        """
+        Generates an all-to-all closed unweighted undirected graph with equidistant nodes.
+        Self-connections are not included.
+        """
+
+        diagonal_elements = numpy.diag_indices(number_of_regions)
+        
+        self.weights           = numpy.ones((number_of_regions, number_of_regions))
+        self.weights[diagonal_elements] = 0.0
+        self.tract_lengths =  max_radius * copy(self.weights)
+        self.number_of_regions = number_of_regions
+        self.create_region_labels(mode='numeric')
+
+
+
+    def centres_spherical(self, number_of_regions=4, max_radius=42., flat=False):
+        """
+        The nodes positions are distributed on a sphere.
+        See: http://mathworld.wolfram.com/SphericalCoordinates.html
+
+        If flat is true, then theta=0.0, the nodes are lying inside a circle.
+
+        r    : radial
+        theta: azimuthal
+        polar: phi
+        """
+
+        # azimuth
+        theta = numpy.random.uniform(low=-numpy.pi, high=numpy.pi, size=number_of_regions)
+
+        # side of the cube
+        u = numpy.random.uniform(low=0.0, high=1.0, size=number_of_regions)
+
+        if flat:
+            cosphi = 0.0
+        else:
+            # cos(elevation)
+            cosphi = numpy.random.uniform(low=-1.0, high=1.0, size=number_of_regions)
+
+        phi = numpy.arccos(cosphi)
+        r   = max_radius * pow(u, 1/3.0)
+
+        # To Cartesian coordinates
+        x = r * numpy.sin(phi) * numpy.cos(theta)
+        y = r * numpy.sin(phi) * numpy.sin(theta)
+        z = r * numpy.cos(phi)
+
+        self.centres = numpy.array([x, y, z]).T
+        norm_xyz = numpy.sqrt(numpy.sum(self.centres**2, axis=0))
+        self.orientations = self.centres / norm_xyz[numpy.newaxis, :]
+
+
+
+    def centres_toroidal(self, number_of_regions=4, max_radius=77., min_radius=13., mu=numpy.pi, kappa=numpy.pi/6):
+        """
+        The nodes are lying on  a torus.
+        See: http://mathworld.wolfram.com/Torus.html
+
+        """
+
+        u = sstats.vonmises.rvs(kappa, loc=mu, size=number_of_regions)
+        v = sstats.vonmises.rvs(kappa, loc=mu, size=number_of_regions)
+
+        # To cartesian coordinates
+        x = (max_radius + min_radius * numpy.cos(v))* numpy.cos(u)
+        y = (max_radius + min_radius * numpy.cos(v))* numpy.sin(v)
+        z = min_radius * numpy.sin(v)
+
+        self.centres = numpy.array([x, y, z]).T
+
+
+    def centres_annular(self, number_of_regions=4, max_radius=77., min_radius=13., mu=numpy.pi, kappa=numpy.pi/6):
+        """
+        The nodes are lying inside an annulus.
+
+        """
+
+        r = numpy.random.uniform(low=min_radius, high=max_radius, size=number_of_regions)
+        theta = sstats.vonmises.rvs(kappa, loc=mu, size=number_of_regions)
+
+        # To cartesian coordinates
+        x = r * numpy.cos(theta)
+        y = r * numpy.sin(theta)
+        z = numpy.zeros(number_of_regions)
+
+        self.centres = numpy.array([x, y, z]).T
+
+
+    def centres_cubic(self, number_of_regions=4, max_radius=42., flat=False):
+        """
+        The nodes are positioined in a 3D grid inside the cube centred at the origin and
+        with edges parallel to the axes, with an edge length of 2*max_radius.
+
+        """
+
+        # To cartesian coordinates
+        x = numpy.linspace(-max_radius, max_radius, number_of_regions)
+        y = numpy.linspace(-max_radius, max_radius, number_of_regions)
+
+        if flat:
+            z = numpy.zeros(number_of_regions)
+        else: 
+            z = numpy.linspace(-max_radius, max_radius, number_of_regions)
+
+
+        self.centres = numpy.array([x, y, z]).T
+
+
+    def generate_surrogate_connectivity(self, number_of_regions, motif='chain', undirected=True, these_centres='spherical'):
+        """
+        This one generates some defaults.
+        For more specific motifs, generate invoking each method separetly. 
+        
+        """
+
+        self.wipe_out()
+
+        # NOTE: Luckily I went for 5 motifs ...
+        if motif == 'chain' and undirected:
+            self.motif_chain_undirected(number_of_regions=number_of_regions)
+        elif motif == "chain" and not undirected:
+            self.motif_chain_directed(number_of_regions=number_of_regions)
+        elif motif == 'linear' and undirected:
+            self.motif_linear_undirected(number_of_regions=number_of_regions)
+        elif motif == 'linear' and not undirected:
+            self.motif_linear_directed(number_of_regions=number_of_regions)
+        else: 
+            LOG.info("Generating all-to-all connectivity \\")
+            self.motif_all_to_all(number_of_regions=number_of_regions)
+
+        # centres
+        if these_centres in ("spherical", "annular", "toroidal", "cubic"):
+            eval("self.centres_" + these_centres + "(number_of_regions=number_of_regions)")
+        else:
+            raise Exception("Bad centres geometry")
+
+
+    def create_region_labels(self, mode="numeric"):
+
+        """
+        Assumes weights already exists
+        """
+
+        LOG.info("Create labels: %s" % str(mode))
+        
+        if mode in ("numeric", "num"):
+            self.region_labels = [n for n in xrange(self.number_of_regions)]
+            self.region_labels = numpy.array(self.region_labels).astype(str)
+        elif mode in ("alphabetic", "alpha"):
+            import string
+            if self.number_of_regions < 26:
+                self.region_labels = numpy.array(list(map(chr, range(65, 65+self.number_of_regions)))).astype(str)
+            else:
+                LOG.info("I'm too lazy to create several strategies to label regions. \\")
+                LOG.info("Please choose mode 'numeric' or set your own labels\\")
+        else:
+            LOG.error("Bad region labels mode, must be one of:")
+            LOG.error("('numeric', 'num', 'alphabetic', 'alpha')")
+            raise Exception("Bad region labels mode")
+
+
+
+
+
+
+
+
+
+
+
         
         
         
