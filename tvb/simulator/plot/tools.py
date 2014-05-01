@@ -671,7 +671,7 @@ if IMPORTED_MAYAVI:
             time_step.set(text=("%s of %s" % (str(k), str(tpts))))
             k += step
             yield
-        mlab.show(stop=True)
+        mlab.show()
         #--------------------------------------------------------------------------#
 
 
@@ -739,27 +739,26 @@ if IMPORTED_MAYAVI:
             lut[k] = numpy.hstack((colour_rgb[mapping_colours[colouring[k]]], alpha))
 
         fig = mlab.figure(figure="surface parcellation", bgcolor=(0.0, 0.0, 0.0), fgcolor=(0.5, 0.5, 0.5))
-        surf_mesh = mlab.triangular_mesh(cortex_boundaries.cortex.vertices[:number_of_vertices, 0],
-                                         cortex_boundaries.cortex.vertices[:number_of_vertices, 1],
-                                         cortex_boundaries.cortex.vertices[:number_of_vertices, 2],
-                                         cortex_boundaries.cortex.triangles[:number_of_triangles, :],
-                                         scalars=cortex_boundaries.cortex.region_mapping[:number_of_vertices],
+        surf_mesh = mlab.triangular_mesh(cortex_boundaries.cortex.vertices[:number_of_vertices//2, 0],
+                                         cortex_boundaries.cortex.vertices[:number_of_vertices//2, 1],
+                                         cortex_boundaries.cortex.vertices[:number_of_vertices//2, 2],
+                                         cortex_boundaries.cortex.triangles[:number_of_triangles//2, :],
+                                         scalars=cortex_boundaries.cortex.region_mapping[:number_of_vertices//2],
                                          figure=fig)
         surf_mesh.module_manager.scalar_lut_manager.lut.number_of_colors = number_of_regions
-        surf_mesh.module_manager.scalar_lut_manager.lut.table = lut
+        #surf_mesh.module_manager.scalar_lut_manager.lut.table = lut
 
         #TODO: can't get region labels to associate with colorbar...
         #mlab.colorbar(object=surf_mesh, orientation="vertical")
-
         x = cortex_boundaries.boundary[:, 0]
         y = cortex_boundaries.boundary[:, 1]
         z = cortex_boundaries.boundary[:, 2]
-        bpts = mlab.points3d(x, y, z, color=(0.25, 0.05, 0.05), scale_factor=1)
+        bpts = mlab.points3d(x, y, z, color=(0.25, 0.25, 0.25), scale_factor=1)
         mlab.show(stop=interaction)
         return surf_mesh, bpts
 
 
-    def surface_pattern(surface, vertex_colours):
+    def surface_pattern(surface, vertex_colours, custom_lut = None, foci=None):
         """
         Plot a surface and colour it based on a vector of length number of 
         vertices (vertex_colours).
@@ -785,6 +784,24 @@ if IMPORTED_MAYAVI:
         scalar_data.update()
         scalar_mesh = mlab.pipeline.set_active_attribute(surf_mesh, point_scalars='Scalar data')
         scalar_surf = mlab.pipeline.surface(scalar_mesh)
+
+
+        if custom_lut is not None:
+
+            # and finally we put this LUT back in the surface object. We could have
+            # added any 255*4 array rather than modifying an existing LUT.
+            scalar_surf.module_manager.scalar_lut_manager.lut.table = custom_lut
+        
+        if foci is not None:
+            pts = mlab.points3d(foci[:,0], 
+                                foci[:,1], 
+                                foci[:,2],
+                            scale_factor = 2.,
+                            scale_mode = 'none',
+                            resolution = 5,
+                            opacity=0.01)
+
+        
         mlab.show(stop=True)
         return sm_obj
 
@@ -932,7 +949,7 @@ if IMPORTED_MAYAVI:
     ##-                    plotting functions for analysis output                -##
     ##----------------------------------------------------------------------------##
 
-    def plot_matrix(mat, fig_name='plot_this_matrix', connectivity=None):
+    def plot_matrix(mat, fig_name='plot_this_matrix', connectivity=None, binary_matrix=False):
         """
         An embellished matshow display
         """
@@ -940,30 +957,43 @@ if IMPORTED_MAYAVI:
         # a dummy function for displaying a pretty matrix with the 
         # value of each element.
 
-        fig = pyplot.figure(num=fig_name)
-        ax = fig.gca()
-        res = ax.imshow(mat, cmap=pyplot.cm.jet, interpolation='nearest', alpha=0.6)
+        from matplotlib import colors
+
+        fig, ax = pyplot.subplots(num=fig_name, figsize=(12,10))
+
+
+        if binary_matrix:
+            cmap = colors.ListedColormap(['black', 'white'])
+            bounds=[0,1,2]
+            norm = colors.BoundaryNorm(bounds, cmap.N)
+
+            p = ax.pcolormesh(mat, cmap=cmap, norm=norm, edgecolors='k')
+            ax.invert_yaxis()
+            cbar = fig.colorbar(p, cmap=cmap, norm=norm, boundaries=bounds, ticks=[0.5, 1.5])
+            cbar.ax.set_yticklabels(['no connections', 'connections'], fontsize=24)
+
+        else:
+            fig = pyplot.figure(num=fig_name)
+            ax = fig.gca()
+            res = ax.imshow(mat, cmap=pyplot.cm.coolwarm, interpolation='nearest')
+            fig.colorbar(res)
 
         if connectivity is not None:
             order = numpy.arange(connectivity.number_of_regions)
             labels = connectivity.region_labels
-            pyplot.xticks(numpy.arange(connectivity.number_of_regions), list(labels[order]), fontsize=9, rotation=90)
-            pyplot.yticks(numpy.arange(connectivity.number_of_regions), list(labels[order]), fontsize=9)
-
-        fig.colorbar(res)
-        width = mat.shape[0]
+            pyplot.xticks(numpy.arange(connectivity.number_of_regions)+0.5, list(labels[order]), fontsize=10, rotation=90)
+            pyplot.yticks(numpy.arange(connectivity.number_of_regions)+0.5, list(labels[order]), fontsize=10)
+        
+        width  = mat.shape[0]
         height = mat.shape[1]
 
-        for x in xrange(width):
-            for y in xrange(height):
-                ax.annotate(str(int(mat[x][y])),
-                            xy=(y, x),
-                            horizontalalignment='center',
-                            verticalalignment='center',
-                            fontsize=7)
-
-
-
+        # for x in xrange(width):
+        #     for y in xrange(height):
+        #         ax.annotate(str(int(mat[x][y])),
+        #                     xy=(y, x),
+        #                     horizontalalignment='center',
+        #                     verticalalignment  = 'center',
+        #                     fontsize=10)
 
 
 if __name__ == '__main__':
