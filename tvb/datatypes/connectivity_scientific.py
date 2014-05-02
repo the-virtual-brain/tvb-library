@@ -519,7 +519,7 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
 
         # To cartesian coordinates
         x = (max_radius + min_radius * numpy.cos(v))* numpy.cos(u)
-        y = (max_radius + min_radius * numpy.cos(v))* numpy.sin(v)
+        y = (max_radius + min_radius * numpy.cos(v))* numpy.sin(u)
         z = min_radius * numpy.sin(v)
 
         self.centres = numpy.array([x, y, z]).T
