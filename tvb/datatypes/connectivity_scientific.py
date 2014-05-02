@@ -522,6 +522,29 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         y = (max_radius + min_radius * numpy.cos(v))* numpy.sin(u)
         z = min_radius * numpy.sin(v)
 
+
+        # Tangent vector with respect to max_radius
+        tx = -numpy.sin(u)
+        ty = -numpy.cos(u)
+        tz = 0
+
+        # Tangent vector with respect to min_radius
+        sx = -numpy.cos(u)*(-numpy.sin(v))
+        sy = numpy.sin(u)*(-numpy.sin(v))
+        sz = numpy.cos(v)
+
+        # Normal vector 
+        nx = ty*sz - tz*sy
+        ny = tz*sx - tx*sz
+        nz = tx*sy - ty*sx
+
+        # Normalize normal vectors
+        norm = numpy.sqrt(nx**2 + ny**2 + nz**2)
+        nx /= norm
+        ny /= norm
+        nz /= norm
+
+        self.orientations = numpy.array([nx, ny, nz]).T
         self.centres = numpy.array([x, y, z]).T
 
 
