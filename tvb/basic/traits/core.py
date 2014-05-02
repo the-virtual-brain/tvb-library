@@ -364,20 +364,24 @@ class MetaType(abc.ABCMeta):
         inst.trait.inits = inits
         # Set Default attributes from traited class definition
         for name, attr in inst.trait.iteritems():
+            setattr(inst, name, deepcopy(attr.trait.value))
+            """
             try:
-                setattr(inst, name, deepcopy(attr.trait.value))
             except Exception, exc:
                 LOG.exception(exc)
                 LOG.error("Could not set attribute '" + name + "' on " + str(inst.__class__.__name__))
                 raise exc
+            """
         # Overwrite with attributes passed in the constructor
         for name, attr in kwdtraits.iteritems():
+            setattr(inst, name, attr)
+            """
             try:
-                setattr(inst, name, attr)
             except Exception, exc:
                 LOG.exception(exc)
                 LOG.error("Could not set kw-given attribute '" + name + "' on " + str(inst.__class__.__name__))
                 raise exc
+            """
 
         # the owner class, if any, will set this to true, see metatype.__new__
         inst.trait.bound = False
