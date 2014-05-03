@@ -65,11 +65,23 @@ from tvb.simulator.lab import *
 
 LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
-oscilator = models.Generic2dOscillator(a=1.42)
+pars = {'a': 1.05, 
+        'b': -1., 
+        'c':0.0, 
+        'd':0.1, 
+        'e':0.0, 
+        'f':1/3., 
+        'g':1.0, 
+        'alpha':1.0, 
+        'beta':0.2, 
+        'tau':1.25, 
+        'gamma':-1.0}
+
+oscilator = models.Generic2dOscillator(**pars)
 white_matter = connectivity.Connectivity()
 white_matter.speed = numpy.array([4.0])
 
-white_matter_coupling = coupling.Linear(a=0.016)
+white_matter_coupling = coupling.Linear(a=0.033)
 
 #Initialise an Integrator
 hiss = noise.Additive(nsig = numpy.array([2**-10,]))
