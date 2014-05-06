@@ -164,21 +164,7 @@ class SensorsInternalData(SensorsData):
 
     __mapper_args__ = {'polymorphic_identity': INTERNAL_POLYMORPHIC_IDENTITY}
 
-    default = readers.File(folder_path="sensors", file_name='internal_39.txt.bz2')
-
-
     sensors_type = basic.String(default=INTERNAL_POLYMORPHIC_IDENTITY)
-
-    labels = arrays.StringArray(
-        label="Sensor labels",
-        console_default=default.read_data(usecols=(0,), dtype="string", field="labels"))
-
-    locations = arrays.PositionArray(
-        label="Sensor locations",
-        console_default=default.read_data(usecols=(1, 2, 3), field="locations"))
-    has_orientation = basic.Bool(default=False, order=-1)
-
-    orientations = arrays.OrientationArray(required=False)
 
 
     def __init__(self, **kwargs):

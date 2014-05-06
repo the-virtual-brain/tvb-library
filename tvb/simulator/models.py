@@ -4013,11 +4013,11 @@ class EpileptorPermittivityCoupling(Model):
     - There is a possible coupling between fast and slow time scales, call the
       permittivity coupling.
 
-    .. figure :: img/Epileptor_permittivity_coupling_01_mode_0_pplane.svg
+    .. figure :: img/EpileptorPermittivityCoupling_01_mode_0_pplane.svg
         :alt: Epileptor phase plane
 
-    .. automethod:: Epileptor_permittivity_coupling.__init__
-    .. automethod:: Epileptor_permittivity_coupling.dfun
+    .. automethod:: EpileptorPermittivityCoupling.__init__
+    .. automethod:: EpileptorPermittivityCoupling.dfun
     """
 
     _ui_name = "Epileptor Permittivity Coupling"
