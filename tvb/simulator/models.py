@@ -3894,9 +3894,9 @@ class Epileptor(Model):
     state_variable_range = basic.Dict(
         label="State variable ranges [lo, hi]",
         default={"y0": numpy.array([-2., 1.]),
-                 "y1": numpy.array([-20, 2.]),
+                 "y1": numpy.array([-20., 2.]),
                  "y2": numpy.array([2.0, 5.0]),
-                 "y3": numpy.array([-2., -1.]),
+                 "y3": numpy.array([-2., 0.]),
                  "y4": numpy.array([0., 2.]),
                  "y5": numpy.array([-1., 1.])},
         doc="n/a",
@@ -3982,11 +3982,10 @@ class Epileptor(Model):
         # energy
         if_ydot2 = self.r*(4*(y[0] - self.x0) - y[2] - 0.1*y[2]**7)
         else_ydot2 = self.r*(4*(y[0] - self.x0) - y[2])
-        ydot2 = where(y[2] < 0, if_ydot2, else_ydot2)
+        ydot2 = where(y[2] < 0., if_ydot2, else_ydot2)
 
         # population 2
-        ydot3 = -y[4] + y[3] - y[3]**3 + self.Iext2 + 2*y[5] - 0.3*(y[2] - 3.5)
-        + self.Kf*c_pop2
+        ydot3 = -y[4] + y[3] - y[3]**3 + self.Iext2 + 2*y[5] - 0.3*(y[2] - 3.5) + self.Kf*c_pop2
         if_ydot4 = -y[4]/self.tau
         else_ydot4 = (-y[4] + self.aa*(y[3] + 0.25))/self.tau
         ydot4 = where(y[3] < -0.25, if_ydot4, else_ydot4)
