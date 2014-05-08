@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 #
 #
-#  TheVirtualBrain-Scientific Package. This package holds all simulators, and 
-# analysers necessary to run brain-simulations. You can use it stand alone or
-# in conjunction with TheVirtualBrain-Framework Package. See content of the
+# TheVirtualBrain-Framework Package. This package holds all Data Management, and 
+# Web-UI helpful to run brain-simulations. To use it, you also need do download
+# TheVirtualBrain-Scientific Package (for simulators). See content of the
 # documentation-folder for more details. See also http://www.thevirtualbrain.org
 #
 # (c) 2012-2013, Baycrest Centre for Geriatric Care ("Baycrest")
@@ -18,7 +18,7 @@
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0
 #
 #
-#   CITATION:
+# CITATION:
 # When using The Virtual Brain for scientific publications, please cite it as follows:
 #
 #   Paula Sanz Leon, Stuart A. Knock, M. Marmaduke Woodman, Lia Domide,
@@ -29,10 +29,27 @@
 #
 
 """
-TVB DataTypes, as a dictionary between multiple algorithms.
+module docstring
+.. moduleauthor:: Mihai Andrei <mihai.andrei@codemart.ro>
 """
 
-__all__ = ["arrays", "connectivity", "coupling", "equations", "graph", "lookup_tables",
-           "mapped_values", "mode_decompositions", "patterns", "projections", "simulation_state",
-           "sensors", "spectral", "surfaces", "temporal_correlations", "time_series", "tracts", "volumes"]
+import tvb.datatypes.arrays as arrays
+from tvb.basic.traits.types_mapped import MappedType
 
+
+class TractData(MappedType):
+    vertices = arrays.PositionArray(
+        label="Vertex positions",
+        order=-1,
+        doc="""An array specifying coordinates for the tracts vertices.""")
+
+    vertex_counts = arrays.IntegerArray(
+        label="Tract vertex counts",
+        order=-1,
+        doc="""An array specifying how many vertices in a tract""")
+
+    __generate_table__ = True
+
+    @property
+    def tracts_count(self):
+        return self.vertices.shape[0]
