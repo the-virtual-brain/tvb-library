@@ -414,7 +414,7 @@ class model_device_info(object):
 
 
 class WilsonCowan(Model):
-    """
+    r"""
     **References**:
 
     .. [WC_1972] Wilson, H.R. and Cowan, J.D. *Excitatory and inhibitory
@@ -514,11 +514,13 @@ class WilsonCowan(Model):
 
             The (:math:`E`, :math:`I`) phase-plane for the Wilson-Cowan model.
 
-    .. #Currently there seems to be a clash betwen traits and autodoc, autodoc
-    .. #can't find the methods of the class, the class specific names below get
-    .. #us around this...
     .. automethod:: WilsonCowan.__init__
-    .. automethod:: WilsonCowan.dfun
+
+    Dynamic equations:
+
+    .. math::
+            \tau \dot{x}(t) &= -z(t) + \phi(z(t)) \\
+            \phi(x) &= \frac{c}{1-exp(-a (x-b))}
 
     """
     _ui_name = "Wilson-Cowan model"
@@ -848,11 +850,24 @@ class ReducedSetFitzHughNagumo(Model):
             a reduced set of Fitz-Hugh Nagumo oscillators.
 
 
-    .. #Currently there seems to be a clash betwen traits and autodoc, autodoc
-    .. #can't find the methods of the class, the class specific names below get
-    .. #us around this...
     .. automethod:: ReducedSetFitzHughNagumo.__init__
-    .. automethod:: ReducedSetFitzHughNagumo.dfun
+
+    Dynamic equations:
+
+    .. math::
+        \dot{\xi}_i &=
+            c\left(\xi_i-e_i\frac{\xi_i^3}{3}-\eta_i\right) +
+            K_{11}\left[\sum_{k=1}^{3} A_{ik}\xi_k-\xi_i\right] -
+            K_{12}\left[\sum_{k=1}^{3} B_{ik}\alpha_k-\xi_i\right] +
+            cIE_i \\
+        \dot{\eta}_i &=
+            \frac{1}{c}\left(\xi_i-b\eta_i+m_i\right) \\
+        \dot{\alpha}_i &=
+            c\left(\alpha_i-f_i\frac{\alpha_i^3}{3}-\beta_i\right) +
+            K_{21}\left[\sum_{k=1}^{3} C_{ik}\xi_i-\alpha_i\right] +
+            cII_i \\
+        \dot{\beta}_i &= \frac{1}{c}\left(\alpha_i-b\beta_i+n_i\right)
+
     .. automethod:: ReducedSetFitzHughNagumo.update_derived_parameters
 
     #NOTE: In the Article this modelis called StefanescuJirsa2D
@@ -1257,11 +1272,24 @@ class ReducedSetHindmarshRose(Model):
             The (:math:`\xi`, :math:`\eta`) phase-plane for the third mode of
             a reduced set of Hindmarsh-Rose oscillators.
 
-    .. #Currently there seems to be a clash betwen traits and autodoc, autodoc
-    .. #can't find the methods of the class, the class specific names below get
-    .. #us around this...
     .. automethod:: ReducedSetHindmarshRose.__init__
-    .. automethod:: ReducedSetHindmarshRose.dfun
+
+    The dynamic equations were taken from [SJ_2008]_, ...
+
+    .. math::
+        \dot{\xi}_i &= \eta_i - a_i\xi_i^3 + b_i\xi_i^2 -
+                         \tau_i + K_{11} \left[\sum_{k=1}^{3} A_{ik} \xi_k -
+                         \xi_i \right] - K_{12} \left[\sum_{k=1}^{3} B_{ik} \alpha_k -
+                         \xi_i\right] + IE_i \\
+        \dot{\eta}_i &= c_i-d_i\xi_i^2-\eta_i \\
+        \dot{\tau}_i &= rs\xi_i-r\tau_i-m_i \\
+        \dot{\alpha}_i &= \beta_i - e_i \alpha_i^3 +
+                            f_i \alpha_i^2 - \gamma_i +
+                            K_{21} \left[\sum_{k=1}^{3} C_{ik} \xi_k -
+                            \alpha_i \right] + II_i \\
+        \dot{\beta}_i &= h_i - p_i \alpha_i^2 - \beta_i \\
+        \dot{\gamma}_i &= rs \alpha_i - r \gamma_i - n_i
+
     .. automethod:: ReducedSetHindmarshRose.update_derived_parameters
 
     #NOTE: In the Article this modelis called StefanescuJirsa3D
@@ -1714,7 +1742,7 @@ class ReducedSetHindmarshRose(Model):
 
 
 class JansenRit(Model):
-    """
+    r"""
     The Jansen and Rit is a biologically inspired mathematical framework
     originally conceived to simulate the spontaneous electrical activity of
     neuronal assemblies, with a particular focus on alpha activity, for instance,
@@ -1734,11 +1762,20 @@ class JansenRit(Model):
 
         The (:math:`y_4`, :math:`y_5`) phase-plane for the Jansen and Rit model.
 
-    .. #Currently there seems to be a clash betwen traits and autodoc, autodoc
-    .. #can't find the methods of the class, the class specific names below get
-    .. #us around this...
     .. automethod:: JansenRit.__init__
-    .. automethod:: JansenRit.dfun
+
+    The dynamic equations were taken from [JR_1995]_
+
+    .. math::
+        \dot{y_0} &= y_3 \\
+        \dot{y_3} &= A a\,S[y_1 - y_2] - 2a\,y_3 - 2a^2\, y_0 \\
+        \dot{y_1} &= y_4\\
+        \dot{y_4} &= A a \,[p(t) + \alpha_2 J + S[\alpha_1 J\,y_0]+ c_0]
+                    -2a\,y - a^2\,y_1 \\
+        \dot{y_2} &= y_5 \\
+        \dot{y_5} &= B b (\alpha_4 J\, S[\alpha_3 J \,y_0]) - 2 b\, y_5
+                    - b^2\,y_2 \\
+        S[v] &= \frac{2\, \nu_{max}}{1 + \exp^{r(v_0 - v)}}
 
     """
 
@@ -2435,7 +2472,7 @@ class ZetterbergJansen(Model):
 
 
 class Generic2dOscillator(Model):
-    """
+    r"""
     The Generic2dOscillator model is a generic dynamic system with two state
     variables. The dynamic equations of this model are composed of two ordinary
     differential equations comprising two nullclines. The first nullcline is a
@@ -2443,6 +2480,12 @@ class Generic2dOscillator(Model):
     second nullcline is arbitrarily configurable as a polynomial function up to
     second order. The manipulation of the latter nullcline's parameters allows
     to generate a wide range of different behaviors.
+
+    Equations:
+
+    .. math::
+            \dot{V} &= \tau (\alpha W - V^3 +3 V^2 + I) \\
+            \dot{W} &= (a\, + b\, V + c\, V^2 - \, beta W) / \tau
 
     See:
 
@@ -2853,7 +2896,7 @@ class Generic2dOscillator(Model):
 
 
 class LarterBreakspear(Model):
-    """
+    r"""
     A modified Morris-Lecar model that includes a third equation which simulates
     the effect of a population of inhibitory interneurons synapsing on
     the pyramidal cells.
@@ -3007,7 +3050,24 @@ class LarterBreakspear(Model):
             The (:math:`V`, :math:`W`) phase-plane for the Larter-Breakspear model.
 
     .. automethod:: LarterBreakspear.__init__
-    .. automethod:: LarterBreakspear.dfun
+
+    Dynamic equations:
+
+    .. math::
+         \dot{V} &= - (g_{Ca} + (1 - C) \, r_{NMDA} \, a_{ee} Q_V^i +
+        C \, r_{NMDA} \, a_{ee} \langle Q_V \rangle) \, m_{Ca} \,(V - V_{Ca})
+        - g_K\, W\, (V - V_K) - g_L\, (V - V_L)
+        - (g_{Na} m_{Na} + (1 - C) \, a_{ee} Q_V^i +
+        C \, a_{ee} \langle Q_V \rangle) \, (V - V_{Na})
+        - a_{ie}\, Z \, Q_Z^i + a_{ne} \, I_{\delta} \\
+
+        \dot{W} &= \frac{\phi \, (m_K - W)}{\tau_K} \\
+        \dot{Z} &= b \, (a_{ni} \, I_{\delta} + a_{ei} \, V \, Q_V)\\
+
+        m_{ion}(X) &= 0.5 \, (1 + tanh(\frac{V-T_{ion}}{\delta_{ion}})
+
+        See Equations (7), (3), (6) and (2) respectively in [Breaksetal_2003_a]_.
+        Pag: 705-706
 
     """
 
@@ -3256,17 +3316,17 @@ class LarterBreakspear(Model):
     def dfun(self, state_variables, coupling, local_coupling=0.0):
         """
         .. math::
-             \\dot{V} &= - (g_{Ca} + (1 - C) \\, r_{NMDA} \\, a_{ee} Q_V^i +
-            C \\, r_{NMDA} \\, a_{ee} \\langle Q_V \\rangle) \\, m_{Ca} \\,(V - V_{Ca})
-            - g_K\\, W\\, (V - V_K) - g_L\\, (V - V_L)
-            - (g_{Na} m_{Na} + (1 - C) \\, a_{ee} Q_V^i +
-            C \\, a_{ee} \\langle Q_V \\rangle) \\, (V - V_{Na})
-            - a_{ie}\\, Z \\, Q_Z^i + a_{ne} \\, I_{\\delta} \\\\
+             \dot{V} &= - (g_{Ca} + (1 - C) \, r_{NMDA} \, a_{ee} Q_V^i +
+            C \, r_{NMDA} \, a_{ee} \langle Q_V \rangle) \, m_{Ca} \,(V - V_{Ca})
+            - g_K\, W\, (V - V_K) - g_L\, (V - V_L)
+            - (g_{Na} m_{Na} + (1 - C) \, a_{ee} Q_V^i +
+            C \, a_{ee} \langle Q_V \rangle) \, (V - V_{Na})
+            - a_{ie}\, Z \, Q_Z^i + a_{ne} \, I_{\delta} \\
 
-            \\dot{W} &= \\frac{\\phi \\, (m_K - W)}{\\tau_K} \\\\
-            \\dot{Z} &= b \\, (a_{ni} \\, I_{\\delta} + a_{ei} \\, V \\, Q_V)\\\\
+            \dot{W} &= \frac{\phi \, (m_K - W)}{\tau_K} \\
+            \dot{Z} &= b \, (a_{ni} \, I_{\delta} + a_{ei} \, V \, Q_V)\\
 
-            m_{ion}(X) &= 0.5 \\, (1 + tanh(\\frac{V-T_{ion}}{\\delta_{ion}})
+            m_{ion}(X) &= 0.5 \, (1 + tanh(\frac{V-T_{ion}}{\delta_{ion}})
 
         See Equations (7), (3), (6) and (2) respectively in [Breaksetal_2003_a]_.
         Pag: 705-706
@@ -3303,7 +3363,7 @@ class LarterBreakspear(Model):
 
 
 class ReducedWongWang(Model):
-    """
+    r"""
     .. [WW_2006] Kong-Fatt Wong and Xiao-Jing Wang,  *A Recurrent Network
                 Mechanism of Time Integration in Perceptual Decisions*.
                 Journal of Neuroscience 26(4), 1314-1328, 2006.
@@ -3317,7 +3377,13 @@ class ReducedWongWang(Model):
 
 
     .. automethod:: ReducedWongWang.__init__
-    .. automethod:: ReducedWongWang.dfun
+
+    Equations taken from [DPA_2013]_ , page 11242
+
+    .. math::
+            \frac{dS}{dt} &= -\frac{S}{\tau_s} + (1- S) \, H \, \gamma \\
+            H(x) &= \frac{ax - b}{1 - \exp(-d(ax -b))} \\
+            x &= wJ_{N}S + I_o + J_N c_0 + J_N lc_0
 
     """
     _ui_name = "Reduced Wong-Wang"
@@ -3462,7 +3528,7 @@ class ReducedWongWang(Model):
 
 
 class Kuramoto(Model):
-    """
+    r"""
     The Kuramoto model is a model of synchronization phenomena derived by
     Yoshiki Kuramoto in 1975 which has since been applied to diverse domains
     including the study of neuronal oscillations and synchronization.
@@ -3481,7 +3547,11 @@ class Kuramoto(Model):
             network oscillations in resting-state functional connectivity*.
             NeuroImage, 57, 1, 2011.
 
-    .. automethod:: Kuramoto.dfun
+    The :math:`\theta` variable is the phase angle of the oscillation.
+
+    Dynamic equations:
+    .. math::
+            \dot{\theta} = \omega + I
 
     """
 
@@ -3590,7 +3660,7 @@ class Kuramoto(Model):
 
 
 class Hopfield(Model):
-    """
+    r"""
 
     The Hopfield neural network is a discrete time dynamical system composed
     of multiple binary nodes, with a connectivity matrix built from a
@@ -3628,8 +3698,16 @@ class Hopfield(Model):
 
     .. automethod:: Hopfield.__init__
     .. automethod:: Hopfield.configure
-    .. automethod:: Hopfield.dfun
-    .. automethod:: Hopfield.dfunDyn
+
+    Dynamic equations:
+
+    dfun equation
+        .. math::
+                \dot{x_{i}} &= 1 / \tau_{x} (-x_{i} + c_0)
+    dfun dynamic equation
+        .. math::
+            \dot{x_{i}} &= 1 / \tau_{x} (-x_{i} + c_0(i)) \\
+            \dot{\\theta_{i}} &= 1 / \tau_{\theta_{i}} (-\theta + c_1(i))
 
     """
 
@@ -3706,13 +3784,13 @@ class Hopfield(Model):
             # self.variables_of_interest = ["x", "theta"]
 
     def dfun(self, state_variables, coupling, local_coupling=0.0):
-        """
-        The fast, :math:`x`, and slow, :math:`\\theta`, state variables are typically
+        r"""
+        The fast, :math:`x`, and slow, :math:`\theta`, state variables are typically
         considered to represent a membrane potentials of nodes and the global inhibition term,
         respectively:
 
             .. math::
-                \\dot{x_{i}} &= 1 / \\tau_{x} (-x_{i} + c_0)
+                \dot{x_{i}} &= 1 / \tau_{x} (-x_{i} + c_0)
 
         """
 
@@ -3725,14 +3803,14 @@ class Hopfield(Model):
         return derivative
 
     def dfunDyn(self, state_variables, coupling, local_coupling=0.0):
-        """
-        The fast, :math:`x`, and slow, :math:`\\theta`, state variables are typically
+        r"""
+        The fast, :math:`x`, and slow, :math:`\theta`, state variables are typically
         considered to represent a membrane potentials of nodes and the inhibition term(s),
         respectively:
 
             .. math::
-                \\dot{x_{i}} &= 1 / \\tau_{x} (-x_{i} + c_0(i))
-                \\dot{\\theta_{i}} &= 1 / \\tau_{\\theta_{i}} (-\\theta + c_1(i))
+                \dot{x_{i}} &= 1 / \tau_{x} (-x_{i} + c_0(i)) \\
+                \dot{\theta_{i}} &= 1 / \tau_{\theta_{i}} (-\theta + c_1(i))
 
         where c_0 is the coupling term and c_1 should be the direct output.
 
@@ -3748,7 +3826,7 @@ class Hopfield(Model):
 
 
 class Epileptor(Model):
-    """
+    r"""
     The Epileptor is a composite neural mass model of six dimensions which
     has been crafted to model the phenomenology of epileptic seizures.
     (see [Jirsaetal_2014]_)
@@ -3792,7 +3870,37 @@ class Epileptor(Model):
         2014.
 
     .. automethod:: Epileptor.__init__
-    .. automethod:: Epileptor.dfun
+
+    Variables of interest to be used by monitors: -y[0] + y[3]
+
+        .. math::
+            \dot{x_{1}} &=& y_{1} - f_{1}(x_{1}, x_{2}) - z + I_{ext1} \\
+            \dot{y_{1}} &=& c - d x_{1}^{2} - y{1} \\
+            \dot{z} &=&
+            \begin{cases}
+            r(4 (x_{1} - x_{0}) - z-0.1 z^{7}) & \text{if } x<0 \\
+            r(4 (x_{1} - x_{0}) - z) & \text{if } x \geq 0
+            \end{cases} \\
+            \dot{x_{2}} &=& -y_{2} + x_{2} - x_{2}^{3} + I_{ext2} + 0.002 g - 0.3 (z-3.5) \\
+            \dot{y_{2}} &=& 1 / \tau (-y_{2} + f_{2}(x_{2}))\\
+            \dot{g} &=& -0.01 (g - 0.1 x_{1})
+
+    where:
+        .. math::
+            f_{1}(x_{1}, x_{2}) =
+            \begin{cases}
+            a x_{1}^{3} - b x_{1}^2 & \text{if } x_{1} <0\\
+            -(slope - x_{2} + 0.6(z-4)^2) x_{1} &\text{if }x_{1} \geq 0
+            \end{cases}
+
+    and:
+
+        .. math::
+            f_{2}(x_{2}) =
+            \begin{cases}
+            0 & \text{if } x_{2} <-0.25\\
+            a_{2}(x_{2} + 0.25) & \text{if } x_{2} \geq -0.25
+            \end{cases}
     """
 
     _ui_name = "Epileptor"
@@ -4000,7 +4108,7 @@ class Epileptor(Model):
 
 
 class EpileptorPermittivityCoupling(Model):
-    """
+    r"""
     Modified version of the Epileptor model:
 
     - The third state variable equation is modified to account for the time
@@ -4016,7 +4124,32 @@ class EpileptorPermittivityCoupling(Model):
         :alt: Epileptor phase plane
 
     .. automethod:: EpileptorPermittivityCoupling.__init__
-    .. automethod:: EpileptorPermittivityCoupling.dfun
+
+    Variables of interest to be used by monitors: y[6] = -y[0] + y[3]
+
+        .. math::
+            \dot{x_{1}} &=& y_{1} - f_{1}(x_{1}, x_{2}) - z + I_{ext1} \\
+            \dot{y_{1}} &=& c - d x_{1}^{2} - y{1} \\
+            \dot{z} &=& r(x_{0} + 3/(1 + \exp((-x_{1}-0.5)/0.1)) - z)\\
+            \dot{x_{2}} &=& -y_{2} + x_{2} - x_{2}^{3} + I_{ext2} + 0.002 g(x_{1}) - 0.3 (z-3.5) \\
+            \dot{y_{2}} &=& 1 / \tau (-y_{2} + f_{2}(x_{1}, x_{2}))\\
+            \dot{g} &=& -0.01 (g - 0.1 x_{1})
+
+    where:
+        .. math::
+            f_{1}(x_{1}, x_{2}) =
+            \begin{cases}
+            a x_{1}^{3} - b x_{1}^2 & \text{if } x_{1} <0\\
+            -(slope - x_{2} + 0.6(z-4)^2) x_{1} &\text{if }x_{1} \geq 0
+            \end{cases}
+
+    and:
+        .. math::
+            f_{2}(x_{2}) =
+            \begin{cases}
+            0 & \text{if } x_{2} <-0.25\\
+            a_{2}(x_{2} + 0.25) & \text{if } x_{2} \geq -0.25
+            \end{cases}
     """
 
     _ui_name = "Epileptor Permittivity Coupling"
