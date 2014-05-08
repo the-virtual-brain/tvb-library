@@ -80,6 +80,8 @@ class SensorsData(MappedType):
 
     has_orientation = basic.Bool(default=False)
 
+    orientations = arrays.OrientationArray(required=False)
+
     number_of_sensors = basic.Integer(
         label="Number of sensors",
         doc="""The number of sensors described by these Sensors.""")
