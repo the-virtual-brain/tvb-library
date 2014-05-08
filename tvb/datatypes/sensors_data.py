@@ -138,11 +138,13 @@ class SensorsMEGData(SensorsData):
 
     __mapper_args__ = {'polymorphic_identity': MEG_POLYMORPHIC_IDENTITY}
 
+    default = readers.File(folder_path="sensors", file_name='meg_channels_reg13.txt.bz2')
+
     sensors_type = basic.String(default=MEG_POLYMORPHIC_IDENTITY)
 
     orientations = arrays.OrientationArray(
         label="Sensor orientations",
-        console_default=SensorsData.default.read_data(usecols=(4, 5, 6), field="orientations", lazy_load=True),
+        console_default=default.read_data(usecols=(4, 5, 6), field="orientations", lazy_load=True),
         doc="An array representing the orientation of the MEG SQUIDs")
 
     has_orientation = basic.Bool(default=True, order=-1)
