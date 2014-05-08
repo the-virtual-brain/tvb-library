@@ -31,6 +31,7 @@
 """
 All the little functions that make life nicer in the Traits package.
 
+.. moduleauthor:: Mihai Andrei <mihai.andrei@codemart.ro>
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
 .. moduleauthor:: marmaduke <duke@eml.cc>
 """
