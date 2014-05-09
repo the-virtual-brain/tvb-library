@@ -155,7 +155,7 @@ void integrate(
 #define NS(i)   ns   [n_thr*i]
 #define STIM(i) stim [n_thr*i]
 
-    // begin integration scheme code
+    // begin (Euler stochastic) scheme code
 $integrate
     // end scheme code
 
@@ -282,6 +282,7 @@ void update(
 
     // per thread pointers
     float *nspr_  = nspr  + i_thr
+	, *cfpr_  = cfpr  + i_thr
         , *mmpr_  = mmpr  + i_thr   // most of these workspace arrays can be
         , *input_ = input + i_thr   // aligned per thread so that when it 
         , *x_     = x     + i_thr   // is indexed, no need to add i_thr at
@@ -308,8 +309,8 @@ void update(
 
         for (int i_node=0; i_node<n_node; i_node++)
         {   // C77, cousin of F77
-            coupling(input_, _x, _idel, _conn, hist_, cfpr, cvars, i_step, i_node);
-            integrate(_x, dx1_, dx2_, gx_, _ns, inpr, _nspr, _mmpr, input, _stim);
+            coupling(input_, _x, _idel, _conn, hist_, cfpr_, cvars, i_step, i_node);
+            integrate(_x, dx1_, dx2_, gx_, _ns, inpr, _nspr, _mmpr, input_, _stim);
 
             // certain arrays must be arg'd w/ offset because other functions
             // don't index w.r.t. i_node:
