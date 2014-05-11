@@ -39,6 +39,9 @@ import tempfile
 import subprocess
 import ctypes
 
+import logging
+log = logging.getLogger(__name__)
+
 def dll(src, libname,
         args=['gcc', '-std=c99', '-fPIC', '-shared', '-lm'],
         debug=False):
@@ -47,6 +50,7 @@ def dll(src, libname,
         file = open('temp.c', 'w')
     else:
         file = tempfile.NamedTemporaryFile(suffix='.c')
+    log.debug('open C file %r', file)
 
     with file as fd:
         fd.write(src)
@@ -55,9 +59,16 @@ def dll(src, libname,
             args.append('-g')
         else:
             args.append('-O3')
-        ret = subprocess.call(args + [fd.name, '-o', libname])
-
-    return ret
+        args += [fd.name, '-o', libname]
+        log.debug('calling %r', args)
+        proc = subprocess.Popen(args, 
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+        proc.wait()
+        log.debug('return code %r', proc.returncode)
+        if proc.returncode > 0:
+            log.error('failed compilation:\n%s\n%s', proc.stdout.read(), proc.stderr.read())
 
 class srcmod(object):
 
