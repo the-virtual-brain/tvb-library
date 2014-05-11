@@ -319,10 +319,10 @@ void update(
             if (n_tavg > 0)
                 if ((i_step % n_tavg) == 0)
                     for (int i_svar=0; i_svar<n_svar; i_svar++)
-                        _tavg[i] = tavg_kernel*_x[i];
+                        _tavg[i_svar] = tavg_kernel*_x[i_svar];
                 else
                     for (int i_svar=0; i_svar<n_svar; i_svar++)
-                        _tavg[i] += tavg_kernel*_x[i];
+                        _tavg[i_svar] += tavg_kernel*_x[i_svar];
 
             // certain arrays must be arg'd w/ offset because other functions
             // don't index w.r.t. i_node:
