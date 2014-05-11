@@ -51,8 +51,8 @@ colouring = region_colours.back_track()
 
 #Make the hemispheres symetric #TODO: should prob. et colouring for one hemisphere then just stack two copies...
 number_of_regions = len(CORTEX_BOUNDARIES.region_neighbours)
-for k in range(int(number_of_regions/2)):
-    colouring[k+int(number_of_regions/2)] = colouring[k]
+for k in range(int(number_of_regions)):
+    colouring[k+int(number_of_regions)] = colouring[k]
 
 
 mapping_colours = list("rgbcmyRGBCMY")

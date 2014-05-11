@@ -75,7 +75,7 @@ oscilator = models.Generic2dOscillator()
 white_matter = connectivity.Connectivity()
 white_matter.speed = numpy.array([4.0])
 
-white_matter_coupling = coupling.Linear(a=0.014)
+white_matter_coupling = coupling.Difference(a=0.014)
 
 #Initialise an Integrator
 heunint = integrators.HeunDeterministic(dt=2**-4)

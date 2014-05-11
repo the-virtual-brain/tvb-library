@@ -67,7 +67,7 @@ class TimeSeries(time_series_scientific.TimeSeriesScientific,
 
 
 class TimeSeriesEEG(time_series_scientific.TimeSeriesEEGScientific,
-                    time_series_framework.TimeSeriesEEGFramework, TimeSeries):
+                    time_series_framework.TimeSeriesSensorsFramework, TimeSeries):
     """
     This class brings together the scientific and framework methods that are
     associated with the TimeSeriesEEG datatype.
@@ -88,7 +88,7 @@ class TimeSeriesEEG(time_series_scientific.TimeSeriesEEGScientific,
 
 
 class TimeSeriesMEG(time_series_scientific.TimeSeriesMEGScientific,
-                    time_series_framework.TimeSeriesMEGFramework, TimeSeries):
+                    time_series_framework.TimeSeriesSensorsFramework, TimeSeries):
     """
     This class brings together the scientific and framework methods that are
     associated with the TimeSeriesMEG datatype.
@@ -109,7 +109,7 @@ class TimeSeriesMEG(time_series_scientific.TimeSeriesMEGScientific,
 
 
 class TimeSeriesSEEG(time_series_scientific.TimeSeriesSEEGScientific,
-                    time_series_framework.TimeSeriesSEEGFramework, TimeSeries):
+                    time_series_framework.TimeSeriesSensorsFramework, TimeSeries):
     """
     This class brings together the scientific and framework methods that are
     associated with the TimeSeriesMEG datatype.

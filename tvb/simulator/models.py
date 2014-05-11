@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 #
 #
-#  TheVirtualBrain-Scientific Package. This package holds all simulators, and 
+#  TheVirtualBrain-Scientific Package. This package holds all simulators, and
 # analysers necessary to run brain-simulations. You can use it stand alone or
 # in conjunction with TheVirtualBrain-Framework Package. See content of the
 # documentation-folder for more details. See also http://www.thevirtualbrain.org
 #
 # (c) 2012-2013, Baycrest Centre for Geriatric Care ("Baycrest")
 #
-# This program is free software; you can redistribute it and/or modify it under 
+# This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License version 2 as published by the Free
 # Software Foundation. This program is distributed in the hope that it will be
-# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
-# License for more details. You should have received a copy of the GNU General 
+# License for more details. You should have received a copy of the GNU General
 # Public License along with this program; if not, you can download it here
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0
 #
@@ -48,7 +48,6 @@ from scipy.integrate import trapz as scipy_integrate_trapz
 from scipy.stats import norm as scipy_stats_norm
 from tvb.simulator.common import get_logger
 import tvb.datatypes.arrays as arrays
-import tvb.datatypes.lookup_tables as lookup_tables
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
 import tvb.simulator.noise as noise_module
@@ -57,36 +56,32 @@ import tvb.simulator.noise as noise_module
 LOG = get_logger(__name__)
 
 
-#TODO: For UI convinience set the step in all parameters ranges such that there
-#      are apporximately 10 steps from lo to hi...
+# NOTE: For UI convenience set the step in all parameters ranges such that there
+#      are approximately 10 steps from lo to hi...
 
 
 class Model(core.Type):
     """
     Defines the abstract class for neuronal models.
 
-    .. #Currently there seems to be a clash betwen traits and autodoc, autodoc
-    .. #can't find the methods of the class, the class specific names below get
-    .. #us around this...
     .. automethod:: Model.__init__
     .. automethod:: Model.dfun
     .. automethod:: Model.update_derived_parameters
 
     """
     _base_classes = ['Model', "JRFast"]
-    #NOTE: the parameters that are contained in the following list will be
-    #      editable from the ui in an visual manner
+    # NOTE: the parameters that are contained in the following list will be
+    # editable from the ui in an visual manner
     ui_configurable_parameters = []
 
     noise = noise_module.Noise(
-        fixed_type=True, #Can only be Noise in UI, and not a subclass of Noise
+        fixed_type=True,  # Can only be Noise in UI, and not a subclass of Noise
         label="Initial Conditions Noise",
         default=noise_module.Noise,
         doc="""A noise source used to provide random initial conditions when
-        no, or insufficient, explicit initial conditions are provided. 
+        no, or insufficient, explicit initial conditions are provided.
         NOTE: Dispersion is computed based on ``state_variable_range``.""",
-        order=42 ** 42) #NOTE: Hoping this order will always make it last...
-
+        order=42 ** 42)  # to be displayed last
 
     def __init__(self, **kwargs):
         """
@@ -97,16 +92,14 @@ class Model(core.Type):
         super(Model, self).__init__(**kwargs)
         LOG.debug(str(kwargs))
 
-        #self._state_variables = None
+        # self._state_variables = None
         self._nvar = None
-        self.number_of_modes = 1 #NOTE: Models without modes can ignore this.
-
+        self.number_of_modes = 1  # NOTE: Models without modes can ignore this.
 
     def configure(self):
         """  """
         super(Model, self).configure()
         self.update_derived_parameters()
-
 
     def __repr__(self):
         """ A formal, executable, representation of a Model object. """
@@ -115,67 +108,61 @@ class Model(core.Type):
         formal = class_name + "(" + "=%s, ".join(traited_kwargs) + "=%s)"
         return formal % eval("(self." + ", self.".join(traited_kwargs) + ")")
 
-
     def __str__(self):
         """ An informal, human readable, representation of a Model object. """
-        #NOTE: We don't explicitly list kwds cause some models have too many.
+        # NOTE: We don't explicitly list kwds cause some models have too many.
         informal = self.__class__.__name__ + "(**kwargs)"
         return informal
-
 
     @property
     def state_variables(self):
         """ A list of the state variables in this model. """
         return self.trait['variables_of_interest'].trait.options
 
-
     @property
     def nvar(self):
         """ The number of state variables in this model. """
         return self._nvar
-        
-        
+
 #    @property
 #    def distal_coupling(self):
 #        """ Heterogeneous coupling given by the connectivity matrix"""
 #        return self._distal_coupling
-#        
+#
 #    @property
 #    def local_coupling(self):
 #        """ Homogeneous connectivity given by a local connectivity kernel"""
 #        return self._local_coupling
-#        
+#
 #    @property
 #    def internal_coupling(self):
 #        """ Internal connectivity between neural masses of a model"""
 #        return self._internal_coupling
-#        
+#
 #    @property
 #    def state_coupling(self):
-#        """ State operator: A matrix where each elemeent represents a parameter of the model """
+#        """ State operator: A matrix where each elemeent represents
+#        a parameter of the model """
 #        return self._state_coupling
-        
 
     def update_derived_parameters(self):
         """
         When needed, this should be a method for calculating parameters that are
-        calculated based on paramaters directly set by the caller. For example, 
-        see, ReducedSetFitzHughNagumo. When not needed, this pass simplifies 
-        code that updates an arbitrary models parameters -- ie, this can be 
-        safely called on any model, whether it's used or not. 
+        calculated based on paramaters directly set by the caller. For example,
+        see, ReducedSetFitzHughNagumo. When not needed, this pass simplifies
+        code that updates an arbitrary models parameters -- ie, this can be
+        safely called on any model, whether it's used or not.
         """
         pass
 
-
     def configure_initial(self, dt, shape):
         """Docs..."""
-        #Configure the models noise stream
+        # Configure the models noise stream
         if self.noise.ntau > 0.0:
             self.noise.configure_coloured(dt, shape)
         else:
             # The same applies for truncated rv
             self.noise.configure_white(dt, shape)
-
 
     def initial(self, dt, history_shape):
         """
@@ -191,26 +178,26 @@ class Model(core.Type):
         described by a diffusion process.
 
         """
-        #NOTE: The following max_history_length factor is set such that it
-        #considers the worst case possible for the history array, that is, low
-        #conduction speed and the longest white matter fibre. With this, plus
-        #drawing the random stream of numbers from a truncated normal
-        #distribution, we expect to bound the diffussion process used to set
-        #the initial history to the state variable ranges. (even for the case
-        #of rate based models)
+        # NOTE: The following max_history_length factor is set such that it
+        # considers the worst case possible for the history array, that is, low
+        # conduction speed and the longest white matter fibre. With this, plus
+        # drawing the random stream of numbers from a truncated normal
+        # distribution, we expect to bound the diffussion process used to set
+        # the initial history to the state variable ranges. (even for the case
+        # of rate based models)
 
         # Example:
         #        + longest fiber: 200 mm (Ref:)
-        #        + min conduction speed: 3 mm/ms (Ref: http://www.scholarpedia.org/article/Axonal_conduction_delays) 
+        #        + min conduction speed: 3 mm/ms (Ref: http://www.scholarpedia.org/article/Axonal_conduction_delays)
         #          corpus callosum in the macaque monkey.
         #        + max time delay: tau = longest fibre / speed \approx 67 ms
         #        + let's hope for the best...
 
-        max_history_length = 67. # ms
-        #TODO: There is an issue of allignment when the current implementation 
+        max_history_length = 67.  # ms
+        # TODO: There is an issue of allignment when the current implementation
         #      is used to pad out explicit inital conditions that aren't as long
         #      as the required history...
-        #TODO: We still ideally want to support spatial colour for surfaces --
+        # TODO: We still ideally want to support spatial colour for surfaces --
         #      though this will probably have to be done at the Simulator level
         #      with a linear, strictly-stable, spatially invariant filter
         #      defined on the mesh surface... and in a way that won't change the
@@ -226,39 +213,38 @@ class Model(core.Type):
         tpts = history_shape[0]
         nvar = history_shape[1]
         history_shape = history_shape[2:]
-        
+
         self.configure_initial(dt, history_shape)
         noise = numpy.zeros((tpts, nvar) + history_shape)
-        nsig  = numpy.zeros(nvar)
-        loc   = numpy.zeros(nvar)  
+        nsig = numpy.zeros(nvar)
+        loc = numpy.zeros(nvar)
 
         for tpt in range(tpts):
             for var in range(nvar):
-                loc[var]  = self.state_variable_range[self.state_variables[var]].mean()
+                loc[var] = self.state_variable_range[self.state_variables[var]].mean()
                 nsig[var] = (self.state_variable_range[self.state_variables[var]][1] -
-                             self.state_variable_range[self.state_variables[var]][0]) / 2.0 
+                             self.state_variable_range[self.state_variables[var]][0]) / 2.0
                 nsig[var] = nsig[var] / max_history_length
 
                 # define lower und upper bounds to truncate the random variates to the sv range.
                 lo = self.state_variable_range[self.state_variables[var]][0]
                 hi = self.state_variable_range[self.state_variables[var]][1]
                 lo_bound, up_bound = (lo - loc[var]) / nsig[var], (hi - loc[var]) / nsig[var]
-                
-                noise[tpt, var, :] = self.noise.generate(history_shape, truncate=True, 
+
+                noise[tpt, var, :] = self.noise.generate(history_shape, truncate=True,
                                                          lo=lo_bound, hi=up_bound)
-        
+
         for var in range(nvar):
-                #TODO: Hackery, validate me...-noise.mean(axis=0) ... self.noise.nsig
+                # TODO: Hackery, validate me...-noise.mean(axis=0) ... self.noise.nsig
             initial_conditions[:, var, :] = numpy.sqrt(2.0 * nsig[var]) * numpy.cumsum(noise[:, var, :],axis=0) + loc[var]
 
         return initial_conditions
 
-
     def dfun(self, state_variables, coupling, local_coupling=0.0):
         """
-        Defines the dynamic equations. That is, the derivative of the 
-        state-variables given their current state ``state_variables``, the past 
-        state from other regions of the brain currently arriving ``coupling``, 
+        Defines the dynamic equations. That is, the derivative of the
+        state-variables given their current state ``state_variables``, the past
+        state from other regions of the brain currently arriving ``coupling``,
         and the current state of the "local" neighbourhood ``local_coupling``.
 
         """
@@ -271,10 +257,10 @@ class Model(core.Type):
                               map=map):
         """
         Computes the state space trajectory of a single mass model system
-        where coupling is static, with a deteministic Euler method. 
+        where coupling is static, with a deteministic Euler method.
 
         Models expect coupling of shape (n_cvar, n_node), so if this method
-        is called with coupling (:, n_cvar, n_ode), it will compute a 
+        is called with coupling (:, n_cvar, n_ode), it will compute a
         stationary trajectory for each coupling[i, ...]
 
         """
@@ -304,29 +290,27 @@ class Model(core.Type):
                 out.append(state.copy())
 
         return numpy.r_[0:dt * n_step:1j * len(out)], numpy.array(out)
-        
-        
 
-#TODO: both coupling/connectivity and local_coupling should be generalised to 
-#      couplings and local_couplings that can be set to independantly on each 
-#      state variable of a model at run time. Current functionality would then 
-#      come via defaults that turn off the coupling on some state variables. 
+# TODO: both coupling/connectivity and local_coupling should be generalised to
+#      couplings and local_couplings that can be set to independantly on each
+#      state variable of a model at run time. Current functionality would then
+#      come via defaults that turn off the coupling on some state variables.
 
 
 class model_device_info(object):
     """
-    A model_device_info is a class that provides enough additional information, on
-    request, in order to run the owner on a native code device, e.g. a CUDA
+    A model_device_info is a class that provides enough additional information,
+    on request, in order to run the owner on a native code device, e.g. a CUDA
     GPU.
 
-    All such device_data classes will need to furnish their corresponding 
-    global values as well as corresponding array arguments for update(.), 
+    All such device_data classes will need to furnish their corresponding
+    global values as well as corresponding array arguments for update(.),
     already initialized based on the instance object that the device_data
     instance is attached to.
 
     Such things are built on conventions: a class should declare both
     a device_data attribute as well as class specific information, that is
-    not programmatically available via traits. In general, each of the 
+    not programmatically available via traits. In general, each of the
     abstract classes (Model, Noise, Integrator & Coupling) have n_xxpr
     and xxpr, but they don't have symmetric properties, so it will be done
     case by case.
@@ -345,8 +329,8 @@ class model_device_info(object):
 
         Don't forget, the kernel code defines per node, per thread update.
 
-        Unforunately, I did not forsee an obvious way to nicely handle modes in the
-        reduced models. Kernel code must handle all variables as scalars.
+        Unfortunately, I did not forsee an obvious way to nicely handle modes
+        in the reduced models. Kernel code must handle all variables as scalars.
 
         """
 
@@ -368,7 +352,7 @@ class model_device_info(object):
             return count
 
     @property
-    def mmpr(self): # build mmpr array from known inst traits
+    def mmpr(self):  # build mmpr array from known inst traits
 
         nm = self.inst.number_of_modes
         if nm == 1:
@@ -376,7 +360,7 @@ class model_device_info(object):
             for par in self._pars:
                 name = par if type(par) == str else par.trait.name
                 pars.append(getattr(self.inst, name))
-            return numpy.vstack(pars).T # so self.mmpr[0] yield all pars for node 0
+            return numpy.vstack(pars).T  # so self.mmpr[0] yield all pars for node 0
         else:
             pars = []
             new = self.inst.__class__()
@@ -388,7 +372,7 @@ class model_device_info(object):
                     pars.append(att.flat[:])
                 else:
                     msg = """%r.%r.mmpr requires that modal models be initialized with
-                    spatially homogeneous pars, i.e. array([0.0]) not 
+                    spatially homogeneous pars, i.e. array([0.0]) not
                     array([0.0, 0.1, ...]). Please set the per node parameters
                     by hand, after configuring the device handler. Sorry."""
                     raise AttributeError(msg % (self.inst, self))
@@ -430,18 +414,22 @@ class model_device_info(object):
 
 
 class WilsonCowan(Model):
-    """
+    r"""
     **References**:
 
-    .. [WC_1972] Wilson, H.R. and Cowan, J.D. *Excitatory and inhibitory 
+    .. [WC_1972] Wilson, H.R. and Cowan, J.D. *Excitatory and inhibitory
         interactions in localized populations of model neurons*, Biophysical
         journal, 12: 1-24, 1972.
-    .. [WC_1973] Wilson, H.R. and Cowan, J.D  *A Mathematical Theory of the 
+    .. [WC_1973] Wilson, H.R. and Cowan, J.D  *A Mathematical Theory of the
         Functional Dynamics of Cortical and Thalamic Nervous Tissue*
 
-    Used Eqns 11 and 12 from [WC_1972]_ in ``dfun``.  P and Q represent external inputs,
-    which when exploring the phase portrait of the local model are set to
-    constant values. However in the case of a full network, P and Q are the
+    .. [D_2011] Daffertshofer, A. and van Wijk, B. *On the influence of
+        amplitude on the connectivity between phases*
+        Frontiers in Neuroinformatics, July, 2011
+
+    Used Eqns 11 and 12 from [WC_1972]_ in ``dfun``.  P and Q represent external
+    inputs, which when exploring the phase portrait of the local model are set
+    to constant values. However in the case of a full network, P and Q are the
     entry point to our long range and local couplings, that is, the  activity
     from all other nodes is the external input to the local population.
 
@@ -451,11 +439,70 @@ class WilsonCowan(Model):
     See Fig. 1 in page 58. The following local couplings (lateral interactions)
     occur given a region i and a region j:
 
-      E_i-> E_j 
-      E_i-> I_j 
-      I_i-> I_j  
+      E_i-> E_j
+      E_i-> I_j
+      I_i-> I_j
       I_i-> E_j
- 
+
+
+    +---------------------------+
+    |          Table 1          |
+    +--------------+------------+
+    |                           |
+    |  SanzLeonetAl,   2014     |
+    +--------------+------------+
+    |Parameter     |  Value     |
+    +==============+============+
+    | k_e, k_i     |    1.00    |
+    +--------------+------------+
+    | r_e, r_i     |    0.00    |
+    +--------------+------------+
+    | tau_e, tau_i |    10.0    |
+    +--------------+------------+
+    | c_1          |    10.0    |
+    +--------------+------------+
+    | c_2          |    6.0     |
+    +--------------+------------+
+    | c_3          |    1.0     |
+    +--------------+------------+
+    | c_4          |    1.0     |
+    +--------------+------------+
+    | a_e, a_i     |    1.0     |
+    +--------------+------------+
+    | b_e, b_i     |    0.0     |
+    +--------------+------------+
+    | theta_e      |    2.0     |
+    +--------------+------------+
+    | theta_i      |    3.5     |
+    +--------------+------------+
+    | alpha_e      |    1.2     |
+    +--------------+------------+
+    | alpha_i      |    2.0     |
+    +--------------+------------+
+    | P            |    0.5     |
+    +--------------+------------+
+    | Q            |    0       |
+    +--------------+------------+
+    | c_e, c_i     |    1.0     |
+    +--------------+------------+
+    | alpha_e      |    1.2     |
+    +--------------+------------+
+    | alpha_i      |    2.0     |
+    +--------------+------------+
+    |                           |
+    |  frequency peak at 20  Hz |
+    |                           |
+    +---------------------------+
+
+
+    The parameters in Table 1 reproduce Figure A1 in  [D_2011]_
+    but set the limit cycle frequency to a sensible value (eg, 20Hz).
+
+    Model bifurcation parameters:
+        * :math:`c_1`
+        * :math:`P`
+
+
 
     The models (:math:`E`, :math:`I`) phase-plane, including a representation of
     the vector field as well as its nullclines, using default parameters, can be
@@ -467,42 +514,45 @@ class WilsonCowan(Model):
 
             The (:math:`E`, :math:`I`) phase-plane for the Wilson-Cowan model.
 
-    .. #Currently there seems to be a clash betwen traits and autodoc, autodoc
-    .. #can't find the methods of the class, the class specific names below get
-    .. #us around this...
     .. automethod:: WilsonCowan.__init__
-    .. automethod:: WilsonCowan.dfun
+
+    Dynamic equations:
+
+    .. math::
+            \tau \dot{x}(t) &= -z(t) + \phi(z(t)) \\
+            \phi(x) &= \frac{c}{1-exp(-a (x-b))}
 
     """
     _ui_name = "Wilson-Cowan model"
-    ui_configurable_parameters = ['c_1', 'c_2', 'c_3', 'c_4', 'tau_e', 'tau_i',
-                                  'a_e', 'theta_e', 'a_i', 'theta_i', 'r_e',
-                                  'r_i', 'k_e', 'k_i', 'P', 'Q']
+    ui_configurable_parameters = ['c_ee', 'c_ei', 'c_ie', 'c_ii', 'tau_e', 'tau_i',
+                                  'a_e', 'b_e', 'c_e', 'a_i', 'b_i', 'c_i', 'r_e',
+                                  'r_i', 'k_e', 'k_i', 'P', 'Q', 'theta_e', 'theta_i',
+                                  'alpha_e', 'alpha_i']
 
-    #Define traited attributes for this model, these represent possible kwargs.
-    c_1 = arrays.FloatArray(
-        label=":math:`c_1`",
+    # Define traited attributes for this model, these represent possible kwargs.
+    c_ee = arrays.FloatArray(
+        label=":math:`c_{ee}`",
         default=numpy.array([12.0]),
         range=basic.Range(lo=11.0, hi=16.0, step=0.01),
         doc="""Excitatory to excitatory  coupling coefficient""",
         order=1)
 
-    c_2 = arrays.FloatArray(
-        label=":math:`c_2`",
+    c_ie = arrays.FloatArray(
+        label=":math:`c_{ei}`",
         default=numpy.array([4.0]),
         range=basic.Range(lo=2.0, hi=15.0, step=0.01),
         doc="""Inhibitory to excitatory coupling coefficient""",
         order=2)
 
-    c_3 = arrays.FloatArray(
-        label=":math:`c_3`",
+    c_ei = arrays.FloatArray(
+        label=":math:`c_{ie}`",
         default=numpy.array([13.0]),
         range=basic.Range(lo=2.0, hi=22.0, step=0.01),
         doc="""Excitatory to inhibitory coupling coefficient.""",
         order=3)
 
-    c_4 = arrays.FloatArray(
-        label=":math:`c_4`",
+    c_ii = arrays.FloatArray(
+        label=":math:`c_{ii}`",
         default=numpy.array([11.0]),
         range=basic.Range(lo=2.0, hi=15.0, step=0.01),
         doc="""Inhibitory to inhibitory coupling coefficient.""",
@@ -511,101 +561,145 @@ class WilsonCowan(Model):
     tau_e = arrays.FloatArray(
         label=r":math:`\tau_e`",
         default=numpy.array([10.0]),
-        range=basic.Range(lo=5.0, hi=15.0, step=0.01),
+        range=basic.Range(lo=0.0, hi=150.0, step=0.01),
         doc="""Excitatory population, membrane time-constant [ms]""",
         order=5)
 
     tau_i = arrays.FloatArray(
         label=r":math:`\tau_i`",
         default=numpy.array([10.0]),
-        range=basic.Range(lo=5.0, hi=15.0, step=0.01),
+        range=basic.Range(lo=0.0, hi=150.0, step=0.01),
         doc="""Inhibitory population, membrane time-constant [ms]""",
         order=6)
 
     a_e = arrays.FloatArray(
         label=":math:`a_e`",
         default=numpy.array([1.2]),
-        range=basic.Range(lo=1.0, hi=1.4, step=0.01),
+        range=basic.Range(lo=0.0, hi=1.4, step=0.01),
         doc="""The slope parameter for the excitatory response function""",
         order=7)
 
+    b_e = arrays.FloatArray(
+        label=":math:`b_e`",
+        default=numpy.array([2.8]),
+        range=basic.Range(lo=1.4, hi=6.0, step=0.01),
+        doc="""Position of the maximum slope of the excitatory sigmoid function""",
+        order=8)
+
+    c_e = arrays.FloatArray(
+        label=":math:`c_e`",
+        default=numpy.array([1.0]),
+        range=basic.Range(lo=1.0, hi=20.0, step=1.0),
+        doc="""The amplitude parameter for the excitatory response function""",
+        order=9)
+
     theta_e = arrays.FloatArray(
         label=r":math:`\theta_e`",
-        default=numpy.array([2.8]),
-        range=basic.Range(lo=1.4, hi=4.2, step=0.01),
-        doc="""Position of the maximum slope of a sigmoid function [in
-        threshold units].""",
-        order=8)
+        default=numpy.array([0.0]),
+        range=basic.Range(lo=0.0, hi=60., step=0.01),
+        doc="""Excitatory threshold""",
+        order=10)
 
     a_i = arrays.FloatArray(
         label=":math:`a_i`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=0.0, hi=2.0, step=0.01),
         doc="""The slope parameter for the inhibitory response function""",
-        order=9)
+        order=11)
 
-    theta_i = arrays.FloatArray(
-        label=r":math:`\theta_i`",
+    b_i = arrays.FloatArray(
+        label=r":math:`b_i`",
         default=numpy.array([4.0]),
         range=basic.Range(lo=2.0, hi=6.0, step=0.01),
         doc="""Position of the maximum slope of a sigmoid function [in
         threshold units]""",
-        order=10)
+        order=12)
+
+    theta_i = arrays.FloatArray(
+        label=r":math:`\theta_i`",
+        default=numpy.array([0.0]),
+        range=basic.Range(lo=0.0, hi=60.0, step=0.01),
+        doc="""Inhibitory threshold""",
+        order=13)
+
+    c_i = arrays.FloatArray(
+        label=":math:`c_i`",
+        default=numpy.array([1.0]),
+        range=basic.Range(lo=1.0, hi=20.0, step=1.0),
+        doc="""The amplitude parameter for the inhibitory response function""",
+        order=14)
 
     r_e = arrays.FloatArray(
         label=":math:`r_e`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=0.5, hi=2.0, step=0.01),
         doc="""Excitatory refractory period""",
-        order=11)
+        order=15)
 
     r_i = arrays.FloatArray(
         label=":math:`r_i`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=0.5, hi=2.0, step=0.01),
         doc="""Inhibitory refractory period""",
-        order=12)
+        order=16)
 
     k_e = arrays.FloatArray(
         label=":math:`k_e`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=0.5, hi=2.0, step=0.01),
         doc="""Maximum value of the excitatory response function""",
-        order=13)
+        order=17)
 
     k_i = arrays.FloatArray(
         label=":math:`k_i`",
         default=numpy.array([1.0]),
         range=basic.Range(lo=0.0, hi=2.0, step=0.01),
         doc="""Maximum value of the inhibitory response function""",
-        order=14)
+        order=18)
 
     P = arrays.FloatArray(
         label=":math:`P`",
         default=numpy.array([0.0]),
-        range=basic.Range(lo=0.0, hi=2.0, step=0.01),
-        doc="""External stimulus to the excitatory population. Constant intensity.Entry point for coupling.""",
-        order=15)
+        range=basic.Range(lo=0.0, hi=20.0, step=0.01),
+        doc="""External stimulus to the excitatory population.
+        Constant intensity.Entry point for coupling.""",
+        order=19)
 
     Q = arrays.FloatArray(
         label=":math:`Q`",
         default=numpy.array([0.0]),
-        range=basic.Range(lo=0.0, hi=2.0, step=0.01),
-        doc="""External stimulus to the inhibitory population. Constant intensity.Entry point for coupling.""",
-        order=16)
+        range=basic.Range(lo=0.0, hi=20.0, step=0.01),
+        doc="""External stimulus to the inhibitory population.
+        Constant intensity.Entry point for coupling.""",
+        order=20)
 
+    alpha_e = arrays.FloatArray(
+        label=r":math:`\alpha_e`",
+        default=numpy.array([1.0]),
+        range=basic.Range(lo=0.0, hi=20.0, step=0.01),
+        doc="""External stimulus to the excitatory population.
+        Constant intensity.Entry point for coupling.""",
+        order=21)
 
-    #Used for phase-plane axis ranges and to bound random initial() conditions.
+    alpha_i = arrays.FloatArray(
+        label=r":math:`\alpha_i`",
+        default=numpy.array([1.0]),
+        range=basic.Range(lo=0.0, hi=20.0, step=0.01),
+        doc="""External stimulus to the inhibitory population.
+        Constant intensity.Entry point for coupling.""",
+        order=22)
+
+    # Used for phase-plane axis ranges and to bound random initial() conditions.
     state_variable_range = basic.Dict(
         label="State Variable ranges [lo, hi]",
-        default={"E": numpy.array([0.0, 0.5]),
-                 "I": numpy.array([0.0, 0.5])},
+        default={"E": numpy.array([0.0, 1.0]),
+                 "I": numpy.array([0.0, 1.0])},
         doc="""The values for each state-variable should be set to encompass
-        the expected dynamic range of that state-variable for the current 
-        parameters, it is used as a mechanism for bounding random inital 
+        the expected dynamic range of that state-variable for the current
+        parameters, it is used as a mechanism for bounding random inital
         conditions when the simulation isn't started from an explicit history,
         it is also provides the default range of phase-plane plots.""",
-        order=15)
+        order=23)
 
     #    variables_of_interest = arrays.IntegerArray(
     #        label = "Variables watched by Monitors",
@@ -623,10 +717,10 @@ class WilsonCowan(Model):
         default=["E"],
         select_multiple=True,
         doc="""This represents the default state-variables of this Model to be
-                                    monitored. It can be overridden for each Monitor if desired. The 
-                                    corresponding state-variable indices for this model are :math:`E = 0`
-                                    and :math:`I = 1`.""",
-        order=16)
+               monitored. It can be overridden for each Monitor if desired. The
+               corresponding state-variable indices for this model are :math:`E = 0`
+               and :math:`I = 1`.""",
+        order=24)
 
     #    coupling_variables = arrays.IntegerArray(
     #        label = "Variables to couple activity through",
@@ -637,7 +731,6 @@ class WilsonCowan(Model):
     #        default = numpy.array([0.0]),
     #        range = basic.Range(lo = 0.0, hi = 1.0))
 
-
     def __init__(self, **kwargs):
         """
         Initialize the WilsonCowan model's traited attributes, any provided as
@@ -646,11 +739,10 @@ class WilsonCowan(Model):
         """
         LOG.info('%s: initing...' % str(self))
         super(WilsonCowan, self).__init__(**kwargs)
-        #self._state_variables = ["E", "I"]
+        # self._state_variables = ["E", "I"]
         self._nvar = 2
         self.cvar = numpy.array([0, 1], dtype=numpy.int32)
         LOG.debug('%s: inited.' % repr(self))
-
 
     def dfun(self, state_variables, coupling, local_coupling=0.0):
         r"""
@@ -669,13 +761,13 @@ class WilsonCowan(Model):
 
         # short-range (local) coupling
         lc_0 = local_coupling * E
-        lc_1 = local_coupling * I 
+        lc_1 = local_coupling * I
 
-        x_e = self.c_1 * E - self.c_2 * I + 1.25 + c_0 + lc_0 + lc_1
-        x_i = self.c_3 * E - self.c_4 * I + c_0 + lc_0 + lc_1
+        x_e = self.alpha_e * (self.c_ee * E - self.c_ei * I + self.P  - self.theta_e +  c_0 + lc_0 + lc_1)
+        x_i = self.alpha_i * (self.c_ie * E - self.c_ii * I + self.Q  - self.theta_i + lc_0 + lc_1)
 
-        s_e = 1.0 / (1.0 + numpy.exp(-self.a_e * (x_e - self.theta_e)))
-        s_i = 1.0 / (1.0 + numpy.exp(-self.a_i * (x_i - self.theta_i)))
+        s_e = self.c_e / (1.0 + numpy.exp(-self.a_e * (x_e - self.b_e)))
+        s_i = self.c_i / (1.0 + numpy.exp(-self.a_i * (x_i - self.b_i)))
 
         dE = (-E + (self.k_e - self.r_e * E) * s_e) / self.tau_e
         dI = (-I + (self.k_i - self.r_i * I) * s_i) / self.tau_i
@@ -732,7 +824,7 @@ class ReducedSetFitzHughNagumo(Model):
     A reduced representation of a set of Fitz-Hugh Nagumo oscillators,
     [SJ_2008]_.
 
-    The models (:math:`\xi`, :math:`\eta`) phase-plane, including a 
+    The models (:math:`\xi`, :math:`\eta`) phase-plane, including a
     representation of the vector field as well as its nullclines, using default
     parameters, can be seen below:
 
@@ -758,11 +850,24 @@ class ReducedSetFitzHughNagumo(Model):
             a reduced set of Fitz-Hugh Nagumo oscillators.
 
 
-    .. #Currently there seems to be a clash betwen traits and autodoc, autodoc
-    .. #can't find the methods of the class, the class specific names below get
-    .. #us around this...
     .. automethod:: ReducedSetFitzHughNagumo.__init__
-    .. automethod:: ReducedSetFitzHughNagumo.dfun
+
+    Dynamic equations:
+
+    .. math::
+        \dot{\xi}_i &=
+            c\left(\xi_i-e_i\frac{\xi_i^3}{3}-\eta_i\right) +
+            K_{11}\left[\sum_{k=1}^{3} A_{ik}\xi_k-\xi_i\right] -
+            K_{12}\left[\sum_{k=1}^{3} B_{ik}\alpha_k-\xi_i\right] +
+            cIE_i \\
+        \dot{\eta}_i &=
+            \frac{1}{c}\left(\xi_i-b\eta_i+m_i\right) \\
+        \dot{\alpha}_i &=
+            c\left(\alpha_i-f_i\frac{\alpha_i^3}{3}-\beta_i\right) +
+            K_{21}\left[\sum_{k=1}^{3} C_{ik}\xi_i-\alpha_i\right] +
+            cII_i \\
+        \dot{\beta}_i &= \frac{1}{c}\left(\alpha_i-b\beta_i+n_i\right)
+
     .. automethod:: ReducedSetFitzHughNagumo.update_derived_parameters
 
     #NOTE: In the Article this modelis called StefanescuJirsa2D
@@ -772,7 +877,7 @@ class ReducedSetFitzHughNagumo(Model):
     ui_configurable_parameters = ['tau', 'a', 'b', 'K11', 'K12', 'K21', 'sigma',
                                   'mu']
 
-    #Define traited attributes for this model, these represent possible kwargs.
+    # Define traited attributes for this model, these represent possible kwargs.
     tau = arrays.FloatArray(
         label=r":math:`\tau`",
         default=numpy.array([3.0]),
@@ -829,7 +934,7 @@ class ReducedSetFitzHughNagumo(Model):
         doc="""Mean of Gaussian distribution""",
         order=8)
 
-    #Used for phase-plane axis ranges and to bound random initial() conditions.
+    # Used for phase-plane axis ranges and to bound random initial() conditions.
     state_variable_range = basic.Dict(
         label="State Variable ranges [lo, hi]",
         default={"xi": numpy.array([-4.0, 4.0]),
@@ -837,8 +942,8 @@ class ReducedSetFitzHughNagumo(Model):
                  "alpha": numpy.array([-4.0, 4.0]),
                  "beta": numpy.array([-3.0, 3.0])},
         doc="""The values for each state-variable should be set to encompass
-        the expected dynamic range of that state-variable for the current 
-        parameters, it is used as a mechanism for bounding random inital 
+        the expected dynamic range of that state-variable for the current
+        parameters, it is used as a mechanism for bounding random inital
         conditions when the simulation isn't started from an explicit history,
         it is also provides the default range of phase-plane plots.""",
         order=9)
@@ -859,7 +964,7 @@ class ReducedSetFitzHughNagumo(Model):
         default=["xi", "alpha"],
         select_multiple=True,
         doc=r"""This represents the default state-variables of this Model to be
-                                    monitored. It can be overridden for each Monitor if desired. The 
+                                    monitored. It can be overridden for each Monitor if desired. The
                                     corresponding state-variable indices for this model are :math:`\xi = 0`,
                                     :math:`\eta = 1`, :math:`\alpha = 2`, and :math:`\beta= 3`.""",
         order=10)
@@ -890,7 +995,6 @@ class ReducedSetFitzHughNagumo(Model):
     #    nsig = trait.Array(label = "Noise dispersion",
     #                       default = numpy.array([0.0]))
 
-
     def __init__(self, **kwargs):
         """
         Initialise parameters for a reduced representation of a set of
@@ -898,13 +1002,13 @@ class ReducedSetFitzHughNagumo(Model):
 
         """
         super(ReducedSetFitzHughNagumo, self).__init__(**kwargs)
-        #self._state_variables = ["xi", "eta", "alpha", "beta"]
+        # self._state_variables = ["xi", "eta", "alpha", "beta"]
         self._nvar = 4
         self.cvar = numpy.array([0, 2], dtype=numpy.int32)
 
-        #TODO: Hack fix, these cause issues with mapping spatialised parameters 
+        # TODO: Hack fix, these cause issues with mapping spatialised parameters
         #      at the region level to the surface for surface sims.
-        #NOTE: Existing modes definition (from the paper) is not properly 
+        # NOTE: Existing modes definition (from the paper) is not properly
         #      normalised, so number_of_modes can't really be changed
         #      meaningfully anyway adnd nu and nv just need to be "large enough"
         #      so chaning them is only really an optimisation thing...
@@ -912,7 +1016,7 @@ class ReducedSetFitzHughNagumo(Model):
         self.nu = 15000
         self.nv = 15000
 
-        #Derived parameters
+        # Derived parameters
         self.Aik = None
         self.Bik = None
         self.Cik = None
@@ -922,7 +1026,6 @@ class ReducedSetFitzHughNagumo(Model):
         self.II_i = None
         self.m_i = None
         self.n_i = None
-
 
     def configure(self):
         """  """
@@ -938,12 +1041,11 @@ class ReducedSetFitzHughNagumo(Model):
 
         self.update_derived_parameters()
 
-
     def dfun(self, state_variables, coupling, local_coupling=0.0):
         r"""
 
         .. math::
-            \dot{\xi}_i &= 
+            \dot{\xi}_i &=
                 c\left(\xi_i-e_i\frac{\xi_i^3}{3}-\eta_i\right) +
                 K_{11}\left[\sum_{k=1}^{3} A_{ik}\xi_k-\xi_i\right] -
                 K_{12}\left[\sum_{k=1}^{3} B_{ik}\alpha_k-\xi_i\right] +
@@ -966,8 +1068,8 @@ class ReducedSetFitzHughNagumo(Model):
         # sum the activity from the modes
         c_0 = coupling[0, :].sum(axis=1)[:, numpy.newaxis]
 
-        #TODO: generalize coupling variables to a matrix form 
-        #c_1 = coupling[1, :] # this cv represents alpha
+        # TODO: generalize coupling variables to a matrix form
+        # c_1 = coupling[1, :] # this cv represents alpha
 
         dxi = (self.tau * (xi - self.e_i * xi ** 3 / 3.0 - eta) +
                self.K11 * (numpy.dot(xi, self.Aik) - xi) -
@@ -978,14 +1080,13 @@ class ReducedSetFitzHughNagumo(Model):
 
         dalpha = (self.tau * (alpha - self.f_i * alpha ** 3 / 3.0 - beta) +
                   self.K21 * (numpy.dot(xi, self.Cik) - alpha) +
-                  self.tau * (self.II_i + c_0 + local_coupling * alpha))
+                  self.tau * (self.II_i + c_0 + local_coupling * xi))
 
         dbeta = (alpha - self.b * beta + self.n_i) / self.tau
 
         derivative = numpy.array([dxi, deta, dalpha, dbeta])
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         return derivative
-
 
     def update_derived_parameters(self):
         """
@@ -1036,8 +1137,8 @@ class ReducedSetFitzHughNagumo(Model):
         intcVdZ = trapz(cV, Zv, axis=1)[:, newaxis]
         intG1VdZ = trapz(G1 * V, Zv, axis=1)[newaxis, :]
         intcUdZ = trapz(cU, Zu, axis=1)[:, newaxis]
-        #import pdb; pdb.set_trace()
-        #Calculate coefficients 
+        # import pdb; pdb.set_trace()
+        # Calculate coefficients
         self.Aik = numpy.dot(intcVdZ, intG1VdZ).T
         self.Bik = numpy.dot(intcVdZ, trapz(G2 * U, Zu, axis=1)[newaxis, :])
         self.Cik = numpy.dot(intcUdZ, intG1VdZ).T
@@ -1050,7 +1151,7 @@ class ReducedSetFitzHughNagumo(Model):
 
         self.m_i = (self.a * intcVdZ).T
         self.n_i = (self.a * intcUdZ).T
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
 
     # DRAGONS BE HERE
     device_info = model_device_info(
@@ -1146,7 +1247,7 @@ class ReducedSetHindmarshRose(Model):
         Dimensional Description of Globally Coupled Heterogeneous Neural
         Networks of Excitatory and Inhibitory*  4, 11, 26--36, 2008.
 
-    The models (:math:`\xi`, :math:`\eta`) phase-plane, including a 
+    The models (:math:`\xi`, :math:`\eta`) phase-plane, including a
     representation of the vector field as well as its nullclines, using default
     parameters, can be seen below:
 
@@ -1161,7 +1262,7 @@ class ReducedSetHindmarshRose(Model):
         .. figure :: img/ReducedSetHindmarshRose_01_mode_1_pplane.svg
             :alt: Reduced set of FitzHughNagumo phase plane (xi, eta), 2nd mode.
 
-            The (:math:`\xi`, :math:`\eta`) phase-plane for the second mode of 
+            The (:math:`\xi`, :math:`\eta`) phase-plane for the second mode of
             a reduced set of Hindmarsh-Rose oscillators.
 
         .. _phase-plane-rHR_2:
@@ -1171,13 +1272,26 @@ class ReducedSetHindmarshRose(Model):
             The (:math:`\xi`, :math:`\eta`) phase-plane for the third mode of
             a reduced set of Hindmarsh-Rose oscillators.
 
-    .. #Currently there seems to be a clash betwen traits and autodoc, autodoc
-    .. #can't find the methods of the class, the class specific names below get
-    .. #us around this...
     .. automethod:: ReducedSetHindmarshRose.__init__
-    .. automethod:: ReducedSetHindmarshRose.dfun
+
+    The dynamic equations were taken from [SJ_2008]_, ...
+
+    .. math::
+        \dot{\xi}_i &= \eta_i - a_i\xi_i^3 + b_i\xi_i^2 -
+                         \tau_i + K_{11} \left[\sum_{k=1}^{3} A_{ik} \xi_k -
+                         \xi_i \right] - K_{12} \left[\sum_{k=1}^{3} B_{ik} \alpha_k -
+                         \xi_i\right] + IE_i \\
+        \dot{\eta}_i &= c_i-d_i\xi_i^2-\eta_i \\
+        \dot{\tau}_i &= rs\xi_i-r\tau_i-m_i \\
+        \dot{\alpha}_i &= \beta_i - e_i \alpha_i^3 +
+                            f_i \alpha_i^2 - \gamma_i +
+                            K_{21} \left[\sum_{k=1}^{3} C_{ik} \xi_k -
+                            \alpha_i \right] + II_i \\
+        \dot{\beta}_i &= h_i - p_i \alpha_i^2 - \beta_i \\
+        \dot{\gamma}_i &= rs \alpha_i - r \gamma_i - n_i
+
     .. automethod:: ReducedSetHindmarshRose.update_derived_parameters
-    
+
     #NOTE: In the Article this modelis called StefanescuJirsa3D
 
     """
@@ -1185,11 +1299,11 @@ class ReducedSetHindmarshRose(Model):
     ui_configurable_parameters = ['r', 'a', 'b', 'c', 'd', 's', 'xo', 'K11',
                                   'K12', 'K21', 'sigma', 'mu']
 
-    #Define traited attributes for this model, these represent possible kwargs.
+    # Define traited attributes for this model, these represent possible kwargs.
     r = arrays.FloatArray(
         label=":math:`r`",
         default=numpy.array([0.006]),
-        range=basic.Range(lo=0.0, hi=1.0, step=0.01),
+        range=basic.Range(lo=0.0, hi=0.1, step=0.0005),
         doc="""Adaptation parameter""",
         order=1)
 
@@ -1270,7 +1384,7 @@ class ReducedSetHindmarshRose(Model):
         doc="""Mean of Gaussian distribution""",
         order=12)
 
-    #Used for phase-plane axis ranges and to bound random initial() conditions.
+    # Used for phase-plane axis ranges and to bound random initial() conditions.
     state_variable_range = basic.Dict(
         label="State Variable ranges [lo, hi]",
         default={"xi": numpy.array([-4.0, 4.0]),
@@ -1280,8 +1394,8 @@ class ReducedSetHindmarshRose(Model):
                  "beta": numpy.array([-20.0, 20.0]),
                  "gamma": numpy.array([2.0, 10.0])},
         doc="""The values for each state-variable should be set to encompass
-        the expected dynamic range of that state-variable for the current 
-        parameters, it is used as a mechanism for bounding random inital 
+        the expected dynamic range of that state-variable for the current
+        parameters, it is used as a mechanism for bounding random inital
         conditions when the simulation isn't started from an explicit history,
         it is also provides the default range of phase-plane plots.""",
         order=13)
@@ -1292,10 +1406,10 @@ class ReducedSetHindmarshRose(Model):
         default=["xi", "eta", "tau"],
         select_multiple=True,
         doc=r"""This represents the default state-variables of this Model to be
-                                    monitored. It can be overridden for each Monitor if desired. The 
-                                    corresponding state-variable indices for this model are :math:`\xi = 0`,
-                                    :math:`\eta = 1`, :math:`\tau = 2`, :math:`\alpha = 3`,
-                                    :math:`\beta = 4`, and :math:`\gamma = 5`""",
+                monitored. It can be overridden for each Monitor if desired. The
+                corresponding state-variable indices for this model are :math:`\xi = 0`,
+                :math:`\eta = 1`, :math:`\tau = 2`, :math:`\alpha = 3`,
+                :math:`\beta = 4`, and :math:`\gamma = 5`""",
         order=14)
 
     #    variables_of_interest = arrays.IntegerArray(
@@ -1336,7 +1450,6 @@ class ReducedSetHindmarshRose(Model):
     #    nsig = arrays.FloatArray(label = "Noise dispersion",
     #                       default = numpy.array([0.0]))
 
-
     def __init__(self, **kwargs):
         """
         Initialise parameters for a reduced representation of a set of
@@ -1344,13 +1457,13 @@ class ReducedSetHindmarshRose(Model):
 
         """
         super(ReducedSetHindmarshRose, self).__init__(**kwargs)
-        #self._state_variables = ["xi", "eta", "tau", "alpha", "beta", "gamma"]
+        # self._state_variables = ["xi", "eta", "tau", "alpha", "beta", "gamma"]
         self._nvar = 6
         self.cvar = numpy.array([0, 3], dtype=numpy.int32)
 
-        #TODO: Hack fix, these cause issues with mapping spatialised parameters 
+        # TODO: Hack fix, these cause issues with mapping spatialised parameters
         #      at the region level to the surface for surface sims.
-        #NOTE: Existing modes definition (from the paper) is not properly 
+        # NOTE: Existing modes definition (from the paper) is not properly
         #      normalised, so number_of_modes can't really be changed
         #      meaningfully anyway adnd nu and nv just need to be "large enough"
         #      so chaning them is only really an optimisation thing...
@@ -1358,7 +1471,7 @@ class ReducedSetHindmarshRose(Model):
         self.nu = 1500
         self.nv = 1500
 
-        #derived parameters
+        # derived parameters
         self.A_ik = None
         self.B_ik = None
         self.C_ik = None
@@ -1375,7 +1488,6 @@ class ReducedSetHindmarshRose(Model):
         self.m_i = None
         self.n_i = None
 
-
     def configure(self):
         """  """
         super(ReducedSetHindmarshRose, self).configure()
@@ -1389,7 +1501,6 @@ class ReducedSetHindmarshRose(Model):
             LOG.error(error_msg % repr(self))
 
         self.update_derived_parameters()
-
 
     def dfun(self, state_variables, coupling, local_coupling=0.0):
         r"""
@@ -1419,7 +1530,7 @@ class ReducedSetHindmarshRose(Model):
         gamma = state_variables[5, :]
 
         c_0 = coupling[0, :].sum(axis=1)[:, numpy.newaxis]
-        #c_1 = coupling[1, :]
+        # c_1 = coupling[1, :]
 
         dxi = (eta - self.a_i * xi ** 3 + self.b_i * xi ** 2 - tau +
                self.K11 * (numpy.dot(xi, self.A_ik) - xi) -
@@ -1432,7 +1543,7 @@ class ReducedSetHindmarshRose(Model):
 
         dalpha = (beta - self.e_i * alpha ** 3 + self.f_i * alpha ** 2 - gamma +
                   self.K21 * (numpy.dot(xi, self.C_ik) - alpha) +
-                  self.II_i + c_0 + local_coupling * alpha)
+                  self.II_i + c_0 + local_coupling * xi)
 
         dbeta = self.h_i - self.p_i * alpha ** 2 - beta
 
@@ -1570,7 +1681,7 @@ class ReducedSetHindmarshRose(Model):
         // aux variables
             , c_0 = I(0)
             , c_1 = I(1)       /* the semicolon --> */  ;  /* don't forget it */
-            
+
         // modal interactions
 #define XI_dot_A(k) (XI(1)*mA(1, (k)) + XI(2)*mA(2, (k)) + XI(3)*mA(3, (k)))
 #define XI_dot_C(k) (XI(1)*mC(1, (k)) + XI(2)*mC(2, (k)) + XI(3)*mC(3, (k)))
@@ -1615,11 +1726,11 @@ class ReducedSetHindmarshRose(Model):
 #undef vN
 
 #undef XI
-#undef ETA   
-#undef TAU   
-#undef ALPHA 
-#undef BETA  
-#undef GAMMA 
+#undef ETA
+#undef TAU
+#undef ALPHA
+#undef BETA
+#undef GAMMA
 
 #undef XI_dot_A
 #undef XI_dot_C
@@ -1629,8 +1740,9 @@ class ReducedSetHindmarshRose(Model):
     )
 
 
+
 class JansenRit(Model):
-    """
+    r"""
     The Jansen and Rit is a biologically inspired mathematical framework
     originally conceived to simulate the spontaneous electrical activity of
     neuronal assemblies, with a particular focus on alpha activity, for instance,
@@ -1650,11 +1762,20 @@ class JansenRit(Model):
 
         The (:math:`y_4`, :math:`y_5`) phase-plane for the Jansen and Rit model.
 
-    .. #Currently there seems to be a clash betwen traits and autodoc, autodoc
-    .. #can't find the methods of the class, the class specific names below get
-    .. #us around this...
     .. automethod:: JansenRit.__init__
-    .. automethod:: JansenRit.dfun
+
+    The dynamic equations were taken from [JR_1995]_
+
+    .. math::
+        \dot{y_0} &= y_3 \\
+        \dot{y_3} &= A a\,S[y_1 - y_2] - 2a\,y_3 - 2a^2\, y_0 \\
+        \dot{y_1} &= y_4\\
+        \dot{y_4} &= A a \,[p(t) + \alpha_2 J + S[\alpha_1 J\,y_0]+ c_0]
+                    -2a\,y - a^2\,y_1 \\
+        \dot{y_2} &= y_5 \\
+        \dot{y_5} &= B b (\alpha_4 J\, S[\alpha_3 J \,y_0]) - 2 b\, y_5
+                    - b^2\,y_2 \\
+        S[v] &= \frac{2\, \nu_{max}}{1 + \exp^{r(v_0 - v)}}
 
     """
 
@@ -1790,8 +1911,8 @@ class JansenRit(Model):
                  "y4": numpy.array([-20.0, 20.0]),
                  "y5": numpy.array([-500.0, 500.0])},
         doc="""The values for each state-variable should be set to encompass
-        the expected dynamic range of that state-variable for the current 
-        parameters, it is used as a mechanism for bounding random inital 
+        the expected dynamic range of that state-variable for the current
+        parameters, it is used as a mechanism for bounding random inital
         conditions when the simulation isn't started from an explicit history,
         it is also provides the default range of phase-plane plots.""",
         order=16)
@@ -1802,7 +1923,7 @@ class JansenRit(Model):
         default=["y0", "y1", "y2", "y3"],
         select_multiple=True,
         doc="""This represents the default state-variables of this Model to be
-                                    monitored. It can be overridden for each Monitor if desired. The 
+                                    monitored. It can be overridden for each Monitor if desired. The
                                     corresponding state-variable indices for this model are :math:`y0 = 0`,
                                     :math:`y1 = 1`, :math:`y2 = 2`, :math:`y3 = 3`, :math:`y4 = 4`, and
                                     :math:`y5 = 5`""",
@@ -1866,12 +1987,12 @@ class JansenRit(Model):
             S[v] &= \frac{2\, \nu_{max}}{1 + \exp^{r(v_0 - v)}}
 
 
-        :math:`p(t)` can be any arbitrary function, including white noise or 
+        :math:`p(t)` can be any arbitrary function, including white noise or
         random numbers taken from a uniform distribution, representing a pulse
         density with an amplitude varying between 120 and 320
 
-        For Evoked Potentials, a transient component of the input, 
-        representing the impulse density attribuable to a brief visual input is 
+        For Evoked Potentials, a transient component of the input,
+        representing the impulse density attribuable to a brief visual input is
         applied. Time should be in seconds.
 
         .. math::
@@ -1902,7 +2023,7 @@ class JansenRit(Model):
         # 1: excitatory interneurons
         # 2: inhibitory interneurons
         # 0 -> 1,
-        # 0 -> 2,  
+        # 0 -> 2,
         # 1 -> 0,
         # 2 -> 0,
 
@@ -2002,10 +2123,10 @@ class JRFast(JansenRit):
             self.dy = y.copy() * 0.0
             self.y1m2 = y[1].copy()
             self.dfunlocals = {}
-            for k in ['nu_max', 'r', 'v0', 'a_1', 'J', 'a_3', 'A', 'a', 'mu', 
+            for k in ['nu_max', 'r', 'v0', 'a_1', 'J', 'a_3', 'A', 'a', 'mu',
                     'a_2', 'B', 'b', 'a_4']:
                 self.dfunlocals[k] = getattr(self, k)
-            self.dfunglobals = {}    
+            self.dfunglobals = {}
             self.invalid_dfun_cache = False
 
         l = self.dfunlocals
@@ -2052,9 +2173,8 @@ class ZetterbergJansen(Model):
 
     .. [A_2012] Auburn
 
-    .. figure :: img/
+    .. figure :: img/ZetterbergJansen_01_mode_0_pplane.svg
         :alt: Jansen and Rit phase plane
-
 
     .. automethod:: ZetterbergJansen.__init__
     .. automethod:: ZetterbergJansen.dfun
@@ -2162,21 +2282,21 @@ class ZetterbergJansen(Model):
     gamma_1T = arrays.FloatArray(
         label=r":math:`\gamma_{1T}`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=65.0, hi=1350.0, step=5.),
+        range=basic.Range(lo=0.0, hi=1000.0, step=5.),
         doc="""Coupling factor from the extrinisic input to the spiny stellate population.""",
         order=17)
 
     gamma_3T = arrays.FloatArray(
         label=r":math:`\gamma_{3T}`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=65.0, hi=1350.0, step=5.),
+        range=basic.Range(lo=0.0, hi=1000.0, step=5.),
         doc="""Coupling factor from the extrinisic input to the pyramidal population.""",
         order=18)
 
     gamma_2T = arrays.FloatArray(
         label=r":math:`\gamma_{2T}`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=65.0, hi=1350.0, step=5.),
+        range=basic.Range(lo=0.0, hi=1000.0, step=5.),
         doc="""Coupling factor from the extrinisic input to the inhibitory population.""",
         order=19)
 
@@ -2184,7 +2304,7 @@ class ZetterbergJansen(Model):
         label=":math:`P`",
         default=numpy.array([0.12]),
         range=basic.Range(lo=0.0, hi=0.350, step=0.01),
-        doc="""Maximum firing rate to the pyramidal population [ms^-1]. 
+        doc="""Maximum firing rate to the pyramidal population [ms^-1].
         (External stimulus. Constant intensity.Entry point for coupling.)""",
         order=13)
 
@@ -2192,7 +2312,7 @@ class ZetterbergJansen(Model):
         label=":math:`U`",
         default=numpy.array([0.12]),
         range=basic.Range(lo=0.0, hi=0.350, step=0.01),
-        doc="""Maximum firing rate to the stellate population [ms^-1]. 
+        doc="""Maximum firing rate to the stellate population [ms^-1].
         (External stimulus. Constant intensity.Entry point for coupling.)""",
         order=14)
 
@@ -2200,7 +2320,7 @@ class ZetterbergJansen(Model):
         label=":math:`Q`",
         default=numpy.array([0.12]),
         range=basic.Range(lo=0.0, hi=0.350, step=0.01),
-        doc="""Maximum firing rate to the interneurons population [ms^-1]. 
+        doc="""Maximum firing rate to the interneurons population [ms^-1].
         (External stimulus. Constant intensity.Entry point for coupling.)""",
         order=15)
 
@@ -2220,8 +2340,8 @@ class ZetterbergJansen(Model):
                  "v6": numpy.array([-100.0, 20.0]),
                  "v7": numpy.array([-100.0, 20.0]),},
         doc="""The values for each state-variable should be set to encompass
-        the expected dynamic range of that state-variable for the current 
-        parameters, it is used as a mechanism for bounding random inital 
+        the expected dynamic range of that state-variable for the current
+        parameters, it is used as a mechanism for bounding random inital
         conditions when the simulation isn't started from an explicit history,
         it is also provides the default range of phase-plane plots.""",
         order=16)
@@ -2232,7 +2352,7 @@ class ZetterbergJansen(Model):
         default=["v6", "v7", "v2", "v3", "v4", "v5"],
         select_multiple=True,
         doc="""This represents the default state-variables of this Model to be
-                                    monitored. It can be overridden for each Monitor if desired. The 
+                                    monitored. It can be overridden for each Monitor if desired. The
                                     corresponding state-variable indices for this model are :math:`v_6 = 0`,
                                     :math:`v_7 = 1`, :math:`v_2 = 2`, :math:`v_3 = 3`, :math:`v_4 = 4`, and
                                     :math:`v_5 = 5`""",
@@ -2291,24 +2411,26 @@ class ZetterbergJansen(Model):
         v6 = state_variables[10, :]
         v7 = state_variables[11, :]
 
-        # NOTE:
-        # long_range_coupling term: coupling variable is v6
-        # EQUATIONS ASSUME sigmoidal coupling is used. 'lrc' must represent mean firing rate. 
-        # alternative: use linear coupling and transform potential-to-rate inside the model equations. 
-        lrc =  coupling[0, :]
+        # NOTE: long_range_coupling term: coupling variable is v6 . EQUATIONS
+        #       ASSUME linear coupling is used. 'coupled_input' represents a rate. It
+        #       is very likely that coeffs gamma_xT should be independent for each of the
+        #       terms considered as extrinsic input (P, Q, U) (long range coupling) (local coupling)
+        #       and noise.
+
+        coupled_input =  self.sigma_fun(coupling[0, :] + local_coupling * v6)
 
         # exc input to the excitatory interneurons
         dv1 = y1
-        dy1 = self.Heke * ((self.gamma_1 + local_coupling) * self.sigma_fun(v2 - v3) + self.U + self.gamma_1T * lrc) - self.ke_2 * y1 - self.keke * v1
+        dy1 = self.Heke * (self.gamma_1 * self.sigma_fun(v2 - v3) + self.gamma_1T * (self.U + coupled_input )) - self.ke_2 * y1 - self.keke * v1
         # exc input to the pyramidal cells
-        dv2 = y2 
-        dy2 = self.Heke * (self.gamma_2 * self.sigma_fun(v1) + self.P + self.gamma_3T * lrc + local_coupling * self.sigma_fun(v2 - v3)) - self.ke_2 * y2 - self.keke * v2
+        dv2 = y2
+        dy2 = self.Heke * (self.gamma_2 * self.sigma_fun(v1)      + self.gamma_2T * (self.P + coupled_input )) - self.ke_2 * y2 - self.keke * v2
         # inh input to the pyramidal cells
-        dv3 = y3 
+        dv3 = y3
         dy3 = self.Hiki * (self.gamma_4 * self.sigma_fun(v4 - v5)) - self.ki_2 * y3 - self.kiki * v3
         dv4 = y4
         # exc input to the inhibitory interneurons
-        dy4 = self.Heke * ((self.gamma_3 + local_coupling) * self.sigma_fun(v2 - v3) + self.Q + self.gamma_2T * lrc ) - self.ke_2 * y4 - self.keke * v4
+        dy4 = self.Heke * (self.gamma_3 * self.sigma_fun(v2 - v3) + self.gamma_3T * (self.Q + coupled_input)) - self.ke_2 * y4 - self.keke * v4
         dv5 = y5
         # inh input to the inhibitory interneurons
         dy5 = self.Hiki * (self.gamma_5 * self.sigma_fun(v4 - v5)) - self.ki_2 * y5 - self.keke * v5
@@ -2316,7 +2438,7 @@ class ZetterbergJansen(Model):
         # pyramidal cells
         dv6 = y2 - y3
         # inhibitory cells
-        dv7 = y4 - y5 
+        dv7 = y4 - y5
 
         derivative = numpy.array([dv1, dy1, dv2, dy2, dv3, dy3, dv4, dy4, dv5, dy5, dv6, dv7])
 
@@ -2324,12 +2446,12 @@ class ZetterbergJansen(Model):
 
     def sigma_fun(self, sv):
         """
-        Neuronal activation function. This sigmoidal function 
+        Neuronal activation function. This sigmoidal function
         increases from 0 to Q_max as "sv" increases.
         sv represents a membrane potential state variable (V).
 
         """
-        #HACKERY: Hackery for exponential s that blow up. 
+        #HACKERY: Hackery for exponential s that blow up.
         # Set to inf, so the result will be effectively zero.
         magic_exp_number = 709
         temp = self.rho_1 * (self.rho_2 - sv)
@@ -2348,40 +2470,47 @@ class ZetterbergJansen(Model):
         self.kiki = self.ki**2
 
 
+
 class Generic2dOscillator(Model):
-    """
+    r"""
     The Generic2dOscillator model is a generic dynamic system with two state
     variables. The dynamic equations of this model are composed of two ordinary
     differential equations comprising two nullclines. The first nullcline is a
-    cubic function as it is found in most neuron and population models; the 
+    cubic function as it is found in most neuron and population models; the
     second nullcline is arbitrarily configurable as a polynomial function up to
     second order. The manipulation of the latter nullcline's parameters allows
-    to generate a wide range of different behaviors. 
+    to generate a wide range of different behaviors.
+
+    Equations:
+
+    .. math::
+            \dot{V} &= \tau (\alpha W - V^3 +3 V^2 + I) \\
+            \dot{W} &= (a\, + b\, V + c\, V^2 - \, beta W) / \tau
 
     See:
-        
-    
+
+
         .. [FH_1961] FitzHugh, R., *Impulses and physiological states in theoretical
-            models of nerve membrane*, Biophysical Journal 1: 445, 1961. 
-    
+            models of nerve membrane*, Biophysical Journal 1: 445, 1961.
+
         .. [Nagumo_1962] Nagumo et.al, *An Active Pulse Transmission Line Simulating
             Nerve Axon*, Proceedings of the IRE 50: 2061, 1962.
-        
-        .. [SJ_2011] Stefanescu, R., Jirsa, V.K. *Reduced representations of 
-            heterogeneous mixed neural networks with synaptic coupling*.  
-            Physical Review E, 83, 2011. 
 
-        .. [SJ_2010]	Jirsa VK, Stefanescu R.  *Neural population modes capture 
-            biologically realistic large-scale network dynamics*. Bulletin of 
-            Mathematical Biology, 2010.    
+        .. [SJ_2011] Stefanescu, R., Jirsa, V.K. *Reduced representations of
+            heterogeneous mixed neural networks with synaptic coupling*.
+            Physical Review E, 83, 2011.
+
+        .. [SJ_2010]	Jirsa VK, Stefanescu R.  *Neural population modes capture
+            biologically realistic large-scale network dynamics*. Bulletin of
+            Mathematical Biology, 2010.
 
         .. [SJ_2008_a] Stefanescu, R., Jirsa, V.K. *A low dimensional description
             of globally coupled heterogeneous neural networks of excitatory and
             inhibitory neurons*. PLoS Computational Biology, 4(11), 2008).
 
 
-    The model's (:math:`V`, :math:`W`) time series and phase-plane its nullclines 
-    can be seen in the figure below. 
+    The model's (:math:`V`, :math:`W`) time series and phase-plane its nullclines
+    can be seen in the figure below.
 
     The model with its default parameters exhibits FitzHugh-Nagumo like dynamics.
 
@@ -2456,7 +2585,8 @@ class Generic2dOscillator(Model):
     +---------------------------+
     |  Table 4                  |
     +--------------+------------+
-    |  KnocketAl  2009          | 
+    |  GhoshetAl,  2008         |
+    |  KnocketAl,  2009         |
     +--------------+------------+
     |Parameter     |  Value     |
     +==============+============+
@@ -2474,11 +2604,13 @@ class Generic2dOscillator(Model):
     +--------------+------------+
     | beta         |    0.2     |
     +--------------+------------+
+    | gamma        |    -1.0    |
+    +--------------+------------+
     | e            |    0.0     |
     +--------------+------------+
     | g            |    1.0     |
     +--------------+------------+
-    | f            |    1/3     | 
+    | f            |    1/3     |
     +--------------+------------+
     | tau          |    1.25    |
     +--------------+------------+
@@ -2491,7 +2623,7 @@ class Generic2dOscillator(Model):
     +---------------------------+
     |  Table 5                  |
     +--------------+------------+
-    |  SanzLeonetAl  2013       | 
+    |  SanzLeonetAl  2013       |
     +--------------+------------+
     |Parameter     |  Value     |
     +==============+============+
@@ -2532,7 +2664,7 @@ class Generic2dOscillator(Model):
     """
 
     _ui_name = "Generic 2d Oscillator"
-    ui_configurable_parameters = ['tau', 'a', 'b', 'c', 'I', 'd', 'e', 'f', 'g', 'alpha', 'beta']
+    ui_configurable_parameters = ['tau', 'a', 'b', 'c', 'I', 'd', 'e', 'f', 'g', 'alpha', 'beta', 'gamma']
 
     #Define traited attributes for this model, these represent possible kwargs.
     tau = arrays.FloatArray(
@@ -2547,7 +2679,7 @@ class Generic2dOscillator(Model):
     I = arrays.FloatArray(
         label=":math:`I_{ext}`",
         default=numpy.array([0.0]),
-        range=basic.Range(lo=-2.0, hi=2.0, step=0.01),
+        range=basic.Range(lo=-5.0, hi=5.0, step=0.01),
         doc="""Baseline shift of the cubic nullcline""",
         order=2)
 
@@ -2617,14 +2749,24 @@ class Generic2dOscillator(Model):
             slow variable to itself""",
         order=10)
 
+    # This parameter is basically a hack to avoid having a negative lower boundary in the global coupling strength.
+    gamma = arrays.FloatArray(
+        label=r":math:`\gamma`",
+        default=numpy.array([1.0]),
+        range=basic.Range(lo=-1.0, hi=1.0, step=0.1),
+        doc="""Constant parameter to reproduce FHN dynamics where
+               excitatory input currents are negative.
+               It scales both I and the long range coupling term.""",
+        order=13)
+
     #Informational attribute, used for phase-plane and initial()
     state_variable_range = basic.Dict(
         label="State Variable ranges [lo, hi]",
         default={"V": numpy.array([-2.0, 4.0]),
                  "W": numpy.array([-6.0, 6.0])},
         doc="""The values for each state-variable should be set to encompass
-            the expected dynamic range of that state-variable for the current 
-            parameters, it is used as a mechanism for bounding random initial 
+            the expected dynamic range of that state-variable for the current
+            parameters, it is used as a mechanism for bounding random initial
             conditions when the simulation isn't started from an explicit
             history, it is also provides the default range of phase-plane plots.""",
         order=11)
@@ -2645,7 +2787,7 @@ class Generic2dOscillator(Model):
         default=["V", ],
         select_multiple=True,
         doc="""This represents the default state-variables of this Model to be
-                                        monitored. It can be overridden for each Monitor if desired. The 
+                                        monitored. It can be overridden for each Monitor if desired. The
                                         corresponding state-variable indices for this model are :math:`V = 0`
                                         and :math:`W = 1`.""",
         order=12)
@@ -2669,11 +2811,11 @@ class Generic2dOscillator(Model):
 
 
     def dfun(self, state_variables, coupling, local_coupling=0.0, ev=numexpr.evaluate):
-        """
-        The two state variables :math:`V` and :math:`W` are typically considered 
-        to represent a function of the neuron's membrane potential, such as the 
-        firing rate or dendritic currents, and a recovery variable, respectively. 
-        If there is a time scale hierarchy, then typically :math:`V` is faster 
+        r"""
+        The two state variables :math:`V` and :math:`W` are typically considered
+        to represent a function of the neuron's membrane potential, such as the
+        firing rate or dendritic currents, and a recovery variable, respectively.
+        If there is a time scale hierarchy, then typically :math:`V` is faster
         than :math:`W` corresponding to a value of :math:`\tau` greater than 1.
 
         #TODO: update equations
@@ -2684,7 +2826,7 @@ class Generic2dOscillator(Model):
             \dot{V} &= \tau (\alpha W - V^3 +3 V^2 + I) \\
             \dot{W} &= (a\, + b\, V + c\, V^2 - \, beta W) / \tau
 
-        where external currents :math:`I` provide the entry point for local, 
+        where external currents :math:`I` provide the entry point for local,
         long-range connectivity and stimulation.
 
         """
@@ -2706,6 +2848,7 @@ class Generic2dOscillator(Model):
         g = self.g
         beta = self.beta
         alpha = self.alpha
+        gamma = self.gamma
 
         lc_0 = local_coupling * V
 
@@ -2713,8 +2856,8 @@ class Generic2dOscillator(Model):
         #if not hasattr(self, 'derivative'):
         #    self.derivative = numpy.empty((2,)+V.shape)
 
-        ## numexpr       
-        dV = ev('d * tau * (alpha * W - f * V**3 + e * V**2 + g * V + I + c_0 + lc_0)')
+        ## numexpr
+        dV = ev('d * tau * (alpha * W - f * V**3 + e * V**2 + g * V + gamma * I + gamma *c_0 + lc_0)')
         dW = ev('d * (a + b * V + c * V**2 - beta * W) / tau')
 
         ## regular ndarray operation
@@ -2751,21 +2894,22 @@ class Generic2dOscillator(Model):
     )
 
 
+
 class LarterBreakspear(Model):
-    """
+    r"""
     A modified Morris-Lecar model that includes a third equation which simulates
     the effect of a population of inhibitory interneurons synapsing on
     the pyramidal cells.
-    
+
     .. [Larteretal_1999] Larter et.al. *A coupled ordinary differential equation
         lattice model for the simulation of epileptic seizures.* Chaos. 9(3):
         795, 1999.
-    
+
     .. [Breaksetal_2003_a] Breakspear, M.; Terry, J. R. & Friston, K. J.  *Modulation of excitatory
         synaptic coupling facilitates synchronization and complex dynamics in an
         onlinear model of neuronal dynamics*. Neurocomputing 52–54 (2003).151–158
 
-    .. [Breaksetal_2003_b] M. J. Breakspear et.al. *Modulation of excitatory 
+    .. [Breaksetal_2003_b] M. J. Breakspear et.al. *Modulation of excitatory
         synaptic coupling facilitates synchronization and complex dynamics in a
         biophysical model of neuronal dynamics.* Network: Computation in Neural
         Systems 14: 703-732, 2003.
@@ -2781,9 +2925,9 @@ class LarterBreakspear(Model):
     .. [Alstottetal_2009] Alstott, J.; Breakspear, M.; Hagmann, P.; Cammoun, L. & Sporns, O.
         *Modeling the impact of lesions in the human brain*. (2009)),  PLoS Comput Biol, 5, e1000408
 
-    Equations and default parameters are taken from [Breaksetal_2003_b]_. 
+    Equations and default parameters are taken from [Breaksetal_2003_b]_.
     All equations and parameters are non-dimensional and normalized.
-    For values of d_v  < 0.55, the dynamics of a single column settles onto a 
+    For values of d_v  < 0.55, the dynamics of a single column settles onto a
     solitary fixed point attractor.
 
 
@@ -2791,7 +2935,7 @@ class LarterBreakspear(Model):
     Two nodes were coupled. C=0.1
 
     +---------------------------+
-    |          Table 1          | 
+    |          Table 1          |
     +--------------+------------+
     |Parameter     |  Value     |
     +==============+============+
@@ -2816,7 +2960,7 @@ class LarterBreakspear(Model):
 
 
     +---------------------------+
-    |          Table 2          | 
+    |          Table 2          |
     +--------------+------------+
     |Parameter     |  Value     |
     +==============+============+
@@ -2887,7 +3031,7 @@ class LarterBreakspear(Model):
     NOTES about parameters
 
     d_V
-    For d_V < 0.55, uncoupled network, the system exhibits fixed point dynamics; 
+    For d_V < 0.55, uncoupled network, the system exhibits fixed point dynamics;
     for 55 < lb.d_V < 0.59, limit cycle attractors;
     and for d_V > 0.59 chaotic attractors (eg, d_V=0.6,aee=0.5,aie=0.5, gNa=0, Iext=0.165)
 
@@ -2895,209 +3039,227 @@ class LarterBreakspear(Model):
     this parameter might be spatialized: ones(N,1).*0.65 + modn*(rand(N,1)-0.5);
 
     C
-    The long-range coupling 'C' is ‘weak’ in the sense that 
+    The long-range coupling 'C' is ‘weak’ in the sense that
     they investigated parameter values for which C < a_ee and C << a_ie.
 
 
-    
+
     .. figure :: img/LarterBreakspear_01_mode_0_pplane.svg
             :alt: Larter-Breaskpear phase plane (V, W)
-            
+
             The (:math:`V`, :math:`W`) phase-plane for the Larter-Breakspear model.
-    
+
     .. automethod:: LarterBreakspear.__init__
-    
+
+    Dynamic equations:
+
+    .. math::
+         \dot{V} &= - (g_{Ca} + (1 - C) \, r_{NMDA} \, a_{ee} Q_V^i +
+        C \, r_{NMDA} \, a_{ee} \langle Q_V \rangle) \, m_{Ca} \,(V - V_{Ca})
+        - g_K\, W\, (V - V_K) - g_L\, (V - V_L)
+        - (g_{Na} m_{Na} + (1 - C) \, a_{ee} Q_V^i +
+        C \, a_{ee} \langle Q_V \rangle) \, (V - V_{Na})
+        - a_{ie}\, Z \, Q_Z^i + a_{ne} \, I_{\delta} \\
+
+        \dot{W} &= \frac{\phi \, (m_K - W)}{\tau_K} \\
+        \dot{Z} &= b \, (a_{ni} \, I_{\delta} + a_{ei} \, V \, Q_V)\\
+
+        m_{ion}(X) &= 0.5 \, (1 + tanh(\frac{V-T_{ion}}{\delta_{ion}})
+
+        See Equations (7), (3), (6) and (2) respectively in [Breaksetal_2003_a]_.
+        Pag: 705-706
+
     """
-    
+
     _ui_name = "Larter-Breakspear"
     ui_configurable_parameters = ['gCa', 'gK', 'gL', 'phi', 'gNa', 'TK', 'TCa',
                                   'TNa', 'VCa', 'VK', 'VL', 'VNa', 'd_K', 'tau_K',
                                   'd_Na', 'd_Ca', 'aei', 'aie', 'b', 'C', 'ane',
                                   'ani', 'aee', 'Iext', 'rNMDA', 'VT', 'd_V', 'ZT',
                                   'd_Z', 'QV_max', 'QZ_max']
-    
+
     #Define traited attributes for this model, these represent possible kwargs.
     gCa = arrays.FloatArray(
         label = ":math:`g_{Ca}`",
         default = numpy.array([1.1]),
         range = basic.Range(lo = 0.9, hi = 1.5, step = 0.1),
         doc = """Conductance of population of Ca++ channels.""")
-    
+
     gK = arrays.FloatArray(
         label = ":math:`g_{K}`",
         default = numpy.array([2.0]),
         range = basic.Range(lo = 1.95, hi= 2.05, step = 0.025),
         doc = """Conductance of population of K channels.""")
-    
+
     gL = arrays.FloatArray(
         label = ":math:`g_{L}`",
         default = numpy.array([0.5]),
         range = basic.Range(lo = 0.45 , hi = 0.55, step = 0.05),
         doc = """Conductance of population of leak channels.""")
-    
+
     phi = arrays.FloatArray(
         label = r":math:`\phi`",
         default = numpy.array([0.7]),
         range = basic.Range(lo = 0.3, hi = 0.9, step = 0.1),
         doc = """Temperature scaling factor.""")
-    
+
     gNa = arrays.FloatArray(
         label = ":math:`g_{Na}`",
         default = numpy.array([6.7]),
         range = basic.Range(lo = 0.0, hi = 10.0, step = 0.1),
         doc = """Conductance of population of Na channels.""")
-    
+
     TK = arrays.FloatArray(
         label = ":math:`T_{K}`",
         default = numpy.array([0.0]),
         range = basic.Range(lo = 0.0, hi = 0.0001, step = 0.00001),
         doc = """Threshold value for K channels.""")
-    
+
     TCa = arrays.FloatArray(
         label = ":math:`T_{Ca}`",
         default = numpy.array([-0.01]),
         range = basic.Range(lo = -0.02, hi=-0.01, step = 0.0025),
         doc = "Threshold value for Ca channels.")
-    
+
     TNa = arrays.FloatArray(
         label = ":math:`T_{Na}`",
         default = numpy.array([0.3]),
         range = basic.Range(lo = 0.25, hi= 0.3, step = 0.025),
         doc = "Threshold value for Na channels.")
-    
+
     VCa = arrays.FloatArray(
         label = ":math:`V_{Ca}`",
         default = numpy.array([1.0]),
         range = basic.Range(lo = 0.9, hi = 1.1, step = 0.05),
         doc = """Ca Nernst potential.""")
-    
+
     VK = arrays.FloatArray(
         label = ":math:`V_{K}`",
         default = numpy.array([-0.7]),
         range = basic.Range(lo = -0.8, hi = 1., step = 0.1),
         doc = """K Nernst potential.""")
-    
+
     VL = arrays.FloatArray(
         label = ":math:`V_{L}`",
         default = numpy.array([-0.5]),
         range = basic.Range(lo = -0.7, hi = -0.4, step = 0.1),
         doc = """Nernst potential leak channels.""")
-    
+
     VNa = arrays.FloatArray(
         label = ":math:`V_{Na}`",
         default = numpy.array([0.53]),
         range = basic.Range(lo = 0.51, hi = 0.55, step = 0.01),
         doc = """Na Nernst potential.""")
-    
+
     d_K = arrays.FloatArray(
         label = r":math:`\delta_{K}`",
         default = numpy.array([0.3]),
         range = basic.Range(lo = 0.1, hi = 0.4, step = 0.1),
         doc = """Variance of K channel threshold.""")
-    
+
     tau_K = arrays.FloatArray(
         label = r":math:`\tau_{K}`",
         default = numpy.array([1.0]),
-        range = basic.Range(lo = 0.01, hi = 0.0, step = 0.1),
+        range = basic.Range(lo = 1.0, hi = 10.0, step = 1.0),
         doc = """Time constant for K relaxation time (ms)""")
-    
+
     d_Na = arrays.FloatArray(
         label = r":math:`\delta_{Na}`",
         default = numpy.array([0.15]),
         range = basic.Range(lo = 0.1, hi = 0.2, step = 0.05),
         doc = "Variance of Na channel threshold.")
-    
+
     d_Ca = arrays.FloatArray(
         label = r":math:`\delta_{Ca}`",
         default = numpy.array([0.15]),
-        range = basic.Range(lo = 05.1, hi = 0.2, step = 0.05),
+        range = basic.Range(lo = 0.1, hi = 0.2, step = 0.05),
         doc = "Variance of Ca channel threshold.")
-    
+
     aei = arrays.FloatArray(
         label = ":math:`a_{ei}`",
         default = numpy.array([2.0]),
         range = basic.Range(lo = 0.1, hi = 2.0, step = 0.1),
         doc = """Excitatory-to-inhibitory synaptic strength.""")
-    
+
     aie = arrays.FloatArray(
         label = ":math:`a_{ie}`",
         default = numpy.array([2.0]),
         range = basic.Range(lo = 0.5, hi = 2.0, step = 0.1),
         doc = """Inhibitory-to-excitatory synaptic strength.""")
-    
+
     b = arrays.FloatArray(
         label = ":math:`b`",
         default = numpy.array([0.1]),
         range = basic.Range(lo = 0.0001, hi = 1.0, step = 0.0001),
         doc = """Time constant scaling factor. The original value is 0.1""")
-    
+
     C = arrays.FloatArray(
-        label = ":math:`C`",    
+        label = ":math:`C`",
         default = numpy.array([0.1]),
         range = basic.Range(lo = 0.0, hi = 0.2, step = 0.01),
         doc = """Strength of excitatory coupling. Balance between internal and
-        local (and global) coupling strength. C > 0 introduces interdependences between 
+        local (and global) coupling strength. C > 0 introduces interdependences between
         consecutive columns/nodes. C=1 corresponds to maximum coupling.
         This strenght should be set to sensible values when a whole network is connected. """)
-    
+
     ane = arrays.FloatArray(
         label = ":math:`a_{ne}`",
         default = numpy.array([1.0]),
         range = basic.Range(lo = 0.4, hi = 1.0, step = 0.05),
         doc = """Non-specific-to-excitatory synaptic strength.""")
-    
+
     ani = arrays.FloatArray(
         label = ":math:`a_{ni}`",
         default = numpy.array([0.4]),
         range = basic.Range(lo = 0.3, hi = 0.5, step = 0.05),
         doc = """Non-specific-to-inhibitory synaptic strength.""")
-    
+
     aee = arrays.FloatArray(
         label = ":math:`a_{ee}`",
         default = numpy.array([0.4]),
-        range = basic.Range(lo = 0.4, hi = 0.6, step = 0.05),
+        range = basic.Range(lo = 0.0, hi = 0.6, step = 0.05),
         doc = """Excitatory-to-excitatory synaptic strength.""")
-    
+
     Iext = arrays.FloatArray(
        label = ":math:`I_{ext}`",
        default = numpy.array([0.3]),
        range = basic.Range(lo = 0.165, hi = 0.3, step = 0.005),
        doc = """Subcortical input strength. It represents a non-specific
        excitation or thalamic inputs.""")
-    
+
     rNMDA = arrays.FloatArray(
         label = ":math:`r_{NMDA}`",
         default = numpy.array([0.25]),
         range = basic.Range(lo = 0.2, hi = 0.3, step = 0.05),
         doc = """Ratio of NMDA to AMPA receptors.""")
-    
+
     VT = arrays.FloatArray(
         label = ":math:`V_{T}`",
         default = numpy.array([0.0]),
         range = basic.Range(lo = 0.0, hi = 0.7, step = 0.01),
-        doc = """Threshold potential (mean) for excitatory neurons. 
+        doc = """Threshold potential (mean) for excitatory neurons.
         In [Breaksetal_2003_b]_ this values is 0.""")
-    
+
     d_V = arrays.FloatArray(
         label = r":math:`\delta_{V}`",
         default = numpy.array([0.65]),
         range = basic.Range(lo = 0.49, hi = 0.7, step = 0.01),
         doc = """Variance of the excitatory threshold. It is one of the main
         parameters explored in [Breaksetal_2003_b]_.""")
-    
+
     ZT = arrays.FloatArray(
         label = ":math:`Z_{T}`",
         default = numpy.array([0.0]),
         range = basic.Range(lo = 0.0, hi = 0.1, step = 0.005),
         doc = """Threshold potential (mean) for inihibtory neurons.""")
-    
+
     d_Z = arrays.FloatArray(
         label = r":math:`\delta_{Z}`",
         default = numpy.array([0.7]),
         range = basic.Range(lo = 0.001, hi = 0.75, step = 0.05),
         doc = """Variance of the inhibitory threshold.""")
-        
-    # NOTE: the values were not in the article. 
+
+    # NOTE: the values were not in the article.
     QV_max = arrays.FloatArray(
         label = ":math:`Q_{max}`",
         default = numpy.array([1.0]),
@@ -3119,90 +3281,91 @@ class LarterBreakspear(Model):
         doc="""This represents the default state-variables of this Model to be
         monitored. It can be overridden for each Monitor if desired.""",
         order=10)
-    
+
     #Informational attribute, used for phase-plane and initial()
     state_variable_range = basic.Dict(
         label = "State Variable ranges [lo, hi]",
-        default = {"V": numpy.array([-0.5, 0.5]),
-                   "W": numpy.array([-0.5, 0.5]),
-                   "Z": numpy.array([-0.5, 0.5])},
+        default = {"V": numpy.array([-1.5, 1.5]),
+                   "W": numpy.array([-1.5, 1.5]),
+                   "Z": numpy.array([-1.5, 1.5])},
         doc = """The values for each state-variable should be set to encompass
-            the expected dynamic range of that state-variable for the current 
-            parameters, it is used as a mechanism for bounding random inital 
+            the expected dynamic range of that state-variable for the current
+            parameters, it is used as a mechanism for bounding random inital
             conditions when the simulation isn't started from an explicit
             history, it is also provides the default range of phase-plane plots.""")
-    
-    
+
+
     def __init__(self, **kwargs):
         """
         .. May need to put kwargs back if we can't get them from trait...
-        
+
         """
-        
+
         LOG.info('%s: initing...' % str(self))
-        
+
         super(LarterBreakspear, self).__init__(**kwargs)
-        
+
         self._state_variables = ["V", "W", "Z"]
-        
+
         self._nvar = 3
         self.cvar = numpy.array([0], dtype=numpy.int32)
-        
+
         LOG.debug('%s: inited.' % repr(self))
-    
-    
+
+
     def dfun(self, state_variables, coupling, local_coupling=0.0):
         """
         .. math::
-             \\dot{V} &= - (g_{Ca} + (1 - C) \\, r_{NMDA} \\, a_{ee} Q_V^i +
-            C \\, r_{NMDA} \\, a_{ee} \\langle Q_V \\rangle) \\, m_{Ca} \\,(V - V_{Ca})
-            - g_K\\, W\\, (V - V_K) - g_L\\, (V - V_L)
-            - (g_{Na} m_{Na} + (1 - C) \\, a_{ee} Q_V^i + 
-            C \\, a_{ee} \\langle Q_V \\rangle) \\, (V - V_{Na})
-            - a_{ie}\\, Z \\, Q_Z^i + a_{ne} \\, I_{\\delta}
-            
-            \\dot{W} &= \\frac{\\phi \\, (m_K - W)}{\\tau_K} \\\\
-            \\dot{Z} &= b \\, (a_{ni} \\, I_{\\delta} + a_{ei} \\, V \\, Q_V)\\\\
-            
-            m_{ion}(X) &= 0.5 \\, (1 + tanh(\\frac{V-T_{ion}}{\\delta_{ion}})
-            
-        See Equations (7), (3), (6) and (2) respectively in [Breaksetal_2003]_.
+             \dot{V} &= - (g_{Ca} + (1 - C) \, r_{NMDA} \, a_{ee} Q_V^i +
+            C \, r_{NMDA} \, a_{ee} \langle Q_V \rangle) \, m_{Ca} \,(V - V_{Ca})
+            - g_K\, W\, (V - V_K) - g_L\, (V - V_L)
+            - (g_{Na} m_{Na} + (1 - C) \, a_{ee} Q_V^i +
+            C \, a_{ee} \langle Q_V \rangle) \, (V - V_{Na})
+            - a_{ie}\, Z \, Q_Z^i + a_{ne} \, I_{\delta} \\
+
+            \dot{W} &= \frac{\phi \, (m_K - W)}{\tau_K} \\
+            \dot{Z} &= b \, (a_{ni} \, I_{\delta} + a_{ei} \, V \, Q_V)\\
+
+            m_{ion}(X) &= 0.5 \, (1 + tanh(\frac{V-T_{ion}}{\delta_{ion}})
+
+        See Equations (7), (3), (6) and (2) respectively in [Breaksetal_2003_a]_.
         Pag: 705-706
-        
+
         """
         V = state_variables[0, :]
         W = state_variables[1, :]
         Z = state_variables[2, :]
 
-        c_0   = coupling[0, :]    
-        
-        
+        c_0   = coupling[0, :]
+
+
         # relationship between membrane voltage and channel conductance
         m_Ca = 0.5 * (1 + numpy.tanh((V - self.TCa) / self.d_Ca))
         m_Na = 0.5 * (1 + numpy.tanh((V - self.TNa) / self.d_Na))
         m_K  = 0.5 * (1 + numpy.tanh((V - self.TK )  / self.d_K))
-        
+
         # voltage to firing rate
         QV    = 0.5 * self.QV_max * (1 + numpy.tanh((V - self.VT) / self.d_V))
         QZ    = 0.5 * self.QZ_max * (1 + numpy.tanh((Z - self.ZT) / self.d_Z))
         lc_0  = local_coupling * QV
 
-        
+
         dV = (- (self.gCa + (1.0 - self.C) * (self.rNMDA * self.aee) * (QV + lc_0)+ self.C * self.rNMDA * self.aee * c_0) * m_Ca * (V - self.VCa) - self.gK * W * (V - self.VK) -  self.gL * (V - self.VL) - (self.gNa * m_Na + (1.0 - self.C) * self.aee * (QV  + lc_0) + self.C * self.aee * c_0) * (V - self.VNa) - self.aei * Z * QZ + self.ane * self.Iext)
 
         dW = (self.phi * (m_K - W) / self.tau_K)
-        
+
         dZ = (self.b * (self.ani * self.Iext + self.aei * V * QV))
-        
+
         derivative = numpy.array([dV, dW, dZ])
-        
+
         return derivative
 
 
+
 class ReducedWongWang(Model):
-    """
-    .. [WW_2006] Kong-Fatt Wong and Xiao-Jing Wang,  *A Recurrent Network 
-                Mechanism of Time Integration in Perceptual Decisions*. 
+    r"""
+    .. [WW_2006] Kong-Fatt Wong and Xiao-Jing Wang,  *A Recurrent Network
+                Mechanism of Time Integration in Perceptual Decisions*.
                 Journal of Neuroscience 26(4), 1314-1328, 2006.
 
     .. [DPA_2013] Deco Gustavo, Ponce Alvarez Adrian, Dante Mantini, Gian Luca
@@ -3215,6 +3378,13 @@ class ReducedWongWang(Model):
 
     .. automethod:: ReducedWongWang.__init__
 
+    Equations taken from [DPA_2013]_ , page 11242
+
+    .. math::
+            \frac{dS}{dt} &= -\frac{S}{\tau_s} + (1- S) \, H \, \gamma \\
+            H(x) &= \frac{ax - b}{1 - \exp(-d(ax -b))} \\
+            x &= wJ_{N}S + I_o + J_N c_0 + J_N lc_0
+
     """
     _ui_name = "Reduced Wong-Wang"
 
@@ -3223,21 +3393,21 @@ class ReducedWongWang(Model):
         label=":math:`a`",
         default=numpy.array([0.270, ]),
         range=basic.Range(lo=0.0, hi=0.270),
-        doc=""" [nC]^{-1}. Parameter chosen to ﬁt numerical solutions.""",
+        doc=""" [nC]^{-1}. Parameter chosen to fit numerical solutions.""",
         order=1)
 
     b = arrays.FloatArray(
         label=":math:`b`",
         default=numpy.array([0.108, ]),
         range=basic.Range(lo=0.0, hi=1.0),
-        doc="""[kHz]. Parameter chosen to ﬁt numerical solutions.""",
+        doc="""[kHz]. Parameter chosen to fit numerical solutions.""",
         order=2)
 
     d = arrays.FloatArray(
         label=":math:`d`",
         default=numpy.array([154., ]),
         range=basic.Range(lo=0.0, hi=200.0),
-        doc="""[ms]. Parameter chosen to ﬁt numerical solutions.""",
+        doc="""[ms]. Parameter chosen to fit numerical solutions.""",
         order=3)
 
     gamma = arrays.FloatArray(
@@ -3332,10 +3502,10 @@ class ReducedWongWang(Model):
         r"""
         Equations taken from [DPA_2013]_ , page 11242
 
-        ..math:: 
-                \frac{dS}{dt} &= -\frac{S}{\tau_s} + (1- S) \, H \, \gamma
-                H(x) &= \frac{ax - b}{1 - \exp(-d(ax -b))}
-                x &= wJ_{N}S + I_o + J_N c_0 + J_N lc_0 
+        .. math::
+                \frac{dS}{dt} &= -\frac{S}{\tau_s} + (1- S) \, H \, \gamma \\
+                H(x) &= \frac{ax - b}{1 - \exp(-d(ax -b))} \\
+                x &= wJ_{N}S + I_o + J_N c_0 + J_N lc_0
 
         """
 
@@ -3344,7 +3514,7 @@ class ReducedWongWang(Model):
         S[S>1] = 1.
         c_0 = coupling[0, :]
 
-        
+
         # if applicable
         lc_0 = local_coupling * S
 
@@ -3358,7 +3528,7 @@ class ReducedWongWang(Model):
 
 
 class Kuramoto(Model):
-    """
+    r"""
     The Kuramoto model is a model of synchronization phenomena derived by
     Yoshiki Kuramoto in 1975 which has since been applied to diverse domains
     including the study of neuronal oscillations and synchronization.
@@ -3377,6 +3547,12 @@ class Kuramoto(Model):
             network oscillations in resting-state functional connectivity*.
             NeuroImage, 57, 1, 2011.
 
+    The :math:`\theta` variable is the phase angle of the oscillation.
+
+    Dynamic equations:
+    .. math::
+            \dot{\theta} = \omega + I
+
     """
 
     _ui_name = "Kuramoto Oscillator"
@@ -3388,7 +3564,7 @@ class Kuramoto(Model):
         default=numpy.array([1.0]),
         range=basic.Range(lo=0.01, hi=200.0, step=0.1),
         doc=""":math:`\omega` sets the base line frequency for the
-            Kuramoto oscillator""",
+            Kuramoto oscillator in [rad/ms]""",
         order=1)
 
     #Informational attribute, used for phase-plane and initial()
@@ -3397,8 +3573,8 @@ class Kuramoto(Model):
         default={"theta": numpy.array([0.0, numpy.pi * 2.0]),
         },
         doc="""The values for each state-variable should be set to encompass
-            the expected dynamic range of that state-variable for the current 
-            parameters, it is used as a mechanism for bounding random initial 
+            the expected dynamic range of that state-variable for the current
+            parameters, it is used as a mechanism for bounding random initial
             conditions when the simulation isn't started from an explicit
             history, it is also provides the default range of phase-plane plots.""",
         order=6)
@@ -3414,14 +3590,6 @@ class Kuramoto(Model):
                             is not necessary to change the default here.""",
         order=7)
 
-    #    variables_of_interest = arrays.IntegerArray(
-    #        label = "Variables watched by Monitors.",
-    #        default = numpy.array([0], dtype=numpy.int32),
-    #        doc = """This represents the default state-variables of this Model to be
-    #        monitored. It can be overridden for each Monitor if desired. The Kuramoto
-    #        model, however, only has one state variable with and index of 0, so it
-    #        is not necessary to change the default here.""",
-    #        order = 7)
 
 
     def __init__(self, **kwargs):
@@ -3449,25 +3617,28 @@ class Kuramoto(Model):
         .. math::
             \dot{\theta} = \omega + I
 
-        where :math:`I` is the input via local and long range connectivity, 
-        passing first through the Kuramoto coupling function, 
+        where :math:`I` is the input via local and long range connectivity,
+        passing first through the Kuramoto coupling function,
         :py:class:tvb.simulator.coupling.Kuramoto.
 
         """
 
-        # reset if over 2*pi
-        state_variables[state_variables > pi2] -= pi2
-
         theta = state_variables[0, :]
+        #import pdb; pdb.set_trace()
 
+        #A) Distribution of phases according to the local connectivity kernel
+        local_range_coupling = numpy.sin(local_coupling * theta)
 
-        #                   TODO CHECKME FIXME ME ME
-        I = coupling[0, :] + sin(local_coupling * theta)
+        # NOTE: To evaluate.
+        #B) Strength of the interactions
+        #local_range_coupling = local_coupling * numpy.sin(theta)
+
+        I = coupling[0, :] + local_range_coupling
 
         if not hasattr(self, 'derivative'):
             self.derivative = numpy.empty((1,) + theta.shape)
 
-        # phase update 
+        # phase update
         self.derivative[0] = self.omega + I
 
         # all this pi makeh me have great hungary, can has sum NaN?
@@ -3478,286 +3649,719 @@ class Kuramoto(Model):
         kernel="""
         float omega = P(0)
             , theta = X(0)
-            , c_0 = I(0) ; 
+            , c_0 = I(0) ;
 
                     // update state array
         if (theta>(2*PI)) X(0)-= 2*PI;
-
         DX(0) = omega + c_0;
 
         """
     )
 
-    
 
-class ContinuousHopfield(Model):
-    """
-    The Hopfield neural network is a discrete time dynamical system composed of multiple binary nodes,
-    with a connectivity matrix built from a predetermined set of patterns. The update, inspired
-    from the spin-glass model (used to describe magnetic properties of dilute alloys), is based
-    on a random scanning of every node. The existence of a fixed point dynamics is guaranteed
-    by a Lyapunov function. The Hopfield network is expected to have those multiple patterns as
-    attractors (multistable dynamical system). When the initial conditions are close to one of
-    the “learned” patterns, the dynamical system is expected to relax on the corresponding attractor.
-    A possible output of the system is the final attractive state (interpreted as an associative memory).
+class Hopfield(Model):
+    r"""
 
-    Various extensions of the initial model have been proposed, among which a noiseless and
-    continuous version [Hopfield_1984]_ having a slightly different Lyapunov function, but essentially
-    the same dynamical properties, with more straightforward physiological interpretation.
-    A continuous Hopfield neural network (with a sigmoid transfer function) can indeed be interpreted
-    as a network of neural masses with every node corresponding to the mean field activity of a local
-    brain region, with many bridges with the Wilson Cowan model [WC_1973]_.
+    The Hopfield neural network is a discrete time dynamical system composed
+    of multiple binary nodes, with a connectivity matrix built from a
+    predetermined set of patterns. The update, inspired from the spin-glass
+    model (used to describe magnetic properties of dilute alloys), is based on
+    a random scanning of every node. The existence of a fixed point dynamics
+    is guaranteed by a Lyapunov function. The Hopfield network is expected to
+    have those multiple patterns as attractors (multistable dynamical system).
+    When the initial conditions are close to one of the 'learned' patterns,
+    the dynamical system is expected to relax on the corresponding attractor.
+    A possible output of the system is the final attractive state (interpreted
+    as an associative memory).
+
+    Various extensions of the initial model have been proposed, among which a
+    noiseless and continuous version [Hopfield 1984] having a slightly
+    different Lyapunov function, but essentially the same dynamical
+    properties, with more straightforward physiological interpretation. A
+    continuous Hopfield neural network (with a sigmoid transfer function) can
+    indeed be interpreted as a network of neural masses with every node
+    corresponding to the mean field activity of a local brain region, with
+    many bridges with the Wilson Cowan model [WC_1972].
 
     **References**:
 
-        .. [Hopfield_1982] Hopfield, J. J., *Neural networks and physical systems with emergent collective
-                        computational abilities*, Proc. Nat. Acad. Sci. (USA) 79, 2554–2558, 1982.
+        .. [Hopfield1982] Hopfield, J. J., *Neural networks and physical systems with emergent collective
+                        computational abilities*, Proc. Nat. Acad. Sci. (USA) 79, 2554-2558, 1982.
 
-        .. [Hopfield_1984] Hopfield, J. J., *Neurons with graded response have collective computational
+        .. [Hopfield1984] Hopfield, J. J., *Neurons with graded response have collective computational
                         properties like those of two-sate neurons*, Proc. Nat. Acad. Sci. (USA) 81, 3088-3092, 1984.
 
-
     See also, http://www.scholarpedia.org/article/Hopfield_network
 
-    .. automethod:: ContinuousHopfield.__init__
-    .. automethod:: ContinuousHopfield.dfun
-
-    """
-
-    _ui_name = "Continuous Hopfield"
-    ui_configurable_parameters = ['taux']
-
-    #Define traited attributes for this model, these represent possible kwargs.
-    taux = arrays.FloatArray(
-        label = r":math:`\tau_{x}`",
-        default = numpy.array([1.]),
-        range = basic.Range(lo = 0.01, hi = 100., step = 0.01),
-        doc = """The fast time-scale for potential calculus :math:`x`, state-variable of the model.""",
-        order=1)
-
-    #Used for phase-plane axis ranges and to bound random initial() conditions.
-    state_variable_range = basic.Dict(
-        label = "State Variable ranges [lo, hi]",
-        default = {"x": numpy.array([-1., 2.])},
-        doc = """The values for each state-variable should be set to encompass
-            the expected dynamic range of that state-variable for the current
-            parameters, it is used as a mechanism for bounding random inital
-            conditions when the simulation isn't started from an explicit
-            history, it is also provides the default range of phase-plane plots.""",
-        order = 2)
-
-    variables_of_interest = basic.Enumerate(
-        label = "Variables watched by Monitors",
-        options=["x"],
-        default=["x"],
-        select_multiple=True,
-        doc = """The values for each state-variable should be set to encompass
-            the expected dynamic range of that state-variable for the current
-            parameters, it is used as a mechanism for bounding random inital
-            conditions when the simulation isn't started from an explicit
-            history, it is also provides the default range of phase-plane plots.""",
-        #doc="""This represents the default state-variables of this Model to be
-                                    #monitored. It can be overridden for each Monitor if desired. The
-                                    #corresponding state-variable indices for this model are :math:`E = 0`
-                                    #and :math:`I = 1`.""",
-        order = 3)
-
-
-    def __init__(self, **kwargs):
-        """Initialize the Hopfield Based model's traited attributes, any provided as
-        keywords will overide their traited default.
-        """
-        LOG.info("%s: initing..." % str(self))
-        super(ContinuousHopfield, self).__init__(**kwargs)
-
-        self._state_variables = ["x"]
-        self._nvar = len(self._state_variables)
-        self.cvar = numpy.array([0], dtype=numpy.int32)
-
-        LOG.debug("%s: inited." % repr(self))
-
-
-    def dfun(self, state_variables, coupling, local_coupling=0.0):
-        """The fast, :math:`x`, and slow, :math:`\\theta`, state variables are typically
-        considered to represent a membrane potentials of nodes and the global inhibition term,
-        respectively:
-
-            .. math::
-                \\dot{x_{i}} &= 1 / \\tau_{x} (-x_{i} + sum(W_{i,j} * A_{j}) + \\sigma^{2}_{x} * \\eta_{i})
-                A_{i} &= 1/2 * (1 + tanh(G * (P * x_{i} - \\theta_{i})))
-
-        where :math:`\\eta` is a centered gaussian noise and :math:`\\sigma` its standard deviation.
-        """
-
-        x = state_variables[0,:]
-        
-        dx = (- x + coupling[0]) / self.taux
-
-        derivative = numpy.array([dx])
-        return derivative
-
-    # info for device_data
-    device_info = model_device_info(
-
-        pars=['taux'],
-
-        kernel="""
-        // read parameters
-        float taux = P(0)
-
-        // state variables
-            , x = X(0)
-
-        // aux variables
-            , WAx = I(0);
-
-        // set derivatives
-        DX(0) = (-x + WAx) / taux;
-        """
-    )
-
-
-class HopfieldBased(Model):
-    """
-    The Hopfield neural network is a discrete time dynamical system composed of multiple binary nodes,
-    with a connectivity matrix built from a predetermined set of patterns. The update, inspired
-    from the spin-glass model (used to describe magnetic properties of dilute alloys), is based
-    on a random scanning of every node. The existence of a fixed point dynamics is guaranteed
-    by a Lyapunov function. The Hopfield network is expected to have those multiple patterns as
-    attractors (multistable dynamical system). When the initial conditions are close to one of
-    the “learned” patterns, the dynamical system is expected to relax on the corresponding attractor.
-    A possible output of the system is the final attractive state (interpreted as an associative memory).
-
-    Various extensions of the initial model have been proposed, among which a noiseless and
-    continuous version [Hopfield 1984] having a slightly different Lyapunov function, but essentially
-    the same dynamical properties, with more straightforward physiological interpretation.
-    A continuous Hopfield neural network (with a sigmoid transfer function) can indeed be interpreted
-    as a network of neural masses with every node corresponding to the mean field activity of a local
-    brain region, with many bridges with the Wilson Cowan model [ref].
-
-    .. [Hopfield 1982] Hopfield, J. J., *Neural networks and physical systems with emergent collective
-    computational abilities*, Proc. Nat. Acad. Sci. (USA) 79, 2554–2558, 1982.
-
-    .. [Hopfield 1984] Hopfield, J. J., *Neurons with graded response have collective computational
-    properties like those of two-sate neurons*, Proc. Nat. Acad. Sci. (USA) 81, 3088-3092, 1984.
-
-    See also, http://www.scholarpedia.org/article/Hopfield_network
-
-    .. #This model use a global threshold instead of a local one permitting multistable dynamic for
+    .. #This model can use a global threshold permitting multistable dynamic for
     .. #a positive structural connectivity matrix.
 
-    .. automethod:: HopfieldBased.__init__
-    .. automethod:: HopfieldBased.dfun
+    .. automethod:: Hopfield.__init__
+    .. automethod:: Hopfield.configure
+
+    Dynamic equations:
+
+    dfun equation
+        .. math::
+                \dot{x_{i}} &= 1 / \tau_{x} (-x_{i} + c_0)
+    dfun dynamic equation
+        .. math::
+            \dot{x_{i}} &= 1 / \tau_{x} (-x_{i} + c_0(i)) \\
+            \dot{\\theta_{i}} &= 1 / \tau_{\theta_{i}} (-\theta + c_1(i))
 
     """
 
-    _ui_name = "Hopfield Based"
-    ui_configurable_parameters = ['taux', 'tauT']
+    _ui_name = "Hopfield"
+    ui_configurable_parameters = ['taux', 'tauT', 'dynamic']
 
-    #Define traited attributes for this model, these represent possible kwargs.
+    # Define traited attributes for this model, these represent possible kwargs.
     taux = arrays.FloatArray(
-        label = ":math:`\\tau_{x}`",
-        default = numpy.array([1.]),
-        range = basic.Range(lo = 0.01, hi = 100., step = 0.01),
-        doc = """The fast time-scale for potential calculus :math:`x`, state-variable of the model.""",
-        order = 1)
+        label=":math:`\\tau_{x}`",
+        default=numpy.array([1.]),
+        range=basic.Range(lo=0.01, hi=100., step=0.01),
+        doc="""The fast time-scale for potential calculus :math:`x`, state-variable of the model.""",
+        order=1)
 
     tauT = arrays.FloatArray(
-        label = ":math:`\\tau_{\\theta}`",
-        default = numpy.array([5.]),
-        range = basic.Range(lo = 0.01, hi = 100., step = 0.01),
-        doc = """The slow time-scale for threshold calculus :math:`\\theta`, state-variable of the model.""",
-        order = 2)
+        label=":math:`\\tau_{\\theta}`",
+        default=numpy.array([5.]),
+        range=basic.Range(lo = 0.01, hi = 100., step = 0.01),
+        doc="""The slow time-scale for threshold calculus :math:`\\theta`, state-variable of the model.""",
+        order=2)
 
-    #Used for phase-plane axis ranges and to bound random initial() conditions.
+    dynamic = arrays.IntegerArray(
+        label="Dynamic",
+        default=numpy.array([0, ]),
+        range=basic.Range(lo=0, hi=1., step=1),
+        doc="""Boolean value for static/dynamic threshold theta for (0/1).""",
+        order=3)
+
+    # Used for phase-plane axis ranges and to bound random initial() conditions.
     state_variable_range = basic.Dict(
-        label = "State Variable ranges [lo, hi]",
-        default = {"x": numpy.array([-1., 2.]),
+        label="State Variable ranges [lo, hi]",
+        default={"x": numpy.array([-1., 2.]),
                    "theta": numpy.array([0., 1.])},
-        doc = """The values for each state-variable should be set to encompass
-            the expected dynamic range of that state-variable for the current
-            parameters, it is used as a mechanism for bounding random inital
-            conditions when the simulation isn't started from an explicit
-            history, it is also provides the default range of phase-plane plots.""",
-        order = 3)
-
-    variables_of_interest = basic.Enumerate(
-        label = "Variables watched by Monitors",
-        options=["x","theta"],
-        default=["x","theta"],
-        select_multiple=True,
-        doc = """The values for each state-variable should be set to encompass
+        doc="""The values for each state-variable should be set to encompass
             the expected dynamic range of that state-variable for the current
             parameters, it is used as a mechanism for bounding random inital
             conditions when the simulation isn't started from an explicit
             history, it is also provides the default range of phase-plane plots.""",
         order = 4)
 
+    variables_of_interest = basic.Enumerate(
+        label="Variables watched by Monitors",
+        options=["x", "theta"],
+        default=["x"],
+        select_multiple=True,
+        doc="""The values for each state-variable should be set to encompass
+            the expected dynamic range of that state-variable for the current
+            parameters, it is used as a mechanism for bounding random initial
+            conditions when the simulation isn't started from an explicit
+            history, it is also provides the default range of phase-plane plots.""",
+        order=5)
 
     def __init__(self, **kwargs):
-        """
-        Initialize the Hopfield Based model's traited attributes, any provided as
+        """Initialize the Hopfield model's traited attributes, any provided as
         keywords will overide their traited default.
-
         """
 
         LOG.info("%s: initing..." % str(self))
-        super(HopfieldBased, self).__init__(**kwargs)
+        super(Hopfield, self).__init__(**kwargs)
 
-        self._state_variables = ["x", "theta"]
-        self._nvar = len(self._state_variables)
-        self.cvar = numpy.array([0,1], dtype=numpy.int32)
+        self._nvar = 2
+        self.cvar = numpy.array([0], dtype=numpy.int32)
 
         LOG.debug("%s: inited." % repr(self))
-        
+
+    def configure(self):
+        """Set the threshold as a state variable for a dynamical threshold."""
+        super(Hopfield, self).configure()
+
+        if self.dynamic:
+            self.dfun = self.dfunDyn
+            self._nvar = 2
+            self.cvar = numpy.array([0, 1], dtype=numpy.int32)
+            # self.variables_of_interest = ["x", "theta"]
 
     def dfun(self, state_variables, coupling, local_coupling=0.0):
-        """
-        The fast, :math:`x`, and slow, :math:`\\theta`, state variables are typically
+        r"""
+        The fast, :math:`x`, and slow, :math:`\theta`, state variables are typically
         considered to represent a membrane potentials of nodes and the global inhibition term,
         respectively:
 
             .. math::
-                \\dot{x_{i}} &= 1 / \\tau_{x} (-x_{i} + sum(W_{i,j} * A_{j}) )
-                \\dot{\\theta} &= 1 / \\tau_{\\theta} (-\\theta + sum(A_{i}) / N )
-                \\dot{\\theta_{i}} &= 1 / \\tau_{\\theta_{i}} (-\\theta + A_{i} )
-                A_{i} &= 1/2 * (1 + tanh(G * (P * x_{i} - \\theta_{i})))
+                \dot{x_{i}} &= 1 / \tau_{x} (-x_{i} + c_0)
 
-        where :math:`A_{i}` is the node 'activity' and the threshold theta is calculated using the :math:`\\theta_{i}` formula
-        when set as local and the :math:`\\theta` formula when set as global.
-        
         """
-        #NOTE: The coupling on the second state variable is made from the direct nodes output.
 
-        x     = state_variables[0,:]
-        theta = state_variables[1,:]
-        
-        dx     = (- x     + coupling[0]) / self.taux
+        x = state_variables[0, :]
+        dx = (- x + coupling[0]) / self.taux
+
+        # We return 2 arrays here, because we have 2 possible state Variable, even if not dynamic
+        # Otherwise the phase-plane display will fail.
+        derivative = numpy.array([dx, dx])
+        return derivative
+
+    def dfunDyn(self, state_variables, coupling, local_coupling=0.0):
+        r"""
+        The fast, :math:`x`, and slow, :math:`\theta`, state variables are typically
+        considered to represent a membrane potentials of nodes and the inhibition term(s),
+        respectively:
+
+            .. math::
+                \dot{x_{i}} &= 1 / \tau_{x} (-x_{i} + c_0(i)) \\
+                \dot{\theta_{i}} &= 1 / \tau_{\theta_{i}} (-\theta + c_1(i))
+
+        where c_0 is the coupling term and c_1 should be the direct output.
+
+        """
+
+        x = state_variables[0, :]
+        theta = state_variables[1, :]
+        dx = (- x + coupling[0]) / self.taux
         dtheta = (- theta + coupling[1]) / self.tauT
 
         derivative = numpy.array([dx, dtheta])
         return derivative
 
-    # info for device_data
-    device_info = model_device_info(
 
-        pars=['taux, tauT'],
+class Epileptor(Model):
+    r"""
+    The Epileptor is a composite neural mass model of six dimensions which
+    has been crafted to model the phenomenology of epileptic seizures.
+    (see [Jirsaetal_2014]_)
 
-        kernel="""
-        // read parameters
-        float taux = P(0)
-        float taux = P(1)
+    Equations and default parameters are taken from [Jirsaetal_2014]_.
 
-        // state variables
-            , x = X(0)
-            , theta = X(1)
+          +------------------------------------------------------+
+          |                         Table 1                      |
+          +----------------------+-------------------------------+
+          |        Parameter     |           Value               |
+          +======================+===============================+
+          |         I_rest1      |              3.1              |
+          +----------------------+-------------------------------+
+          |         I_rest2      |              0.45             |
+          +----------------------+-------------------------------+
+          |         r            |            0.00035            |
+          +----------------------+-------------------------------+
+          |         x_0          |             -1.6              |
+          +----------------------+-------------------------------+
+          |         slope        |              0.0              |
+          +----------------------+-------------------------------+
+          |             Integration parameter                    |
+          +----------------------+-------------------------------+
+          |           dt         |              0.1              |
+          +----------------------+-------------------------------+
+          |  simulation_length   |              4000             |
+          +----------------------+-------------------------------+
+          |                    Noise                             |
+          +----------------------+-------------------------------+
+          |         nsig         | [0., 0., 0., 1e-3, 1e-3, 0.]  |
+          +----------------------+-------------------------------+
+          |              Jirsa et al. 2014                       |
+          +------------------------------------------------------+
 
-        // aux variables
-            , WAx = I(0);
-            , AAN = I(1);
 
-        // set derivatives
-        DX(0) = (-x + WAx) / taux;
-        DX(1) = (-theta + AAN) / tauT;
+    .. figure :: img/Epileptor_01_mode_0_pplane.svg
+        :alt: Epileptor phase plane
+
+    .. [Jirsaetal_2014] Jirsa, V. K.; Stacey, W. C.; Quilichini, P. P.;
+        Ivanov, A. I.; Bernard, C. *On the nature of seizure dynamics.* Brain,
+        2014.
+
+    .. automethod:: Epileptor.__init__
+
+    Variables of interest to be used by monitors: -y[0] + y[3]
+
+        .. math::
+            \dot{x_{1}} &=& y_{1} - f_{1}(x_{1}, x_{2}) - z + I_{ext1} \\
+            \dot{y_{1}} &=& c - d x_{1}^{2} - y{1} \\
+            \dot{z} &=&
+            \begin{cases}
+            r(4 (x_{1} - x_{0}) - z-0.1 z^{7}) & \text{if } x<0 \\
+            r(4 (x_{1} - x_{0}) - z) & \text{if } x \geq 0
+            \end{cases} \\
+            \dot{x_{2}} &=& -y_{2} + x_{2} - x_{2}^{3} + I_{ext2} + 0.002 g - 0.3 (z-3.5) \\
+            \dot{y_{2}} &=& 1 / \tau (-y_{2} + f_{2}(x_{2}))\\
+            \dot{g} &=& -0.01 (g - 0.1 x_{1})
+
+    where:
+        .. math::
+            f_{1}(x_{1}, x_{2}) =
+            \begin{cases}
+            a x_{1}^{3} - b x_{1}^2 & \text{if } x_{1} <0\\
+            -(slope - x_{2} + 0.6(z-4)^2) x_{1} &\text{if }x_{1} \geq 0
+            \end{cases}
+
+    and:
+
+        .. math::
+            f_{2}(x_{2}) =
+            \begin{cases}
+            0 & \text{if } x_{2} <-0.25\\
+            a_{2}(x_{2} + 0.25) & \text{if } x_{2} \geq -0.25
+            \end{cases}
+    """
+
+    _ui_name = "Epileptor"
+    ui_configurable_parameters = ["Iext", "Iext2", "r", "x0", "slope"]
+
+    a = arrays.FloatArray(
+        label="a",
+        default=numpy.array([1]),
+        doc="Coefficient of the cubic term in the first state variable",
+        order=-1)
+
+    b = arrays.FloatArray(
+        label="b",
+        default=numpy.array([3]),
+        doc="Coefficient of the squared term in the first state variabel",
+        order=-1)
+
+    c = arrays.FloatArray(
+        label="c",
+        default=numpy.array([1]),
+        doc="Additive coefficient for the second state variable, \
+        called :math:`y_{0}` in Jirsa paper",
+        order=-1)
+
+    d = arrays.FloatArray(
+        label="d",
+        default=numpy.array([5]),
+        doc="Coefficient of the squared term in the second state variable",
+        order=-1)
+
+    r = arrays.FloatArray(
+        label="r",
+        range=basic.Range(lo=0.0, hi=0.001, step=0.00005),
+        default=numpy.array([0.00035]),
+        doc="Temporal scaling in the third state variable, \
+        called :math:`1/\\tau_{0}` in Jirsa paper",
+        order=4)
+
+    s = arrays.FloatArray(
+        label="s",
+        default=numpy.array([4]),
+        doc="Linear coefficient in the third state variable",
+        order=-1)
+
+    x0 = arrays.FloatArray(
+        label="x0",
+        range=basic.Range(lo=-3.0, hi=-1.0, step=0.1),
+        default=numpy.array([-1.6]),
+        doc="Epileptogenicity parameter",
+        order=3)
+
+    Iext = arrays.FloatArray(
+        label="Iext",
+        range=basic.Range(lo=1.5, hi=5.0, step=0.1),
+        default=numpy.array([3.1]),
+        doc="External input current to the first population",
+        order=1)
+
+    slope = arrays.FloatArray(
+        label="slope",
+        range=basic.Range(lo=-16.0, hi=6.0, step=0.1),
+        default=numpy.array([0.]),
+        doc="Linear coefficient in the first state variable",
+        order=5)
+
+    Iext2 = arrays.FloatArray(
+        label="Iext2",
+        range=basic.Range(lo=0.0, hi=1.0, step=0.05),
+        default=numpy.array([0.45]),
+        doc="External input current to the second population",
+        order=2)
+
+    tau = arrays.FloatArray(
+        label="tau",
+        default=numpy.array([10]),
+        doc="Temporal scaling coefficient in fifth state variable",
+        order=-1)
+
+    aa = arrays.FloatArray(
+        label="aa",
+        default=numpy.array([6]),
+        doc="Linear coefficient in fifth state variable",
+        order=-1)
+
+    Kvf = arrays.FloatArray(
+        label="K_vf",
+        default=numpy.array([0.0]),
+        range=basic.Range(lo=0.0, hi=4.0, step=0.5),
+        doc="Coupling scaling on a very fast time scale.",
+        order=-1)
+
+    Kf = arrays.FloatArray(
+        label="K_f",
+        default=numpy.array([0.0]),
+        range=basic.Range(lo=0.0, hi=4.0, step=0.5),
+        doc="Correspond to the coupling scaling on a fast time scale.",
+        order=-1)
+
+    state_variable_range = basic.Dict(
+        label="State variable ranges [lo, hi]",
+        default={"y0": numpy.array([-2., 1.]),
+                 "y1": numpy.array([-20., 2.]),
+                 "y2": numpy.array([2.0, 5.0]),
+                 "y3": numpy.array([-2., 0.]),
+                 "y4": numpy.array([0., 2.]),
+                 "y5": numpy.array([-1., 1.])},
+        doc="n/a",
+        order=-1
+        )
+
+    variables_of_interest = basic.Enumerate(
+        label="Variables watched by Monitors",
+        options=["y0", "y1", "y2", "y3", "y4", "y5"],
+        default=["y0", "y3"],
+        select_multiple=True,
+        doc="""default state variables to be monitored""",
+        order=-1)
+
+    def __init__(self, **kwargs):
         """
-    )
+        """
+
+        LOG.info("%s: init'ing..." % (str(self),))
+
+        super(Epileptor, self).__init__(**kwargs)
+
+        self._nvar = 6
+        self.cvar = numpy.array([0, 3], dtype=numpy.int32)
+
+        LOG.info("%s: init'ed." % (repr(self),))
+
+    def dfun(self, state_variables, coupling, local_coupling=0.0,
+             array=numpy.array, where=numpy.where, concat=numpy.concatenate):
+        r"""
+        Computes the derivatives of the state variables of the Epileptor
+        with respect to time.
+
+        Implementation note: we expect this version of the Epileptor to be used
+        in a vectorized manner. Concretely, y has a shape of (6, n) where n is
+        the number of nodes in the network. An consequence is that
+        the original use of if/else is translated by calculated both the true
+        and false forms and mixing them using a boolean mask.
+
+        Variables of interest to be used by monitors: -y[0] + y[3]
+
+            .. math::
+                \dot{x_{1}} &=& y_{1} - f_{1}(x_{1}, x_{2}) - z + I_{ext1} \\
+                \dot{y_{1}} &=& c - d x_{1}^{2} - y{1} \\
+                \dot{z} &=&
+                \begin{cases}
+                r(4 (x_{1} - x_{0}) - z-0.1 z^{7}) & \text{if } x<0 \\
+                r(4 (x_{1} - x_{0}) - z) & \text{if } x \geq 0
+                \end{cases} \\
+                \dot{x_{2}} &=& -y_{2} + x_{2} - x_{2}^{3} + I_{ext2} + 0.002 g - 0.3 (z-3.5) \\
+                \dot{y_{2}} &=& 1 / \tau (-y_{2} + f_{2}(x_{2}))\\
+                \dot{g} &=& -0.01 (g - 0.1 x_{1})
+
+        where:
+            .. math::
+                f_{1}(x_{1}, x_{2}) =
+                \begin{cases}
+                a x_{1}^{3} - b x_{1}^2 & \text{if } x_{1} <0\\
+                -(slope - x_{2} + 0.6(z-4)^2) x_{1} &\text{if }x_{1} \geq 0
+                \end{cases}
+
+            .. math::
+                f_{2}(x_{2}) =
+                \begin{cases}
+                0 & \text{if } x_{2} <-0.25\\
+                a_{2}(x_{2} + 0.25) & \text{if } x_{2} \geq -0.25
+                \end{cases}
+
+        """
+
+        y = state_variables
+
+        Iext = self.Iext + local_coupling * y[0]
+        c_pop1 = coupling[0, :]
+        c_pop2 = coupling[1, :]
+
+        # population 1
+        if_ydot0 = y[1] - self.a*y[0]**3 + self.b*y[0]**2 - y[2] + Iext + self.Kvf*c_pop1
+        else_ydot0 = y[1] + (self.slope - y[3] + 0.6*(y[2]-4.0)**2)*y[0] - y[2] + Iext + self.Kvf*c_pop1
+        ydot0 = where(y[0] < 0., if_ydot0, else_ydot0)
+        ydot1 = self.c - self.d*y[0]**2 - y[1]
+
+        # energy
+        if_ydot2 = self.r*(4*(y[0] - self.x0) - y[2] - 0.1*y[2]**7)
+        else_ydot2 = self.r*(4*(y[0] - self.x0) - y[2])
+        ydot2 = where(y[2] < 0., if_ydot2, else_ydot2)
+
+        # population 2
+        ydot3 = -y[4] + y[3] - y[3]**3 + self.Iext2 + 2*y[5] - 0.3*(y[2] - 3.5) + self.Kf*c_pop2
+        if_ydot4 = -y[4]/self.tau
+        else_ydot4 = (-y[4] + self.aa*(y[3] + 0.25))/self.tau
+        ydot4 = where(y[3] < -0.25, if_ydot4, else_ydot4)
+
+        # filter
+        ydot5 = -0.01*(y[5] - 0.1*y[0])
+
+        #
+        ydot = numpy.array([ydot0, ydot1, ydot2, ydot3, ydot4, ydot5])
+
+        return ydot
+
+
+class EpileptorPermittivityCoupling(Model):
+    r"""
+    Modified version of the Epileptor model:
+
+    - The third state variable equation is modified to account for the time
+      difference between interictal and ictal states
+    - The equations are scales in time to have realist time lengths
+    - A seventh state variable is added to directly calculate the correct
+      output of the model for the monitors (not strictly correct
+      mathematically except for Euler integration method)
+    - There is a possible coupling between fast and slow time scales, call the
+      permittivity coupling.
+
+    .. figure :: img/EpileptorPermittivityCoupling_01_mode_0_pplane.svg
+        :alt: Epileptor phase plane
+
+    .. automethod:: EpileptorPermittivityCoupling.__init__
+
+    Variables of interest to be used by monitors: y[6] = -y[0] + y[3]
+
+        .. math::
+            \dot{x_{1}} &=& y_{1} - f_{1}(x_{1}, x_{2}) - z + I_{ext1} \\
+            \dot{y_{1}} &=& c - d x_{1}^{2} - y{1} \\
+            \dot{z} &=& r(x_{0} + 3/(1 + \exp((-x_{1}-0.5)/0.1)) - z)\\
+            \dot{x_{2}} &=& -y_{2} + x_{2} - x_{2}^{3} + I_{ext2} + 0.002 g(x_{1}) - 0.3 (z-3.5) \\
+            \dot{y_{2}} &=& 1 / \tau (-y_{2} + f_{2}(x_{1}, x_{2}))\\
+            \dot{g} &=& -0.01 (g - 0.1 x_{1})
+
+    where:
+        .. math::
+            f_{1}(x_{1}, x_{2}) =
+            \begin{cases}
+            a x_{1}^{3} - b x_{1}^2 & \text{if } x_{1} <0\\
+            -(slope - x_{2} + 0.6(z-4)^2) x_{1} &\text{if }x_{1} \geq 0
+            \end{cases}
+
+    and:
+        .. math::
+            f_{2}(x_{2}) =
+            \begin{cases}
+            0 & \text{if } x_{2} <-0.25\\
+            a_{2}(x_{2} + 0.25) & \text{if } x_{2} \geq -0.25
+            \end{cases}
+    """
+
+    _ui_name = "Epileptor Permittivity Coupling"
+    ui_configurable_parameters = ["Iext", "Iext2", "r", "x0", "slope"]
+
+    a = arrays.FloatArray(
+        label="a",
+        default=numpy.array([1]),
+        doc="Coefficient of the cubic term in the first state variable",
+        order=-1)
+
+    b = arrays.FloatArray(
+        label="b",
+        default=numpy.array([3]),
+        doc="Coefficient of the squared term in the first state variabel",
+        order=-1)
+
+    c = arrays.FloatArray(
+        label="c",
+        default=numpy.array([1]),
+        doc="Additive coefficient for the second state variable, \
+        called :math:`y_{0}` in Jirsa paper",
+        order=-1)
+
+    d = arrays.FloatArray(
+        label="d",
+        default=numpy.array([5]),
+        doc="Coefficient of the squared term in the second state variable",
+        order=-1)
+
+    r = arrays.FloatArray(
+        label="r",
+        range=basic.Range(lo=0.0, hi=0.001, step=0.00005),
+        default=numpy.array([0.00035]),
+        doc="Temporal scaling in the third state variable, \
+        called :math:`1/\\tau_{0}` in Jirsa paper",
+        order=4)
+
+    s = arrays.FloatArray(
+        label="s",
+        default=numpy.array([4]),
+        doc="Linear coefficient in the third state variable",
+        order=-1)
+
+    x0 = arrays.FloatArray(
+        label="x0",
+        range=basic.Range(lo=2.0, hi=6.0, step=0.1),
+        default=numpy.array([2.5]),
+        doc="Epileptogenicity parameter",
+        order=3)
+
+    Iext = arrays.FloatArray(
+        label="Iext",
+        range=basic.Range(lo=1.5, hi=5.0, step=0.1),
+        default=numpy.array([3.1]),
+        doc="External input current to the first population",
+        order=1)
+
+    slope = arrays.FloatArray(
+        label="slope",
+        range=basic.Range(lo=-16.0, hi=6.0, step=0.1),
+        default=numpy.array([0.]),
+        doc="Linear coefficient in the first state variable",
+        order=5)
+
+    Iext2 = arrays.FloatArray(
+        label="Iext2",
+        range=basic.Range(lo=0.0, hi=1.0, step=0.05),
+        default=numpy.array([0.45]),
+        doc="External input current to the second population",
+        order=2)
+
+    tau = arrays.FloatArray(
+        label="tau",
+        default=numpy.array([10]),
+        doc="Temporal scaling coefficient in fifth state variable",
+        order=-1)
+
+    aa = arrays.FloatArray(
+        label="aa",
+        default=numpy.array([6]),
+        doc="Linear coefficient in fifth state variable",
+        order=-1)
+
+    Kvf = arrays.FloatArray(
+        label="K_vf",
+        default=numpy.array([0.0]),
+        range=basic.Range(lo=0.0, hi=4.0, step=0.5),
+        doc="Coupling scaling on a very fast time scale.",
+        order=-1)
+
+    Kf = arrays.FloatArray(
+        label="K_f",
+        default=numpy.array([0.0]),
+        range=basic.Range(lo=0.0, hi=4.0, step=0.5),
+        doc="Correspond to the coupling scaling on a fast time scale.",
+        order=-1)
+
+    Ks = arrays.FloatArray(
+        label="K_s",
+        default=numpy.array([0.0]),
+        range=basic.Range(lo=0.0, hi=4.0, step=0.5),
+        doc="Coupling scaling on a slow time scale.",
+        order=-1)
+
+    tt = arrays.FloatArray(
+        label="tt",
+        default=numpy.array([1.0/(2**4)]),
+        range=basic.Range(lo=0.001, hi=1.0, step=0.001),
+        doc="Time scaling of the whole system to the system in real time",
+        order=6)
+
+    state_variable_range = basic.Dict(
+        label="State variable ranges [lo, hi]",
+        default={"y0": numpy.array([-2., 1.]),
+                 "y1": numpy.array([-20, 2.]),
+                 "y2": numpy.array([2.0, 5.0]),
+                 "y3": numpy.array([-2., -1.]),
+                 "y4": numpy.array([0., 2.]),
+                 "y5": numpy.array([-1., 1.]),
+                 "y6": numpy.array([-5., 5.])},
+        doc="n/a",
+        order=-1
+        )
+
+    variables_of_interest = basic.Enumerate(
+        label="Variables watched by Monitors",
+        options=["y0", "y1", "y2", "y3", "y4", "y5", "y6"],
+        default=["y0", "y3", "y6"],
+        select_multiple=True,
+        doc="""default state variables to be monitored""",
+        order=-1)
+
+    def __init__(self, **kwargs):
+        """
+        """
+
+        LOG.info("%s: init'ing..." % (str(self),))
+
+        super(EpileptorPermittivityCoupling, self).__init__(**kwargs)
+
+        self._nvar = 7
+        self.cvar = numpy.array([0, 3], dtype=numpy.int32)
+
+        LOG.info("%s: init'ed." % (repr(self),))
+
+    def dfun(self, state_variables, coupling, local_coupling=0.0,
+             array=numpy.array, where=numpy.where, concat=numpy.concatenate):
+        r"""
+        Computes the derivatives of the state variables of the Epileptor
+        with respect to time.
+
+        Implementation note: we expect this version of the Epileptor to be used
+        in a vectorized manner. Concretely, y has a shape of (6, n) where n is
+        the number of nodes in the network. An consequence is that
+        the original use of if/else is translated by calculated both the true
+        and false forms and mixing them using a boolean mask.
+
+        Variables of interest to be used by monitors: y[6] = -y[0] + y[3]
+
+            .. math::
+                \dot{x_{1}} &=& y_{1} - f_{1}(x_{1}, x_{2}) - z + I_{ext1} \\
+                \dot{y_{1}} &=& c - d x_{1}^{2} - y{1} \\
+                \dot{z} &=& r(x_{0} + 3/(1 + \exp((-x_{1}-0.5)/0.1)) - z)\\
+                \dot{x_{2}} &=& -y_{2} + x_{2} - x_{2}^{3} + I_{ext2} + 0.002 g(x_{1}) - 0.3 (z-3.5) \\
+                \dot{y_{2}} &=& 1 / \tau (-y_{2} + f_{2}(x_{1}, x_{2}))\\
+                \dot{g} &=& -0.01 (g - 0.1 x_{1})
+
+        where:
+            .. math::
+                f_{1}(x_{1}, x_{2}) =
+                \begin{cases}
+                a x_{1}^{3} - b x_{1}^2 & \text{if } x_{1} <0\\
+                -(slope - x_{2} + 0.6(z-4)^2) x_{1} &\text{if }x_{1} \geq 0
+                \end{cases}
+
+            .. math::
+                f_{2}(x_{2}) =
+                \begin{cases}
+                0 & \text{if } x_{2} <-0.25\\
+                a_{2}(x_{2} + 0.25) & \text{if } x_{2} \geq -0.25
+                \end{cases}
+
+"""
+
+        y = state_variables
+
+        Iext = self.Iext + local_coupling * y[0]
+        c_pop1 = coupling[0, :]
+        c_pop2 = coupling[1, :]
+
+        # population 1
+        if_ydot0 = self.tt*(y[1] - self.a*y[0]**3 + self.b*y[0]**2 - y[2] + Iext + self.Kvf*c_pop1)
+        else_ydot0 = self.tt*(y[1] + (self.slope - y[3] + 0.6*(y[2]-4.0)**2)*y[0] - y[2] + Iext + self.Kvf*c_pop1)
+        ydot0 = where(y[0] < 0., if_ydot0, else_ydot0)
+        ydot1 = self.tt*(self.c - self.d*y[0]**2 - y[1])
+
+        # energy
+        ydot2 = self.tt*(self.r*(3./(1.+numpy.exp(-(y[0]+0.5)/0.2)) + self.x0 - y[2] - self.Ks*c_pop1))
+
+        # population 2
+        ydot3 = self.tt*(-y[4] + y[3] - y[3]**3 + self.Iext2 + 2*y[5] - 0.3*(y[2] - 3.5) + self.Kf*c_pop2)
+        if_ydot4 = self.tt*(-y[4]/self.tau)
+        else_ydot4 = self.tt*((-y[4] + self.aa*(y[3] + 0.25))/self.tau)
+        ydot4 = where(y[3] < -0.25, if_ydot4, else_ydot4)
+
+        # filter
+        ydot5 = self.tt*(-0.01*(y[5] - 0.1*y[0]))
+
+        # output time series
+        ydot6 = -ydot0 + ydot3
+
+        ydot = numpy.array([ydot0, ydot1, ydot2, ydot3, ydot4, ydot5, ydot6])
+
+        return ydot

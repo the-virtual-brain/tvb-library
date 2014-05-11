@@ -38,7 +38,6 @@ Scientific methods for the Array datatypes.
 
 import numpy
 import tvb.datatypes.arrays_data as arrays_data
-from tvb.basic.traits.types_mapped import MappedType
 
 
 class FloatArrayScientific(arrays_data.FloatArrayData):
@@ -77,8 +76,6 @@ class IntegerArrayScientific(arrays_data.IntegerArrayData):
 class ComplexArrayScientific(arrays_data.ComplexArrayData):
     """ This class exists to add scientific methods to ComplexArrayData """
     
-    _stored_metadata = [key for key in MappedType.ALL_METADATA_ARRAY.keys() if key != MappedType.METADATA_ARRAY_VAR]
-    
     def _find_summary_info(self):
         """
         Gather scientifically interesting summary information from an instance of this datatype.
@@ -94,8 +91,6 @@ class ComplexArrayScientific(arrays_data.ComplexArrayData):
 class BoolArrayScientific(arrays_data.BoolArrayData):
     """ This class exists to add scientific methods to BoolArrayData """
     
-    _stored_metadata = [MappedType.METADATA_ARRAY_SHAPE]
-    
     def _find_summary_info(self):
         """
         Gather scientifically interesting summary information from an instance of this datatype.
@@ -107,8 +102,6 @@ class BoolArrayScientific(arrays_data.BoolArrayData):
 
 class StringArrayScientific(arrays_data.StringArrayData):
     """ This class exists to add scientific methods to StringArrayData """
-    
-    _stored_metadata = [MappedType.METADATA_ARRAY_SHAPE]
     
     def _find_summary_info(self):
         """

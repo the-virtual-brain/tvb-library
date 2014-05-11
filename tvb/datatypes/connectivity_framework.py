@@ -48,8 +48,7 @@ class ConnectivityFramework(connectivity_data.ConnectivityData):
 
     def generate_new_connectivity(self, new_weights, interest_areas, storage_path, new_tracts=None):
         """
-        Generate new Connectivity object based on current one, by changing
-        weights (e.g. simulate leasion).
+        Generate new Connectivity object based on current one, by changing weights (e.g. simulate lesion).
         """
         if isinstance(new_weights, str) or isinstance(new_weights, unicode):
             new_weights = eval(new_weights)
@@ -112,4 +111,74 @@ class ConnectivityFramework(connectivity_data.ConnectivityData):
                                                               'operations': ['==', '<', '>']}})
         return filters
 
+    @property
+    def hemisphere_order_indices(self):
+        """
+        A sequence of indices of rows/colums.
+        These permute rows/columns so that the first half would belong to the first hemisphere
+        If there is no hemisphere information returns the identity permutation
+        """
+        if self.hemispheres is not None:
+            li, ri = [], []
+            for i, is_right in enumerate(self.hemispheres):
+                if is_right:
+                    ri.append(i)
+                else:
+                    li.append(i)
+            return numpy.array(li + ri)
+        else:
+            return numpy.arange(len(self.hemispheres))
+
+
+    @property
+    def ordered_weights(self):
+        permutation = self.hemisphere_order_indices
+        return self.weights[permutation, :][:,permutation]
+
+    @property
+    def ordered_tracts(self):
+        permutation = self.hemisphere_order_indices
+        return self.tract_lengths[permutation, :][:,permutation]
+
+    @property
+    def ordered_labels(self):
+        permutation = self.hemisphere_order_indices
+        return self.region_labels[permutation]
+
+    @property
+    def ordered_centres(self):
+        permutation = self.hemisphere_order_indices
+        return self.centres[permutation]
+
+    def get_grouped_space_labels(self):
+        """
+        :return: A list [('left', [lh_labels)], ('right': [rh_labels])]
+        """
+        if self.hemispheres is not None:
+            l, r = [], []
+
+            for i, (is_right, label) in enumerate(zip( self.hemispheres, self.region_labels)):
+                if is_right:
+                    r.append((i, label))
+                else:
+                    l.append((i, label))
+            return [('left', l), ('right', r)]
+        else:
+            return [('', list(enumerate(self.region_labels)))]
+
+
+    def get_default_selection(self):
+        # should this be subselection or all always?
+        sel = self.saved_selection
+        if sel is not None:
+            return sel
+        else:
+            return range(len(self.region_labels))
+
+
+    def get_measure_points_selection_gid(self):
+        """
+        :return: the associated connectivity gid
+        """
+        return self.gid
 

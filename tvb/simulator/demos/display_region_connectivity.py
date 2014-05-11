@@ -52,7 +52,7 @@ from tvb.simulator.plot.tools import *
 white_matter = connectivity.Connectivity()
 
 #Compute cumulative input for each region
-node_data = white_matter.weights.sum(axis=1)
+node_data      = white_matter.weights.sum(axis=1)
 scaling_factor = node_data.max()
 
 ##----------------------------------------------------------------------------##

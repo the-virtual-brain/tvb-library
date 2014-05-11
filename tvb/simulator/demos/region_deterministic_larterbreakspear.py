@@ -59,9 +59,8 @@ from tvb.simulator.plot import timeseries_interactive as timeseries_interactive
 LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
 lb = models.LarterBreakspear(QV_max=1.0, QZ_max=1.0, 
-                             d_V=0.6, C=0.1, 
-                             aee=0.5, aie=0.5, ani=0.1, 
-                             VT=0.5,  gNa=0.0, Iext=0.165)
+                             d_V=0.65, d_Z=0.65, 
+                             aee=0.36, ani=0.4, ane=1.0, C=0.1)
 
 lb.variables_of_interest = ["V", "W", "Z"]
 
@@ -113,6 +112,9 @@ LOG.info("Finished simulation.")
 ##----------------------------------------------------------------------------##
 
 #Make the lists numpy.arrays for easier use.
+LOG.info("Converting result to array...")
+TAVG_TIME = numpy.array(tavg_time)
+BOLD_TIME = numpy.array(bold_time)
 BOLD = numpy.array(bold_data)
 TAVG = numpy.array(tavg_data)
 
@@ -136,8 +138,10 @@ from mpl_toolkits.mplot3d import Axes3D
 fig = plt.figure(4)
 ax = fig.gca(projection='3d')
 
+
 for node in range(white_matter.number_of_regions):
   ax.plot(TAVG[:, 0, node, 0],  TAVG[:, 1, node, 0], TAVG[:, 2, node, 0], alpha=0.1)
+
 ax.set_xlabel('V')
 ax.set_ylabel('W')
 ax.set_zlabel('Z')
@@ -145,23 +149,17 @@ plt.show()
 
 
 
-#Make the list a numpy.array.
-LOG.info("Converting result to array...")
-TAVG_TIME = numpy.array(tavg_time)
-BOLD_TIME = numpy.array(bold_time)
-
 #Save tavg output
-FILE_NAME = "demo_data_region_tavg_10s_500Hz_larterbreakspear"
+FILE_NAME = "demo_data_region_tavg_" + sim.simulation_length / 1000 + "s_500Hz_larterbreakspear"
 LOG.info("Saving array to %s..." % FILE_NAME)
-TAVG=numpy.load(FILE_NAME + '.npy')
-TAVG_TIME=numpy.load(FILE_NAME+'_time.npy')
+TAVG =numpy.save(FILE_NAME + '.npy')
+TAVG_TIME=numpy.save(FILE_NAME+'_time.npy')
 
 #Save bold output
-FILE_NAME = "demo_data_region_bold_10s_500Hz_larterbreakspear"
+FILE_NAME = "demo_data_region_bold_" + sim.simulation_length / 1000 + "s_500Hz_larterbreakspear"
 LOG.info("Saving array to %s..." % FILE_NAME)
 numpy.save(FILE_NAME + '.npy', BOLD)
 numpy.save(FILE_NAME+'_time.npy', BOLD_TIME)
-
 
 #Create TimeSeries instance
 tsr = TimeSeriesRegion(data = TAVG,
@@ -173,7 +171,7 @@ tsr.configure()
 bold_model = bold.BalloonModel(time_series = tsr)
 bold_data  = bold_model.evaluate()
 
-#Put the data into a TimeSeriesSurface datatype
+
 bold_tsr = TimeSeriesRegion(connectivity = white_matter,
                             data = bold_data.data, 
                             time = bold_data.time)
@@ -187,6 +185,6 @@ tsi.show()
 FILE_NAME = "demo_data_region_balloon_10s_500Hz_larterbreakspear"
 LOG.info("Saving array to %s..." % FILE_NAME)
 numpy.save(FILE_NAME + '.npy', bold_data.data)
-numpy.save(FILE_NAME+'_time.npy', bold_data.time)
+numpy.save(FILE_NAME +'_time.npy', bold_data.time)
 
 ###EoF###

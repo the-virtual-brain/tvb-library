@@ -374,13 +374,14 @@ class SurfaceFramework(surfaces_data.SurfaceData):
     
     def center(self):
         """
-        Compute the center of the surface as the median spot on all the three axes.
+        Compute the center of the surface as the mean spot on all the three axes.
         """
+        # is this different from return numpy.mean(self.vertices, axis=0) ?
         return [float(numpy.mean(self.vertices[:, 0])),
                 float(numpy.mean(self.vertices[:, 1])),
                 float(numpy.mean(self.vertices[:, 2]))]
-    
-    
+
+
     def generate_region_boundaries(self, region_mapping):
         """
         Return the full region boundaries, including: vertices, normals and lines indices.

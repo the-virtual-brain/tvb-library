@@ -57,17 +57,29 @@ white_matter.configure()
 con = connectivity.Connectivity()
 con.configure()
 
-#Normalise weights
-con.weights = white_matter.normalised_weights(mode='tract')
+#scale weights by the maximum aboslute value
+con.weights = white_matter.scaled_weights(mode='tract')
 plot_connectivity(con, num="tract_mode", plot_tracts=False)
 
-#Undo normalisation
-con.weights = white_matter.normalised_weights(mode='none')
+#undo scaling
+con.weights = white_matter.scaled_weights(mode='none')
 plot_connectivity(con, num="default_mode", plot_tracts=False)
 
-#Re-normalise using another `` mode``
-con.weights = white_matter.normalised_weights(mode='region')
+#re-scale using another `` mode``
+con.weights = white_matter.scaled_weights(mode='region')
 plot_connectivity(con, num="region_mode", plot_tracts=False)
+
+#undo scaling
+con.weights = white_matter.scaled_weights(mode='none')
+plot_connectivity(con, num="default_mode", plot_tracts=False)
+
+#binarize
+con.weights = white_matter.transform_binarize_matrix()
+plot_connectivity(con, num="default_mode", plot_tracts=False)
+
+#remove-self connections 
+con.weights = white_matter.transform_remove_self_connections()
+plot_connectivity(con, num="default_mode", plot_tracts=False)
 
 pyplot.show()
 

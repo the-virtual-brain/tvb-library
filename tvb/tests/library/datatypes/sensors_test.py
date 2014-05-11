@@ -41,6 +41,7 @@ import unittest
 from tvb.datatypes import sensors, surfaces
 from tvb.tests.library.base_testcase import BaseTestCase
 
+
 class SensorsTest(BaseTestCase):
     """
     Tests the defaults for `tvb.datatypes.sensors` module.

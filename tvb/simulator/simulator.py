@@ -276,6 +276,7 @@ class Simulator(core.Type):
         if self.stimulus:
             self.stimulus.configure()
 
+        self.coupling.configure()
         self.model.configure()
         self.integrator.configure()
 
@@ -375,8 +376,8 @@ class Simulator(core.Type):
         if random_state is not None:
             if isinstance(self.integrator, integrators_module.IntegratorStochastic):
                 self.integrator.noise.random_stream.set_state(random_state)
-                #msg = "%s: random_state supplied. Seed is: %s"
-                #LOG.info(msg % str(self, self.integrator.noise.random_stream.get_state()[1][0]))
+                msg = "%s: random_state supplied. Seed is: %s"
+                LOG.info(msg % (str(self),str(self.integrator.noise.random_stream.get_state()[1][0])))
             else:
                 msg = "%s: random_state supplied for non-stochastic integration"
                 LOG.warn(msg % str(self))

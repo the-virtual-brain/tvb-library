@@ -86,6 +86,7 @@ KWARG_FILTERS_UI = 'filters_ui'
 KWARG_OPTIONS = 'options'               # Used for Enumerate basic type
 KWARG_STORAGE_PATH = 'storage_path'
 KWARS_USE_STORAGE = 'use_storage'
+KWARS_STORED_METADATA = 'stored_metadata'
 
 FILE_STORAGE_DEFAULT = 'HDF5'
 FILE_STORAGE_EXPAND = 'expandable_HDF5'
@@ -94,7 +95,7 @@ FILE_STORAGE_NONE = 'None'
 SPECIAL_KWDS = ['bind',                 # set and used internally by the traiting mechanism
                 'doc', 'label', KWARG_REQUIRED, 'locked',
                 'default', 'range', KWARG_CONSOLE_DEFAULT,
-                'configurable_noise', KWARG_OPTIONS,
+                'configurable_noise', KWARG_OPTIONS, KWARS_STORED_METADATA,
                 KWARG_AVOID_SUBCLASSES, KWARG_FILTERS_UI, KWARG_SELECT_MULTIPLE, KWARG_ORDER,
                 KWARG_FILE_STORAGE, KWARS_USE_STORAGE]
 
@@ -161,6 +162,13 @@ class TraitsInfo(dict):
         if KWARS_USE_STORAGE not in self.inits.kwd:
             return True
         return self.inits.kwd[KWARS_USE_STORAGE]
+
+
+    @property
+    def stored_metadata(self):
+        if KWARS_STORED_METADATA not in self.inits.kwd:
+            return None
+        return self.inits.kwd[KWARS_STORED_METADATA]
 
 
     @property
@@ -265,7 +273,7 @@ class MetaType(abc.ABCMeta):
                     attr = attr()
                 try:
                     attr = deepcopy(attr)
-                except Exception as exc:
+                except Exception:
                     attr = copy(attr)
                 attr.trait.name = key
                 setattr(newcls, key, attr)
