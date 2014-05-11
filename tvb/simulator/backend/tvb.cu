@@ -272,6 +272,9 @@ void update(
 
     int i_thr = 0;
 
+    // ftm simple averaging kernel
+    float tavg_kernel = 1.0/n_tavg;
+
  #ifdef TVBOMP
   #pragma omp parallel private(i_thr)
     { // eventually use many cores on same machine...
@@ -295,7 +298,7 @@ void update(
         , *tavg_  = tavg  + i_thr;
 
     // per node pointers
-    float *_x,  *_hist,  *_ns, *_stim,  *_nspr,  *_mmpr, *_conn;
+    float *_x,  *_hist,  *_ns, *_stim,  *_nspr,  *_mmpr, *_conn, *_tavg;
     int *_idel; 
 
     // multistep in-kernel
@@ -304,17 +307,27 @@ void update(
 
         // (re)set per node pointers for this step
         _x = x_; _hist = hist_; _ns = ns_; _stim = stim_; _nspr = nspr_; 
-        _mmpr = mmpr_; _idel = idel, _conn = conn;
+        _mmpr = mmpr_; _idel = idel, _conn = conn, _tavg = tavg_;
 
 
         for (int i_node=0; i_node<n_node; i_node++)
-        {   // C77, cousin of F77
+        {
             coupling(input_, _x, _idel, _conn, hist_, cfpr_, cvars, i_step, i_node);
             integrate(_x, dx1_, dx2_, gx_, _ns, inpr, _nspr, _mmpr, input_, _stim);
+
+            // Compute tavg per svar, node, thread. Copy buffer when i_step % n_tavg == n_tavg - 1.
+            if (n_tavg > 0)
+                if ((i_step % n_tavg) == 0)
+                    for (int i_svar=0; i_svar<n_svar; i_svar++)
+                        _tavg[i] = tavg_kernel*_x[i];
+                else
+                    for (int i_svar=0; i_svar<n_svar; i_svar++)
+                        _tavg[i] += tavg_kernel*_x[i];
 
             // certain arrays must be arg'd w/ offset because other functions
             // don't index w.r.t. i_node:
             _x    += n_svar*n_thr;
+            _tavg += n_svar*n_thr;
             _ns   += n_svar*n_thr;
             _stim += n_svar*n_thr;
             _nspr += n_nspr*n_thr; // n_nspr should take account for n_svar
@@ -331,32 +344,6 @@ void update(
             for (int i_cvar=0; i_cvar<n_cvar; i_cvar++)
                 _hist[n_thr*(i_cvar + n_cvar*i_node)] = x_[n_thr*(cvars[i_cvar] + n_svar*i_node)];
 
-        /*
-           Temporal averaging logic:
-
-                if i_step % n_tavg == 0:
-                    tavg[:] = x
-                else:
-                    tavg += x/n_tavg
-
-            then caller does
-
-                if i_step % n_tavg == n_tavg-1:
-                    grab_a_copy_of_tavg()
-
-           */
-
-#define ALL for (int i=0; i<n_node*n_svar; i++) 
-        if (n_tavg>0)
-        {
-            if ((i_step % n_tavg) == 0) ALL tavg_[i] = x_[i];
-            else
-            {
-                float norm = 1.0/n_tavg;
-                ALL tavg_[i] += norm*x_[i];
-            }
-        }
-#undef ALL
     }
 
  #ifdef TVBOMP
