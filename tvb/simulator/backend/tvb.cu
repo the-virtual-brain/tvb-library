@@ -258,9 +258,13 @@ void update(
     float *ns,                  // .shape == (        n_nodes, n_svar, n_thr) 
     float *stim,                // .shape == (        n_nodes, n_svar, n_thr)
     float *tavg                 // .shape == (        n_nodes, n_svar, n_thr)
+
+    // add filtering kernels
     )
 
 {
+    // ftm simple averaging kernel
+    float tavg_kernel = 1.0/n_tavg;
 
 #ifdef TVBGPU
     // for simplicity we only use one dimension of the software coord sys
@@ -279,9 +283,6 @@ void update(
  #endif
 
 #endif
-
-    // ftm simple averaging kernel
-    float tavg_kernel = 1.0/n_tavg;
 
     // per thread pointers
     float *nspr_  = nspr  + i_thr
