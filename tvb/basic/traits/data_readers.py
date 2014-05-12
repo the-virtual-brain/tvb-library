@@ -44,8 +44,21 @@ except Exception:
 import tvb.simulator
 from scipy import io as scipy_io
 from tvb.basic.logger.builder import get_logger
-from tvb.basic.traits.util import read_list_data
+from tvb.basic.traits.util import read_list_data as _read_list_data
 from tvb.basic.config.settings import TVBSettings
+
+_list_data_read = {}
+def read_list_data(full_path, dtype, skiprows, usecols):
+    "Provides a memoized version of read_list_data"
+    key = full_path, dtype, skiprows, usecols
+    log = get_logger('%s.%s' % (__name__, 'read_list_data'))
+    if key not in _list_data_read:
+        log.debug('%r not found, reading file', key)
+        _list_data_read[key] = _read_list_data(full_path, 
+                dtype=dtype, skiprows=skiprows, usecols=usecols)
+    else:
+        log.debug('%r found, using cached version', key)
+    return _list_data_read[key].copy()
 
 
 ### As current reader will be used in library-mode, all paths are relative to simulator.
