@@ -272,9 +272,6 @@ void update(
 
     int i_thr = 0;
 
-    // ftm simple averaging kernel
-    float tavg_kernel = 1.0/n_tavg;
-
  #ifdef TVBOMP
   #pragma omp parallel private(i_thr)
     { // eventually use many cores on same machine...
@@ -282,6 +279,9 @@ void update(
  #endif
 
 #endif
+
+    // ftm simple averaging kernel
+    float tavg_kernel = 1.0/n_tavg;
 
     // per thread pointers
     float *nspr_  = nspr  + i_thr
