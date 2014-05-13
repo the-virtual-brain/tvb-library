@@ -40,8 +40,6 @@ from numpy import *
 import driver_conf as dc
 
 using_gpu = getattr(dc, 'using_gpu', 0)
-if __name__ == "__main__":
-    using_gpu = int(sys.argv[1]) if len(sys.argv)>1 else using_gpu
 
 if using_gpu:
     import pycuda.driver as cuda
@@ -564,37 +562,4 @@ class device_handler(object):
         self.i_step += self.n_msik
         if using_gpu:
             cuda.Context.synchronize()
-
-
-if __name__ == '__main__':
-
-    import time
-
-    # default keywords
-    kwds = dict(horizon=400, n_node=72, n_cvar=1, n_nspr=2, n_cfpr=1,
-                n_svar=2, n_mmpr=3, n_inpr=1, n_tavg=10, n_msik=10)
-
-    dh = device_handler(n_thr=256*4  if using_gpu else 1, **kwds)
-    dh.horizon = dh.idel.cpu.max() + 100
-    dh.cvars.cpu[0] = 0
-    dh.inpr.cpu[0] = 0.01
-    print 'n_thr=%d, nMB=%.2f' % (dh.n_thr, dh.nbytes/2**20.0)
-    print  dh.occupancy
-    if using_gpu:
-        extra = {'block': (256, 1, 1), 'grid': (4, 1)}
-    tic = time.time()
-    ys = []
-    for i in xrange(100):
-        print dh.i_step
-        dh(extra if using_gpu else {})
-        print dh.i_step
-        if dh.i_step % dh.n_tavg == 0:
-            if using_gpu:
-                ys.append(dh.tavg.device.get().copy())
-            else:
-                ys.append(dh.tavg.cpu.copy())
-    toc = time.time()
-    print '1000 iters took %.2f s' % (toc-tic, )
-
-    y = array(ys)
 
