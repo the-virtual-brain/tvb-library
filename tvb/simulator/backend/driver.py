@@ -80,10 +80,6 @@ from tvb.simulator.lab import *
 
 from . import cee, templates
 
-def cpp(filename):
-    proc = subprocess.Popen(['cpp', filename], stdout=subprocess.PIPE)
-    return proc.stdout.read()
-
 
 class device_code(object):
 
@@ -146,6 +142,7 @@ class device_code(object):
             I = 0.0;
             for (int j_node=0; j_node<n_node; j_node++, idel++, conn++)
                 I += a*GIJ*XJ;
+
 
             """
             }
