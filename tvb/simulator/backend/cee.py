@@ -45,15 +45,15 @@ LOG.setLevel(logging.DEBUG)
 
 try:
     import psutil
+    total_mem = psutil.phymem_usage().total
 except Exception as exc:
     LOG.exception(exc)
-    LOG.warning('psutil not available, no memory checks will be performed')
+    LOG.warning('psutil not available, memory limits will not be respected')
+    total_mem = 42**42
 
 
 from . import base
 
-
-total_mem = psutil.phymem_usage().total
 
 # FIXME this is additive white noise
 def gen_noise_into(devary, dt):
@@ -135,7 +135,6 @@ class C99Compiler(object):
         with file as fd:
             fd.write(src)
             fd.flush()
-            if debug:
             args.append(self.g_flag if debug else self.opt_flag)
             args += [fd.name, '-o', libname]
             LOG.debug('calling %r', args)
@@ -157,7 +156,7 @@ class GCC(C99Compiler):
 class Code(base.Code):
     "Interface to C code"
 
-    def __init__(self, *args, cc=None, **kwds):
+    def __init__(self, cc=None, **kwds):
         super(Code, self).__init__(*args, **kwds)
         self.cc = cc or GCC()
 
@@ -186,3 +185,41 @@ class Code(base.Code):
                 fn_ = fn
             setattr(self, f, fn_)
 
+
+class Global(base.Global):
+
+    def post_init(self):
+        if self.__post_init:
+            self._cget = getattr(self.code.mod, 'get_'+self.name)
+            self._cset = getattr(self.code.mod, 'set_'+self.name)
+            super(Global, self).post_init()
+
+    def __get__(self, inst, ownr):
+        self.post_init()
+        return self._cget()
+
+    def __set__(self, inst, val):
+        self.post_init()
+        ctype = ctypes.c_int32 if self.dtype==int32 else ctypes.c_float
+        self._cset(ctype(val))
+ 
+
+class Array(base.Array):
+
+    @property
+    def device(self):
+        if not hasattr(self, '_device'):
+            ctype = ctypes.c_float if self.type==float32 else ctypes.c_int32
+            ptrtype = ctypes.POINTER(ctype)
+            self._device = ascontiguousarray(self.cpu).ctypes.data_as(ptrtype)
+        return self._device
+
+    def set(self, ary):
+        _ = self.device
+        delattr(self, '_device')
+        self._cpu[:] = ary
+        _ = self.cpu
+
+    @property
+    def value(self):
+        return self.cpu.copy()

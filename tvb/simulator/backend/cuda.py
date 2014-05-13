@@ -76,3 +76,48 @@ def gen_noise_into(devary, dt):
     gary.set(gary.get()*sqrt(dt))
 
 
+class Code(base.Code):
+    pass
+
+
+class Global(base.Global):
+
+    def post_init(self):
+        if self.__post_init:
+            self.ptr = self.code.mod.get_global(self.name)[0]
+            super(Global, self).post_init()
+
+    def __get__(self, inst, ownr):
+        self.post_init()
+            buff = array([0]).astype(self.dtype)
+            cuda.memcpy_dtoh(buff, self.ptr)
+            return buff[0]
+
+    def __set__(self, inst, val):
+        self.post_init()
+            cuda.memcpy_htod(self.ptr, self.dtype(val))
+            buff = empty((1,)).astype(self.dtype)
+            cuda.memcpy_dtoh(buff, self.ptr)
+
+
+class Array(base.Array):
+
+    @property
+    def device(self):
+        if not hasattr(self, '_device'):
+            if self.pagelocked:
+                raise NotImplementedError
+            self._device = gpuarray.to_gpu(self.cpu)
+        return self._device
+
+    def set(self, ary):
+        _ = self.device
+        self._device.set(ary)
+
+    @property
+    def value(self):
+        return self.device.get()
+
+    def __init__(self, name, type, dimensions, pagelocked=False):
+        super(Array, self).__init__(name, type, dimensions)
+        self.pagelocked = pagelocked
