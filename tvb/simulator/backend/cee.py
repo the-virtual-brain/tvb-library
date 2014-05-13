@@ -29,7 +29,7 @@
 #
 
 """
-This module enables execution of generated C code.
+Driver implementation for C99 + OpenMP
 
 .. moduleauthor:: Marmaduke Woodman <mw@eml.cc>
 
@@ -38,9 +38,28 @@ This module enables execution of generated C code.
 import tempfile
 import subprocess
 import ctypes
-
 import logging
-log = logging.getLogger(__name__)
+
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.DEBUG)
+
+try:
+    import psutil
+except Exception as exc:
+    LOG.exception(exc)
+    LOG.warning('psutil not available, no memory checks will be performed')
+
+
+from . import base
+
+
+total_mem = psutil.phymem_usage().total
+
+# FIXME this is additive white noise
+def gen_noise_into(devary, dt):
+    devary.cpu[:] = random.normal(size=devary.shape)
+    devary.cpu[:] *= sqrt(dt)
+
 
 def dll(src, libname,
         args=['gcc', '-std=c99', '-fPIC', '-shared', '-lm'],
@@ -50,7 +69,7 @@ def dll(src, libname,
         file = open('temp.c', 'w')
     else:
         file = tempfile.NamedTemporaryFile(suffix='.c')
-    log.debug('open C file %r', file)
+    LOG.debug('open C file %r', file)
 
     with file as fd:
         fd.write(src)
@@ -60,15 +79,15 @@ def dll(src, libname,
         else:
             args.append('-O3')
         args += [fd.name, '-o', libname]
-        log.debug('calling %r', args)
+        LOG.debug('calling %r', args)
         proc = subprocess.Popen(args, 
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
         proc.wait()
-        log.debug('return code %r', proc.returncode)
+        LOG.debug('return code %r', proc.returncode)
         if proc.returncode > 0:
-            log.error('failed compilation:\n%s\n%s', proc.stdout.read(), proc.stderr.read())
+            LOG.error('failed compilation:\n%s\n%s', proc.stdout.read(), proc.stderr.read())
 
 class srcmod(object):
 
@@ -105,5 +124,65 @@ class srcmod(object):
                 fn_ = fn
             setattr(self, f, fn_)
 
-        
+class C99Compiler(object):
+    def __call__(self, src, libname, debug=False, io=subprocess.PIPE):
+        args = [self.cmd] + self.flags
+        if debug:
+            file = open('temp.c', 'w')
+        else:
+            file = tempfile.NamedTemporaryFile(suffix='.c')
+        LOG.debug('open C file %r', file)
+        with file as fd:
+            fd.write(src)
+            fd.flush()
+            if debug:
+            args.append(self.g_flag if debug else self.opt_flag)
+            args += [fd.name, '-o', libname]
+            LOG.debug('calling %r', args)
+            proc = subprocess.Popen(args, stdout=io, stderr=io)
+            proc.wait()
+            LOG.debug('return code %r', proc.returncode)
+            if proc.returncode > 0:
+                LOG.error('failed compilation:\n%s\n%s', 
+                        proc.stdout.read(), proc.stderr.read())
+
+
+class GCC(C99Compiler):
+    cmd = 'gcc'
+    flags = ['-std=c99', '-fPIC', '-shared', '-lm']
+    g_flag = '-g'
+    opt_flag = '-O3'
+
+
+class Code(base.Code):
+    "Interface to C code"
+
+    def __init__(self, *args, cc=None, **kwds):
+        super(Code, self).__init__(*args, **kwds)
+        self.cc = cc or GCC()
+
+    def build_module(self, fns, debug=False):
+
+        if debug:
+            self.cc(self.src, 'temp.so', debug=debug)
+            self._module = ctypes.CDLL('temp.so')
+        else:
+            with tempfile.NamedTemporaryFile(suffix='.so') as fd:
+                self.cc(self.src, fd.name, debug=debug)
+                self._module = ctypes.CDLL(fd.name)
+
+        for f in fns:
+            fn = getattr(self._module, f)
+            if debug:
+                def fn_(*args, **kwds):
+                    try:
+                        ret = fn(*args, **kwds)
+                    except Exception as exc:
+                        msg = 'ctypes call of %r failed w/ %r'
+                        msg %= (f, exc)
+                        raise Exception(msg)
+                    return ret
+            else:
+                fn_ = fn
+            setattr(self, f, fn_)
 

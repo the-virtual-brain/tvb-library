@@ -33,13 +33,17 @@ import os.path
 import string
 import glob
 import subprocess
-
+import logging
 
 from numpy import *
+
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.DEBUG)
 
 import driver_conf as dc
 
 using_gpu = getattr(dc, 'using_gpu', 0)
+LOG.debug('using_gpu = %r', using_gpu)
 
 if using_gpu:
     import pycuda.driver as cuda
@@ -149,13 +153,20 @@ class device_code(object):
 
 
         args = dict()
-        for k in cls.defaults.keys():
-            args[k] = kwds.get(k, cls.defaults[k])
+        for k in 'model_dfun noise_gfun integrate coupling'.split():
+            if k not in kwds:
+                LOG.debug('using example code for %r', k)
+                src = cls._example_code[k]
+            else:
+                src = kwds[k]
+            args[k] = src
 
         source = T(templates.sources[templ]).substitute(**args) 
 
         if debug:
-            with open('temp.cu', 'w') as fd:
+            temppath = os.path.abspath('./temp.cu')
+            LOG.debug('completed template written to %r', temppath)
+            with open(temppath, 'w') as fd:
                 fd.write(source)
 
         if using_gpu:
