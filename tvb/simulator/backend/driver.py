@@ -78,7 +78,7 @@ else: # using Cpu
 
 from tvb.simulator.lab import *
 
-import cee
+from . import cee, templates
 
 def cpp(filename):
     proc = subprocess.Popen(['cpp', filename], stdout=subprocess.PIPE)
@@ -87,23 +87,9 @@ def cpp(filename):
 
 class device_code(object):
 
-    # use different module b/c pycuda.debug overwrites __file__
-    here = os.path.dirname(os.path.abspath(cee.__file__)) + os.path.sep 
-
     @classmethod
-    def sources(cls):
-        srcs = {}
-        for name in glob.glob(cls.here + '*.cu'):
-            print 'found', name
-            key = os.path.basename(name)
-            print 'key name is ', key
-            with open(name, 'r') as fd:
-                srcs[key] = fd.read()
-            #srcs[key+'-debug'] = cpp(name)
-        return srcs
-
-    @classmethod
-    def build(cls, fns=[], T=string.Template, **kwds):
+    def build(cls, fns=[], T=string.Template, templ='tvb.cu', debug=False,
+              **kwds):
         """
         Build a device code object based on code template and arguments. You
         may provide the following keyword arguments to customize the template:
@@ -118,66 +104,68 @@ class device_code(object):
         the device_code.defaults attribute.
 
         Please refer to tvb.cu template file for the context in which each
-        template argument is used, the definition of the macros, etc.
+        template argument is used, the definition of the macros, etc. The following
+        illustrative examples show what kind of code can be inserted
+
 
         """
+
+        _example_code = {
+            'model_dfun': """
+            float a   = P(0)
+                , b   = P(1)
+                , tau = P(2)
+                , x   = X(0)
+                , y   = X(1) ;
+
+            DX(0) = (x - x*x*x/3.0 + y)*tau;
+            DX(1) = (a + b*y - x + I(0))/tau;
+            """,
+
+            'noise_gfun': """
+            float nsig;
+            for (int i_svar=0; i_svar<n_svar; i_svar++)
+            {
+                nsig = P(i_svar);
+                GX(i_svar) = sqrt(2.0*nsig);
+            }
+            """, 
+
+            'integrate': """
+            float dt = P(0);
+            model_dfun(dx1, x, mmpr, input);
+            noise_gfun(gx, x, nspr);
+            for (int i_svar=0; i_svar<n_svar; i_svar++)
+                X(i_svar) += dt*(DX1(i_svar) + STIM(i_svar)) + GX(i_svar)*NS(i_svar);
+            """,
+
+            'coupling': """
+            // parameters
+            float a = P(0);
+
+            I = 0.0;
+            for (int j_node=0; j_node<n_node; j_node++, idel++, conn++)
+                I += a*GIJ*XJ;
+
+            """
+            }
+
 
         args = dict()
         for k in cls.defaults.keys():
             args[k] = kwds.get(k, cls.defaults[k])
 
-        source = T(cls.sources()['tvb.cu']).substitute(**args) 
-        with open('temp.cu', 'w') as fd:
-            fd.write(source)
+        source = T(templates.sources[templ]).substitute(**args) 
+
+        if debug:
+            with open('temp.cu', 'w') as fd:
+                fd.write(source)
 
         if using_gpu:
             cls.mod = CUDASourceModule("#define TVBGPU\n" + source, 
                                        options=["--ptxas-options=-v"])
         else:
             cls.mod = cee.srcmod("#include <math.h>\n" + source, fns)
-
-    # default template filler
-    defaults = {
-        'model_dfun': """
-        float a   = P(0)
-            , b   = P(1)
-            , tau = P(2)
-            , x   = X(0)
-            , y   = X(1) ;
-
-        DX(0) = (x - x*x*x/3.0 + y)*tau;
-        DX(1) = (a + b*y - x + I(0))/tau;
-        """,
-
-        'noise_gfun': """
-        float nsig;
-        for (int i_svar=0; i_svar<n_svar; i_svar++)
-        {
-            nsig = P(i_svar);
-            GX(i_svar) = sqrt(2.0*nsig);
-        }
-        """, 
-
-        'integrate': """
-        float dt = P(0);
-        model_dfun(dx1, x, mmpr, input);
-        noise_gfun(gx, x, nspr);
-        for (int i_svar=0; i_svar<n_svar; i_svar++)
-            X(i_svar) += dt*(DX1(i_svar) + STIM(i_svar)) + GX(i_svar)*NS(i_svar);
-        """,
-
-        'coupling': """
-        // parameters
-        float a = P(0);
-
-        I = 0.0;
-        for (int j_node=0; j_node<n_node; j_node++, idel++, conn++)
-            I += a*GIJ*XJ;
-
-
-        """
-        }
-
 
 class device_global(object):
     """
