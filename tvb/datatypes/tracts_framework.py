@@ -32,7 +32,8 @@
 module docstring
 .. moduleauthor:: Mihai Andrei <mihai.andrei@codemart.ro>
 """
-
+import numpy
+import colorsys
 from tvb.basic.logger.builder import get_logger
 from tvb.datatypes.surfaces_framework import paths2url
 from tvb.datatypes.tracts_data import TractData
@@ -58,20 +59,30 @@ class TractsFramework(TractData):
             url_vertices.append(url4chunk)
         return url_vertices
 
+    def _slice2range(self, slice_number):
+        slice_number = int(slice_number)
+
+        start = slice_number * TRACTS_CHUNK_SIZE
+        stop = min(start + TRACTS_CHUNK_SIZE, self.tracts_count)
+        return start, stop
+
     def get_tracts_slice(self, slice_number, sample_rate):
         """
         Returns a list of vertex arrays. One array per tract line.
         Sliced by tracts not vertices
         """
         sample_rate = int(sample_rate)
-        slice_number = int(slice_number)
-
-        start = slice_number * TRACTS_CHUNK_SIZE
-        stop = min(start + TRACTS_CHUNK_SIZE, self.tracts_count)
         # todo : range checks
         tracts = []
+        start, stop = self._slice2range(slice_number)
+
         for i in xrange(start, stop):
             c = self.vertex_counts[i]
             # indexing warning
             tracts.append(list(self.vertices[i, :c:sample_rate * 3, :].flat))
         return tracts
+
+    def get_tracts_color(self, slice_number, sample_rate):
+        start, stop = self._slice2range(slice_number)
+        hues = numpy.linspace(0, 1, self.tracts_count)[start:stop:sample_rate]
+        return [colorsys.hls_to_rgb(h, 0.5, 0.5) for h in hues]
