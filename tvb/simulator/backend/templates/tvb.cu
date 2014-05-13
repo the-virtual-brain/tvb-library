@@ -30,6 +30,10 @@
 
 */
 
+#ifndef TVBGPU
+#include <math.h>
+#endif
+
 // static on CPU, device constants on GPU (we get 64 kB only)
 // cf http://wwwae.ciemat.es/~cardenas/CUDA/T6-ConstantMemory.pdf
 #ifdef TVBGPU
