@@ -2,6 +2,8 @@
 import unittest
 import itertools
 
+import numpy
+
 try:
     import pycuda
     _pycuda_import_error = None
@@ -25,8 +27,8 @@ class TestRegionParallel(BaseCUDATest):
     "Tests CUDA backend for simple parameter sweep in region based simulation"
 
     # parameters to sweep (coupling & model $a$)
-    cas = r_[:0.1:8j]
-    mas = r_[-2.0:2.0:8j]
+    cas = numpy.r_[:0.1:8j]
+    mas = numpy.r_[-2.0:2.0:8j]
 
     # sim & output parameters
     nsteps = 10000
@@ -58,21 +60,21 @@ class TestRegionParallel(BaseCUDATest):
         self.sims = [self.new_proto_sim(ca, ma) for ca, ma in itertools.product(self.cas, self.mas)]
 
     def pack_device(self):
-        self.dh = driver.device_handler.init_like(self.sims[0])
-        self.dh.n_thr = dh.n_rthr = len(self.sims)
+        self.dh = self.driver.device_handler.init_like(self.sims[0])
+        self.dh.n_thr = self.dh.n_rthr = len(self.sims)
         for i, simi in enumerate(self.sims):
             self.dh.fill_with(i, simi)
 
     def setup_outputs(self):
         sh = self.nsteps/self.ds, self.dh.n_node, self.dh.n_svar, len(self.sims)
-        self.ys1, self.ys2 = zeros((2,) + sh)
+        self.ys1, self.ys2 = numpy.zeros((2,) + sh)
 
     def init_sims(self):
         self.simgens = [s(simulation_length=1000) for s in self.sims]
 
     def integrate(self):
         ds = self.ds
-        for i in range(nsteps):
+        for i in range(self.nsteps):
             # step all simulations
             for j, (sgj, smj) in enumerate(zip(self.simgens, self.sims)):
                 ((t, y), ) = next(sgj)
