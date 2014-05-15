@@ -223,3 +223,31 @@ class Array(base.Array):
     @property
     def value(self):
         return self.cpu.copy()
+
+
+class RegionParallel(base.RegionParallel):
+    pass
+
+    def get_update_fun(self):
+        return device_code.mod.update
+
+    @property
+    def mem_info(self):
+        if psutil:
+            phymem = psutil.phymem_usage()
+            return phymem.free, phymem.total
+        else:
+            return None, None
+
+    @property
+    def extra_args(self):
+        return {}
+
+
+    def __call__(self, extra=None, step_type=ctypes.c_int32):
+        args  = [step_type(self.i_step)]
+        for k in self.device_state:
+            args.append(getattr(self, k).device)
+        kwds = extra or self.extra_args
+        self._device_update(*args, **kwds)
+        self.i_step += self.n_msik

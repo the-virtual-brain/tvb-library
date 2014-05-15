@@ -121,3 +121,46 @@ class Array(base.Array):
     def __init__(self, name, type, dimensions, pagelocked=False):
         super(Array, self).__init__(name, type, dimensions)
         self.pagelocked = pagelocked
+
+
+class RegionParallel(base.RegionParallel):
+    pass
+
+    def get_update_fun(self):
+        return device_code.mod.get_function('update')
+
+    @property
+    def mem_info(self):
+        return cuda.mem_get_info()
+
+    @property
+    def occupancy(self):
+        return OccupancyRecord(pycuda.tools.DeviceData(), self.n_thr)
+
+
+    @property
+    def extra_args(self):
+        bs = int(self.n_thr)%1024
+        gs = int(self.n_thr)/1024
+        if bs == 0:
+            bs = 1024
+        if gs == 0:
+            gs = 1
+        return {'block': (bs, 1, 1),
+                'grid' : (gs, 1)}
+
+    def __call__(self, extra=None, step_type=int32):
+        args  = [step_type(self.i_step)]
+        for k in self.device_state:
+            args.append(getattr(self, k).device)
+        try:
+            kwds = extra or self.extra_args
+            self._device_update(*args, **kwds)
+        except cuda.LogicError as e:
+            print 0, 'i_step', type(args[0])
+            for i, k in enumerate(self.device_state):
+                attr = getattr(self, k).device
+                print i+1, k, type(attr), attr.dtype
+            print kwds
+            raise e
+        self.i_step += self.n_msik
