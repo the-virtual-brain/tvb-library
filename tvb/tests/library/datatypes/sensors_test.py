@@ -28,8 +28,6 @@
 #
 #
 """
-Created on Mar 20, 2013
-
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
 
@@ -37,8 +35,13 @@ if __name__ == "__main__":
     from tvb.tests.library import setup_test_console_env
     setup_test_console_env()
 
+import numpy
 import unittest
-from tvb.datatypes import sensors, surfaces
+import tvb.datatypes.readers as readers
+from tvb.datatypes import sensors
+from tvb.datatypes.surfaces import SkinAir
+from tvb.datatypes.surfaces_data import OUTER_SKIN
+from tvb.datatypes.sensors_data import INTERNAL_POLYMORPHIC_IDENTITY, MEG_POLYMORPHIC_IDENTITY, EEG_POLYMORPHIC_IDENTITY
 from tvb.tests.library.base_testcase import BaseTestCase
 
 
@@ -48,54 +51,72 @@ class SensorsTest(BaseTestCase):
     """
 
     def test_sensors(self):
-        surf = surfaces.SkinAir()
-        surf.configure()
-        dt = sensors.Sensors()
+
+        dt = readers.read_sensors()
         dt.configure()
-        mapping = dt.sensors_to_surface(surf)
-        self.assertEqual(mapping.shape, (62, 3))
+
         summary_info = dt.summary_info
-        self.assertEqual(summary_info['Sensor type'], '')
+        self.assertEqual(summary_info['Sensor type'], EEG_POLYMORPHIC_IDENTITY)
         self.assertEqual(summary_info['Number of Sensors'], 62)
         self.assertFalse(dt.has_orientation)
         self.assertEqual(dt.labels.shape, (62,))
         self.assertEqual(dt.locations.shape, (62, 3))
         self.assertEqual(dt.number_of_sensors, 62)
         self.assertEqual(dt.orientations.shape, (0,))
-        self.assertEqual(dt.sensors_type, '')
+        self.assertEqual(dt.sensors_type, EEG_POLYMORPHIC_IDENTITY)
+
+        ## Mapping 62 sensors on a Skin surface should work
+        surf = readers.read_surface(OUTER_SKIN, "outer_skin_4096.zip")
+        surf.configure()
+        mapping = dt.sensors_to_surface(surf)
+        self.assertEqual(mapping.shape, (62, 3))
+
+        ## Mapping on a surface with holes should fail
+        dummy_surf = SkinAir()
+        dummy_surf.vertices = numpy.array(range(30)).reshape(10, 3)
+        dummy_surf.triangles = numpy.array(range(9)).reshape(3, 3)
+        dummy_surf.configure()
+        try:
+            dt.sensors_to_surface(dummy_surf)
+            self.fail("Should have failed for this simple surface!")
+        except Exception:
+            pass
 
 
     def test_sensorseeg(self):
-        dt = sensors.SensorsEEG()
+        dt = readers.read_sensors()
         dt.configure()
+        self.assertTrue(isinstance(dt, sensors.SensorsEEG))
         self.assertFalse(dt.has_orientation)
         self.assertEqual(dt.labels.shape, (62,))
         self.assertEqual(dt.locations.shape, (62, 3))
         self.assertEqual(dt.number_of_sensors, 62)
         self.assertEqual(dt.orientations.shape, (0,))
-        self.assertEqual(dt.sensors_type, 'EEG')
+        self.assertEqual(dt.sensors_type, EEG_POLYMORPHIC_IDENTITY)
 
 
     def test_sensorsmeg(self):
-        dt = sensors.SensorsMEG()
+        dt = readers.read_sensors(MEG_POLYMORPHIC_IDENTITY, "meg_channels_reg13.txt.bz2")
         dt.configure()
+        self.assertTrue(isinstance(dt, sensors.SensorsMEG))
         self.assertTrue(dt.has_orientation)
         self.assertEqual(dt.labels.shape, (151,))
         self.assertEqual(dt.locations.shape, (151, 3))
         self.assertEqual(dt.number_of_sensors, 151)
         self.assertEqual(dt.orientations.shape, (151, 3))
-        self.assertEqual(dt.sensors_type, 'MEG')
+        self.assertEqual(dt.sensors_type, MEG_POLYMORPHIC_IDENTITY)
 
 
     def test_sensorsinternal(self):
-        dt = sensors.SensorsInternal()
+        dt = readers.read_sensors(INTERNAL_POLYMORPHIC_IDENTITY, "internal_39.txt.bz2")
         dt.configure()
+        self.assertTrue(isinstance(dt, sensors.SensorsInternal))
         self.assertFalse(dt.has_orientation)
         self.assertEqual(dt.labels.shape, (103,))
         self.assertEqual(dt.locations.shape, (103, 3))
         self.assertEqual(dt.number_of_sensors, 103)
         self.assertEqual(dt.orientations.shape, (0,))
-        self.assertEqual(dt.sensors_type, 'Internal')
+        self.assertEqual(dt.sensors_type, INTERNAL_POLYMORPHIC_IDENTITY)
 
 
 

@@ -45,7 +45,6 @@ from tvb.tests.library.datatypes import connectivity_test
 from tvb.tests.library.datatypes import coupling_test
 from tvb.tests.library.datatypes import equations_test
 from tvb.tests.library.datatypes import graph_test
-from tvb.tests.library.datatypes import lookup_tables_test
 from tvb.tests.library.datatypes import mapped_test
 from tvb.tests.library.datatypes import mode_decompositions_test
 from tvb.tests.library.datatypes import patterns_test
@@ -68,7 +67,6 @@ def suite():
     test_suite.addTest(coupling_test.suite())
     test_suite.addTest(equations_test.suite())
     test_suite.addTest(graph_test.suite())
-    test_suite.addTest(lookup_tables_test.suite())
     test_suite.addTest(mapped_test.suite())
     test_suite.addTest(mode_decompositions_test.suite())
     test_suite.addTest(patterns_test.suite())

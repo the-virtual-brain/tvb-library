@@ -605,7 +605,6 @@ class RegionMappingFramework(surfaces_data.RegionMappingData):
         new_region_map._connectivity = connectivity_gid
         new_region_map._surface = self._surface
         new_region_map.array_data = self.array_data
-        new_region_map.default = self.default
         return new_region_map
     
     

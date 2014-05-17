@@ -42,7 +42,6 @@ import numpy
 import scipy.sparse as sparse
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
-import tvb.basic.traits.data_readers as readers
 import tvb.basic.traits.exceptions as exceptions
 import tvb.datatypes.arrays as arrays
 import tvb.datatypes.equations as equations
@@ -69,25 +68,20 @@ class SurfaceData(MappedType):
     single object.
     """
 
-    default = readers.File(folder_path="surfaces/cortex_reg13")
-
     vertices = arrays.PositionArray(
         label="Vertex positions",
         order=-1,
-        console_default=default.read_data(file_name="vertices.txt.bz2", field="vertices"),
         doc="""An array specifying coordinates for the surface vertices.""")
 
     triangles = arrays.IndexArray(
         label="Triangles",
         order=-1,
         target=vertices,
-        console_default=default.read_data(file_name="triangles.txt.bz2", dtype=numpy.int32, field="triangles"),
         doc="""Array of indices into the vertices, specifying the triangles which define the surface.""")
 
     vertex_normals = arrays.OrientationArray(
         label="Vertex normal vectors",
         order=-1,
-        console_default=default.read_data(file_name="vertex_normals.txt.bz2", field="vertex_normals"),
         doc="""An array of unit normal vectors for the surfaces vertices.""")
 
     triangle_normals = arrays.OrientationArray(
@@ -151,11 +145,6 @@ class CorticalSurfaceData(SurfaceData):
     __mapper_args__ = {'polymorphic_identity': CORTICAL}
 
 
-    def __init__(self, **kwargs):
-        super(CorticalSurfaceData, self).__init__(**kwargs)
-        self.default.reload(self.__class__, folder_path="surfaces/cortex_tvb_whitematter")
-
-
 
 class SkinAirData(SurfaceData):
     """
@@ -172,11 +161,6 @@ class SkinAirData(SurfaceData):
     __generate_table__ = True
 
 
-    def __init__(self, **kwargs):
-        super(SkinAirData, self).__init__(**kwargs)
-        self.default.reload(self.__class__, folder_path="surfaces/outer_skin_4096")
-
-
 
 class BrainSkullData(SurfaceData):
     """
@@ -191,11 +175,6 @@ class BrainSkullData(SurfaceData):
     __tablename__ = None
 
     __mapper_args__ = {'polymorphic_identity': INNER_SKULL}
-
-
-    def __init__(self, **kwargs):
-        super(BrainSkullData, self).__init__(**kwargs)
-        self.default.reload(self.__class__, folder_path="surfaces/inner_skull_4096")
 
 
 
@@ -215,13 +194,8 @@ class SkullSkinData(SurfaceData):
     __mapper_args__ = {'polymorphic_identity': OUTER_SKULL}
 
 
-    def __init__(self, **kwargs):
-        super(SkullSkinData, self).__init__(**kwargs)
-        self.default.reload(self.__class__, folder_path="surfaces/outer_skull_4096")
-
 
 ##--------------------- CLOSE SURFACES End Here---------------------------------------##
-
 
 ##--------------------- OPEN SURFACES Start Here---------------------------------------##
 
@@ -268,10 +242,8 @@ class RegionMappingData(arrays.MappedArray):
     """
     An array representing a measure of a Connectivity dataType.
     """
-    default = readers.File(folder_path="surfaces/cortex_reg13")
 
-    array_data = arrays.IndexArray(console_default=default.read_data(file_name="o52r00_irp2008.txt.bz2",
-                                                                     dtype=numpy.int32, field="array_data"))
+    array_data = arrays.IndexArray()
 
     connectivity = Connectivity
 
@@ -401,7 +373,6 @@ class CortexData(CorticalSurfaceData):
 
     region_mapping_data = RegionMappingData(
         label="region mapping",
-        console_default=RegionMappingData(),
         doc="""An index vector of length equal to the number_of_vertices + the
             number of non-cortical regions, with values that index into an
             associated connectivity matrix.""")  # 'CS'
@@ -415,9 +386,6 @@ class CortexData(CorticalSurfaceData):
 
     eeg_projection = arrays.FloatArray(
         label="EEG projection", order=-1,
-        console_default=CorticalSurfaceData.default.read_data(matlab_data_name="ProjectionMatrix", lazy_load=True,
-                                                              field="eeg_projection",
-                                                              file_name="projection_outer_skin_4096_eeg_1020_62.mat"),
         #NOTE: This is redundant if the EEG monitor isn't used, but it makes life simpler.
         required=False,
         doc="""A 2-D array which projects the neural activity on the cortical
@@ -426,9 +394,6 @@ class CortexData(CorticalSurfaceData):
 
     meg_projection = arrays.FloatArray(
         label="MEG projection",
-        #console_default=CorticalSurfaceData.default.read_data(matlab_data_name="ProjectionMatrix", lazy_load=True,
-                                                              #field="meg_projection",
-                                                              #file_name="projection_brainstorm_meg_4D_248.mat"),
         #linked = ?sensors, skull, skin, etc?
         doc="""A 2-D array which projects the neural activity on the cortical
             surface to a set of MEG sensors.""",
@@ -446,10 +411,6 @@ class CortexData(CorticalSurfaceData):
 
     __generate_table__ = False
 
-
-    def __init__(self, **kwargs):
-        super(CortexData, self).__init__(**kwargs)
-        self.default.reload(self.__class__, folder_path="surfaces/cortex_reg13")
 
 
     def populate_cortex(self, cortex_surface, cortex_parameters=None):

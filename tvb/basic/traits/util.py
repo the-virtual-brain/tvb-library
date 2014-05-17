@@ -36,7 +36,6 @@ All the little functions that make life nicer in the Traits package.
 .. moduleauthor:: marmaduke <duke@eml.cc>
 """
 
-import os
 import numpy
 import collections
 import inspect
@@ -45,23 +44,6 @@ from tvb.basic.config.settings import TVBSettings
 
 # returns true if key is, by convention, public
 ispublic = lambda key: key[0] is not '_'
-
-
-
-def read_list_data(full_path, dimensions=None, dtype=numpy.float64, skiprows=0, usecols=None):
-    """
-    Read numpy.array from a text file.
-    """
-    try:
-        array_result = numpy.loadtxt(full_path, dtype=dtype, skiprows=skiprows, usecols=usecols)
-        if dimensions:
-            return array_result.reshape(dimensions)
-        return array_result
-    except ValueError, exc:
-        file_ending = os.path.split(full_path)[1]
-        exc.args = (exc.args[0] + " In file: " + file_ending,)
-        raise
-
 
 
 def str_class_name(thing, short_form=False):

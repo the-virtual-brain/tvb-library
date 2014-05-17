@@ -45,7 +45,6 @@ Sensors uses:
 
 from tvb.basic.traits.types_mapped import MappedType
 import tvb.basic.traits.types_basic as basic
-import tvb.basic.traits.data_readers as readers
 import tvb.datatypes.arrays as arrays
 
 
@@ -68,15 +67,11 @@ class SensorsData(MappedType):
 
     __mapper_args__ = {'polymorphic_on': 'sensors_type'}
 
-    default = readers.File(folder_path="sensors", file_name='EEG_unit_vectors_BrainProducts_62.txt.bz2')
-
     labels = arrays.StringArray(
-        label="Sensor labels",
-        console_default=default.read_data(usecols=(0,), dtype="string", field="labels"))
+        label="Sensor labels")
 
     locations = arrays.PositionArray(
-        label="Sensor locations",
-        console_default=default.read_data(usecols=(1, 2, 3), field="locations"))
+        label="Sensor locations")
 
     has_orientation = basic.Bool(default=False)
 
@@ -112,11 +107,6 @@ class SensorsEEGData(SensorsData):
     has_orientation = basic.Bool(default=False, order=-1)
 
 
-    def __init__(self, **kwargs):
-        super(SensorsEEGData, self).__init__(**kwargs)
-        self.default.reload(self.__class__, folder_path="sensors",
-                            file_name="EEG_unit_vectors_BrainProducts_62.txt.bz2")
-
 
 
 class SensorsMEGData(SensorsData):
@@ -142,15 +132,10 @@ class SensorsMEGData(SensorsData):
 
     orientations = arrays.OrientationArray(
         label="Sensor orientations",
-        console_default=SensorsData.default.read_data(usecols=(4, 5, 6), field="orientations", lazy_load=True),
         doc="An array representing the orientation of the MEG SQUIDs")
 
     has_orientation = basic.Bool(default=True, order=-1)
 
-
-    def __init__(self, **kwargs):
-        super(SensorsMEGData, self).__init__(**kwargs)
-        self.default.reload(self.__class__, folder_path="sensors", file_name="meg_channels_reg13.txt.bz2")
 
 
 
@@ -165,9 +150,4 @@ class SensorsInternalData(SensorsData):
     __mapper_args__ = {'polymorphic_identity': INTERNAL_POLYMORPHIC_IDENTITY}
 
     sensors_type = basic.String(default=INTERNAL_POLYMORPHIC_IDENTITY)
-
-
-    def __init__(self, **kwargs):
-        super(SensorsInternalData, self).__init__(**kwargs)
-        self.default.reload(self.__class__, folder_path="sensors", file_name='internal_39.txt.bz2')
 

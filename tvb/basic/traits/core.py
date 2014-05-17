@@ -69,14 +69,12 @@ system work:
 
 import abc
 from copy import deepcopy, copy
-from tvb.basic.config.settings import TVBSettings as config
 from tvb.basic.traits.util import get, Args, TypeRegister, ispublic
 from tvb.basic.logger.builder import get_logger
 
 
 LOG = get_logger(__name__)
 
-KWARG_CONSOLE_DEFAULT = 'console_default'
 KWARG_SELECT_MULTIPLE = 'select_multiple'
 KWARG_ORDER = 'order'                   # -1 value means hidden from UI
 KWARG_AVOID_SUBCLASSES = 'fixed_type'   # When set on a traited attr, no subclasses will be returned
@@ -93,8 +91,7 @@ FILE_STORAGE_EXPAND = 'expandable_HDF5'
 FILE_STORAGE_NONE = 'None'
 
 SPECIAL_KWDS = ['bind',                 # set and used internally by the traiting mechanism
-                'doc', 'label', KWARG_REQUIRED, 'locked',
-                'default', 'range', KWARG_CONSOLE_DEFAULT,
+                'doc', 'label', KWARG_REQUIRED, 'locked', 'default', 'range',
                 'configurable_noise', KWARG_OPTIONS, KWARS_STORED_METADATA,
                 KWARG_AVOID_SUBCLASSES, KWARG_FILTERS_UI, KWARG_SELECT_MULTIPLE, KWARG_ORDER,
                 KWARG_FILE_STORAGE, KWARS_USE_STORAGE]
@@ -324,8 +321,6 @@ class MetaType(abc.ABCMeta):
             if isinstance(value, MetaType):
                 value = value()
 
-        elif KWARG_CONSOLE_DEFAULT in kwds and not config.TRAITS_CONFIGURATION.use_storage:
-            value = kwds.pop(KWARG_CONSOLE_DEFAULT)
         elif ncs.trait.wraps:
             wrapped_callable = ncs.trait.wraps[0] if isinstance(ncs.trait.wraps, tuple) else ncs.trait.wraps
             # no args, and we have defaults
