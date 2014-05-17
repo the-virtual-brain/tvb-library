@@ -28,14 +28,16 @@
 #
 #
 """
-Created on Mar 20, 2013
-
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
 """
 
+if __name__ == "__main__":
+    from tvb.tests.library import setup_test_console_env
+    setup_test_console_env()
+
 import numpy    
 import unittest
-from tvb.datatypes import patterns, equations, connectivity, surfaces
+from tvb.datatypes import patterns, equations, readers
 from tvb.tests.library.base_testcase import BaseTestCase
 
 
@@ -75,7 +77,7 @@ class PatternsTest(BaseTestCase):
         
         
     def test_stimuliregion(self):
-        conn = connectivity.Connectivity()
+        conn = readers.read_connectivity()
         conn.configure()
         dt = patterns.StimuliRegion()
         dt.connectivity = conn
@@ -93,7 +95,7 @@ class PatternsTest(BaseTestCase):
         
      
     def test_stimulisurface(self):
-        srf = surfaces.CorticalSurface()
+        srf = readers.read_surface()
         srf.configure()
         dt = patterns.StimuliSurface()
         dt.surface = srf
@@ -105,9 +107,9 @@ class PatternsTest(BaseTestCase):
         dt.configure_space()
         summary = dt.summary_info
         self.assertEqual(summary['Type'], "StimuliSurface")
-        self.assertEqual(dt.space.shape, (81924, 3))
+        self.assertEqual(dt.space.shape, (16384, 3))
         self.assertTrue(isinstance(dt.spatial, equations.DiscreteEquation))
-        self.assertEqual(dt.spatial_pattern.shape, (81924, 1))
+        self.assertEqual(dt.spatial_pattern.shape, (16384, 1))
         self.assertTrue(dt.surface is not None)
         self.assertTrue(isinstance(dt.temporal, equations.Gaussian))
         self.assertTrue(dt.temporal_pattern is None)

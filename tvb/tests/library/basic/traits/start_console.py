@@ -37,7 +37,7 @@ if __name__ == "__main__":
     setup_test_console_env()
 
 import unittest
-import tvb.datatypes.surfaces as surfaces
+from tvb.datatypes import readers
 from tvb.tests.library.base_testcase import BaseTestCase
 
             
@@ -51,11 +51,12 @@ class ConsoleTraitedTest(BaseTestCase):
         Test scientific methods are executed
         """
         local_coupling_strength = 0.0121
-        grey_matter = surfaces.LocalConnectivity(cutoff=10.0)
-        default_cortex = surfaces.Cortex(coupling_strength=local_coupling_strength)
-        #self.assertTrue(default_cortex.local_connectivity is None)
+        grey_matter = readers.read_local_connectivity()
+        default_cortex = readers.read_surface(None)
+        default_cortex.coupling_strength = local_coupling_strength
+        self.assertTrue(default_cortex.local_connectivity is None)
         default_cortex.local_connectivity = grey_matter
-        #default_cortex.region_average = default_cortex.region_mapping
+        default_cortex.region_average = default_cortex.region_mapping
         default_cortex.compute_local_connectivity()
         self.assertTrue(default_cortex.local_connectivity is not None)
 

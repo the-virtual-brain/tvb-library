@@ -44,20 +44,19 @@ schemes (region and surface based simulations).
 if __name__ == "__main__":
     from tvb.tests.library import setup_test_console_env
     setup_test_console_env()
-    
-# Third party python libraries
+
 import numpy
 import unittest
 import itertools
-# From "The Virtual Brain"
-import tvb.datatypes.sensors as sensors
-from tvb.tests.library.base_testcase import BaseTestCase
-from tvb.simulator.lab import *
 from tvb.basic.traits.parameters_factory import get_traited_subclasses
+from tvb.datatypes import readers
+from tvb.datatypes.sensors_data import MEG_POLYMORPHIC_IDENTITY
+from tvb.simulator.lab import *
+from tvb.tests.library.base_testcase import BaseTestCase
 
 
-sens_meg = sensors.SensorsMEG()
-sens_eeg = sensors.SensorsEEG()
+sens_meg = readers.read_sensors(MEG_POLYMORPHIC_IDENTITY, "meg_channels_reg13.txt.bz2")
+sens_eeg = readers.read_sensors()
 
 
 class Simulator(object):
@@ -129,7 +128,7 @@ class Simulator(object):
         self.model = model
         self.method = method
         
-        white_matter = connectivity.Connectivity()
+        white_matter = readers.read_connectivity()
         white_matter_coupling = coupling.Linear(a=coupling_strength)
         white_matter.speed = speed
 
@@ -143,7 +142,8 @@ class Simulator(object):
         
         if surface_sim:
             local_coupling_strength = numpy.array([2 ** -10])
-            default_cortex = surfaces.Cortex(coupling_strength=local_coupling_strength) 
+            default_cortex = readers.read_surface(None)
+            default_cortex.coupling_strength = local_coupling_strength
         else: 
             default_cortex = None
 
@@ -156,7 +156,8 @@ class Simulator(object):
                                        surface=default_cortex)
         self.sim.configure()
         
-        
+
+
 class SimulatorTest(BaseTestCase):
 
     def test_simulator_region(self):
@@ -215,4 +216,3 @@ if __name__ == "__main__":
     TEST_RUNNER = unittest.TextTestRunner()
     TEST_SUITE = suite()
     TEST_RUNNER.run(TEST_SUITE) 
-#EoF
