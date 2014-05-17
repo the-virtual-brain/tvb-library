@@ -35,30 +35,8 @@ Demonstrate using the simulator at the region level with a stimulus.
 
 ``Memory requirement``: < 1GB
 
-.. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
+.. moduleauthor:: Stuart A. Knock <stuart.knock@gmail.com>
 
-"""
-
-# Third party python libraries
-import numpy
-
-"""
-from tvb.simulator.common import get_logger
-LOG = get_logger(__name__)
-
-#Import from tvb.simulator modules:
-import tvb.simulator.simulator as simulator
-import tvb.simulator.models as models
-import tvb.simulator.coupling as coupling
-import tvb.simulator.integrators as integrators
-import tvb.simulator.monitors as monitors
-
-import tvb.datatypes.connectivity as connectivity
-import tvb.datatypes.equations as equations
-import tvb.datatypes.patterns as patterns
-
-from matplotlib.pyplot import *
-from tvb.simulator.plot.tools import *
 """
 
 from tvb.simulator.lab import *
@@ -69,48 +47,43 @@ from tvb.simulator.lab import *
 
 LOG.info("Configuring...")
 #Initialize a Model, Coupling, and Connectivity.
-oscilator = models.Generic2dOscillator()
+oscillator = models.Generic2dOscillator()
 
-white_matter = connectivity.Connectivity()
-## Load a connectivity different than the default on in traits code.
-## The next line is optional!
-white_matter.default.reload(white_matter, "connectivity/g_20110513_hemisphere_both_subcortical_true_regions_96")
-
+white_matter = defaults.DConnectivity("connectivity_96.zip")
 white_matter.speed = numpy.array([4.0])
-
 white_matter_coupling = coupling.Linear(a=0.0126)
 
 #Initialise an Integrator
-heunint = integrators.HeunDeterministic(dt=2**-4)
+heunint = integrators.HeunDeterministic(dt=2 ** -4)
 
 #Initialise some Monitors with period in physical time
 momo = monitors.Raw()
-mama = monitors.TemporalAverage(period=2**-2)
+mama = monitors.TemporalAverage(period=2 ** -2)
 
 #Bundle them
 what_to_watch = (momo, mama)
 
 #Define the stimulus
 #Specify a weighting for regions to receive stimuli...
-white_matter.configure() # Because we want access to number_of_regions
+white_matter.configure()
 nodes = [0, 7, 13, 33, 42]
-weighting = numpy.zeros((white_matter.number_of_regions,)) # 1
-weighting[nodes] = numpy.array([2.0**-2, 2.0**-3, 2.0**-4, 2.0**-5, 2.0**-6]) # [:, numpy.newaxis]
+weighting = numpy.zeros((white_matter.number_of_regions,))
+weighting[nodes] = numpy.array([2.0 ** -2, 2.0 ** -3, 2.0 ** -4, 2.0 ** -5, 2.0 ** -6])
 
 eqn_t = equations.Gaussian()
 eqn_t.parameters["midpoint"] = 16.0
 
-stimulus = patterns.StimuliRegion(temporal = eqn_t,
-                                  connectivity = white_matter, 
-                                  weight = weighting)
+stimulus = patterns.StimuliRegion(temporal=eqn_t,
+                                  connectivity=white_matter,
+                                  weight=weighting)
 
 #Initialise Simulator -- Model, Connectivity, Integrator, Monitors, and stimulus.
-sim = simulator.Simulator(model = oscilator, 
-                          connectivity = white_matter,
-                          coupling = white_matter_coupling, 
-                          integrator = heunint, 
-                          monitors = what_to_watch, 
-                          stimulus = stimulus)
+sim = simulator.Simulator(model=oscillator,
+                          connectivity=white_matter,
+                          coupling=white_matter_coupling,
+                          integrator=heunint,
+                          monitors=what_to_watch,
+                          stimulus=stimulus)
 
 sim.configure()
 

@@ -40,7 +40,7 @@ A subject's dataset
 * surfaces data (cortical, skull, skin surfaces extraction) -> FSL/BET 
 
 * connectivity data (white matter weights, tract-lengths)   -> Diffusion Toolkit + TrackVis
-  	
+
 * region mapping between parcellation and number of vertices in the cortical surface.
 
 + lead-field matrices (ie, projection matrices) mapping nodes onto EEG/MEG space
@@ -49,32 +49,26 @@ A subject's dataset
 
 """
 
-
-# from TVB
-from tvb.basic.logger.builder import get_logger
-LOG = get_logger(__name__)
-
 from tvb.simulator.lab import *
-import tvb.datatypes.sensors as sensors
 
 # From the inside out
-connectome       = connectivity.Connectivity()
-cortical_surface = surfaces.Cortex()
-brain_skull      = surfaces.BrainSkull()
-skull_skin       = surfaces.SkullSkin()
-skin_air		 = surfaces.SkinAir()
+connectome       = defaults.DConnectivity()
+cortical_surface = defaults.DCortex()
+brain_skull      = defaults.DBrainSkull()
+skull_skin       = defaults.DSkullSkin()
+skin_air		 = defaults.DSkinAir()
 
 
 # Get info
 centres = connectome.centres
 
 try:
-    from tvb.simulator.plot.tools  import mlab
+    from tvb.simulator.plot.tools import mlab
     fig_tvb = mlab.figure(figure='John Doe', bgcolor=(0.0, 0.0, 0.0))
     
     region_centres = mlab.points3d(centres[:, 0], 
                                    centres[:, 1], 
-                                   centres [:, 2], 
+                                   centres[:, 2],
                                    color=(1.0, 0.0, 0.0),
                                    scale_factor = 7.,
                                    figure = fig_tvb)
@@ -88,6 +82,8 @@ try:
     # Plot them
     mlab.show(stop=True)
 except ImportError:
+
+    LOG.exception("Could not display!")
     pass
 
 #EoF

@@ -34,30 +34,19 @@ strength range.
 
 Current modes are re-scaling methods.
 
-.. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
+.. moduleauthor:: Paula Sanz Leon <pau.sleon@gmail.com>
 
 """
 
-# Third party python libraries
-
-from tvb.basic.logger.builder import get_logger
-LOG = get_logger(__name__)
-
-#Import from tvb.datatypes modules:
-import tvb.datatypes.connectivity as connectivity
-
-from matplotlib.pyplot import *
-from tvb.simulator.plot.tools import *
+from tvb.simulator.lab import *
 
 LOG.info("Reading default connectivity...")
-
-#Initialise a Connectivity object
-white_matter = connectivity.Connectivity()
+white_matter = defaults.DConnectivity()
 white_matter.configure()
-con = connectivity.Connectivity()
+con = defaults.DConnectivity()
 con.configure()
 
-#scale weights by the maximum aboslute value
+#scale weights by the maximum absolute value
 con.weights = white_matter.scaled_weights(mode='tract')
 plot_connectivity(con, num="tract_mode", plot_tracts=False)
 

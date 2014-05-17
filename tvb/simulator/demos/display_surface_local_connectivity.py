@@ -39,27 +39,6 @@ Display the local connectivity kernel definining the local coupling strength for
 
 """
 
-# Third party python libraries
-import numpy
-
-"""
-from tvb.basic.logger.builder import get_logger
-LOG = get_logger(__name__)
-
-#Import from tvb.simulator modules:
-import tvb.simulator.simulator as simulator
-import tvb.simulator.models as models
-import tvb.simulator.coupling as coupling
-import tvb.simulator.integrators as integrators
-import tvb.simulator.monitors as monitors
-
-import tvb.datatypes.surfaces as surfaces
-import tvb.datatypes.connectivity as connectivity
-
-from matplotlib.pyplot import *
-from tvb.simulator.plot.tools import *
-"""
-
 from tvb.simulator.lab import *
 
 ##----------------------------------------------------------------------------##
@@ -69,7 +48,7 @@ from tvb.simulator.lab import *
 LOG.info("Configuring...")
 #Initialise a surface:
 #First define the function describing the "local" connectivity.
-grey_matter = surfaces.LocalConnectivity(cutoff = 20.0)
+grey_matter = surfaces.DLocalConnectivity(cutoff=20.0)
 grey_matter.equation.parameters['sigma'] = 10.0
 grey_matter.equation.parameters['amp'] = 1.0
 
@@ -77,9 +56,9 @@ grey_matter.equation.parameters['amp'] = 1.0
 local_coupling_strength = numpy.array([0.0115])
 
 #finally, create a default cortex that includes the custom local connectivity.
-default_cortex = surfaces.Cortex(local_connectivity=grey_matter,
-                                 coupling_strength=local_coupling_strength)
-
+default_cortex = defaults.DCortex()
+default_cortex.local_connectivity = grey_matter
+default_cortex.coupling_strength = local_coupling_strength
 default_cortex.configure()
 
 # define scalar data to colour the surface 

@@ -33,12 +33,10 @@ Demonstrate using the simulator at the region level, deterministic integration, 
 
 
 .. moduleauthor:: Jan Fousek <izaak@mail.muni.cz>
-.. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
+.. moduleauthor:: Stuart A. Knock <stuart.knock@gmail.com>
 """
 
-import numpy
 from tvb.simulator.lab import *
-import tvb.datatypes.sensors as sensors
 
 
 
@@ -49,10 +47,10 @@ import tvb.datatypes.sensors as sensors
 LOG.info("Configuring...")
 
 #Initialise a Model, Coupling, and Connectivity.
-sens = sensors.SensorsInternal()
+sens = defaults.DSensorsInternal()
 
-oscilator = models.Generic2dOscillator()
-white_matter = connectivity.Connectivity()
+oscillator = models.Generic2dOscillator()
+white_matter = defaults.DConnectivity()
 white_matter.speed = numpy.array([4.0])
 white_matter_coupling = coupling.Linear(a=0.0154)
 
@@ -63,12 +61,13 @@ heunint = integrators.HeunDeterministic(dt=2 ** -6)
 momo = monitors.Raw()
 mama = monitors.TemporalAverage(period=2 ** -2)
 mon_seeg = monitors.SEEG(sensors=sens, period=2 ** -2)
+mon_seeg.sensors = defaults.DSensorsInternal()
 
 #Bundle them
 what_to_watch = (momo, mama, mon_seeg)
 
 #Initialise a Simulator -- Model, Connectivity, Integrator, and Monitors.
-sim = simulator.Simulator(model=oscilator, connectivity=white_matter,
+sim = simulator.Simulator(model=oscillator, connectivity=white_matter,
                           coupling=white_matter_coupling,
                           integrator=heunint, monitors=what_to_watch)
 sim.configure()

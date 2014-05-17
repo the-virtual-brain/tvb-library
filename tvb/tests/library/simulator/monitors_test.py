@@ -47,9 +47,11 @@ import unittest
 
 from tvb.tests.library.base_testcase import BaseTestCase
 from tvb.simulator import monitors
+from tvb.datatypes import defaults
 
 
-default_period= 0.9765625 # 1024Hz
+default_period = 0.9765625  # 1024Hz
+
 
 class MonitorsTest(BaseTestCase):
     """
@@ -60,7 +62,7 @@ class MonitorsTest(BaseTestCase):
     """
     
     def test_monitor_raw(self):
-        monitor = monitors.Raw()
+        monitors.Raw()
     
     
     def test_monitor_tavg(self):
@@ -109,6 +111,7 @@ class MonitorsTest(BaseTestCase):
         This has to be verified.
         """
         monitor = monitors.SEEG()
+        monitor.sensors = defaults.DSensorsInternal()
         self.assertEqual(monitor.period, default_period)
 
 

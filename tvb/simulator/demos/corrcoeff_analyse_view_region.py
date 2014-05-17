@@ -39,18 +39,10 @@ the demo data at the region level.
 
 """
 
-from tvb.basic.profile import TvbProfile
-TvbProfile.set_profile(["-profile", "LIBRARY_PROFILE"], try_reload=False)
-
-import numpy
-import tvb.datatypes.connectivity as connectivity
+from tvb.simulator.lab import *
 import tvb.analyzers.correlation_coefficient as corr_coeff
 from tvb.datatypes.time_series import TimeSeriesRegion
-from tvb.basic.logger.builder import get_logger
-from tvb.simulator.plot.tools import *
 
-
-LOG = get_logger(__name__)
 
 #Load the demo region timeseries dataset 
 try:
@@ -62,7 +54,7 @@ except IOError:
 period = 0.00048828125  # s
 
 #Put the data into a TimeSeriesRegion datatype
-white_matter = connectivity.Connectivity()
+white_matter = defaults.DConnectivity()
 tsr = TimeSeriesRegion(connectivity=white_matter,
                        data=data,
                        sample_period=period)
@@ -79,7 +71,7 @@ corrcoeff_data.configure()
 # For visualization purposes, the diagonal is set to zero.
 FC = corrcoeff_data.array_data[:, :, 0, 0]
 #Display the correlation matrix
-fig01 = plot_tri_matrix(white_matter.tract_lengths, cmap=pyplot.cm.RdYlBu_r, node_labels= white_matter.region_labels, size=[10., 10.], color_anchor=(0, white_matter.tract_lengths.max()))
+fig01 = plot_tri_matrix(white_matter.tract_lengths, cmap=pyplot.cm.RdYlBu_r, node_labels= white_matter.region_labels,
+                        size=[10., 10.], color_anchor=(0, white_matter.tract_lengths.max()))
 
 pyplot.show()
-#pyplot.show()

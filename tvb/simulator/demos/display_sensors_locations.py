@@ -42,32 +42,25 @@ NOTE: In general one assumes that coordinate systems are aligned, however ...
 
 """
 
-
-# from TVB
-from tvb.basic.logger.builder import get_logger
-LOG = get_logger(__name__)
-
 from tvb.simulator.lab import *
-import tvb.datatypes.sensors as sensors
-
 
 ##----------------------------------------------------------------------------##
 ##-                      Load datatypes                                      -##
 ##----------------------------------------------------------------------------##
 
 # Get 'default' MEG sensors
-sens_meg = sensors.SensorsMEG()
+sens_meg = defaults.DSensorsMEG()
 
 # Get connectivity
-white_matter = connectivity.Connectivity()
+white_matter = defaults.DConnectivity()
 centres = white_matter.centres
 
 # Get surface - SkinAir
-skin = surfaces.SkinAir()
+skin = defaults.DSkinAir()
 skin.configure()
 
 # Get 'default' EEG sensors
-sens_eeg = sensors.SensorsEEG()
+sens_eeg = defaults.DSensorsEEG()
 sens_eeg.configure()
 
 # Project eeg unit vector locations onto the surface space
@@ -79,17 +72,17 @@ sensor_locations_eeg = sens_eeg.sensors_to_surface(skin)
 ##----------------------------------------------------------------------------##
 
 try:
-    from tvb.simulator.plot.tools  import mlab
+    from tvb.simulator.plot.tools import mlab
     
     fig_meg = mlab.figure(figure='MEG sensors', bgcolor=(0.0, 0.0, 0.0))
     
     region_centres = mlab.points3d(centres[:, 0], 
                                    centres[:, 1], 
-                                   centres [:, 2], 
+                                   centres[:, 2],
                                    color=(0.9, 0.9, 0.9),
                                    scale_factor = 10.)
     
-    meg_sensor_loc = mlab.points3d(sens_meg.locations[:,0], 
+    meg_sensor_loc = mlab.points3d(sens_meg.locations[:, 0],
                                    sens_meg.locations[:, 1], 
                                    sens_meg.locations[:, 2], 
                                    color=(0, 0, 1), 
@@ -98,15 +91,17 @@ try:
                                    mode='cube')
     
     plot_surface(skin)
-    eeg_sensor_loc = mlab.points3d(  sensor_locations_eeg[:, 0], 
-                                     sensor_locations_eeg[:, 1], 
-                                     sensor_locations_eeg[:, 2], 
-                                     color=(0, 0, 1), 
-                                     opacity = 0.7, 
-                                     scale_factor=5)
+    eeg_sensor_loc = mlab.points3d(sensor_locations_eeg[:, 0],
+                                   sensor_locations_eeg[:, 1],
+                                   sensor_locations_eeg[:, 2],
+                                   color=(0, 0, 1),
+                                   opacity = 0.7,
+                                   scale_factor=5)
     # Plot them
     mlab.show(stop=True)
+
 except ImportError:
+    LOG.exception("Could not display!")
     pass
 
 # EoF

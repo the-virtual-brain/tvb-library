@@ -35,28 +35,8 @@ Demonstrate using the simulator at the region level, stochastic integration.
 
 ``Memory requirement``: < 1GB
 
-.. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
+.. moduleauthor:: Stuart A. Knock <stuart.knock@gmail.com>
 
-"""
-
-# Third party python libraries
-import numpy
-
-"""
-from tvb.basic.logger.builder import get_logger
-LOG = get_logger(__name__)
-
-#Import from tvb.simulator modules:
-import tvb.simulator.simulator as simulator
-import tvb.simulator.models as models
-import tvb.simulator.coupling as coupling
-import tvb.simulator.integrators as integrators
-import tvb.simulator.noise as noise
-import tvb.simulator.monitors as monitors
-
-import tvb.datatypes.connectivity as connectivity
-
-from matplotlib.pyplot import *
 """
 
 from tvb.simulator.lab import *
@@ -67,8 +47,8 @@ from tvb.simulator.lab import *
 
 LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
-oscilator = models.Generic2dOscillator()
-white_matter = connectivity.Connectivity()
+oscillator = models.Generic2dOscillator()
+white_matter = defaults.DConnectivity()
 white_matter.speed = numpy.array([8.0])
 
 white_matter_coupling = coupling.Linear(a=0.0152)
@@ -76,24 +56,23 @@ white_matter_coupling = coupling.Linear(a=0.0152)
 #Initialise an Integrator
 # set numpy's seed
 my_seed = 13
-my_random_state = numpy.random.RandomState(my_seed) 
+my_random_state = numpy.random.RandomState(my_seed)
 
-hiss = noise.Additive(nsig = 0.08)
-heunint = integrators.HeunStochastic(dt=2**-2, noise=hiss)
+hiss = noise.Additive(nsig=0.08)
+heunint = integrators.HeunStochastic(dt=2 ** -2, noise=hiss)
 heunint.configure()
 
 #Initialise some Monitors with period in physical time
 momo = monitors.Raw()
-mama = monitors.TemporalAverage(period=2**-1)
+mama = monitors.TemporalAverage(period=2 ** -1)
 
 #Bundle them
 what_to_watch = (momo, mama)
 
 #Initialise a Simulator -- Model, Connectivity, Integrator, and Monitors.
-sim = simulator.Simulator(model = oscilator, connectivity = white_matter,
-                          coupling = white_matter_coupling, 
-                          integrator = heunint, monitors = what_to_watch)
-
+sim = simulator.Simulator(model=oscillator, connectivity=white_matter,
+                          coupling=white_matter_coupling,
+                          integrator=heunint, monitors=what_to_watch)
 sim.configure()
 
 LOG.info("Starting simulation...")
@@ -102,7 +81,7 @@ raw_data = []
 raw_time = []
 tavg_data = []
 tavg_time = []
-for raw, tavg in sim(simulation_length=2**1, random_state = my_random_state.get_state()):
+for raw, tavg in sim(simulation_length=2 ** 6, random_state=my_random_state.get_state()):
 
     if not raw is None:
         raw_time.append(raw[0])

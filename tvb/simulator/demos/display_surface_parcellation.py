@@ -30,29 +30,26 @@
 
 """
 
-.. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
+.. moduleauthor:: Stuart A. Knock <stuart.knock@gmail.com>
 
 """
 
-import numpy
-
-import tvb.datatypes.surfaces as surfaces_module
-    
+from tvb.simulator.lab import *
 from tvb.simulator.region_boundaries import RegionBoundaries
 from tvb.simulator.region_colours import RegionColours 
 
-from tvb.simulator.plot.tools import * 
 
-CORTEX = surfaces_module.Cortex()
+CORTEX = defaults.DCortex()
 CORTEX_BOUNDARIES = RegionBoundaries(CORTEX)
 
 region_colours = RegionColours(CORTEX_BOUNDARIES.region_neighbours)
 colouring = region_colours.back_track()
 
-#Make the hemispheres symetric #TODO: should prob. et colouring for one hemisphere then just stack two copies...
+#Make the hemispheres symmetric
+# TODO: should prob. et colouring for one hemisphere then just stack two copies...
 number_of_regions = len(CORTEX_BOUNDARIES.region_neighbours)
 for k in range(int(number_of_regions)):
-    colouring[k+int(number_of_regions)] = colouring[k]
+    colouring[k + int(number_of_regions)] = colouring[k]
 
 
 mapping_colours = list("rgbcmyRGBCMY")

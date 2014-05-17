@@ -1460,14 +1460,14 @@ class SEEG(Monitor):
     """
     _ui_name = "Stereo-EEG"
 
-    sigma = basic.Float(label = "conductivity",
-                  default = 1.0)
+    sigma = basic.Float(label="conductivity",
+                        default=1.0)
 
     sensors = sensors_module.SensorsInternal(
-        label = "Internal brain sensors",
-        default = None,
-        required = True,
-        doc = """The set of SEEG sensors for which the forward solution will be
+        label="Internal brain sensors",
+        default=None,
+        required=True,
+        doc="""The set of SEEG sensors for which the forward solution will be
         calculated.""")
 
     def __init__(self, **kwargs):
@@ -1488,15 +1488,6 @@ class SEEG(Monitor):
           V(r) = 1/(4*pi*\sigma)*Q*(r-r_0)/|r-r_0|^3
         """
         super(SEEG, self).config_for_sim(simulator)
-
-        if self.sensors is None:
-            self.sensors = sensors_module.SensorsInternal(
-                label = "Internal brain sensors",
-                default = None,
-                required = True,
-                doc = """The set of SEEG sensors for which the forward solution will be
-                calculated.""")
-
         
         if simulator.surface is None:
             r_0 = simulator.connectivity.centres
@@ -1513,8 +1504,7 @@ class SEEG(Monitor):
 
         self.projection_matrix = V_r
 
-        util.log_debug_array(LOG, self.projection_matrix, "projection_matrix",
-                             owner=self.__class__.__name__)
+        util.log_debug_array(LOG, self.projection_matrix, "projection_matrix", owner=self.__class__.__name__)
 
         stock_size = (self.istep, self.voi.shape[0],
                       simulator.number_of_nodes,

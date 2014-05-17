@@ -36,27 +36,8 @@ Generate 8.125 seconds of 2048 Hz data at the surface level, stochastic integrat
 ``Memory requirement``: ~ 7 GB
 ``Storage requirement``: 2.1 GB
 
-.. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
+.. moduleauthor:: Stuart A. Knock <stuart.knock@gmail.com>
 
-"""
-
-# Third party python libraries
-import numpy
-
-"""
-from tvb.basic.logger.builder import get_logger
-LOG = get_logger(__name__)
-
-#Import from tvb.simulator modules:
-import tvb.simulator.simulator as simulator
-import tvb.simulator.models as models
-import tvb.simulator.coupling as coupling
-import tvb.simulator.integrators as integrators
-import tvb.simulator.noise as noise
-import tvb.simulator.monitors as monitors
-
-import tvb.datatypes.connectivity as connectivity
-import tvb.datatypes.surfaces as surfaces
 """
 
 from tvb.simulator.lab import *
@@ -70,44 +51,46 @@ from tvb.simulator.lab import *
 
 LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
-oscilator = models.Generic2dOscillator()
-white_matter = connectivity.Connectivity()
-white_matter.speed = numpy.array([4.0])
+oscillator = models.Generic2dOscillator()
 
-white_matter_coupling = coupling.Linear(a=2**-9)
+white_matter = defaults.DConnectivity()
+white_matter.speed = numpy.array([4.0])
+white_matter_coupling = coupling.Linear(a=2 ** -9)
 
 #Initialise an Integrator
-hiss = noise.Additive(nsig = numpy.array([2**-16,]))
-heunint = integrators.HeunStochastic(dt=0.06103515625, noise=hiss) #TODO: Make dt as big as possible to shorten run time... (resrtictions of integral multiples to get desired monitor period.)
+hiss = noise.Additive(nsig=numpy.array([2 ** -16, ]))
+heunint = integrators.HeunStochastic(dt=0.06103515625, noise=hiss)
+#TODO: Make dt as big as possible to shorten runtime; restrictions of integral multiples to get desired monitor period
 
 #Initialise a Monitor with period in physical time
-what_to_watch = monitors.TemporalAverage(period=0.48828125) #2048Hz => period=1000.0/2048.0
+what_to_watch = monitors.TemporalAverage(period=0.48828125)     # 2048Hz => period=1000.0/2048.0
 
 #Initialise a surface
 local_coupling_strength = numpy.array([0.0115])
 
-grey_matter = surfaces.LocalConnectivity(cutoff = 60.0)
+grey_matter = defaults.DLocalConnectivity()
+grey_matter.cutoff = 60.0
 grey_matter.equation.parameters['sigma1'] = 10.0
 grey_matter.equation.parameters['sigma2'] = 20.0
 grey_matter.equation.parameters['amp1'] = 1.0
 grey_matter.equation.parameters['amp2'] = 0.5
 
-default_cortex = surfaces.Cortex(local_connectivity=grey_matter,
-                                 coupling_strength=local_coupling_strength)
+default_cortex = defaults.DCortex()
+default_cortex.local_connectivity = grey_matter
+default_cortex.coupling_strength = local_coupling_strength
 
 #Initialise a Simulator -- Model, Connectivity, Integrator, and Monitors.
-sim = simulator.Simulator(model = oscilator, connectivity = white_matter, 
-                          coupling = white_matter_coupling, 
-                          integrator = heunint, monitors = what_to_watch, 
-                          surface = default_cortex)
-
+sim = simulator.Simulator(model=oscillator, connectivity=white_matter,
+                          coupling=white_matter_coupling,
+                          integrator=heunint, monitors=what_to_watch,
+                          surface=default_cortex)
 sim.configure()
 
 #Clear initial transient
-LOG.info("Inital run to clear transient...")
+LOG.info("Initial run to clear transient...")
 for _ in sim(simulation_length=125):
     pass
-LOG.info("Finished inital run to clear transient.")
+LOG.info("Finished initial run to clear transient.")
 
 
 #Perform the simulation
@@ -116,8 +99,8 @@ tavg_time = []
 LOG.info("Starting simulation...")
 for tavg in sim(simulation_length=8125):
     if not tavg is None:
-        tavg_time.append(tavg[0][0]) #TODO:The first [0] is a hack for single monitor
-        tavg_data.append(tavg[0][1]) #TODO:The first [0] is a hack for single monitor
+        tavg_time.append(tavg[0][0])
+        tavg_data.append(tavg[0][1])
 
 LOG.info("Finished simulation.")
 

@@ -36,13 +36,11 @@ integration.
 ``Memory requirement``: ~ 1 GB
 
 .. moduleauthor:: Jan Fousek <izaak@mail.muni.cz>
-.. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
+.. moduleauthor:: Stuart A. Knock <stuart.knock@gmail.com>
 
 """
 
-import numpy
 from tvb.simulator.lab import *
-import tvb.datatypes.sensors as sensors
 
 
 ##----------------------------------------------------------------------------##
@@ -52,10 +50,10 @@ import tvb.datatypes.sensors as sensors
 LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
 
-sens = sensors.SensorsInternal()
+sens = defaults.DSensorsInternal()
 
-oscilator = models.Generic2dOscillator()
-white_matter = connectivity.Connectivity()
+oscillator = models.Generic2dOscillator()
+white_matter = defaults.DConnectivity()
 white_matter.speed = numpy.array([4.0])
 
 white_matter_coupling = coupling.Linear(a=0.014)
@@ -68,16 +66,18 @@ mon_tavg = monitors.TemporalAverage(period=2 ** -2)
 mon_savg = monitors.SpatialAverage(period=2 ** -2)
 mon_eeg = monitors.EEG(period=2 ** -2)
 mon_seeg = monitors.SEEG(period=2 ** -2)
+mon_seeg.sensors = defaults.DSensorsInternal()
 
 #Bundle them
 what_to_watch = (mon_tavg, mon_savg, mon_eeg, mon_seeg)
 
 #Initialise a surface
 local_coupling_strength = numpy.array([2 ** -10])
-default_cortex = surfaces.Cortex(coupling_strength=local_coupling_strength)
+default_cortex = defaults.DCortex()
+default_cortex.coupling_strength = local_coupling_strength
 
 #Initialise Simulator -- Model, Connectivity, Integrator, Monitors, and surface.
-sim = simulator.Simulator(model=oscilator, connectivity=white_matter,
+sim = simulator.Simulator(model=oscillator, connectivity=white_matter,
                           coupling=white_matter_coupling,
                           integrator=heunint, monitors=what_to_watch,
                           surface=default_cortex)

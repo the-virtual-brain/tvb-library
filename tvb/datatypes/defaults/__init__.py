@@ -144,7 +144,7 @@ def DSurface(surface_type=surfaces_data.CORTICAL,
     if result is None:
         result = Cortex()
         result.region_mapping_data = DRegionMapping()
-        #result.eeg_projection = DProjectionMatrixArray()
+        result.eeg_projection = DProjectionMatrixArray()
         #result.meg_projection = DProjectionMatrixArray()
 
     result.vertices = reader.read_array_from_file("vertices.txt")
@@ -211,7 +211,7 @@ def DLocalConnectivity(source_file=os.path.join("cortex_reg13", "local_connectiv
 
 
 
-def DProjectionMatrixArray(source_file="region_conn_74_eeg_1020_62.mat", matlab_data_name="ProjectionMatrix"):
+def DProjectionMatrixArray(source_file="surface_reg_13_eeg_62.mat", matlab_data_name="ProjectionMatrix"):
 
     source_full_path = source_file
     if not os.path.isabs(source_file):

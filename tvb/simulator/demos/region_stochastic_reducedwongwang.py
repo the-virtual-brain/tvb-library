@@ -60,26 +60,6 @@ the Linear coupling function should be divided by a factor of at least
 
 """
 
-# Third party python libraries
-import numpy
-
-"""
-from tvb.basic.logger.builder import get_logger
-LOG = get_logger(__name__)
-
-#Import from tvb.simulator modules:
-import tvb.simulator.simulator as simulator
-import tvb.simulator.models as models
-import tvb.simulator.coupling as coupling
-import tvb.simulator.integrators as integrators
-import tvb.simulator.noise as noise
-import tvb.simulator.monitors as monitors
-
-import tvb.datatypes.connectivity as connectivity
-
-from matplotlib.pyplot import *
-"""
-
 from tvb.simulator.lab import *
 
 ##----------------------------------------------------------------------------##
@@ -94,12 +74,12 @@ rww = models.ReducedWongWang()
 rww.state_variable_range['S'] = numpy.array([0.0, 0.01])
 
 #Intialise a Connectivity
-white_matter = connectivity.Connectivity()
+white_matter = defaults.DConnectivity()
 white_matter.speed = numpy.array([20000.0])
-white_matter_coupling = coupling.Linear(a=1.05/100.)
+white_matter_coupling = coupling.Linear(a=1.05 / 100.)
 
 #Initialise an Integrator
-hiss = noise.Additive(nsig = rww.sigma_noise)
+hiss = noise.Additive(nsig=rww.sigma_noise)
 heunint = integrators.EulerStochastic(dt=0.1, noise=hiss)
 
 #Initialise some Monitors with period in physical time
@@ -110,10 +90,9 @@ mama = monitors.TemporalAverage(period=1.)
 what_to_watch = (momo, mama)
 
 #Initialise a Simulator -- Model, Connectivity, Integrator, and Monitors.
-sim = simulator.Simulator(model = rww, connectivity = white_matter,
-                          coupling = white_matter_coupling, 
-                          integrator = heunint, monitors = what_to_watch)
-
+sim = simulator.Simulator(model=rww, connectivity=white_matter,
+                          coupling=white_matter_coupling,
+                          integrator=heunint, monitors=what_to_watch)
 sim.configure()
 
 LOG.info("Starting simulation...")
@@ -122,6 +101,7 @@ raw_data = []
 raw_time = []
 tavg_data = []
 tavg_time = []
+
 for raw, tavg in sim(simulation_length=6000.):
     if not raw is None:
         raw_time.append(raw[0])

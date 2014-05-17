@@ -43,9 +43,6 @@ initial conditions.
 
 """
 
-import numpy, glob, os
-from numpy import *
-
 from tvb.simulator.lab import *
 
 ######## build & run the initial simulation, if cryo file doesn't exist
@@ -53,36 +50,36 @@ try:
     os.stat('sim_cryo.npz')
     print 'old simulation found! moving along...'
 
-except OSError: # os.stat will give OSError if it doesn't find the file
+except OSError:     # os.stat will give OSError if it doesn't find the file
     
     print 'old simulation not found, performing initial'
 
-    oscilator = models.Generic2dOscillator()
-    white_matter = connectivity.Connectivity()
+    oscillator = models.Generic2dOscillator()
+    white_matter = defaults.DConnectivity()
     white_matter.speed = numpy.array([4.0])
     white_matter_coupling = coupling.Linear(a=0.0126)
 
-    heunint = integrators.HeunStochastic(dt=2**-4, 
-            noise=noise.Additive(nsig=array([0.001])))
+    heunint = integrators.HeunStochastic(dt=2 ** -4,
+                                         noise=noise.Additive(nsig=array([0.001])))
 
     #Initialise some Monitors with period in physical time
-    tavg = monitors.TemporalAverage(period=1.0) #1000Hz
-    bold = monitors.Bold(period=500) #defaults to one data point every 2s
+    tavg = monitors.TemporalAverage(period=1.0)     # 1000Hz
+    bold = monitors.Bold(period=500)    # defaults to one data point every 500ms
 
     #Bundle them
     what_to_watch = (tavg, bold)
 
     #Define the stimulus
     #Specify a weighting for regions to receive stimuli... 
-    white_matter.configure() # Because we want access to number_of_regions
+    white_matter.configure()    # Because we want access to number_of_regions
     nodes = [0, 7, 13, 33, 42]
-    weighting = numpy.zeros((white_matter.number_of_regions, )) #1
-    weighting[nodes] = numpy.array([2.0**-2, 2.0**-3, 2.0**-4, 2.0**-5, 2.0**-6]) # [:, numpy.newaxis]
+    weighting = numpy.zeros((white_matter.number_of_regions, ))
+    weighting[nodes] = numpy.array([2.0 ** -2, 2.0 ** -3, 2.0 ** -4, 2.0 ** -5, 2.0 ** -6])
 
     #Initialise Simulator -- Model, Connectivity, Integrator, Monitors, and stimulus.
-    sim = simulator.Simulator(model = oscilator, connectivity = white_matter, 
-                              coupling = white_matter_coupling, 
-                              integrator = heunint, monitors = what_to_watch)
+    sim = simulator.Simulator(model=oscillator, connectivity=white_matter,
+                              coupling=white_matter_coupling,
+                              integrator=heunint, monitors=what_to_watch)
     sim.configure()
 
     #Perform the simulation
@@ -90,11 +87,12 @@ except OSError: # os.stat will give OSError if it doesn't find the file
     tavg_data = []
     bold_time = []
     bold_data = []
-    for tavg_out, bold_out in sim(10000): # 10 s simulation
+
+    for tavg_out, bold_out in sim(10000):    # 10 s simulation
         
         if not tavg_out is None:
-           tavg_time.append(tavg_out[0])
-           tavg_data.append(tavg_out[1])
+            tavg_time.append(tavg_out[0])
+            tavg_data.append(tavg_out[1])
         
         if not bold_out is None:
             bold_time.append(bold_out[0])
@@ -103,7 +101,7 @@ except OSError: # os.stat will give OSError if it doesn't find the file
 
     # plot data to show the transient
     figure(1)
-    plot(array(bold_time)/1000.0, array(bold_data)[:, 0, :, 0])
+    plot(array(bold_time) / 1000.0, array(bold_data)[:, 0, :, 0])
     title('initial simulation')
     xlabel('time (s)')
 
@@ -125,32 +123,32 @@ except OSError: # os.stat will give OSError if it doesn't find the file
 
 # build new simulator, possibly in a different script
 
-oscilator = models.Generic2dOscillator()
-white_matter = connectivity.Connectivity()
+oscillator = models.Generic2dOscillator()
+white_matter = defaults.DConnectivity()
 white_matter.speed = numpy.array([4.0])
 white_matter_coupling = coupling.Linear(a=0.0126)
 
-heunint = integrators.HeunStochastic(dt=2**-4, 
-        noise=noise.Additive(nsig=array([0.001])))
+heunint = integrators.HeunStochastic(dt=2 ** -4,
+                                     noise=noise.Additive(nsig=array([0.001])))
 
 #Initialise some Monitors with period in physical time
-tavg = monitors.TemporalAverage(period=1.0) #1000Hz
-bold = monitors.Bold(period=500) #defaults to one data point every 2s
+tavg = monitors.TemporalAverage(period=1.0)     # 1000Hz
+bold = monitors.Bold(period=500)        # defaults to one data point every 500ms
 
 #Bundle them
 what_to_watch = (tavg, bold)
 
 #Define the stimulus
 #Specify a weighting for regions to receive stimuli... 
-white_matter.configure() # Because we want access to number_of_regions
+white_matter.configure()    # Because we want access to number_of_regions
 nodes = [0, 7, 13, 33, 42]
-weighting = numpy.zeros((white_matter.number_of_regions, )) #1
-weighting[nodes] = numpy.array([2.0**-2, 2.0**-3, 2.0**-4, 2.0**-5, 2.0**-6]) # [:, numpy.newaxis]
+weighting = numpy.zeros((white_matter.number_of_regions, ))
+weighting[nodes] = numpy.array([2.0 ** -2, 2.0 ** -3, 2.0 ** -4, 2.0 ** -5, 2.0 ** -6])
 
 #Initialise Simulator -- Model, Connectivity, Integrator, Monitors, and stimulus.
-sim = simulator.Simulator(model = oscilator, connectivity = white_matter, 
-                          coupling = white_matter_coupling, 
-                          integrator = heunint, monitors = what_to_watch)
+sim = simulator.Simulator(model=oscillator, connectivity=white_matter,
+                          coupling=white_matter_coupling,
+                          integrator=heunint, monitors=what_to_watch)
 sim.configure()
 
 
@@ -179,8 +177,8 @@ bold_data = []
 for tavg_out, bold_out in sim(10000, rng_state):
 
     if not tavg_out is None:
-       tavg_time.append(tavg_out[0])
-       tavg_data.append(tavg_out[1])
+        tavg_time.append(tavg_out[0])
+        tavg_data.append(tavg_out[1])
     
     if not bold_out is None:
         bold_time.append(bold_out[0])
@@ -189,7 +187,7 @@ for tavg_out, bold_out in sim(10000, rng_state):
 
 # then, plot to see if there is transient or not
 figure(2)
-plot(array(bold_time)/1000.0, array(bold_data)[:, 0, :, 0])
+plot(array(bold_time) / 1000.0, array(bold_data)[:, 0, :, 0])
 title('continued simulation')
 xlabel('time (s)')
 ###EoF###

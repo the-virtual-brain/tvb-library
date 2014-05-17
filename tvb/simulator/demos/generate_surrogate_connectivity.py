@@ -32,25 +32,16 @@
 
 How to generate your own connectivity. Intended for small architectures.
 
-.. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
+.. moduleauthor:: Paula Sanz Leon <pau.sleon@gmail.com>
 
 """
 
-# Third party python libraries
-
-from tvb.basic.logger.builder import get_logger
-LOG = get_logger(__name__)
-
-#Import from tvb.datatypes modules:
-import tvb.datatypes.connectivity as connectivity
-import numpy
-# from matplotlib.pyplot import *
-from tvb.simulator.plot.tools import *
+from tvb.simulator.lab import *
 
 LOG.info("Reading default connectivity...")
-#Initialise a Connectivity object
-wm = connectivity.Connectivity()
 
+#Initialise an empty Connectivity object
+wm = connectivity.Connectivity()
 #The following will erase some attributes that we'll generate afterwards.
 wm.wipe_out()
 
@@ -59,7 +50,7 @@ wm.wipe_out()
 nor = 4
 wm.motif_all_to_all(number_of_regions=nor)
 
-# Centres, specify the number of regions, ptherwise it'll use a default value.
+# Centres, specify the number of regions, otherwise it'll use a default value.
 # If we have spherical centres, the orientations will also be created.
 wm.centres_spherical(number_of_regions=nor)
 
@@ -67,8 +58,7 @@ wm.centres_spherical(number_of_regions=nor)
 # It is possible to get alphabetic characters.
 wm.create_region_labels(mode='alphabetic')
 
-# Or creting your own
-
+# Or creating your own
 my_labels = numpy.array(['a1', 'b1', 'a2', 'b2'])
 wm.region_labels = my_labels
 

@@ -38,27 +38,6 @@ how to smoothly change a model parameter at run time.
 
 """
 
-# Third party python libraries
-import numpy
-
-"""
-# Try and import from "The Virtual Brain"
-from tvb.simulator.common import get_logger
-LOG = get_logger(__name__)
-
-#Import from tvb.simulator modules:
-import tvb.simulator.simulator as simulator
-import tvb.simulator.models as models
-import tvb.simulator.coupling as coupling
-import tvb.simulator.integrators as integrators
-import tvb.simulator.monitors as monitors
-import tvb.simulator.noise as noise
-
-import tvb.datatypes.connectivity as connectivity
-
-from matplotlib.pyplot import *
-"""
-
 from tvb.simulator.lab import *
 
 ##----------------------------------------------------------------------------##
@@ -69,27 +48,27 @@ from tvb.simulator.lab import *
 LOG.info("Configuring...")
 
 #Initialise a Model, Coupling, and Connectivity.
-oscilator = models.Generic2dOscillator()
-white_matter = connectivity.Connectivity()
+oscillator = models.Generic2dOscillator()
+white_matter = defaults.DConnectivity()
 white_matter.speed = numpy.array([4.0])
 white_matter_coupling = coupling.Linear(a=0.0154)
 
 #Initialise an Integrator
-heunint = integrators.HeunDeterministic(dt=2**-6)
+heunint = integrators.HeunDeterministic(dt=2 ** -6)
 
 #Initialise some Monitors with period in physical time
 momo = monitors.Raw()
-mama = monitors.TemporalAverage(period=2**-2)
+mama = monitors.TemporalAverage(period=2 ** -2)
 
 #Bundle them
 what_to_watch = (momo, mama)
 
 #Initialise a Simulator -- Model, Connectivity, Integrator, and Monitors.
-sim = simulator.Simulator(model = oscilator, connectivity = white_matter,
-                          coupling = white_matter_coupling, 
-                          integrator = heunint, monitors = what_to_watch)
+sim = simulator.Simulator(model=oscillator, connectivity=white_matter,
+                          coupling=white_matter_coupling,
+                          integrator=heunint, monitors=what_to_watch)
 sim.configure()
-simulation_length = numpy.array([2**6, ])
+simulation_length = numpy.array([2 ** 6, ])
 
 # Define a model parameter as a function of time
 equation = True
@@ -101,9 +80,9 @@ if not equation:
 
 # b) using an Equation datatype 
 else:
-    t = numpy.linspace((sim.integrator.dt * mama.istep) / 2, 
-                        float(simulation_length[0]),              
-                        par_length)
+    t = numpy.linspace((sim.integrator.dt * mama.istep) / 2,
+                       float(simulation_length[0]),
+                       par_length)
                          
     eqn_t = equations.Gaussian()
     eqn_t.parameters["amp"] = 4.2
@@ -129,7 +108,7 @@ for raw, tavg in sim(simulation_length=float(simulation_length[0])):
         tavg_data.append(tavg[1])
         
         # Change a model parameter at runtime
-        sim.model.a = a[len(tavg_time)-1]
+        sim.model.a = a[len(tavg_time) - 1]
 
 LOG.info("Finished simulation.")
 

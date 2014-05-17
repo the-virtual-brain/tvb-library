@@ -32,15 +32,10 @@
 Template for running a demo using a 'contributed' model
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
-.. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
+.. moduleauthor:: Paula Sanz Leon <pau.sleon@gmail.com>
 
 """
 
-# Third party python libraries
-import numpy
-import sys
-
-# Try and import from "The Virtual Brain"
 from tvb.simulator.lab import *
 
 # Add the contributed models directory to the PYTHONPATH
@@ -57,28 +52,26 @@ LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
 lar = LarterBreakspear(QV_max=1.0, QZ_max=1.0, t_scale=0.01, VT=0.54, d_V=0.5, C=0.0)
 
-white_matter = connectivity.Connectivity()
+white_matter = defaults.DConnectivity()
 white_matter.speed = numpy.array([4.0])
-
 white_matter_coupling = coupling.Linear(a=lar.C)
 
 #Initialise an Integrator
 heunint = integrators.HeunDeterministic(dt=0.2)
 
 #Initialise some Monitors with period in physical time
-mon_raw  = monitors.Raw()
+mon_raw = monitors.Raw()
 mon_tavg = monitors.TemporalAverage(period=1.)
 
 #Bundle them
 what_to_watch = (mon_raw, mon_tavg)
 
 #Initialise a Simulator -- Model, Connectivity, Integrator, and Monitors.
-sim = simulator.Simulator(model = lar, 
-                          connectivity = white_matter,
-                          coupling = white_matter_coupling, 
-                          integrator = heunint, 
-                          monitors = what_to_watch)
-
+sim = simulator.Simulator(model=lar,
+                          connectivity=white_matter,
+                          coupling=white_matter_coupling,
+                          integrator=heunint,
+                          monitors=what_to_watch)
 sim.configure()
 
 LOG.info("Starting simulation...")
@@ -86,7 +79,7 @@ LOG.info("Starting simulation...")
 raw_data, raw_time = [], []
 tavg_data, tavg_time = [], []
 
-for raw, tavg in sim(simulation_length=2**14):
+for raw, tavg in sim(simulation_length=2 ** 14):
     if not raw is None:
         raw_time.append(raw[0])
         raw_data.append(raw[1])
@@ -125,7 +118,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 fig = plt.figure(4)
 ax = fig.gca(projection='3d')
-ax.plot(RAW[:, 0, 0, 0],  RAW[:, 1, 0, 0], RAW[:, 2, 0, 0])
+ax.plot(RAW[:, 0, 0, 0], RAW[:, 1, 0, 0], RAW[:, 2, 0, 0])
 plt.show()
 
 #Show them

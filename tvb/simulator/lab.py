@@ -46,7 +46,7 @@ from tvb.basic.profile import TvbProfile
 TvbProfile.set_profile(["-profile", "LIBRARY_PROFILE"], try_reload=False)
 
 from tvb.simulator import (simulator, models, coupling, integrators, monitors, noise)
-from tvb.datatypes import connectivity, surfaces, equations, patterns
+from tvb.datatypes import connectivity, surfaces, equations, patterns, defaults
 
 from tvb.simulator.common import get_logger
 LOG = get_logger(__name__)

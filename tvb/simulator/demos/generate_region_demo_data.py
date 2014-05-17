@@ -36,64 +36,48 @@ Generate 16 seconds of 2048Hz data at the region level, stochastic integration.
 ``Memory requirement``: < 1GB
 ``Storage requirement``: ~ 19MB
 
-.. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
+.. moduleauthor:: Stuart A. Knock <stuart.knock@gmail.com>
 
-"""
-
-# Third party python libraries
-import numpy
-
-"""
-from tvb.basic.logger.builder import get_logger
-LOG = get_logger(__name__)
-
-#Import from tvb.simulator modules:
-import tvb.simulator.simulator as simulator
-import tvb.simulator.models as models
-import tvb.simulator.coupling as coupling
-import tvb.simulator.integrators as integrators
-import tvb.simulator.noise as noise
-import tvb.simulator.monitors as monitors
-
-import tvb.datatypes.connectivity as connectivity
 """
 
 from tvb.simulator.lab import *
+
 ##----------------------------------------------------------------------------##
 ##-                      Perform the simulation                              -##
 ##----------------------------------------------------------------------------##
 
 LOG.info("Configuring...")
+
 #Initialise a Model, Coupling, and Connectivity.
-pars = {'a': 1.05, 
-        'b': -1., 
-        'c':0.0, 
-        'd':0.1, 
-        'e':0.0, 
-        'f':1/3., 
-        'g':1.0, 
-        'alpha':1.0, 
-        'beta':0.2, 
-        'tau':1.25, 
-        'gamma':-1.0}
+pars = {'a': 1.05,
+        'b': -1.,
+        'c': 0.0,
+        'd': 0.1,
+        'e': 0.0,
+        'f': 1 / 3.,
+        'g': 1.0,
+        'alpha': 1.0,
+        'beta': 0.2,
+        'tau': 1.25,
+        'gamma': -1.0}
 
-oscilator = models.Generic2dOscillator(**pars)
-white_matter = connectivity.Connectivity()
+oscillator = models.Generic2dOscillator(**pars)
+
+white_matter = defaults.DConnectivity()
 white_matter.speed = numpy.array([4.0])
-
 white_matter_coupling = coupling.Linear(a=0.033)
 
 #Initialise an Integrator
-hiss = noise.Additive(nsig = numpy.array([2**-10,]))
+hiss = noise.Additive(nsig=numpy.array([2 ** -10, ]))
 heunint = integrators.HeunStochastic(dt=0.06103515625, noise=hiss) 
 
 #Initialise a Monitor with period in physical time
-what_to_watch = monitors.TemporalAverage(period=0.48828125) #2048Hz => period=1000.0/2048.0
+what_to_watch = monitors.TemporalAverage(period=0.48828125)     # 2048Hz => period=1000.0/2048.0
 
 #Initialise a Simulator -- Model, Connectivity, Integrator, and Monitors.
-sim = simulator.Simulator(model = oscilator, connectivity = white_matter, 
-                          coupling = white_matter_coupling, 
-                          integrator = heunint, monitors = what_to_watch)
+sim = simulator.Simulator(model=oscillator, connectivity=white_matter,
+                          coupling=white_matter_coupling,
+                          integrator=heunint, monitors=what_to_watch)
 
 sim.configure()
 
@@ -103,8 +87,8 @@ tavg_time = []
 LOG.info("Starting simulation...")
 for tavg in sim(simulation_length=16000):
     if tavg is not None:
-        tavg_time.append(tavg[0][0]) #TODO:The first [0] is a hack for single monitor
-        tavg_data.append(tavg[0][1]) #TODO:The first [0] is a hack for single monitor
+        tavg_time.append(tavg[0][0])    # TODO:The first [0] is a hack for single monitor
+        tavg_data.append(tavg[0][1])    # TODO:The first [0] is a hack for single monitor
 
 LOG.info("Finished simulation.")
 

@@ -35,57 +35,50 @@ PCA analysis and visualisation demo.
 
 ``Memory requirement``: ~ ?GB
 
-.. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
+.. moduleauthor:: Stuart A. Knock <stuart.knock@gmail.com>
 
 """
 
-import numpy
-
-from tvb.basic.logger.builder import get_logger
-LOG = get_logger(__name__)
-
+from tvb.simulator.lab import *
 from tvb.datatypes.time_series import TimeSeriesSurface
-import tvb.datatypes.surfaces as surfaces_datatypes
-
+from tvb.simulator.plot import timeseries_interactive as timeseries_interactive
 import tvb.analyzers.pca as pca
 
-from tvb.simulator.plot import timeseries_interactive as timeseries_interactive
-from tvb.simulator.plot.tools import *
 
 #Load the demo surface timeseries dataset 
 try:
     data = numpy.load("demo_data_surface_8s_2048Hz.npy")
 except IOError:
-    LOG.error("Can't load demo data. Run demos/generate_region_demo_data.py")
+    LOG.error("Can't load demo data. Run demos/generate_surface_demo_data.py")
     raise
 
-period = 0.00048828125 #s
+period = 0.00048828125  # s
 
 #Initialse a default surface
-default_cortex = surfaces_datatypes.Cortex()
+default_cortex = defaults.DCortex()
 
 #Put the data into a TimeSeriesSurface datatype
-tsr = TimeSeriesSurface(surface = default_cortex,
-                        data = data,
-                        sample_period = period)
+tsr = TimeSeriesSurface(surface=default_cortex,
+                        data=data,
+                        sample_period=period)
 tsr.configure()
 
 #Create and run the analyser
-pca_analyser = pca.PCA(time_series = tsr)
+pca_analyser = pca.PCA(time_series=tsr)
 pca_data = pca_analyser.evaluate()
 
-#Generate derived data, such as, compnent time series, etc.
+#Generate derived data, such as, component time series, etc.
 pca_data.configure()
 
 #Put the data into a TimeSeriesSurface datatype
-component_tsr = TimeSeriesSurface(surface = default_cortex,
-                                  data = pca_data.component_time_series,
-                                  sample_period = period)
+component_tsr = TimeSeriesSurface(surface=default_cortex,
+                                  data=pca_data.component_time_series,
+                                  sample_period=period)
 component_tsr.configure()
 
-#Prutty puctures...
-tsi = timeseries_interactive.TimeSeriesInteractive(time_series = component_tsr,
-                                                   first_n = 16)
+#Prutty pictures...
+tsi = timeseries_interactive.TimeSeriesInteractive(time_series=component_tsr,
+                                                   first_n=16)
 tsi.configure()
 tsi.show()
 

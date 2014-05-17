@@ -34,17 +34,16 @@ Demonstrate using the simulator at the region level, deterministic interation.
 ``Run time``: approximately 140 seconds (workstation circa 2012)
 ``Memory requirement``: < 1GB
 
-.. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
+.. moduleauthor:: Stuart A. Knock <stuart.knock@gmail.com>
 
 """
 
-# Third party python libraries
-import numpy
+from tvb.simulator.lab import *
 import datetime
 
 START_TIME = datetime.datetime.now()
 
-from tvb.simulator.lab import *
+
 
 ##----------------------------------------------------------------------------##
 ##-                      Perform the simulation                              -##
@@ -52,8 +51,8 @@ from tvb.simulator.lab import *
 
 LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
-oscilator = models.Generic2dOscillator()
-white_matter = connectivity.Connectivity()
+oscillator = models.Generic2dOscillator()
+white_matter = defaults.DConnectivity()
 white_matter.speed = numpy.array([3.0])
 white_matter_coupling = coupling.Linear()
 
@@ -68,7 +67,7 @@ mama = monitors.TemporalAverage()
 what_to_watch = (momo, mama)
 
 #Initialise a Simulator -- Model, Connectivity, Integrator, and Monitors.
-sim = simulator.Simulator(model=oscilator, connectivity=white_matter,
+sim = simulator.Simulator(model=oscillator, connectivity=white_matter,
                           coupling=white_matter_coupling,
                           integrator=heunint, monitors=what_to_watch)
 

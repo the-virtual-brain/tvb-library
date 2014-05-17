@@ -264,16 +264,15 @@ class par_sweep(object):
         print 'that took %0.2f s', time() - tic
 
 
-        """
-        Now, we reorganize results list which initially looks like
 
-            [mon][time, svar, node, mode, thr]
+        # Now, we reorganize results list which initially looks like
+        #
+        #     [mon][time, svar, node, mode, thr]
+        #
+        # so that it looks like
+        #
+        #     [thr][monitor][time, svar, node, mode]
 
-        so that it looks like 
-
-            [thr][monitor][time, svar, node, mode]
-
-        """
 
         LOG.info('reorganizing results...')
         per_thread = [[out[..., i_thr] for out in self.monitor_output]
@@ -322,7 +321,7 @@ class par_sweep(object):
 
             # allocate space for output
             n_out = int(sim.simulation_length / mon.period)
-            out = empty((n_out, len(mon.voi), dh.n_node, dh.n_mode, n_rthr), dtype=float32)
+            out = empty((n_out, len(mon.voi), dh.n_node, dh.n_mode, n_rthr), dtype=numpy.float32)
 
             if isinstance(mon, l.monitors.TemporalAverage):
                 self.tavg_istep = int(mon.period / self.sim.integrator.dt)
@@ -340,7 +339,7 @@ class par_sweep(object):
     @logged
     def pump_monitors(self, step, dh):
         """
-        The monitors methods takes a device_handler instance as an arugment
+        The monitors methods takes a device_handler instance as an argument
         and pulls the relevant state from the device arrays as necessary. 
         It then updates the current monitors with this state information
         and returns whatever output is given back by the monitors. 
@@ -413,23 +412,23 @@ if __name__ == '__main__':
     # this is test driven devlopment speakin how i can help you
 
     model = models.Generic2dOscillator()
-    conn = connectivity.Connectivity()
+    conn = defaults.DConnectivity()
     conn.speed = array([4.0])
     coupling = coupling.Linear(a=0.0152)
 
-    hiss = noise.Additive(nsig=ones((2,))*2**-10)
-    heun = integrators.EulerStochastic(dt=2**-4, noise=hiss)
+    hiss = noise.Additive(nsig=ones((2,)) * 2 ** -10)
+    heun = integrators.EulerStochastic(dt=2 ** -4, noise=hiss)
 
     mon = (monitors.BoldMultithreaded(period=500.0),
            monitors.TemporalAverage(period=5.0))
 
     sweep = par_sweep(('coupling.a', True, r_[0:1e-5:64j]),
-                model=model,
-                connectivity=conn,
-                coupling=coupling,
-                integrator=heun,
-                monitors=mon,
-                simulation_length=1000)
+                      model=model,
+                      connectivity=conn,
+                      coupling=coupling,
+                      integrator=heun,
+                      monitors=mon,
+                      simulation_length=1000)
 
     sweep.n_msik=1 
     # FIXME else we skip monitors..

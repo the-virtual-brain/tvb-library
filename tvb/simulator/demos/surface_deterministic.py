@@ -35,32 +35,8 @@ integration.
 ``Run time``: approximately 27 seconds (workstation circa 2010).
 ``Memory requirement``: ~ 1 GB
 
-.. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
+.. moduleauthor:: Stuart A. Knock <stuart.knock@gmail.com>
 
-"""
-
-#import os #For eeg_projection hack...
-
-# Third party python libraries
-import numpy
-#from scipy import io as scipy_io #For eeg_projection hack...
-"""
-from tvb.basic.logger.builder import get_logger
-LOG = get_logger(__name__)
-
-#Import from tvb.simulator modules
-#import tvb.simulator #For eeg_projection hack...
-import tvb.simulator.simulator as simulator
-import tvb.simulator.models as models
-import tvb.simulator.coupling as coupling
-import tvb.simulator.integrators as integrators
-import tvb.simulator.monitors as monitors
-
-import tvb.datatypes.connectivity as connectivity
-import tvb.datatypes.surfaces as surfaces
-
-from matplotlib.pyplot import *
-from tvb.simulator.plot.tools import *
 """
 
 from tvb.simulator.lab import *
@@ -71,40 +47,33 @@ from tvb.simulator.lab import *
 
 LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
-oscilator = models.Generic2dOscillator()
-white_matter = connectivity.Connectivity()
+oscillator = models.Generic2dOscillator()
+white_matter = defaults.DConnectivity()
 white_matter.speed = numpy.array([4.0])
 
 white_matter_coupling = coupling.Difference(a=0.014)
 
 #Initialise an Integrator
-heunint = integrators.HeunDeterministic(dt=2**-4)
+heunint = integrators.HeunDeterministic(dt=2 ** -4)
 
 #Initialise some Monitors with period in physical time
-mon_tavg = monitors.TemporalAverage(period=2**-2)
-mon_savg = monitors.SpatialAverage(period=2**-2)
-mon_eeg = monitors.EEG(period=2**-2)
+mon_tavg = monitors.TemporalAverage(period=2 ** -2)
+mon_savg = monitors.SpatialAverage(period=2 ** -2)
+mon_eeg = monitors.EEG(period=2 ** -2)
 
 #Bundle them
 what_to_watch = (mon_tavg, mon_savg, mon_eeg)
 
-##TODO: UGLY, FIXME        
-#root_path = os.path.dirname(tvb.simulator.__file__)
-#proj_mat_path = os.path.join(root_path, 'files', "surfaces", "cortex_reg13", "projection_outer_skin_4096_eeg_1020_62.mat")
-#matlab_data = scipy_io.matlab.loadmat(proj_mat_path)
-#eeg_projection = matlab_data["ProjectionMatrix"]
-
 #Initialise a surface
-local_coupling_strength = numpy.array([2**-10])
-default_cortex = surfaces.Cortex(coupling_strength=local_coupling_strength) #,
-                                 #eeg_projection=eeg_projection)
+local_coupling_strength = numpy.array([2 ** -10])
+default_cortex = defaults.DCortex()
+default_cortex.coupling_strength = local_coupling_strength
 
 #Initialise Simulator -- Model, Connectivity, Integrator, Monitors, and surface.
-sim = simulator.Simulator(model = oscilator, connectivity = white_matter,
-                          coupling = white_matter_coupling, 
-                          integrator = heunint, monitors = what_to_watch,
-                          surface = default_cortex)
-
+sim = simulator.Simulator(model=oscillator, connectivity=white_matter,
+                          coupling=white_matter_coupling,
+                          integrator=heunint, monitors=what_to_watch,
+                          surface=default_cortex)
 sim.configure()
 
 LOG.info("Starting simulation...")
@@ -115,7 +84,8 @@ savg_data = []
 savg_time = []
 eeg_data = []
 eeg_time = []
-for tavg, savg, eeg in sim(simulation_length=2**2):
+
+for tavg, savg, eeg in sim(simulation_length=2 ** 2):
     if not tavg is None:
         tavg_time.append(tavg[0])
         tavg_data.append(tavg[1])

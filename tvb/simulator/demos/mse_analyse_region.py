@@ -114,7 +114,6 @@ TCi --> inferior temporal cortex
 
 from scipy import io
 from tvb.simulator.lab import *
-import numpy
 import os
 import tvb.simulator
 import matplotlib.gridspec as gridspec
@@ -157,7 +156,7 @@ def configure_simulation(stimulate):
     #Initialise a Model, Connectivity, Coupling, set speed.
     oscilator = models.Generic2dOscillator(a=-0.5, b=-10., c=0.0, d=0.02)
 
-    white_matter = connectivity.Connectivity()
+    white_matter = defaults.DConnectivity()
     white_matter.speed = numpy.array([4.0])
     white_matter_coupling = coupling.Linear(a=0.042)
 
