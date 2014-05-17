@@ -3550,7 +3550,7 @@ class Kuramoto(Model):
     The :math:`\theta` variable is the phase angle of the oscillation.
 
     Dynamic equations:
-    .. math::
+        .. math::
             \dot{\theta} = \omega + I
 
     """
