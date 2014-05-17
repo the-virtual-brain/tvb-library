@@ -43,7 +43,7 @@ except Exception:
 
 import sys
 import numpy
-import tvb.datatypes.readers as readers
+import tvb.datatypes.defaults as defaults
 import tvb.datatypes.surfaces_data as surfaces_data
 import tvb.datatypes.surfaces as surfaces
 from tvb.tests.library.base_testcase import BaseTestCase
@@ -81,7 +81,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_cortical_surface(self):
-        dt = readers.read_surface()
+        dt = defaults.DSurface()
         self.assertTrue(isinstance(dt, surfaces.CorticalSurface))
         dt.configure()
         summary_info = dt.summary_info
@@ -108,7 +108,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_skinair(self):
-        dt = readers.read_surface(surfaces_data.OUTER_SKIN, "outer_skin_4096.zip")
+        dt = defaults.DSurface(surfaces_data.OUTER_SKIN, "outer_skin_4096.zip")
         self.assertTrue(isinstance(dt, surfaces.SkinAir))
         self.assertEqual(dt.get_data_shape('vertices'), (4096, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (4096, 3))
@@ -116,7 +116,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_brainskull(self):
-        dt = readers.read_surface(surfaces_data.INNER_SKULL, "inner_skull_4096.zip")
+        dt = defaults.DSurface(surfaces_data.INNER_SKULL, "inner_skull_4096.zip")
         self.assertTrue(isinstance(dt, surfaces.BrainSkull))
         self.assertEqual(dt.get_data_shape('vertices'), (4096, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (4096, 3))
@@ -124,7 +124,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_skullskin(self):
-        dt = readers.read_surface(surfaces_data.OUTER_SKULL, "outer_skull_4096.zip")
+        dt = defaults.DSurface(surfaces_data.OUTER_SKULL, "outer_skull_4096.zip")
         self.assertTrue(isinstance(dt, surfaces.SkullSkin))
         self.assertEqual(dt.get_data_shape('vertices'), (4096, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (4096, 3))
@@ -132,7 +132,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_eegcap(self):
-        dt = readers.read_surface(surfaces_data.EEG_CAP, "eeg_skin_surface.zip")
+        dt = defaults.DSurface(surfaces_data.EEG_CAP, "eeg_skin_surface.zip")
         self.assertTrue(isinstance(dt, surfaces.EEGCap))
         self.assertEqual(dt.get_data_shape('vertices'), (4096, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (4096, 3))
@@ -140,7 +140,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_facesurface(self):
-        dt = readers.read_surface(surfaces_data.FACE, "face_surface_old.zip")
+        dt = defaults.DSurface(surfaces_data.FACE, "face_surface_old.zip")
         self.assertTrue(isinstance(dt, surfaces.FaceSurface))
         self.assertEqual(dt.get_data_shape('vertices'), (35613, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (35613, 3))
@@ -148,7 +148,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_regionmapping(self):
-        dt = readers.read_region_mapping()
+        dt = defaults.DRegionMapping()
         self.assertTrue(isinstance(dt, surfaces.RegionMapping))
         self.assertEqual(dt.shape, (16384,))
 
@@ -161,10 +161,10 @@ class SurfacesTest(BaseTestCase):
     @unittest.skipIf(sys.maxsize <= 2147483647, "Cannot deal with local connectivity on a 32-bit machine.")
     def test_cortexdata(self):
 
-        dt = readers.read_surface(None)
+        dt = defaults.DSurface(None)
         self.assertTrue(isinstance(dt, surfaces.Cortex))
         ## Initialize Local Connectivity, to avoid long computation time.
-        dt.local_connectivity = readers.read_local_connectivity()
+        dt.local_connectivity = defaults.DLocalConnectivity()
 
         dt.configure()
         summary_info = dt.summary_info

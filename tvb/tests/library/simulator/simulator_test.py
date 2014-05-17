@@ -49,14 +49,14 @@ import numpy
 import unittest
 import itertools
 from tvb.basic.traits.parameters_factory import get_traited_subclasses
-from tvb.datatypes import readers
+from tvb.datatypes import defaults
 from tvb.datatypes.sensors_data import MEG_POLYMORPHIC_IDENTITY
 from tvb.simulator.lab import *
 from tvb.tests.library.base_testcase import BaseTestCase
 
 
-sens_meg = readers.read_sensors(MEG_POLYMORPHIC_IDENTITY, "meg_channels_reg13.txt.bz2")
-sens_eeg = readers.read_sensors()
+sens_meg = defaults.DSensor(MEG_POLYMORPHIC_IDENTITY, "meg_channels_reg13.txt.bz2")
+sens_eeg = defaults.DSensor()
 
 
 class Simulator(object):
@@ -128,7 +128,7 @@ class Simulator(object):
         self.model = model
         self.method = method
         
-        white_matter = readers.read_connectivity()
+        white_matter = defaults.DConnectivity()
         white_matter_coupling = coupling.Linear(a=coupling_strength)
         white_matter.speed = speed
 
@@ -142,7 +142,7 @@ class Simulator(object):
         
         if surface_sim:
             local_coupling_strength = numpy.array([2 ** -10])
-            default_cortex = readers.read_surface(None)
+            default_cortex = defaults.DSurface(None)
             default_cortex.coupling_strength = local_coupling_strength
         else: 
             default_cortex = None

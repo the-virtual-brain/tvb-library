@@ -37,8 +37,7 @@ if __name__ == "__main__":
 
 import numpy
 import unittest
-import tvb.datatypes.readers as readers
-from tvb.datatypes import sensors
+from tvb.datatypes import sensors, defaults
 from tvb.datatypes.surfaces import SkinAir
 from tvb.datatypes.surfaces_data import OUTER_SKIN
 from tvb.datatypes.sensors_data import INTERNAL_POLYMORPHIC_IDENTITY, MEG_POLYMORPHIC_IDENTITY, EEG_POLYMORPHIC_IDENTITY
@@ -52,7 +51,7 @@ class SensorsTest(BaseTestCase):
 
     def test_sensors(self):
 
-        dt = readers.read_sensors()
+        dt = defaults.DSensor()
         dt.configure()
 
         summary_info = dt.summary_info
@@ -66,7 +65,7 @@ class SensorsTest(BaseTestCase):
         self.assertEqual(dt.sensors_type, EEG_POLYMORPHIC_IDENTITY)
 
         ## Mapping 62 sensors on a Skin surface should work
-        surf = readers.read_surface(OUTER_SKIN, "outer_skin_4096.zip")
+        surf = defaults.DSurface(OUTER_SKIN, "outer_skin_4096.zip")
         surf.configure()
         mapping = dt.sensors_to_surface(surf)
         self.assertEqual(mapping.shape, (62, 3))
@@ -84,7 +83,7 @@ class SensorsTest(BaseTestCase):
 
 
     def test_sensorseeg(self):
-        dt = readers.read_sensors()
+        dt = defaults.DSensor()
         dt.configure()
         self.assertTrue(isinstance(dt, sensors.SensorsEEG))
         self.assertFalse(dt.has_orientation)
@@ -96,7 +95,7 @@ class SensorsTest(BaseTestCase):
 
 
     def test_sensorsmeg(self):
-        dt = readers.read_sensors(MEG_POLYMORPHIC_IDENTITY, "meg_channels_reg13.txt.bz2")
+        dt = defaults.DSensor(MEG_POLYMORPHIC_IDENTITY, "meg_channels_reg13.txt.bz2")
         dt.configure()
         self.assertTrue(isinstance(dt, sensors.SensorsMEG))
         self.assertTrue(dt.has_orientation)
@@ -108,7 +107,7 @@ class SensorsTest(BaseTestCase):
 
 
     def test_sensorsinternal(self):
-        dt = readers.read_sensors(INTERNAL_POLYMORPHIC_IDENTITY, "internal_39.txt.bz2")
+        dt = defaults.DSensor(INTERNAL_POLYMORPHIC_IDENTITY, "internal_39.txt.bz2")
         dt.configure()
         self.assertTrue(isinstance(dt, sensors.SensorsInternal))
         self.assertFalse(dt.has_orientation)

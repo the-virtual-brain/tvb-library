@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
 import numpy    
 import unittest
-from tvb.datatypes import patterns, equations, readers
+from tvb.datatypes import patterns, equations, defaults
 from tvb.tests.library.base_testcase import BaseTestCase
 
 
@@ -77,7 +77,7 @@ class PatternsTest(BaseTestCase):
         
         
     def test_stimuliregion(self):
-        conn = readers.read_connectivity()
+        conn = defaults.DConnectivity()
         conn.configure()
         dt = patterns.StimuliRegion()
         dt.connectivity = conn
@@ -95,7 +95,7 @@ class PatternsTest(BaseTestCase):
         
      
     def test_stimulisurface(self):
-        srf = readers.read_surface()
+        srf = defaults.DSurface()
         srf.configure()
         dt = patterns.StimuliSurface()
         dt.surface = srf

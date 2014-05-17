@@ -31,7 +31,7 @@
 """
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
 
-Offer support to build Connectivity instances from a demo-data folder
+Offer support to build datatypes instances by reading data from a demo-data folder
 
 """
 
@@ -52,11 +52,11 @@ import tvb.datatypes.sensors_data as sensors_data
 from tvb.datatypes.surfaces import make_surface, RegionMapping, LocalConnectivity, Cortex
 from tvb.datatypes.connectivity import Connectivity
 from tvb.datatypes.sensors import SensorsEEG, SensorsMEG, SensorsInternal
-from tvb.datatypes.readers.core import ZipReader, H5Reader, FileReader
+from tvb.datatypes.defaults.core import ZipReader, H5Reader, FileReader
 
 
 
-def read_connectivity(source_file="connectivity_74.zip"):
+def DConnectivity(source_file="connectivity_74.zip"):
 
     result = Connectivity()
 
@@ -93,8 +93,8 @@ def read_connectivity(source_file="connectivity_74.zip"):
 
 
 
-def read_sensors(sensor_type=sensors_data.EEG_POLYMORPHIC_IDENTITY,
-                 source_file="EEG_unit_vectors_BrainProducts_62.txt.bz2"):
+def DSensor(sensor_type=sensors_data.EEG_POLYMORPHIC_IDENTITY,
+            source_file="EEG_unit_vectors_BrainProducts_62.txt.bz2"):
 
     if sensors_data.EEG_POLYMORPHIC_IDENTITY == sensor_type:
         result = SensorsEEG()
@@ -118,8 +118,8 @@ def read_sensors(sensor_type=sensors_data.EEG_POLYMORPHIC_IDENTITY,
 
 
 
-def read_surface(surface_type=surfaces_data.CORTICAL,
-                 source_file=os.path.join("cortex_reg13", "surface_cortex_reg13.zip")):
+def DSurface(surface_type=surfaces_data.CORTICAL,
+             source_file=os.path.join("cortex_reg13", "surface_cortex_reg13.zip")):
 
     source_full_path = source_file
     if not os.path.isabs(source_file):
@@ -131,9 +131,9 @@ def read_surface(surface_type=surfaces_data.CORTICAL,
 
     if result is None:
         result = Cortex()
-        result.region_mapping_data = read_region_mapping()
-        #result.eeg_projection = read_projection_matrix()
-        #result.meg_projection = read_projection_matrix()
+        result.region_mapping_data = DRegionMapping()
+        #result.eeg_projection = DProjectionMatrixArray()
+        #result.meg_projection = DProjectionMatrixArray()
 
     result.vertices = reader.read_array_from_file("vertices.txt")
     result.vertex_normals = reader.read_array_from_file("normals.txt")
@@ -143,7 +143,7 @@ def read_surface(surface_type=surfaces_data.CORTICAL,
 
 
 
-def read_region_mapping(source_file=os.path.join("cortex_reg13", "all_regions_cortex_reg13.txt")):
+def DRegionMapping(source_file=os.path.join("cortex_reg13", "all_regions_cortex_reg13.txt")):
 
     source_full_path = source_file
     if not os.path.isabs(source_file):
@@ -157,7 +157,7 @@ def read_region_mapping(source_file=os.path.join("cortex_reg13", "all_regions_co
 
 
 
-def read_local_connectivity(source_file=os.path.join("cortex_reg13", "local_connectivity_surface_cortex_reg13.mat")):
+def DLocalConnectivity(source_file=os.path.join("cortex_reg13", "local_connectivity_surface_cortex_reg13.mat")):
 
     source_full_path = source_file
     if not os.path.isabs(source_file):
@@ -171,7 +171,7 @@ def read_local_connectivity(source_file=os.path.join("cortex_reg13", "local_conn
 
 
 
-def read_projection_matrix(source_file="region_conn_74_eeg_1020_62.mat", matlab_data_name="ProjectionMatrix"):
+def DProjectionMatrixArray(source_file="region_conn_74_eeg_1020_62.mat", matlab_data_name="ProjectionMatrix"):
 
     source_full_path = source_file
     if not os.path.isabs(source_file):

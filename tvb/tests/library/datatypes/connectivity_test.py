@@ -40,8 +40,7 @@ if __name__ == "__main__":
 import os
 import numpy
 import unittest
-import tvb.datatypes.readers as readers
-from tvb.datatypes import connectivity
+from tvb.datatypes import connectivity, defaults
 from tvb.tests.library.base_testcase import BaseTestCase
 
 
@@ -82,7 +81,7 @@ class ConnectivityTest(BaseTestCase):
         """
         Create a default connectivity and check that everything gets loaded
         """
-        conn = readers.read_connectivity()
+        conn = defaults.DConnectivity()
         conn.configure()
         # Check for value from tvb_data/connectivity/o52r00_irp2008
         self.assertEqual(conn.weights.shape, (74, 74))
@@ -129,7 +128,7 @@ class ConnectivityTest(BaseTestCase):
         """
         Reload a connectivity and check that defaults changes accordingly.
         """
-        conn = readers.read_connectivity("connectivity_190.zip")
+        conn = defaults.DConnectivity("connectivity_190.zip")
         self.assertEqual(conn.weights.shape, (190, 190))
         self.assertEqual(conn.weights.max(), 3.0)
         self.assertEqual(conn.weights.min(), 0.0)
@@ -157,7 +156,7 @@ class ConnectivityTest(BaseTestCase):
         Reload a connectivity and check that defaults changes accordingly.
         """
         h5_full_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Edited_Connectivity.h5")
-        conn = readers.read_connectivity(h5_full_path)
+        conn = defaults.DConnectivity(h5_full_path)
         self.assertEqual(conn.weights.shape, (74, 74))
         self.assertEqual(conn.weights[0][0], 9.0)   # Edit set first weight to 9
         self.assertEqual(conn.weights.max(), 9.0)   # Edit has a weight of value 9
