@@ -51,7 +51,7 @@ class RegionBoundariesTest(BaseTestCase):
     This test is checking correspondence between cortical surface and connectivity.
     """
     def test_region_boundaries(self):
-        cortex = defaults.DSurface(None)
+        cortex = defaults.DCortex()
         white_matter = defaults.DConnectivity()
         white_matter.configure()
         rb = region_boundaries.RegionBoundaries(cortex)

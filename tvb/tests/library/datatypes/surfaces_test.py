@@ -81,7 +81,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_cortical_surface(self):
-        dt = defaults.DSurface()
+        dt = defaults.DCorticalSurface()
         self.assertTrue(isinstance(dt, surfaces.CorticalSurface))
         dt.configure()
         summary_info = dt.summary_info
@@ -108,7 +108,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_skinair(self):
-        dt = defaults.DSurface(surfaces_data.OUTER_SKIN, "outer_skin_4096.zip")
+        dt = defaults.DSkinAir()
         self.assertTrue(isinstance(dt, surfaces.SkinAir))
         self.assertEqual(dt.get_data_shape('vertices'), (4096, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (4096, 3))
@@ -116,7 +116,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_brainskull(self):
-        dt = defaults.DSurface(surfaces_data.INNER_SKULL, "inner_skull_4096.zip")
+        dt = defaults.DBrainSkull()
         self.assertTrue(isinstance(dt, surfaces.BrainSkull))
         self.assertEqual(dt.get_data_shape('vertices'), (4096, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (4096, 3))
@@ -124,7 +124,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_skullskin(self):
-        dt = defaults.DSurface(surfaces_data.OUTER_SKULL, "outer_skull_4096.zip")
+        dt = defaults.DSkullSkin()
         self.assertTrue(isinstance(dt, surfaces.SkullSkin))
         self.assertEqual(dt.get_data_shape('vertices'), (4096, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (4096, 3))
@@ -132,7 +132,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_eegcap(self):
-        dt = defaults.DSurface(surfaces_data.EEG_CAP, "eeg_skin_surface.zip")
+        dt = defaults.DEEGCap()
         self.assertTrue(isinstance(dt, surfaces.EEGCap))
         self.assertEqual(dt.get_data_shape('vertices'), (4096, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (4096, 3))
@@ -140,7 +140,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_facesurface(self):
-        dt = defaults.DSurface(surfaces_data.FACE, "face_surface_old.zip")
+        dt = defaults.DFaceSurface()
         self.assertTrue(isinstance(dt, surfaces.FaceSurface))
         self.assertEqual(dt.get_data_shape('vertices'), (35613, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (35613, 3))
@@ -161,7 +161,7 @@ class SurfacesTest(BaseTestCase):
     @unittest.skipIf(sys.maxsize <= 2147483647, "Cannot deal with local connectivity on a 32-bit machine.")
     def test_cortexdata(self):
 
-        dt = defaults.DSurface(None)
+        dt = defaults.DCortex()
         self.assertTrue(isinstance(dt, surfaces.Cortex))
         ## Initialize Local Connectivity, to avoid long computation time.
         dt.local_connectivity = defaults.DLocalConnectivity()

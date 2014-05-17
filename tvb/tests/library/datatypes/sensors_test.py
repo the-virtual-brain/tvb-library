@@ -51,7 +51,7 @@ class SensorsTest(BaseTestCase):
 
     def test_sensors(self):
 
-        dt = defaults.DSensor()
+        dt = defaults.DSensors()
         dt.configure()
 
         summary_info = dt.summary_info
@@ -65,7 +65,7 @@ class SensorsTest(BaseTestCase):
         self.assertEqual(dt.sensors_type, EEG_POLYMORPHIC_IDENTITY)
 
         ## Mapping 62 sensors on a Skin surface should work
-        surf = defaults.DSurface(OUTER_SKIN, "outer_skin_4096.zip")
+        surf = defaults.DSkinAir()
         surf.configure()
         mapping = dt.sensors_to_surface(surf)
         self.assertEqual(mapping.shape, (62, 3))
@@ -83,7 +83,7 @@ class SensorsTest(BaseTestCase):
 
 
     def test_sensorseeg(self):
-        dt = defaults.DSensor()
+        dt = defaults.DSensorsEEG()
         dt.configure()
         self.assertTrue(isinstance(dt, sensors.SensorsEEG))
         self.assertFalse(dt.has_orientation)
@@ -95,7 +95,7 @@ class SensorsTest(BaseTestCase):
 
 
     def test_sensorsmeg(self):
-        dt = defaults.DSensor(MEG_POLYMORPHIC_IDENTITY, "meg_channels_reg13.txt.bz2")
+        dt = defaults.DSensorsMEG()
         dt.configure()
         self.assertTrue(isinstance(dt, sensors.SensorsMEG))
         self.assertTrue(dt.has_orientation)
@@ -107,7 +107,7 @@ class SensorsTest(BaseTestCase):
 
 
     def test_sensorsinternal(self):
-        dt = defaults.DSensor(INTERNAL_POLYMORPHIC_IDENTITY, "internal_39.txt.bz2")
+        dt = defaults.DSensorsInternal()
         dt.configure()
         self.assertTrue(isinstance(dt, sensors.SensorsInternal))
         self.assertFalse(dt.has_orientation)

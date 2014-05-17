@@ -93,8 +93,8 @@ def DConnectivity(source_file="connectivity_74.zip"):
 
 
 
-def DSensor(sensor_type=sensors_data.EEG_POLYMORPHIC_IDENTITY,
-            source_file="EEG_unit_vectors_BrainProducts_62.txt.bz2"):
+def DSensors(sensor_type=sensors_data.EEG_POLYMORPHIC_IDENTITY,
+             source_file="EEG_unit_vectors_BrainProducts_62.txt.bz2"):
 
     if sensors_data.EEG_POLYMORPHIC_IDENTITY == sensor_type:
         result = SensorsEEG()
@@ -115,6 +115,18 @@ def DSensor(sensor_type=sensors_data.EEG_POLYMORPHIC_IDENTITY,
         result.orientations = reader.read_array(use_cols=(4, 5, 6))
 
     return result
+
+
+def DSensorsEEG(source_file="EEG_unit_vectors_BrainProducts_62.txt.bz2"):
+    return DSensors(sensors_data.EEG_POLYMORPHIC_IDENTITY, source_file)
+
+
+def DSensorsMEG(source_file="meg_channels_reg13.txt.bz2"):
+    return DSensors(sensors_data.MEG_POLYMORPHIC_IDENTITY, source_file)
+
+
+def DSensorsInternal(source_file="internal_39.txt.bz2"):
+    return DSensors(sensors_data.INTERNAL_POLYMORPHIC_IDENTITY, source_file)
 
 
 
@@ -140,6 +152,34 @@ def DSurface(surface_type=surfaces_data.CORTICAL,
     result.triangles = reader.read_array_from_file("triangles.txt", dtype=numpy.int32)
 
     return result
+
+
+def DCorticalSurface(source_file=os.path.join("cortex_reg13", "surface_cortex_reg13.zip")):
+    return DSurface(surfaces_data.CORTICAL, source_file)
+
+
+def DSkinAir(source_file="outer_skin_4096.zip"):
+    return DSurface(surfaces_data.OUTER_SKIN, source_file)
+
+
+def DBrainSkull(source_file="inner_skull_4096.zip"):
+    return DSurface(surfaces_data.INNER_SKULL, source_file)
+
+
+def DSkullSkin(source_file="outer_skull_4096.zip"):
+    return DSurface(surfaces_data.OUTER_SKULL, source_file)
+
+
+def DEEGCap(source_file="eeg_skin_surface.zip"):
+    return DSurface(surfaces_data.EEG_CAP, source_file)
+
+
+def DFaceSurface(source_file="face_surface_old.zip"):
+    return DSurface(surfaces_data.FACE, source_file)
+
+
+def DCortex(source_file=os.path.join("cortex_reg13", "surface_cortex_reg13.zip")):
+    return DSurface(None, source_file)
 
 
 

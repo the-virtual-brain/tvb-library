@@ -50,13 +50,12 @@ import unittest
 import itertools
 from tvb.basic.traits.parameters_factory import get_traited_subclasses
 from tvb.datatypes import defaults
-from tvb.datatypes.sensors_data import MEG_POLYMORPHIC_IDENTITY
 from tvb.simulator.lab import *
 from tvb.tests.library.base_testcase import BaseTestCase
 
 
-sens_meg = defaults.DSensor(MEG_POLYMORPHIC_IDENTITY, "meg_channels_reg13.txt.bz2")
-sens_eeg = defaults.DSensor()
+sens_meg = defaults.DSensorsMEG()
+sens_eeg = defaults.DSensorsEEG()
 
 
 class Simulator(object):
@@ -142,7 +141,7 @@ class Simulator(object):
         
         if surface_sim:
             local_coupling_strength = numpy.array([2 ** -10])
-            default_cortex = defaults.DSurface(None)
+            default_cortex = defaults.DCortex()
             default_cortex.coupling_strength = local_coupling_strength
         else: 
             default_cortex = None
