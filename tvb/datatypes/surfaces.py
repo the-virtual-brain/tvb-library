@@ -323,3 +323,25 @@ class Cortex(surfaces_scientific.CortexScientific, surfaces_framework.CortexFram
     """
     pass
 
+
+
+def make_surface(surface_type):
+    """
+    Build a Surface instance, based on an input type
+    :param surface_type: one of the supported surface types
+    :return: Instance of the corresponding surface lass, or None
+    """
+    if surface_type == CORTICAL:
+        return CorticalSurface()
+    elif surface_type == INNER_SKULL:
+        return BrainSkull()
+    elif surface_type == OUTER_SKULL:
+        return SkullSkin()
+    elif surface_type == OUTER_SKIN:
+        return SkinAir()
+    elif surface_type == EEG_CAP:
+        return EEGCap()
+    elif surface_type == FACE:
+        return FaceSurface()
+
+    return None

@@ -39,22 +39,14 @@ Based on the Brunel and Wang model.
 """
 
 import inspect
-
-# Third party python libraries
 import numpy
-import numexpr
-import scipy
-import scipy.special
-from scipy.integrate import quad
-
-#The Virtual Brain
-from tvb.simulator.common import get_logger
-LOG = get_logger(__name__)
-
 import tvb.datatypes.arrays as arrays
 import tvb.datatypes.lookup_tables as lookup_tables
 import tvb.basic.traits.types_basic as basic 
 import tvb.simulator.models as models
+from tvb.simulator.common import get_logger
+
+LOG = get_logger(__name__)
 
 
 class BrunelWang(models.Model):
@@ -405,13 +397,11 @@ class BrunelWang(models.Model):
 
     psi_table = lookup_tables.PsiTable(required=True,
                                        default=lookup_tables.PsiTable(),
-                                       console_default=lookup_tables.PsiTable(),
                                        label="Psi Table",
                                        doc="""Psi Table (description).""")
 
     nerf_table = lookup_tables.NerfTable(required=True,
                                          default=lookup_tables.NerfTable(),
-                                         console_default=lookup_tables.NerfTable(),
                                          label="Nerf Table",
                                          doc="""Nerf Table (description).""")
                    
