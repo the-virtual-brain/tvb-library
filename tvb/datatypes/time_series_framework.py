@@ -180,9 +180,15 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
 
     def get_space_labels(self):
         """
-        :return: An array of strings. Default empty.
+        It assumes that we want to select in the 3'rd dimension,
+        and generates labels for each point in that dimension.
+        Subclasses are more specific.
+        :return: An array of strings.
         """
-        return []
+        if self.nr_dimensions > 2:
+            return ['signal-%d' % i for i in xrange(self._length_3d)]
+        else:
+            return []
 
     def get_grouped_space_labels(self):
         """
