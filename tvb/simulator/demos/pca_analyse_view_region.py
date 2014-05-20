@@ -56,7 +56,7 @@ except IOError:
 period = 0.00048828125  # s
 
 #Put the data into a TimeSeriesRegion datatype
-white_matter = defaults.DConnectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 tsr = TimeSeriesRegion(connectivity=white_matter,
                        data=data,
                        sample_period=period)

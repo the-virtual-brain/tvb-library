@@ -60,7 +60,7 @@ lb = models.LarterBreakspear(QV_max=1.0, QZ_max=1.0,
 
 lb.variables_of_interest = ["V", "W", "Z"]
 
-white_matter = defaults.DConnectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 white_matter.speed = numpy.array([7.0])
 
 white_matter_coupling = coupling.HyperbolicTangent(a=0.5 * lb.QV_max,

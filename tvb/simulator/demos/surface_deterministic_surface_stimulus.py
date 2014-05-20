@@ -48,7 +48,7 @@ LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
 oscillator = models.Generic2dOscillator()
 
-white_matter = defaults.DConnectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 white_matter.speed = 4.0
 white_matter_coupling = coupling.Linear(a=-2 ** -9)
 
@@ -71,7 +71,7 @@ grey_matter = surfaces.LocalConnectivity(equation=equations.Gaussian(),
 grey_matter.equation.parameters['sigma'] = 10.0
 grey_matter.equation.parameters['amp'] = 1.0
 
-default_cortex = defaults.DCortex()
+default_cortex = surfaces.Cortex(load_default=True)
 default_cortex.local_connectivity = grey_matter
 default_cortex.coupling_strength = local_coupling_strength
 

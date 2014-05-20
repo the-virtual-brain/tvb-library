@@ -33,15 +33,15 @@
 The Connectivity datatype. This brings together the scientific and framework 
 methods that are associated with the connectivity data.
 
-.. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
+.. moduleauthor:: Stuart A. Knock <stuart.knock@gmail.com>
 
 """
 
-import tvb.datatypes.connectivity_scientific as connectivity_scientific
-import tvb.datatypes.connectivity_framework as connectivity_framework
-from tvb.basic.logger.builder import get_logger
+import numpy
+from tvb.datatypes import connectivity_scientific
+from tvb.datatypes import connectivity_framework
+from tvb.basic.readers import ZipReader, H5Reader, try_get_absolute_path
 
-LOG = get_logger(__name__)
 
 
 class Connectivity(connectivity_scientific.ConnectivityScientific, connectivity_framework.ConnectivityFramework):
@@ -61,13 +61,41 @@ class Connectivity(connectivity_scientific.ConnectivityScientific, connectivity_
         
     
     """
-    #TODO: Do we want to do something like the following here???
-    #ui_label = "Long-range structural connectivity"
-    #ui_doc = """ The long range structural connectivity represents the a 
-    #    particular parcellation of the brain into regions. For this parcellation
-    #    a set of properties are then defined. These are typically extracted, via
-    #    methods such as DSI, for individual subjects. They include things such 
-    #    as the strenth of connection between regions, the length of white matter
-    #    tracts connecting reions ... ete,etc, blah, blah"""
-    pass
+
+    @staticmethod
+    def from_file(source_file="connectivity_74.zip", instance=None):
+
+        if instance is None:
+            result = Connectivity()
+        else:
+            result = instance
+
+        source_full_path = try_get_absolute_path("tvb_data.connectivity", source_file)
+
+        if source_file.endswith(".h5"):
+
+            reader = H5Reader(source_full_path)
+
+            result.weights = reader.read_field("weights")
+            result.centres = reader.read_field("centres")
+            result.region_labels = reader.read_field("region_labels")
+            result.orientations = reader.read_field("orientations")
+            result.cortical = reader.read_field("cortical")
+            result.hemispheres = reader.read_field("hemispheres")
+            result.areas = reader.read_field("areas")
+            result.tract_lengths = reader.read_field("tract_lengths")
+
+        else:
+            reader = ZipReader(source_full_path)
+
+            result.weights = reader.read_array_from_file("weights.txt")
+            result.centres = reader.read_array_from_file("centres.txt", use_cols=(1, 2, 3))
+            result.region_labels = reader.read_array_from_file("centres.txt", dtype="string", use_cols=(0,))
+            result.orientations = reader.read_array_from_file("average_orientations.txt")
+            result.cortical = reader.read_array_from_file("cortical.txt", dtype=numpy.bool)
+            result.hemispheres = reader.read_array_from_file("hemispheres.txt", dtype=numpy.bool)
+            result.areas = reader.read_array_from_file("areas.txt")
+            result.tract_lengths = reader.read_array_from_file("tract_lengths.txt")
+
+        return result
 

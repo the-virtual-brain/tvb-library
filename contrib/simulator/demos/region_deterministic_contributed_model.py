@@ -52,8 +52,7 @@ LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
 lar = LarterBreakspear(QV_max=1.0, QZ_max=1.0, t_scale=0.01, VT=0.54, d_V=0.5, C=0.0)
 
-white_matter = defaults.DConnectivity()
-white_matter.speed = numpy.array([4.0])
+white_matter = connectivity.Connectivity(load_default=True, speed=numpy.array([4.0]))
 white_matter_coupling = coupling.Linear(a=lar.C)
 
 #Initialise an Integrator

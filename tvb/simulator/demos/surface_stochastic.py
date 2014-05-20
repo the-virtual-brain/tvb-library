@@ -48,7 +48,7 @@ from tvb.simulator.lab import *
 
 #Initialise a Model, Coupling, and Connectivity.
 rfhn = models.ReducedSetFitzHughNagumo()
-white_matter = defaults.DConnectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 white_matter.speed = numpy.array([4.0])
 
 white_matter_coupling = coupling.Linear(a=0.0043)   # 0.0066
@@ -66,8 +66,8 @@ mon_eeg = monitors.EEG(period=2 ** -2)
 what_to_watch = (mon_tavg, mon_savg, mon_eeg)
 
 #Initialise a surface
-default_cortex = defaults.DCortex()
-default_cortex.local_connectivity = defaults.DLocalConnectivity()
+default_cortex = surfaces.Cortex(load_default=True)
+default_cortex.local_connectivity = surfaces.LocalConnectivity(load_default=True)
 
 #Initialise Simulator -- Model, Connectivity, Integrator, Monitors, and surface.
 sim = simulator.Simulator(model=rfhn, connectivity=white_matter,

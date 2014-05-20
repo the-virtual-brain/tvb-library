@@ -44,7 +44,7 @@ from tvb.simulator.lab import *
 ##-                      Load the object                                     -##
 ##----------------------------------------------------------------------------##
 
-white_matter = defaults.DConnectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 
 #Compute cumulative input for each region
 node_data = white_matter.weights.sum(axis=1)

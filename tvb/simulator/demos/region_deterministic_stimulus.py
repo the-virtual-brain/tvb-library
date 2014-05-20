@@ -49,7 +49,7 @@ LOG.info("Configuring...")
 #Initialize a Model, Coupling, and Connectivity.
 oscillator = models.Generic2dOscillator()
 
-white_matter = defaults.DConnectivity("connectivity_96.zip")
+white_matter = connectivity.Connectivity.from_file("connectivity_96.zip")
 white_matter.speed = numpy.array([4.0])
 white_matter_coupling = coupling.Linear(a=0.0126)
 

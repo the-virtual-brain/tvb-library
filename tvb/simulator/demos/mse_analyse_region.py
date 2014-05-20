@@ -156,7 +156,7 @@ def configure_simulation(stimulate):
     #Initialise a Model, Connectivity, Coupling, set speed.
     oscilator = models.Generic2dOscillator(a=-0.5, b=-10., c=0.0, d=0.02)
 
-    white_matter = defaults.DConnectivity()
+    white_matter = connectivity.Connectivity(load_default=True)
     white_matter.speed = numpy.array([4.0])
     white_matter_coupling = coupling.Linear(a=0.042)
 

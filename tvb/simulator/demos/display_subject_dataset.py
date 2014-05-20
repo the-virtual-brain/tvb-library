@@ -52,11 +52,11 @@ A subject's dataset
 from tvb.simulator.lab import *
 
 # From the inside out
-connectome       = defaults.DConnectivity()
-cortical_surface = defaults.DCortex()
-brain_skull      = defaults.DBrainSkull()
-skull_skin       = defaults.DSkullSkin()
-skin_air		 = defaults.DSkinAir()
+connectome       = connectivity.Connectivity(load_default=True)
+cortical_surface = surfaces.Cortex(load_default=True)
+brain_skull      = surfaces.BrainSkull(load_default=True)
+skull_skin       = surfaces.SkullSkin(load_default=True)
+skin_air		 = surfaces.SkinAir(load_default=True)
 
 
 # Get info

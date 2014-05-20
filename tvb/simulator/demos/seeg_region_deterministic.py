@@ -47,10 +47,10 @@ from tvb.simulator.lab import *
 LOG.info("Configuring...")
 
 #Initialise a Model, Coupling, and Connectivity.
-sens = defaults.DSensorsInternal()
+sens = sensors.SensorsInternal(load_default=True)
 
 oscillator = models.Generic2dOscillator()
-white_matter = defaults.DConnectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 white_matter.speed = numpy.array([4.0])
 white_matter_coupling = coupling.Linear(a=0.0154)
 
@@ -61,7 +61,7 @@ heunint = integrators.HeunDeterministic(dt=2 ** -6)
 momo = monitors.Raw()
 mama = monitors.TemporalAverage(period=2 ** -2)
 mon_seeg = monitors.SEEG(sensors=sens, period=2 ** -2)
-mon_seeg.sensors = defaults.DSensorsInternal()
+mon_seeg.sensors = sensors.SensorsInternal()
 
 #Bundle them
 what_to_watch = (momo, mama, mon_seeg)

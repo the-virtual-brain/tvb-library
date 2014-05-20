@@ -409,11 +409,10 @@ if __name__ == '__main__':
 
     from tvb.simulator.lab import *
 
-    # this is test driven devlopment speakin how i can help you
+    # this is test driven development speaking how i can help you
 
     model = models.Generic2dOscillator()
-    conn = defaults.DConnectivity()
-    conn.speed = array([4.0])
+    conn = connectivity.Connectivity(load_default=True, speed=array([4.0]))
     coupling = coupling.Linear(a=0.0152)
 
     hiss = noise.Additive(nsig=ones((2,)) * 2 ** -10)

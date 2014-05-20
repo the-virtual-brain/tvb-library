@@ -50,10 +50,10 @@ from tvb.simulator.lab import *
 LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
 
-sens = defaults.DSensorsInternal()
+sens = sensors.SensorsInternal(load_default=True)
 
 oscillator = models.Generic2dOscillator()
-white_matter = defaults.DConnectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 white_matter.speed = numpy.array([4.0])
 
 white_matter_coupling = coupling.Linear(a=0.014)
@@ -66,14 +66,14 @@ mon_tavg = monitors.TemporalAverage(period=2 ** -2)
 mon_savg = monitors.SpatialAverage(period=2 ** -2)
 mon_eeg = monitors.EEG(period=2 ** -2)
 mon_seeg = monitors.SEEG(period=2 ** -2)
-mon_seeg.sensors = defaults.DSensorsInternal()
+mon_seeg.sensors = sensors.SensorsInternal(load_default=True)
 
 #Bundle them
 what_to_watch = (mon_tavg, mon_savg, mon_eeg, mon_seeg)
 
 #Initialise a surface
 local_coupling_strength = numpy.array([2 ** -10])
-default_cortex = defaults.DCortex()
+default_cortex = surfaces.Cortex(load_default=True)
 default_cortex.coupling_strength = local_coupling_strength
 
 #Initialise Simulator -- Model, Connectivity, Integrator, Monitors, and surface.

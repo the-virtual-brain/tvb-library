@@ -94,9 +94,17 @@ class MappedTypeLight(Type):
     logger = get_logger(__module__)
 
 
-    def __init__(self, **kwargs):
+    def __init__(self, load_default=False, **kwargs):
         super(MappedTypeLight, self).__init__(**kwargs)
         self._current_metadata = dict()
+
+        if load_default:
+            self.__class__.from_file(instance=self)
+
+
+    @classmethod
+    def from_file(cls, source_file="", instance=None):
+        raise NotImplementedError("This DataType can not be used with load_default=True")
 
 
     def accepted_filters(self):

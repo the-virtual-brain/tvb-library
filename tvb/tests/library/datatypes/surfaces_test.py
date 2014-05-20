@@ -43,7 +43,6 @@ except Exception:
 
 import sys
 import numpy
-import tvb.datatypes.defaults as defaults
 import tvb.datatypes.surfaces_data as surfaces_data
 import tvb.datatypes.surfaces as surfaces
 from tvb.tests.library.base_testcase import BaseTestCase
@@ -81,7 +80,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_cortical_surface(self):
-        dt = defaults.DCorticalSurface()
+        dt = surfaces.CorticalSurface(load_default=True)
         self.assertTrue(isinstance(dt, surfaces.CorticalSurface))
         dt.configure()
         summary_info = dt.summary_info
@@ -108,7 +107,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_skinair(self):
-        dt = defaults.DSkinAir()
+        dt = surfaces.SkinAir(load_default=True)
         self.assertTrue(isinstance(dt, surfaces.SkinAir))
         self.assertEqual(dt.get_data_shape('vertices'), (4096, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (4096, 3))
@@ -116,7 +115,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_brainskull(self):
-        dt = defaults.DBrainSkull()
+        dt = surfaces.BrainSkull(load_default=True)
         self.assertTrue(isinstance(dt, surfaces.BrainSkull))
         self.assertEqual(dt.get_data_shape('vertices'), (4096, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (4096, 3))
@@ -124,7 +123,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_skullskin(self):
-        dt = defaults.DSkullSkin()
+        dt = surfaces.SkullSkin(load_default=True)
         self.assertTrue(isinstance(dt, surfaces.SkullSkin))
         self.assertEqual(dt.get_data_shape('vertices'), (4096, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (4096, 3))
@@ -132,7 +131,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_eegcap(self):
-        dt = defaults.DEEGCap()
+        dt = surfaces.EEGCap(load_default=True)
         self.assertTrue(isinstance(dt, surfaces.EEGCap))
         self.assertEqual(dt.get_data_shape('vertices'), (4096, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (4096, 3))
@@ -140,7 +139,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_facesurface(self):
-        dt = defaults.DFaceSurface()
+        dt = surfaces.FaceSurface(load_default=True)
         self.assertTrue(isinstance(dt, surfaces.FaceSurface))
         self.assertEqual(dt.get_data_shape('vertices'), (35613, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (35613, 3))
@@ -148,7 +147,7 @@ class SurfacesTest(BaseTestCase):
 
 
     def test_regionmapping(self):
-        dt = defaults.DRegionMapping()
+        dt = surfaces.RegionMapping(load_default=True)
         self.assertTrue(isinstance(dt, surfaces.RegionMapping))
         self.assertEqual(dt.shape, (16384,))
 
@@ -161,10 +160,10 @@ class SurfacesTest(BaseTestCase):
     @unittest.skipIf(sys.maxsize <= 2147483647, "Cannot deal with local connectivity on a 32-bit machine.")
     def test_cortexdata(self):
 
-        dt = defaults.DCortex()
+        dt = surfaces.Cortex(load_default=True)
         self.assertTrue(isinstance(dt, surfaces.Cortex))
         ## Initialize Local Connectivity, to avoid long computation time.
-        dt.local_connectivity = defaults.DLocalConnectivity()
+        dt.local_connectivity = surfaces.LocalConnectivity(load_default=True)
 
         dt.configure()
         summary_info = dt.summary_info

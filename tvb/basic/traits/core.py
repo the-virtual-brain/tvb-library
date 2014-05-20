@@ -365,14 +365,25 @@ class MetaType(abc.ABCMeta):
         # set instance's value, inits dict and kwd passed trait values
         inst.trait.value = deepcopy(value)  # if (value is not None) else inst
         inst.trait.inits = inits
+
         # Set Default attributes from traited class definition
         for name, attr in inst.trait.iteritems():
             try:
-                setattr(inst, name, deepcopy(attr.trait.value))
+                try:
+                    previous_value = getattr(inst, name)
+                except Exception:
+                    previous_value = None
+
+                if previous_value is None or str(previous_value) == "None" or isinstance(previous_value, Type):
+                    setattr(inst, name, deepcopy(attr.trait.value))
+                else:
+                    LOG.debug("Ignored by traits default %s - %s" % (str(inst.__class__.__name__), name))
+
             except Exception, exc:
                 LOG.exception(exc)
                 LOG.error("Could not set attribute '" + name + "' on " + str(inst.__class__.__name__))
                 raise exc
+
         # Overwrite with attributes passed in the constructor
         for name, attr in kwdtraits.iteritems():
             try:

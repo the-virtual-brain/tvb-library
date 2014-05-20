@@ -37,7 +37,7 @@ if __name__ == "__main__":
     setup_test_console_env()
 
 import unittest
-from tvb.datatypes import defaults
+from tvb.datatypes import surfaces
 from tvb.tests.library.base_testcase import BaseTestCase
 
             
@@ -51,8 +51,8 @@ class ConsoleTraitedTest(BaseTestCase):
         Test scientific methods are executed
         """
         local_coupling_strength = 0.0121
-        grey_matter = defaults.DLocalConnectivity()
-        default_cortex = defaults.DCortex()
+        grey_matter = surfaces.LocalConnectivity(load_default=True)
+        default_cortex = surfaces.Cortex(load_default=True)
         default_cortex.coupling_strength = local_coupling_strength
         self.assertTrue(default_cortex.local_connectivity is None)
         default_cortex.local_connectivity = grey_matter

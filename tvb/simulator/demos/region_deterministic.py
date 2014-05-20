@@ -31,7 +31,7 @@
 """
 Demonstrate using the simulator at the region level, deterministic interation.
 
-``Run time``: approximately 140 seconds (workstation circa 2012)
+``Run time``: approximately 120 seconds (workstation circa 2013)
 ``Memory requirement``: < 1GB
 
 .. moduleauthor:: Stuart A. Knock <stuart.knock@gmail.com>
@@ -52,7 +52,7 @@ START_TIME = datetime.datetime.now()
 LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
 oscillator = models.Generic2dOscillator()
-white_matter = defaults.DConnectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 white_matter.speed = numpy.array([3.0])
 white_matter_coupling = coupling.Linear()
 

@@ -47,7 +47,7 @@ import unittest
 
 from tvb.tests.library.base_testcase import BaseTestCase
 from tvb.simulator import monitors
-from tvb.datatypes import defaults
+from tvb.datatypes import sensors
 
 
 default_period = 0.9765625  # 1024Hz
@@ -111,7 +111,7 @@ class MonitorsTest(BaseTestCase):
         This has to be verified.
         """
         monitor = monitors.SEEG()
-        monitor.sensors = defaults.DSensorsInternal()
+        monitor.sensors = sensors.SensorsInternal(load_default=True)
         self.assertEqual(monitor.period, default_period)
 
 

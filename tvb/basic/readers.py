@@ -29,6 +29,8 @@
 #
 
 """
+This module contains basic reading mechanism for default DataType fields.
+
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
 """
 
@@ -38,6 +40,7 @@ try:
 except Exception:
     H5PY_SUPPORT = False
 
+import os
 import numpy
 import zipfile
 from scipy import io as scipy_io
@@ -152,3 +155,25 @@ class ZipReader():
         return numpy.array([])
 
 
+
+def try_get_absolute_path(relative_module, file_suffix):
+    """
+    :param relative_module: python module to be imported. When import of this fails, we will return the file_suffix
+    :param file_suffix: In case this is already an absolute path, return it immediately,
+        otherwise append it after the module path
+    :return: Try to build an absolute path based on a python module and a file-suffix
+    """
+
+    result_full_path = file_suffix
+
+    if not os.path.isabs(file_suffix):
+
+        try:
+            module_import = __import__(relative_module, globals(), locals(), ["__init__"])
+            result_full_path = os.path.join(os.path.dirname(module_import.__file__), file_suffix)
+
+        except ImportError:
+            LOG = get_logger(__name__)
+            LOG.exception("Could not import tvb_data Python module for default data-set!")
+
+    return result_full_path

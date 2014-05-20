@@ -37,9 +37,8 @@ if __name__ == "__main__":
 
 import numpy
 import unittest
-from tvb.datatypes import sensors, defaults
+from tvb.datatypes import sensors
 from tvb.datatypes.surfaces import SkinAir
-from tvb.datatypes.surfaces_data import OUTER_SKIN
 from tvb.datatypes.sensors_data import INTERNAL_POLYMORPHIC_IDENTITY, MEG_POLYMORPHIC_IDENTITY, EEG_POLYMORPHIC_IDENTITY
 from tvb.tests.library.base_testcase import BaseTestCase
 
@@ -51,21 +50,21 @@ class SensorsTest(BaseTestCase):
 
     def test_sensors(self):
 
-        dt = defaults.DSensors()
+        dt = sensors.Sensors(load_default=True)
         dt.configure()
 
         summary_info = dt.summary_info
-        self.assertEqual(summary_info['Sensor type'], EEG_POLYMORPHIC_IDENTITY)
+        self.assertEqual(summary_info['Sensor type'], '')
         self.assertEqual(summary_info['Number of Sensors'], 62)
         self.assertFalse(dt.has_orientation)
         self.assertEqual(dt.labels.shape, (62,))
         self.assertEqual(dt.locations.shape, (62, 3))
         self.assertEqual(dt.number_of_sensors, 62)
         self.assertEqual(dt.orientations.shape, (0,))
-        self.assertEqual(dt.sensors_type, EEG_POLYMORPHIC_IDENTITY)
+        self.assertEqual(dt.sensors_type, '')
 
         ## Mapping 62 sensors on a Skin surface should work
-        surf = defaults.DSkinAir()
+        surf = SkinAir(load_default=True)
         surf.configure()
         mapping = dt.sensors_to_surface(surf)
         self.assertEqual(mapping.shape, (62, 3))
@@ -83,7 +82,7 @@ class SensorsTest(BaseTestCase):
 
 
     def test_sensorseeg(self):
-        dt = defaults.DSensorsEEG()
+        dt = sensors.SensorsEEG(load_default=True)
         dt.configure()
         self.assertTrue(isinstance(dt, sensors.SensorsEEG))
         self.assertFalse(dt.has_orientation)
@@ -95,7 +94,7 @@ class SensorsTest(BaseTestCase):
 
 
     def test_sensorsmeg(self):
-        dt = defaults.DSensorsMEG()
+        dt = sensors.SensorsMEG(load_default=True)
         dt.configure()
         self.assertTrue(isinstance(dt, sensors.SensorsMEG))
         self.assertTrue(dt.has_orientation)
@@ -107,7 +106,7 @@ class SensorsTest(BaseTestCase):
 
 
     def test_sensorsinternal(self):
-        dt = defaults.DSensorsInternal()
+        dt = sensors.SensorsInternal(load_default=True)
         dt.configure()
         self.assertTrue(isinstance(dt, sensors.SensorsInternal))
         self.assertFalse(dt.has_orientation)

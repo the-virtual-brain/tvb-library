@@ -41,9 +41,9 @@ Current modes are re-scaling methods.
 from tvb.simulator.lab import *
 
 LOG.info("Reading default connectivity...")
-white_matter = defaults.DConnectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 white_matter.configure()
-con = defaults.DConnectivity()
+con = connectivity.Connectivity(load_default=True)
 con.configure()
 
 #scale weights by the maximum absolute value

@@ -48,7 +48,7 @@ from tvb.simulator.lab import *
 LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
 oscillator = models.Generic2dOscillator()
-white_matter = defaults.DConnectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 white_matter.speed = numpy.array([8.0])
 
 white_matter_coupling = coupling.Linear(a=0.0152)

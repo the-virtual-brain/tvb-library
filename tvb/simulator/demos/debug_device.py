@@ -76,8 +76,7 @@ from tvb.simulator.lab import *
 from tvb.simulator.backend import cee, cuda, driver
 
 map(reload, [driver, cee, cuda])
-conn = defaults.DConnectivity()
-conn.speed = 300.0
+conn = connectivity.Connectivity(load_default=True, speed=300.0)
 
 sim = simulator.Simulator(
     model=models.Generic2dOscillator(),

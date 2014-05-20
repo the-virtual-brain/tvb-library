@@ -49,13 +49,12 @@ import numpy
 import unittest
 import itertools
 from tvb.basic.traits.parameters_factory import get_traited_subclasses
-from tvb.datatypes import defaults
 from tvb.simulator.lab import *
 from tvb.tests.library.base_testcase import BaseTestCase
 
 
-sens_meg = defaults.DSensorsMEG()
-sens_eeg = defaults.DSensorsEEG()
+sens_meg = sensors.SensorsMEG(load_default=True)
+sens_eeg = sensors.SensorsEEG(load_default=True)
 
 
 class Simulator(object):
@@ -127,7 +126,7 @@ class Simulator(object):
         self.model = model
         self.method = method
         
-        white_matter = defaults.DConnectivity()
+        white_matter = connectivity.Connectivity(load_default=True)
         white_matter_coupling = coupling.Linear(a=coupling_strength)
         white_matter.speed = speed
 
@@ -141,7 +140,7 @@ class Simulator(object):
         
         if surface_sim:
             local_coupling_strength = numpy.array([2 ** -10])
-            default_cortex = defaults.DCortex()
+            default_cortex = surfaces.Cortex(load_default=True)
             default_cortex.coupling_strength = local_coupling_strength
         else: 
             default_cortex = None

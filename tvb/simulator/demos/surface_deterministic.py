@@ -48,7 +48,7 @@ from tvb.simulator.lab import *
 LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
 oscillator = models.Generic2dOscillator()
-white_matter = defaults.DConnectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 white_matter.speed = numpy.array([4.0])
 
 white_matter_coupling = coupling.Difference(a=0.014)
@@ -66,7 +66,7 @@ what_to_watch = (mon_tavg, mon_savg, mon_eeg)
 
 #Initialise a surface
 local_coupling_strength = numpy.array([2 ** -10])
-default_cortex = defaults.DCortex()
+default_cortex = surfaces.Cortex(load_default=True)
 default_cortex.coupling_strength = local_coupling_strength
 
 #Initialise Simulator -- Model, Connectivity, Integrator, Monitors, and surface.

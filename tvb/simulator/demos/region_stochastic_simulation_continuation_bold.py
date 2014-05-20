@@ -55,7 +55,7 @@ except OSError:     # os.stat will give OSError if it doesn't find the file
     print 'old simulation not found, performing initial'
 
     oscillator = models.Generic2dOscillator()
-    white_matter = defaults.DConnectivity()
+    white_matter = connectivity.Connectivity(load_default=True)
     white_matter.speed = numpy.array([4.0])
     white_matter_coupling = coupling.Linear(a=0.0126)
 
@@ -124,7 +124,7 @@ except OSError:     # os.stat will give OSError if it doesn't find the file
 # build new simulator, possibly in a different script
 
 oscillator = models.Generic2dOscillator()
-white_matter = defaults.DConnectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 white_matter.speed = numpy.array([4.0])
 white_matter_coupling = coupling.Linear(a=0.0126)
 

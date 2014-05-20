@@ -252,6 +252,19 @@ class RegionMappingData(arrays.MappedArray):
     __generate_table__ = True
 
 
+    def __get__(self, inst, cls):
+        if inst is None:
+            return super(RegionMappingData, self).__get__(inst, cls)
+        return self.array_data
+
+
+    def __set__(self, inst, value):
+        if isinstance(value, RegionMappingData):
+            super(RegionMappingData, self).__set__(inst, value)
+        else:
+            self.array_data = value
+
+
 
 class LocalConnectivityData(MappedType):
     """
@@ -371,7 +384,7 @@ class CortexData(CorticalSurfaceData):
                                                This coupling is instantaneous 
                                                (no time delays).""")
 
-    region_mapping_data = RegionMappingData(
+    region_mapping = RegionMappingData(
         label="region mapping",
         doc="""An index vector of length equal to the number_of_vertices + the
             number of non-cortical regions, with values that index into an
@@ -433,13 +446,11 @@ class CortexData(CorticalSurfaceData):
 
 
     @property
-    def region_mapping(self):
+    def region_mapping_data(self):
         """
         Define shortcut for retrieving RegionMapping map array.
         """
-        if self.region_mapping_data is None:
-            return None
-        return self.region_mapping_data.array_data
+        return self.trait["region_mapping"]
 
 
 

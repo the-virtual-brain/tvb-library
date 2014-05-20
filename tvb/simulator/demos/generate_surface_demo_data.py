@@ -53,7 +53,7 @@ LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
 oscillator = models.Generic2dOscillator()
 
-white_matter = defaults.DConnectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 white_matter.speed = numpy.array([4.0])
 white_matter_coupling = coupling.Linear(a=2 ** -9)
 
@@ -68,14 +68,14 @@ what_to_watch = monitors.TemporalAverage(period=0.48828125)     # 2048Hz => peri
 #Initialise a surface
 local_coupling_strength = numpy.array([0.0115])
 
-grey_matter = defaults.DLocalConnectivity()
+grey_matter = surfaces.LocalConnectivity(load_default=True)
 grey_matter.cutoff = 60.0
 grey_matter.equation.parameters['sigma1'] = 10.0
 grey_matter.equation.parameters['sigma2'] = 20.0
 grey_matter.equation.parameters['amp1'] = 1.0
 grey_matter.equation.parameters['amp2'] = 0.5
 
-default_cortex = defaults.DCortex()
+default_cortex = surfaces.Cortex(load_default=True)
 default_cortex.local_connectivity = grey_matter
 default_cortex.coupling_strength = local_coupling_strength
 

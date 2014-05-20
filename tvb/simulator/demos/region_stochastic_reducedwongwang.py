@@ -74,7 +74,7 @@ rww = models.ReducedWongWang()
 rww.state_variable_range['S'] = numpy.array([0.0, 0.01])
 
 #Intialise a Connectivity
-white_matter = defaults.DConnectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 white_matter.speed = numpy.array([20000.0])
 white_matter_coupling = coupling.Linear(a=1.05 / 100.)
 

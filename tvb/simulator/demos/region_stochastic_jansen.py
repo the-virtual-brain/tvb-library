@@ -48,7 +48,7 @@ LOG.info("Configuring...")
 jrm = models.JansenRit()
 nsigma = 0.022
 
-white_matter = defaults.DConnectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 white_matter.speed = numpy.array([4.0])
 
 white_matter_coupling = coupling.Linear(a=0.0)

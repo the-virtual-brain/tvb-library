@@ -49,18 +49,18 @@ from tvb.simulator.lab import *
 ##----------------------------------------------------------------------------##
 
 # Get 'default' MEG sensors
-sens_meg = defaults.DSensorsMEG()
+sens_meg = sensors.SensorsMEG(load_default=True)
 
 # Get connectivity
-white_matter = defaults.DConnectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 centres = white_matter.centres
 
 # Get surface - SkinAir
-skin = defaults.DSkinAir()
+skin = surfaces.SkinAir(load_default=True)
 skin.configure()
 
 # Get 'default' EEG sensors
-sens_eeg = defaults.DSensorsEEG()
+sens_eeg = sensors.SensorsEEG(load_default=True)
 sens_eeg.configure()
 
 # Project eeg unit vector locations onto the surface space
