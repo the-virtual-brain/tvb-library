@@ -159,7 +159,7 @@ class MapAsJson():
 
 
 
-class Sequence(String, MapAsJson):
+class Sequence(MapAsJson, String):
     """
     Traits type base class that wraps python sequence 
     python types (containers)
