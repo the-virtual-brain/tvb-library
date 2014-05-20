@@ -48,7 +48,7 @@ from tvb.simulator.lab import *
 LOG.info("Configuring...")
 #Initialise a surface:
 #First define the function describing the "local" connectivity.
-grey_matter = surfaces.DLocalConnectivity(cutoff=20.0)
+grey_matter = surfaces.LocalConnectivity(cutoff=20.0)
 grey_matter.equation.parameters['sigma'] = 10.0
 grey_matter.equation.parameters['amp'] = 1.0
 

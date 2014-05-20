@@ -42,9 +42,6 @@ LOG.info("Reading default connectivity...")
 
 #Initialise an empty Connectivity object
 wm = connectivity.Connectivity()
-#The following will erase some attributes that we'll generate afterwards.
-wm.wipe_out()
-
 
 # First weights and distances
 nor = 4
@@ -65,6 +62,7 @@ wm.region_labels = my_labels
 wm.configure()
 
 plot_matrix(wm.weights, connectivity=wm, binary_matrix=True)
+
 import matplotlib.pyplot as plt
 plt.show()
 

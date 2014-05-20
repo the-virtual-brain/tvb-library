@@ -40,7 +40,8 @@ ms = [models.Generic2dOscillator(),
       models.JansenRit(),
       models.ReducedSetFitzHughNagumo(),
       models.ReducedSetHindmarshRose(),
-      models.Kuramoto()
+      models.Kuramoto(),
+      models.LarterBreakspear()
       ]
 
 [m.configure() for m in ms]
@@ -112,3 +113,6 @@ def plot_data(ts, ys, specfun=None):
 def main():
     plot_data(*all())
 
+
+if __name__ == '__main__':
+    main()
