@@ -143,23 +143,6 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         return summary
 
 
-    def wipe_out(self):
-        """
-        NOTE: this really really REALLY should be a temporary thing until we redefine the 
-        connectivity dtypes. I'm sure this will bring some inconsistencies and probably 
-        some headaches. 
-
-        """
-
-        self.weights = None
-        self.tract_lengths = None
-        self.centres = None
-        self.region_labels = None
-        self.orientations = None
-        self.cortical = None
-        self.hemispheres = None
-        self.areas = None
-
     
     def set_idelays(self, dt):
         """
@@ -592,7 +575,6 @@ class ConnectivityScientific(connectivity_data.ConnectivityData):
         
         """
 
-        self.wipe_out()
 
         # NOTE: Luckily I went for 5 motifs ...
         if motif == 'chain' and undirected:
