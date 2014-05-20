@@ -53,7 +53,7 @@ from tvb.simulator.lab import *
 
 # From the inside out
 connectome       = connectivity.Connectivity(load_default=True)
-cortical_surface = surfaces.Cortex(load_default=True)
+cortical_surface = surfaces.Cortex.from_file()
 brain_skull      = surfaces.BrainSkull(load_default=True)
 skull_skin       = surfaces.SkullSkin(load_default=True)
 skin_air		 = surfaces.SkinAir(load_default=True)

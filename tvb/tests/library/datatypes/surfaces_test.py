@@ -160,8 +160,9 @@ class SurfacesTest(BaseTestCase):
     @unittest.skipIf(sys.maxsize <= 2147483647, "Cannot deal with local connectivity on a 32-bit machine.")
     def test_cortexdata(self):
 
-        dt = surfaces.Cortex(load_default=True)
+        dt = surfaces.Cortex.from_file()
         self.assertTrue(isinstance(dt, surfaces.Cortex))
+        self.assertTrue(dt.region_mapping is not None)
         ## Initialize Local Connectivity, to avoid long computation time.
         dt.local_connectivity = surfaces.LocalConnectivity(load_default=True)
 

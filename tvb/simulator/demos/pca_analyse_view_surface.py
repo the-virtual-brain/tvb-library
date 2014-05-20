@@ -55,7 +55,7 @@ except IOError:
 period = 0.00048828125  # s
 
 #Initialse a default surface
-default_cortex = surfaces.Cortex(load_default=True)
+default_cortex = surfaces.Cortex.from_file()
 
 #Put the data into a TimeSeriesSurface datatype
 tsr = TimeSeriesSurface(surface=default_cortex,

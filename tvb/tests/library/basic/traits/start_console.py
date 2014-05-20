@@ -52,7 +52,7 @@ class ConsoleTraitedTest(BaseTestCase):
         """
         local_coupling_strength = 0.0121
         grey_matter = surfaces.LocalConnectivity(load_default=True)
-        default_cortex = surfaces.Cortex(load_default=True)
+        default_cortex = surfaces.Cortex.from_file()
         default_cortex.coupling_strength = local_coupling_strength
         self.assertTrue(default_cortex.local_connectivity is None)
         default_cortex.local_connectivity = grey_matter

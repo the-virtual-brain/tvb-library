@@ -39,7 +39,7 @@ from tvb.simulator.region_boundaries import RegionBoundaries
 from tvb.simulator.region_colours import RegionColours 
 
 
-CORTEX = surfaces.Cortex(load_default=True)
+CORTEX = surfaces.Cortex.from_file()
 CORTEX_BOUNDARIES = RegionBoundaries(CORTEX)
 
 region_colours = RegionColours(CORTEX_BOUNDARIES.region_neighbours)

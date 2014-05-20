@@ -392,7 +392,7 @@ class Cortex(surfaces_scientific.CortexScientific, surfaces_framework.CortexFram
 
         result = super(Cortex, cls).from_file(source_file, instance)
 
-        result.region_mapping = Cortex.from_file_region_mapping_array()
+        result.region_mapping_data = RegionMapping.from_file()
         result.eeg_projection = Cortex.from_file_projection_array()
         #result.meg_projection = Cortex.from_file_projection_array()
 

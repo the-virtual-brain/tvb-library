@@ -140,7 +140,7 @@ class Simulator(object):
         
         if surface_sim:
             local_coupling_strength = numpy.array([2 ** -10])
-            default_cortex = surfaces.Cortex(load_default=True)
+            default_cortex = surfaces.Cortex.from_file()
             default_cortex.coupling_strength = local_coupling_strength
         else: 
             default_cortex = None

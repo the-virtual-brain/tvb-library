@@ -75,7 +75,7 @@ grey_matter.equation.parameters['sigma2'] = 20.0
 grey_matter.equation.parameters['amp1'] = 1.0
 grey_matter.equation.parameters['amp2'] = 0.5
 
-default_cortex = surfaces.Cortex(load_default=True)
+default_cortex = surfaces.Cortex.from_file()
 default_cortex.local_connectivity = grey_matter
 default_cortex.coupling_strength = local_coupling_strength
 

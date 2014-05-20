@@ -374,7 +374,8 @@ class MetaType(abc.ABCMeta):
                 except Exception:
                     previous_value = None
 
-                if previous_value is None or str(previous_value) == "None" or isinstance(previous_value, Type):
+                if (previous_value is None or str(previous_value) == "None" or isinstance(previous_value, Type)
+                        or type(previous_value) != type(attr.trait.value)):
                     setattr(inst, name, deepcopy(attr.trait.value))
                 else:
                     LOG.debug("Ignored by traits default %s - %s" % (str(inst.__class__.__name__), name))
