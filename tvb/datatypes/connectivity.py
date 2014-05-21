@@ -63,7 +63,7 @@ class Connectivity(connectivity_scientific.ConnectivityScientific, connectivity_
     """
 
     @staticmethod
-    def from_file(source_file="connectivity_74.zip", instance=None):
+    def from_file(source_file, instance=None):
 
         if instance is None:
             result = Connectivity()
@@ -98,4 +98,8 @@ class Connectivity(connectivity_scientific.ConnectivityScientific, connectivity_
             result.tract_lengths = reader.read_array_from_file("tract_lengths.txt")
 
         return result
+
+    @classmethod
+    def default(cls):
+        return cls.from_file(source_file="connectivity_74.zip")
 
