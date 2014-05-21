@@ -85,6 +85,7 @@ KWARG_OPTIONS = 'options'               # Used for Enumerate basic type
 KWARG_STORAGE_PATH = 'storage_path'
 KWARS_USE_STORAGE = 'use_storage'
 KWARS_STORED_METADATA = 'stored_metadata'
+KWARGS_LOAD_DEFAULT = "load_default"
 
 FILE_STORAGE_DEFAULT = 'HDF5'
 FILE_STORAGE_EXPAND = 'expandable_HDF5'
@@ -94,7 +95,7 @@ SPECIAL_KWDS = ['bind',                 # set and used internally by the traitin
                 'doc', 'label', KWARG_REQUIRED, 'locked', 'default', 'range',
                 'configurable_noise', KWARG_OPTIONS, KWARS_STORED_METADATA,
                 KWARG_AVOID_SUBCLASSES, KWARG_FILTERS_UI, KWARG_SELECT_MULTIPLE, KWARG_ORDER,
-                KWARG_FILE_STORAGE, KWARS_USE_STORAGE]
+                KWARG_FILE_STORAGE, KWARS_USE_STORAGE, KWARGS_LOAD_DEFAULT]
 
 
 ## Module global used by MetaType.
@@ -298,7 +299,7 @@ class MetaType(abc.ABCMeta):
         return newcls
 
 
-    def __call__(ncs, *args, **kwds):
+    def __call__(cls, *args, **kwds):
         """
         MetaType.__call__ method wraps ncs.__init__(ncs.__new__(*, **), *, **),
         and is implicitly called when the class __init__()s.
@@ -321,11 +322,11 @@ class MetaType(abc.ABCMeta):
             if isinstance(value, MetaType):
                 value = value()
 
-        elif ncs.trait.wraps:
-            wrapped_callable = ncs.trait.wraps[0] if isinstance(ncs.trait.wraps, tuple) else ncs.trait.wraps
+        elif cls.trait.wraps:
+            wrapped_callable = cls.trait.wraps[0] if isinstance(cls.trait.wraps, tuple) else cls.trait.wraps
             # no args, and we have defaults
-            if ncs.trait.wraps_defaults:
-                _args, _kwds = ncs.trait.wraps_defaults
+            if cls.trait.wraps_defaults:
+                _args, _kwds = cls.trait.wraps_defaults
                 value = wrapped_callable(*_args, **_kwds)
             # else default constructor, no args
             else:
@@ -334,7 +335,7 @@ class MetaType(abc.ABCMeta):
             value = None
 
         kwdtraits = {}
-        for key in set(kwds.keys()) & set(ncs.trait.keys()):
+        for key in set(kwds.keys()) & set(cls.trait.keys()):
             kwdtraits[key] = kwds[key]
             del kwds[key]
 
@@ -343,58 +344,44 @@ class MetaType(abc.ABCMeta):
         # discard kwds to be passed for instantiation
         [kwds.pop(key, None) for key in SPECIAL_KWDS]
 
-        # instantiate trait, but catch bad args
+        ## 1. - Call __init__ to get a new instance (includes initialization of SqlAlchemy fields)
         try:
-            inst = super(MetaType, ncs).__call__(*args, **kwds)
-        except TypeError as exc:
+            inst = super(MetaType, cls).__call__(*args, **kwds)
+        except Exception:
             if not args and not kwds:
-                # then it's not because we haven't handled all args & kwds
-                raise exc
+                raise
             else:
-                msg = "couldn't create instance of %s with unhandled " % (ncs.__module__ + '.' + ncs.__name__, )
-                msg += "args, %s, " % (args,) if args else ""
-                kwd_advice = " to ignore this kwd, append %s.pop_kwds."
-                kwd_advice %= (MetaType.__module__ + '.' + MetaType.__name__, )
-                msg += ("kwds, %s." % (kwds,) + kwd_advice) if kwds else ""
+                msg = "Couldn't create instance of %s.%s with unhandled args: %s " % (cls.__module__, cls.__name__,
+                                                                                      str(args) if args else "")
+                LOG.exception(msg)
                 raise TypeError(msg)
 
-        # make copy of traits info before customizing
-        inst.trait = ncs.trait.copy()
-        # set all possible options if they were passed in trait instantiation
+        ## 2. - Populate default fields from Trait arguments:
+        inst.trait = cls.trait.copy()
         inst.trait.options = options
-        # set instance's value, inits dict and kwd passed trait values
-        inst.trait.value = deepcopy(value)  # if (value is not None) else inst
+        inst.trait.value = deepcopy(value)
         inst.trait.inits = inits
 
-        # Set Default attributes from traited class definition
         for name, attr in inst.trait.iteritems():
             try:
-                try:
-                    previous_value = getattr(inst, name)
-                except Exception:
-                    previous_value = None
+                setattr(inst, name, deepcopy(attr.trait.value))
+            except Exception:
+                LOG.exception("Could not set attribute '" + name + "' on " + str(inst.__class__.__name__))
+                raise
 
-                if (previous_value is None or str(previous_value) == "None" or isinstance(previous_value, Type)
-                        or type(previous_value) != type(attr.trait.value)):
-                    setattr(inst, name, deepcopy(attr.trait.value))
-                else:
-                    LOG.debug("Ignored by traits default %s - %s" % (str(inst.__class__.__name__), name))
+        ## 3. - Load console defaults, in case requested:
+        if KWARGS_LOAD_DEFAULT in inits.kwd and inits.kwd[KWARGS_LOAD_DEFAULT]:
+            cls.from_file(instance=inst)
 
-            except Exception, exc:
-                LOG.exception(exc)
-                LOG.error("Could not set attribute '" + name + "' on " + str(inst.__class__.__name__))
-                raise exc
-
-        # Overwrite with attributes passed in the constructor
+        ## 4. - Overwrite with **kwargs from constructor call:
         for name, attr in kwdtraits.iteritems():
             try:
                 setattr(inst, name, attr)
-            except Exception, exc:
-                LOG.exception(exc)
-                LOG.error("Could not set kw-given attribute '" + name + "' on " + str(inst.__class__.__name__))
-                raise exc
+            except Exception:
+                LOG.exception("Could not set kw-given attribute '" + name + "' on " + str(inst.__class__.__name__))
+                raise
 
-        # the owner class, if any, will set this to true, see metatype.__new__
+        # The owner class, if any, will set this to true, see metatype.__new__
         inst.trait.bound = False
         return inst
 

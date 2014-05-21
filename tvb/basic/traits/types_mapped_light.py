@@ -94,12 +94,9 @@ class MappedTypeLight(Type):
     logger = get_logger(__module__)
 
 
-    def __init__(self, load_default=False, **kwargs):
+    def __init__(self, **kwargs):
         super(MappedTypeLight, self).__init__(**kwargs)
         self._current_metadata = dict()
-
-        if load_default:
-            self.__class__.from_file(instance=self)
 
 
     @classmethod
