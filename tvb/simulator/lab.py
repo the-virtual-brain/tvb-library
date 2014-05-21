@@ -83,10 +83,9 @@ def timed(fn, t=time):
 
 
 # try to import plotting tools and matplotlib
-if 'DISPLAY' in os.environ:
-    try:
-        from tvb.simulator.plot.tools import *
-        from matplotlib.pyplot import *
-    except ImportError as exc:
-        LOG.warning("Plotting tools will not be available: %s:", exc)
+try:
+    from tvb.simulator.plot.tools import *
+    from matplotlib.pyplot import *
+except ImportError as exc:
+    LOG.warning("Plotting tools will not be available: %s:", exc)
 
