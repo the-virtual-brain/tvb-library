@@ -48,12 +48,14 @@ except ImportError:
     IMPORTED_PARAMETERS = False
     LOG.error("You need the parameters module")
 
+
+
 def generic_2d_oscillator_pars(these_dynamics="Reproduce_Knock_2009"):
 	""" 
 	input:
 	------
 
-	      dynamics_label: the label of the ParameterSet defining the local dynamics.
+	      these_dynamics      : the key of the parameter configuration to retrieve.
 	output:
 	------ 
 
@@ -66,8 +68,8 @@ def generic_2d_oscillator_pars(these_dynamics="Reproduce_Knock_2009"):
 	sim_params    = ParameterSet({'dt': 2**-6, 'simulation_length': 2**10})
 
 	knock_pars    = ParameterSet({'a': 1.05, 'b': -1., 'c':0.0, 'd':0.1, 'e':0.0, 'f':1/3., 
-	                           'g':1.0, 'alpha':1.0, 'beta':0.2, 'tau':1.25, 'gamma':-1.0}, 
-	                            label='fixed_point')
+	                              'g':1.0, 'alpha':1.0, 'beta':0.2, 'tau':1.25, 'gamma':-1.0}, 
+	                               label='fixed_point')
 
 
 	sanzleon_pars = ParameterSet({'a': -0.5, 'b': -10., 'c':0.0, 'd':0.02, 'e':3.0, 'f':1., 
@@ -75,10 +77,12 @@ def generic_2d_oscillator_pars(these_dynamics="Reproduce_Knock_2009"):
 		                           label='fixed_point')
 
 
-	dynamics_collection = ParameterSet({'Reproduce_Knock_2009': knock_pars, 'Reproduce_SanzLeon_2013': sanzleon_pars})
+	dynamics_collection = ParameterSet({'Reproduce_Knock_2009': knock_pars, 
+		                                'Reproduce_SanzLeon_2013': sanzleon_pars})
 
 	
-	these_parameters    = ParameterSet({'sim_params': sim_params, 'model_params': dynamics_collection[these_dynamics]}, label=these_dynamics)
+	these_parameters    = ParameterSet({'sim_params': sim_params, 
+		                                'model_params': dynamics_collection[these_dynamics]}, label=these_dynamics)
 
 	return these_parameters
 
