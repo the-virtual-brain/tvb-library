@@ -75,8 +75,10 @@ class Surface(surfaces_scientific.SurfaceScientific, surfaces_framework.SurfaceF
     """
 
     @classmethod
-    def from_file(cls, source_file, instance=None):
-        "Construct a Surface from `source_file`"
+    def from_file(cls, source_file=os.path.join("cortex_reg13", "surface_cortex_reg13.zip"), instance=None):
+        """
+        Construct a Surface from source_file.
+        """
 
         if instance is None:
             result = cls()
@@ -92,10 +94,11 @@ class Surface(surfaces_scientific.SurfaceScientific, surfaces_framework.SurfaceF
 
         return result
 
+
     @classmethod
     def default(cls):
         "Construct a Surface from the default cortex surface"
-        return cls.from_file(source_file=os.path.join("cortex_reg13", "surface_cortex_reg13.zip"))
+        return cls.from_file()
 
 
     def configure(self):
