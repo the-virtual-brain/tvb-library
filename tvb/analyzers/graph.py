@@ -12,6 +12,7 @@ Useful graph analyses.
 import numpy
 import networkx
 
+
 def betweenness_bin(A):
     """
 
@@ -327,3 +328,105 @@ def sequential_random_deletion(white_matter, random_sequence, nor):
             largest_component[i] = get_components_sizes(temp_degree)
             
     return node_strength, node_degree, global_efficieny, largest_component
+
+def sequential_targeted_deletion(white_matter, nor):
+    """
+    
+    A strategy to lesion a connectivity matrix.
+    
+    A single node is removed at each step until the network is reduced to only 2
+    nodes. At each step different graph metrics are computed (degree, strength and
+    betweenness centrality). The single node with the highest degree, strength or 
+    centrality is removed.
+    
+    
+    
+    Parameters
+    ----------
+    
+    white_matter: tvb Connectivity datatype (yes, it's an example for TVB!)
+                  a connectivity datatype that has a 'weights' attribute.
+                  
+    nor         : int 
+                  number of nodes of the original connectivity matrix.
+                     
+    Returns
+    -------
+    
+    Node strength          (number_of_nodes, number_of_nodes -2) array
+    Node degree            (number_of_nodes, number_of_nodes -2) array
+    Betweenness centrality (number_of_nodes, number_of_nodes -2) array
+    Global efficiency      (number_of_nodes, 3) array
+    Size of the largest component (number_of_nodes, 3) array
+    
+    
+    See Also
+    --------
+    sequential_random_deletion, localized_area_deletion
+    
+    
+    
+    References
+    ----------
+    
+    .. [1] Alstott et al. (2009).
+    
+    
+    .. author:: Paula Sanz Leon
+    
+    """
+
+    node_strength = numpy.zeros((nor, nor-2))
+    node_degree   = numpy.zeros((nor, nor-2))
+    node_betweenness_centrality   = numpy.zeros((nor, nor-2))
+    global_efficiency = numpy.zeros((nor-2, 3))
+    largest_component = numpy.zeros((nor-2, 3))
+    temp_strength = white_matter.weights.copy()
+    temp_degree   = white_matter.weights.copy()
+    temp_bc       = white_matter.weights.copy()
+    temp_degree[temp_degree > 0.0] = 1.0
+
+    for idx in range(nor-2):
+        
+        
+            # strength
+            in_strength     =  temp_strength.sum(axis=1)  
+            out_strength    =  temp_strength.sum(axis=0)
+            node_strength[:, idx]   =  in_strength + out_strength
+        
+            # degree
+            in_degree       =  temp_degree.sum(axis=1) 
+            out_degree      =  temp_degree.sum(axis=0)
+            node_degree[:, idx]     =  in_degree + out_degree
+            
+            # betweeness centrality
+            
+            node_betweenness_centrality[:, idx] =  betweenness_bin(temp_bc)
+            
+            # define target index
+            sorted_strength_indices    = numpy.argsort(node_strength[:, idx])
+            sorted_degree_indices      = numpy.argsort(node_degree[:, idx])
+            sorted_bc_indices          = numpy.argsort(node_betweenness_centrality[:, idx])
+            
+            # lesion
+            temp_strength[sorted_strength_indices[-1], :] = 0.0
+            temp_strength[:, sorted_strength_indices[-1]] = 0.0
+
+            temp_degree[sorted_degree_indices[-1], :] = 0.0
+            temp_degree[:, sorted_degree_indices[-1]] = 0.0
+            
+            temp_bc[sorted_bc_indices[-1], :] = 0.0
+            temp_bc[:, sorted_bc_indices[-1]] = 0.0
+            
+            # global efficiency (BU)
+            global_efficiency[idx, 0] = efficiency_bin(temp_strength) # compute the global eff of the binary version of this matrix
+            global_efficiency[idx, 1] = efficiency_bin(temp_degree)
+            global_efficiency[idx, 2] = efficiency_bin(temp_bc)
+        
+            # largest connected component (BU)
+            largest_component[idx, 0] = get_components_sizes(temp_strength)
+            largest_component[idx, 1] = get_components_sizes(temp_degree)
+            largest_component[idx, 2] = get_components_sizes(temp_bc)
+            
+    return node_strength, node_degree, node_betweenness_centrality, global_efficiency, largest_component
+
