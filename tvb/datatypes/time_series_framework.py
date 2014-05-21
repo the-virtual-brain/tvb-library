@@ -293,9 +293,19 @@ class TimeSeriesRegionFramework(time_series_data.TimeSeriesRegionData, TimeSerie
         else:
             return super(TimeSeriesRegionFramework, self).get_measure_points_selection_gid()
 
+
 class TimeSeriesSurfaceFramework(time_series_data.TimeSeriesSurfaceData, TimeSeriesFramework):
     """ This class exists to add framework methods to TimeSeriesSurfaceData. """
-    pass
+    SELECTION_LIMIT = 200
+
+    def get_grouped_space_labels(self):
+        """
+        Return only the first 1000 vertices
+        """
+        return [('', list(enumerate(self.get_space_labels()[:self.SELECTION_LIMIT])))]
+
+    def get_default_selection(self):
+        return range(len(self.get_space_labels()[:self.SELECTION_LIMIT]))
 
 
 
