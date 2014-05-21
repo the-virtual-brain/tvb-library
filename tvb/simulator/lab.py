@@ -41,6 +41,7 @@ import pdb
 from time import time
 from numpy import * # for load & save not available in pylab
 import numpy as np
+import numpy
 
 from tvb.basic.profile import TvbProfile
 TvbProfile.set_profile(["-profile", "LIBRARY_PROFILE"], try_reload=False)
