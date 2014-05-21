@@ -526,8 +526,8 @@ class Simulator(core.Type):
             ic_shape = initial_conditions.shape
             if ic_shape[1:] != self.good_history_shape[1:]:
                 msg = "%s: bad initial_conditions[1:] shape %s, should be %s"
-                LOG.error(msg % (str(self), str(ic_shape[1:]), 
-                                 str(self.good_history_shape[1:])))
+                msg %= self, ic_shape[1:], self.good_history_shape[1:]
+                raise ValueError(msg)
             else:
                 if ic_shape[0] >= self.horizon:
                     msg = "%s: Using last %s time-steps for history."
