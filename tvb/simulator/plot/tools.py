@@ -307,6 +307,75 @@ def show_me_the_colours():
         ax.text(0.05, 0.5, colours[k])
 
 
+
+def plot_matrix(mat, fig_name='plot_this_matrix', connectivity=None, binary_matrix=False):
+    """
+    An embellished matshow display
+    """
+    #NOTE: I could add more stuff in plot_connectivity, but I rather have
+    # a dummy function for displaying a pretty matrix with the 
+    # value of each element.
+
+    from matplotlib import colors
+
+    fig, ax = pyplot.subplots(num=fig_name, figsize=(12,10))
+
+
+    if binary_matrix:
+        cmap = colors.ListedColormap(['black', 'white'])
+        bounds=[0,1,2]
+        norm = colors.BoundaryNorm(bounds, cmap.N)
+
+        p = ax.pcolormesh(mat, cmap=cmap, norm=norm, edgecolors='k')
+        ax.invert_yaxis()
+        cbar = fig.colorbar(p, cmap=cmap, norm=norm, boundaries=bounds, ticks=[0.5, 1.5])
+        cbar.ax.set_yticklabels(['no connections', 'connections'], fontsize=24)
+
+    else:
+        fig = pyplot.figure(num=fig_name)
+        ax = fig.gca()
+        res = ax.imshow(mat, cmap=pyplot.cm.coolwarm, interpolation='nearest')
+        fig.colorbar(res)
+
+    if connectivity is not None:
+        order = numpy.arange(connectivity.number_of_regions)
+        labels = connectivity.region_labels
+        pyplot.xticks(numpy.arange(connectivity.number_of_regions)+0.5, list(labels[order]), fontsize=10, rotation=90)
+        pyplot.yticks(numpy.arange(connectivity.number_of_regions)+0.5, list(labels[order]), fontsize=10)
+    
+    width  = mat.shape[0]
+    height = mat.shape[1]
+
+    # for x in xrange(width):
+    #     for y in xrange(height):
+    #         ax.annotate(str(int(mat[x][y])),
+    #                     xy=(y, x),
+    #                     horizontalalignment='center',
+    #                     verticalalignment  = 'center',
+    #                     fontsize=10)
+
+
+
+def plot_3d_centres(xyz):
+
+        import matplotlib as mpl
+        from mpl_toolkits.mplot3d import Axes3D
+        import matplotlib.pyplot as plt
+
+
+        fig = plt.figure(1)
+        fig.clf()
+        ax = Axes3D(fig)
+        ax.plot(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', alpha=0.6)
+        ax.set_xlim([min(xyz[:, 0]), max(xyz[:, 0])])
+        ax.set_ylim([min(xyz[:, 1]), max(xyz[:, 1])])
+        ax.set_zlim([min(xyz[:, 2]), max(xyz[:, 2])])
+        ax.set_xlabel('x [mm]')
+        ax.set_ylabel('y [mm]')
+        ax.set_zlabel('z [mm]')
+
+
+
 def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
                         cmap=pyplot.cm.RdBu_r, colourbar=True,
                         color_anchor=None, node_labels=None, x_tick_rot=0, 
@@ -943,58 +1012,6 @@ if IMPORTED_MAYAVI:
 
 
         #--------------------------------------------------------------------------#
-
-
-    ##----------------------------------------------------------------------------##
-    ##-                    plotting functions for analysis output                -##
-    ##----------------------------------------------------------------------------##
-
-def plot_matrix(mat, fig_name='plot_this_matrix', connectivity=None, binary_matrix=False):
-    """
-    An embellished matshow display
-    """
-    #NOTE: I could add more stuff in plot_connectivity, but I rather have
-    # a dummy function for displaying a pretty matrix with the 
-    # value of each element.
-
-    from matplotlib import colors
-
-    fig, ax = pyplot.subplots(num=fig_name, figsize=(12,10))
-
-
-    if binary_matrix:
-        cmap = colors.ListedColormap(['black', 'white'])
-        bounds=[0,1,2]
-        norm = colors.BoundaryNorm(bounds, cmap.N)
-
-        p = ax.pcolormesh(mat, cmap=cmap, norm=norm, edgecolors='k')
-        ax.invert_yaxis()
-        cbar = fig.colorbar(p, cmap=cmap, norm=norm, boundaries=bounds, ticks=[0.5, 1.5])
-        cbar.ax.set_yticklabels(['no connections', 'connections'], fontsize=24)
-
-    else:
-        fig = pyplot.figure(num=fig_name)
-        ax = fig.gca()
-        res = ax.imshow(mat, cmap=pyplot.cm.coolwarm, interpolation='nearest')
-        fig.colorbar(res)
-
-    if connectivity is not None:
-        order = numpy.arange(connectivity.number_of_regions)
-        labels = connectivity.region_labels
-        pyplot.xticks(numpy.arange(connectivity.number_of_regions)+0.5, list(labels[order]), fontsize=10, rotation=90)
-        pyplot.yticks(numpy.arange(connectivity.number_of_regions)+0.5, list(labels[order]), fontsize=10)
-    
-    width  = mat.shape[0]
-    height = mat.shape[1]
-
-    # for x in xrange(width):
-    #     for y in xrange(height):
-    #         ax.annotate(str(int(mat[x][y])),
-    #                     xy=(y, x),
-    #                     horizontalalignment='center',
-    #                     verticalalignment  = 'center',
-    #                     fontsize=10)
-
 
 if __name__ == '__main__':
     # Do some stuff that tests or makes use of this module... 
