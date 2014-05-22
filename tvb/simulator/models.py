@@ -516,14 +516,15 @@ class WilsonCowan(Model):
 
     .. automethod:: WilsonCowan.__init__
 
-    Dynamic equations:
+    The general formulation for the \textit{\textbf{Wilson-Cowan}} model as a 
+    dynamical unit at a node $k$ in a BNM with $l$ nodes reads:
 
     .. math::
-            \tau \dot{x}(t) &= -z(t) + \phi(z(t)) \\
-            \phi(x) &= \frac{c}{1-exp(-a (x-b))}
+            \dot{E}_k &= \dfrac{1}{\tau_e} (-E_k  + (k_e - r_e E_k) \mathcal{S}_e (\alpha_e \left( c_{ee} E_k - c_{ei} I_k  + P_k - \theta_e + \mathbf{\Gamma}(E_k, E_j, u_{kj}) + W_{\zeta}\cdot E_j + W_{\zeta}\cdot I_j\right) ))\\
+            \dot{I}_k &= \dfrac{1}{\tau_i} (-I_k  + (k_i - r_i I_k) \mathcal{S}_i (\alpha_i \left( c_{ie} E_k - c_{ee} I_k  + Q_k - \theta_i + \mathbf{\Gamma}(E_k, E_j, u_{kj}) + W_{\zeta}\cdot E_j + W_{\zeta}\cdot I_j\right) )),
 
     """
-    _ui_name = "Wilson-Cowan model"
+    _ui_name = "Wilson-Cowan"
     ui_configurable_parameters = ['c_ee', 'c_ei', 'c_ie', 'c_ii', 'tau_e', 'tau_i',
                                   'a_e', 'b_e', 'c_e', 'a_i', 'b_i', 'c_i', 'r_e',
                                   'r_i', 'k_e', 'k_i', 'P', 'Q', 'theta_e', 'theta_i',
@@ -852,21 +853,22 @@ class ReducedSetFitzHughNagumo(Model):
 
     .. automethod:: ReducedSetFitzHughNagumo.__init__
 
-    Dynamic equations:
+    The system's equations for the i-th mode at node q are:
 
     .. math::
-        \dot{\xi}_i &=
-            c\left(\xi_i-e_i\frac{\xi_i^3}{3}-\eta_i\right) +
-            K_{11}\left[\sum_{k=1}^{3} A_{ik}\xi_k-\xi_i\right] -
-            K_{12}\left[\sum_{k=1}^{3} B_{ik}\alpha_k-\xi_i\right] +
-            cIE_i \\
-        \dot{\eta}_i &=
-            \frac{1}{c}\left(\xi_i-b\eta_i+m_i\right) \\
-        \dot{\alpha}_i &=
-            c\left(\alpha_i-f_i\frac{\alpha_i^3}{3}-\beta_i\right) +
-            K_{21}\left[\sum_{k=1}^{3} C_{ik}\xi_i-\alpha_i\right] +
-            cII_i \\
-        \dot{\beta}_i &= \frac{1}{c}\left(\alpha_i-b\beta_i+n_i\right)
+                \dot{\xi}_{i}    &=  c\left(\xi_i-e_i\frac{\xi_{i}^3}{3} -\eta_{i}\right) 
+                                  + K_{11}\left[\sum_{k=1}^{o} A_{ik}\xi_k-\xi_i\right] 
+                                  - K_{12}\left[\sum_{k =1}^{o} B_{i k}\alpha_k-\xi_i\right] + cIE_i                       \\ 
+                                 &\, + \left[\sum_{k=1}^{o} \mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right] 
+                                  +  \left[\sum_{k=1}^{o} W_{\zeta}\cdot\xi_{kr} \right],                            \\
+                \dot{\eta}_i     &= \frac{1}{c}\left(\xi_i-b\eta_i+m_i\right),                                              \\
+                &                                                                                                \\ 
+                \dot{\alpha}_i   &= c\left(\alpha_i-f_i\frac{\alpha_i^3}{3}-\beta_i\right) 
+                                  + K_{21}\left[\sum_{k=1}^{o} C_{ik}\xi_i-\alpha_i\right] + cII_i                          \\
+                                 & \, + \left[\sum_{k=1}^{o} \mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right] 
+                                  + \left[\sum_{k=1}^{o} W_{\zeta}\cdot\xi_{kr}\right],                          \\
+                                 &                                                                               \\ 
+                \dot{\beta}_i    &= \frac{1}{c}\left(\alpha_i-b\beta_i+n_i\right),
 
     .. automethod:: ReducedSetFitzHughNagumo.update_derived_parameters
 
@@ -1044,19 +1046,23 @@ class ReducedSetFitzHughNagumo(Model):
     def dfun(self, state_variables, coupling, local_coupling=0.0):
         r"""
 
+
+        The system's equations for the i-th mode at node q are:
+
         .. math::
-            \dot{\xi}_i &=
-                c\left(\xi_i-e_i\frac{\xi_i^3}{3}-\eta_i\right) +
-                K_{11}\left[\sum_{k=1}^{3} A_{ik}\xi_k-\xi_i\right] -
-                K_{12}\left[\sum_{k=1}^{3} B_{ik}\alpha_k-\xi_i\right] +
-                cIE_i \\
-            \dot{\eta}_i &=
-                \frac{1}{c}\left(\xi_i-b\eta_i+m_i\right) \\
-            \dot{\alpha}_i &=
-                c\left(\alpha_i-f_i\frac{\alpha_i^3}{3}-\beta_i\right) +
-                K_{21}\left[\sum_{k=1}^{3} C_{ik}\xi_i-\alpha_i\right] +
-                cII_i \\
-            \dot{\beta}_i &= \frac{1}{c}\left(\alpha_i-b\beta_i+n_i\right)
+                \dot{\xi}_{i}    &=  c\left(\xi_i-e_i\frac{\xi_{i}^3}{3} -\eta_{i}\right) 
+                                  + K_{11}\left[\sum_{k=1}^{o} A_{ik}\xi_k-\xi_i\right] 
+                                  - K_{12}\left[\sum_{k =1}^{o} B_{i k}\alpha_k-\xi_i\right] + cIE_i                       \\ 
+                                 &\, + \left[\sum_{k=1}^{o} \mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right] 
+                                  +  \left[\sum_{k=1}^{o} W_{\zeta}\cdot\xi_{kr} \right],                            \\
+                \dot{\eta}_i     &= \frac{1}{c}\left(\xi_i-b\eta_i+m_i\right),                                              \\
+                &                                                                                                \\ 
+                \dot{\alpha}_i   &= c\left(\alpha_i-f_i\frac{\alpha_i^3}{3}-\beta_i\right) 
+                                  + K_{21}\left[\sum_{k=1}^{o} C_{ik}\xi_i-\alpha_i\right] + cII_i                          \\
+                                 & \, + \left[\sum_{k=1}^{o} \mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right] 
+                                  + \left[\sum_{k=1}^{o} W_{\zeta}\cdot\xi_{kr}\right],                          \\
+                                 &                                                                               \\ 
+                \dot{\beta}_i    &= \frac{1}{c}\left(\alpha_i-b\beta_i+n_i\right),
 
         """
 
@@ -1274,21 +1280,28 @@ class ReducedSetHindmarshRose(Model):
 
     .. automethod:: ReducedSetHindmarshRose.__init__
 
-    The dynamic equations were taken from [SJ_2008]_, ...
+    The dynamic equations were orginally taken from [SJ_2008]_.
+
+    The equations of the population model for i-th mode at node q are:
 
     .. math::
-        \dot{\xi}_i &= \eta_i - a_i\xi_i^3 + b_i\xi_i^2 -
-                         \tau_i + K_{11} \left[\sum_{k=1}^{3} A_{ik} \xi_k -
-                         \xi_i \right] - K_{12} \left[\sum_{k=1}^{3} B_{ik} \alpha_k -
-                         \xi_i\right] + IE_i \\
-        \dot{\eta}_i &= c_i-d_i\xi_i^2-\eta_i \\
-        \dot{\tau}_i &= rs\xi_i-r\tau_i-m_i \\
-        \dot{\alpha}_i &= \beta_i - e_i \alpha_i^3 +
-                            f_i \alpha_i^2 - \gamma_i +
-                            K_{21} \left[\sum_{k=1}^{3} C_{ik} \xi_k -
-                            \alpha_i \right] + II_i \\
-        \dot{\beta}_i &= h_i - p_i \alpha_i^2 - \beta_i \\
-        \dot{\gamma}_i &= rs \alpha_i - r \gamma_i - n_i
+                \dot{\xi}_i     &=  \eta_i-a_i\xi_i^3 + b_i\xi_i^2- \tau_i                                         
+                                 + K_{11} \left[\sum_{k=1}^{o} A_{ik} \xi_k - \xi_i \right]
+                                 - K_{12} \left[\sum_{k=1}^{o} B_{ik} \alpha_k - \xi_i\right] + IE_i                \\
+                                &\, + \left[\sum_{k=1}^{o} \mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right]
+                                 + \left[\sum_{k=1}^{o} W_{\zeta}\cdot\xi_{kr} \right],                     \\
+                                &                                                                         \\ 
+                \dot{\eta}_i    &=  c_i-d_i\xi_i^2 -\tau_i,                                                         \\
+                %
+                \dot{\tau}_i    &=  rs\xi_i - r\tau_i -m_i,                                                         \\
+                %
+                \dot{\alpha}_i  &=  \beta_i - e_i \alpha_i^3 + f_i \alpha_i^2 - \gamma_i 
+                                 + K_{21} \left[\sum_{k=1}^{o} C_{ik} \xi_k - \alpha_i \right] + II_i               \\
+                                &\, +\left[\sum_{k=1}^{o}\mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right]             
+                                 + \left[\sum_{k=1}^{o}W_{\zeta}\cdot\xi_{kr}\right],                    \\
+                                &                                                                         \\                     
+                \dot{\beta}_i   &= h_i - p_i \alpha_i^2 - \beta_i,                                                   \\
+                \dot{\gamma}_i  &= rs \alpha_i - r \gamma_i - n_i,
 
     .. automethod:: ReducedSetHindmarshRose.update_derived_parameters
 
@@ -1504,21 +1517,26 @@ class ReducedSetHindmarshRose(Model):
 
     def dfun(self, state_variables, coupling, local_coupling=0.0):
         r"""
-        The dynamic equations were taken from [SJ_2008]_, ...
+        The equations of the population model for i-th mode at node q are:
 
         .. math::
-            \dot{\xi}_i &= \eta_i - a_i\xi_i^3 + b_i\xi_i^2 -
-                             \tau_i + K_{11} \left[\sum_{k=1}^{3} A_{ik} \xi_k -
-                             \xi_i \right] - K_{12} \left[\sum_{k=1}^{3} B_{ik} \alpha_k -
-                             \xi_i\right] + IE_i \\
-            \dot{\eta}_i &= c_i-d_i\xi_i^2-\eta_i \\
-            \dot{\tau}_i &= rs\xi_i-r\tau_i-m_i \\
-            \dot{\alpha}_i &= \beta_i - e_i \alpha_i^3 +
-                                f_i \alpha_i^2 - \gamma_i +
-                                K_{21} \left[\sum_{k=1}^{3} C_{ik} \xi_k -
-                                \alpha_i \right] + II_i \\
-            \dot{\beta}_i &= h_i - p_i \alpha_i^2 - \beta_i \\
-            \dot{\gamma}_i &= rs \alpha_i - r \gamma_i - n_i
+                \dot{\xi}_i     &=  \eta_i-a_i\xi_i^3 + b_i\xi_i^2- \tau_i                                         
+                                 + K_{11} \left[\sum_{k=1}^{o} A_{ik} \xi_k - \xi_i \right]
+                                 - K_{12} \left[\sum_{k=1}^{o} B_{ik} \alpha_k - \xi_i\right] + IE_i                \\
+                                &\, + \left[\sum_{k=1}^{o} \mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right]
+                                 + \left[\sum_{k=1}^{o} W_{\zeta}\cdot\xi_{kr} \right],                     \\
+                                &                                                                         \\ 
+                \dot{\eta}_i    &=  c_i-d_i\xi_i^2 -\tau_i,                                                         \\
+                %
+                \dot{\tau}_i    &=  rs\xi_i - r\tau_i -m_i,                                                         \\
+                %
+                \dot{\alpha}_i  &=  \beta_i - e_i \alpha_i^3 + f_i \alpha_i^2 - \gamma_i 
+                                 + K_{21} \left[\sum_{k=1}^{o} C_{ik} \xi_k - \alpha_i \right] + II_i               \\
+                                &\, +\left[\sum_{k=1}^{o}\mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right]             
+                                 + \left[\sum_{k=1}^{o}W_{\zeta}\cdot\xi_{kr}\right],                    \\
+                                &                                                                         \\                     
+                \dot{\beta}_i   &= h_i - p_i \alpha_i^2 - \beta_i,                                                   \\
+                \dot{\gamma}_i  &= rs \alpha_i - r \gamma_i - n_i,
 
         """
 
@@ -2181,7 +2199,7 @@ class ZetterbergJansen(Model):
 
     """
 
-    _ui_name = "ZetterbergJansen"
+    _ui_name = "Zetterberg-Jansen"
     ui_configurable_parameters = ['He', 'Hi', 'ke', 'ki', 'e0', 'rho_2', 'rho_1', 'gamma_1',
                                   'gamma_2', 'gamma_3', 'gamma_4', 'gamma_5', 'P', 'U', 'Q']
 
@@ -2479,14 +2497,13 @@ class Generic2dOscillator(Model):
     cubic function as it is found in most neuron and population models; the
     second nullcline is arbitrarily configurable as a polynomial function up to
     second order. The manipulation of the latter nullcline's parameters allows
-    to generate a wide range of different behaviors.
+    to generate a wide range of different behaviours.
 
     Equations:
 
     .. math::
-            \dot{V} &= \tau (\alpha W - V^3 +3 V^2 + I) \\
-            \dot{W} &= (a\, + b\, V + c\, V^2 - \, beta W) / \tau
-
+                \dot{V} &= d \, \tau (-f V^3 + e V^2 + g V + \alpha W + \gamma I), \\
+                \dot{W} &= \dfrac{d}{\tau}\,\,(c V^2 + b V - \beta W + a),
     See:
 
 
@@ -2818,13 +2835,11 @@ class Generic2dOscillator(Model):
         If there is a time scale hierarchy, then typically :math:`V` is faster
         than :math:`W` corresponding to a value of :math:`\tau` greater than 1.
 
-        #TODO: update equations
-
         The equations of the generic 2D population model read
 
         .. math::
-            \dot{V} &= \tau (\alpha W - V^3 +3 V^2 + I) \\
-            \dot{W} &= (a\, + b\, V + c\, V^2 - \, beta W) / \tau
+                \dot{V} &= d \, \tau (-f V^3 + e V^2 + g V + \alpha W + \gamma I), \\
+                \dot{W} &= \dfrac{d}{\tau}\,\,(c V^2 + b V - \beta W + a),
 
         where external currents :math:`I` provide the entry point for local,
         long-range connectivity and stimulation.
@@ -3030,17 +3045,17 @@ class LarterBreakspear(Model):
 
     NOTES about parameters
 
-    d_V
-    For d_V < 0.55, uncoupled network, the system exhibits fixed point dynamics;
-    for 55 < lb.d_V < 0.59, limit cycle attractors;
-    and for d_V > 0.59 chaotic attractors (eg, d_V=0.6,aee=0.5,aie=0.5, gNa=0, Iext=0.165)
+    :math:`\delta_V` : for :math:`\delta_V` < 0.55, in an uncoupled network, 
+    the system exhibits fixed point dynamics; for 0.55 < :math:`\delta_V` < 0.59, 
+    limit cycle attractors; and for :math:`\delta_V` > 0.59 chaotic attractors 
+    (eg, d_V=0.6,aee=0.5,aie=0.5, gNa=0, Iext=0.165)
 
-    d_Z
+    :math:`\delta_Z`
     this parameter might be spatialized: ones(N,1).*0.65 + modn*(rand(N,1)-0.5);
 
-    C
-    The long-range coupling 'C' is ‘weak’ in the sense that
-    they investigated parameter values for which C < a_ee and C << a_ie.
+    :math:`C`
+    The long-range coupling :math:`\delta_C` is ‘weak’ in the sense that
+    the model is well behaved for parameter values for which C < a_ee and C << a_ie.
 
 
 
@@ -3054,17 +3069,16 @@ class LarterBreakspear(Model):
     Dynamic equations:
 
     .. math::
-         \dot{V} &= - (g_{Ca} + (1 - C) \, r_{NMDA} \, a_{ee} Q_V^i +
-        C \, r_{NMDA} \, a_{ee} \langle Q_V \rangle) \, m_{Ca} \,(V - V_{Ca})
-        - g_K\, W\, (V - V_K) - g_L\, (V - V_L)
-        - (g_{Na} m_{Na} + (1 - C) \, a_{ee} Q_V^i +
-        C \, a_{ee} \langle Q_V \rangle) \, (V - V_{Na})
-        - a_{ie}\, Z \, Q_Z^i + a_{ne} \, I_{\delta} \\
-
-        \dot{W} &= \frac{\phi \, (m_K - W)}{\tau_K} \\
-        \dot{Z} &= b \, (a_{ni} \, I_{\delta} + a_{ei} \, V \, Q_V)\\
-
-        m_{ion}(X) &= 0.5 \, (1 + tanh(\frac{V-T_{ion}}{\delta_{ion}})
+            \dot{V}_k & = - (g_{Ca} + (1 - C) \, r_{NMDA} \, a_{ee} \, Q_V + C \, r_{NMDA} \, a_{ee} \, \langle Q_V\rangle^{k}) \, m_{Ca} \, (V - VCa) \\ 
+                           & \,\,- g_K \, W \, (V - VK) -  g_L \, (V - VL) \\ 
+                           & \,\,- (g_{Na} \, m_{Na} + (1 - C) \, a_{ee} \, Q_V + C \, a_{ee} \, \langle Q_V\rangle^{k}) \,(V - VNa) \\ 
+                           & \,\,- a_{ei} \, Z \, Q_Z + a_{ne} \, I, \\ 
+                           & \\        
+            \dot{W}_k & = \phi \, \dfrac{m_K - W}{\tau_{K}},\\ 
+                           & \nonumber\\
+            \dot{Z}_k &= b (a_{ni}\, I + a_{ei}\,V\,Q_V),\\
+            Q_{V}   &= Q_{V_{max}} \, (1 + \tanh\left(\dfrac{V_{k} - VT}{\delta_{V}}\right)),\\
+            Q_{Z}   &= Q_{Z_{max}} \, (1 + \tanh\left(\dfrac{Z_{k} - ZT}{\delta_{Z}}\right)),
 
         See Equations (7), (3), (6) and (2) respectively in [Breaksetal_2003_a]_.
         Pag: 705-706
@@ -3314,22 +3328,20 @@ class LarterBreakspear(Model):
 
 
     def dfun(self, state_variables, coupling, local_coupling=0.0):
-        """
+        r"""
+        Dynamic equations:
+
         .. math::
-             \dot{V} &= - (g_{Ca} + (1 - C) \, r_{NMDA} \, a_{ee} Q_V^i +
-            C \, r_{NMDA} \, a_{ee} \langle Q_V \rangle) \, m_{Ca} \,(V - V_{Ca})
-            - g_K\, W\, (V - V_K) - g_L\, (V - V_L)
-            - (g_{Na} m_{Na} + (1 - C) \, a_{ee} Q_V^i +
-            C \, a_{ee} \langle Q_V \rangle) \, (V - V_{Na})
-            - a_{ie}\, Z \, Q_Z^i + a_{ne} \, I_{\delta} \\
-
-            \dot{W} &= \frac{\phi \, (m_K - W)}{\tau_K} \\
-            \dot{Z} &= b \, (a_{ni} \, I_{\delta} + a_{ei} \, V \, Q_V)\\
-
-            m_{ion}(X) &= 0.5 \, (1 + tanh(\frac{V-T_{ion}}{\delta_{ion}})
-
-        See Equations (7), (3), (6) and (2) respectively in [Breaksetal_2003_a]_.
-        Pag: 705-706
+            \dot{V}_k & = - (g_{Ca} + (1 - C) \, r_{NMDA} \, a_{ee} \, Q_V + C \, r_{NMDA} \, a_{ee} \, \langle Q_V\rangle^{k}) \, m_{Ca} \, (V - VCa) \\ 
+                           & \,\,- g_K \, W \, (V - VK) -  g_L \, (V - VL) \\ 
+                           & \,\,- (g_{Na} \, m_{Na} + (1 - C) \, a_{ee} \, Q_V + C \, a_{ee} \, \langle Q_V\rangle^{k}) \,(V - VNa) \\ 
+                           & \,\,- a_{ei} \, Z \, Q_Z + a_{ne} \, I, \\ 
+                           & \\        
+            \dot{W}_k & = \phi \, \dfrac{m_K - W}{\tau_{K}},\\ 
+                           & \nonumber\\
+            \dot{Z}_k &= b (a_{ni}\, I + a_{ei}\,V\,Q_V),\\
+            Q_{V}   &= Q_{V_{max}} \, (1 + \tanh\left(\dfrac{V_{k} - VT}{\delta_{V}}\right)),\\
+            Q_{Z}   &= Q_{Z_{max}} \, (1 + \tanh\left(\dfrac{Z_{k} - ZT}{\delta_{Z}}\right)),
 
         """
         V = state_variables[0, :]
@@ -3381,9 +3393,9 @@ class ReducedWongWang(Model):
     Equations taken from [DPA_2013]_ , page 11242
 
     .. math::
-            \frac{dS}{dt} &= -\frac{S}{\tau_s} + (1- S) \, H \, \gamma \\
-            H(x) &= \frac{ax - b}{1 - \exp(-d(ax -b))} \\
-            x &= wJ_{N}S + I_o + J_N c_0 + J_N lc_0
+                 x_k       &=   w\,J_N \, S_k + I_o + J_N \mathbf\Gamma(S_k, S_j, u_{kj}),\\
+                 H(x_k)    &=  \dfrac{ax_k - b}{1 - \exp(-d(ax_k -b))},\\
+                 \dot{S}_k &= -\dfrac{S_k}{\tau_s} + (1 - S_k) \, H(x_k) \, \gamma 
 
     """
     _ui_name = "Reduced Wong-Wang"
@@ -3503,9 +3515,9 @@ class ReducedWongWang(Model):
         Equations taken from [DPA_2013]_ , page 11242
 
         .. math::
-                \frac{dS}{dt} &= -\frac{S}{\tau_s} + (1- S) \, H \, \gamma \\
-                H(x) &= \frac{ax - b}{1 - \exp(-d(ax -b))} \\
-                x &= wJ_{N}S + I_o + J_N c_0 + J_N lc_0
+                 x_k       &=   w\,J_N \, S_k + I_o + J_N \mathbf\Gamma(S_k, S_j, u_{kj}),\\
+                 H(x_k)    &=  \dfrac{ax_k - b}{1 - \exp(-d(ax_k -b))},\\
+                 \dot{S}_k &= -\dfrac{S_k}{\tau_s} + (1 - S_k) \, H(x_k) \, \gamma 
 
         """
 
@@ -3551,7 +3563,8 @@ class Kuramoto(Model):
 
     Dynamic equations:
         .. math::
-            \dot{\theta} = \omega + I
+            
+                \dot{\theta}_{k} = \omega_{k} + \mathbf{\Gamma}(\theta_k, \theta_j, u_{kj}) + \sin(\W_{\zeta}\theta)
 
     """
 
@@ -3615,7 +3628,7 @@ class Kuramoto(Model):
         The :math:`\theta` variable is the phase angle of the oscillation.
 
         .. math::
-            \dot{\theta} = \omega + I
+            \dot{\theta}_{k} = \omega_{k} + \mathbf{\Gamma}(\theta_k, \theta_j, u_{kj}) + \sin(\W_{\zeta}\theta)
 
         where :math:`I` is the input via local and long range connectivity,
         passing first through the Kuramoto coupling function,
@@ -3726,7 +3739,7 @@ class Hopfield(Model):
         label=":math:`\\tau_{\\theta}`",
         default=numpy.array([5.]),
         range=basic.Range(lo = 0.01, hi = 100., step = 0.01),
-        doc="""The slow time-scale for threshold calculus :math:`\\theta`, state-variable of the model.""",
+        doc="""The slow time-scale for threshold calculus :math:`\theta`, state-variable of the model.""",
         order=2)
 
     dynamic = arrays.IntegerArray(
@@ -4152,7 +4165,7 @@ class EpileptorPermittivityCoupling(Model):
             \end{cases}
     """
 
-    _ui_name = "Epileptor Permittivity Coupling"
+    _ui_name = "Epileptor with Permittivity Coupling"
     ui_configurable_parameters = ["Iext", "Iext2", "r", "x0", "slope"]
 
     a = arrays.FloatArray(
