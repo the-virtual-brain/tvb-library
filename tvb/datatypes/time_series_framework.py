@@ -105,17 +105,20 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
         :param specific_slices: optional parameter. If speficied slices the data accordingly.
         :param channels_list: the list of channels for which we want data
         """
-        channels_list = json.loads(channels_list)
         if channels_list:
-            channels_list = tuple(channels_list)
+            channels_list = json.loads(channels_list)
+
+        if channels_list:
+            channel_slice = tuple(channels_list)
         else:
-            channels_list = slice(None)
+            channel_slice = slice(None)
+
         data_page = self.read_data_page(from_idx, to_idx, step, specific_slices)
         # This is just a 1D array like in the case of Global Average monitor. No need for the channels list
         if len(data_page.shape) == 1:
             return data_page.reshape(data_page.shape[0], 1)
         else:
-            return data_page[:, channels_list]
+            return data_page[:, channel_slice]
 
 
     def read_data_page(self, from_idx, to_idx, step=None, specific_slices=None):
@@ -124,7 +127,7 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
         """
         from_idx = int(from_idx)
         to_idx = int(to_idx)
-        if isinstance(specific_slices, str) or isinstance(specific_slices, unicode):
+        if isinstance(specific_slices, basestring):
             specific_slices = json.loads(specific_slices)
         if step is None:
             step = 1
@@ -298,15 +301,11 @@ class TimeSeriesSurfaceFramework(time_series_data.TimeSeriesSurfaceData, TimeSer
     """ This class exists to add framework methods to TimeSeriesSurfaceData. """
     SELECTION_LIMIT = 200
 
-    def get_grouped_space_labels(self):
+    def get_space_labels(self):
         """
-        Return only the first 1000 vertices
+        Return only the first `SELECTION_LIMIT` vertices/channels
         """
-        return [('', list(enumerate(self.get_space_labels()[:self.SELECTION_LIMIT])))]
-
-    def get_default_selection(self):
-        return range(len(self.get_space_labels()[:self.SELECTION_LIMIT]))
-
+        return ['signal-%d' % i for i in xrange(min(self._length_3d, self.SELECTION_LIMIT))]
 
 
 class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSeriesFramework):
