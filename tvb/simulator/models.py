@@ -516,7 +516,7 @@ class WilsonCowan(Model):
 
     .. automethod:: WilsonCowan.__init__
 
-    The general formulation for the \textit{\textbf{Wilson-Cowan}} model as a 
+    The general formulation for the \textit{\textbf{Wilson-Cowan}} model as a
     dynamical unit at a node $k$ in a BNM with $l$ nodes reads:
 
     .. math::
@@ -856,18 +856,18 @@ class ReducedSetFitzHughNagumo(Model):
     The system's equations for the i-th mode at node q are:
 
     .. math::
-                \dot{\xi}_{i}    &=  c\left(\xi_i-e_i\frac{\xi_{i}^3}{3} -\eta_{i}\right) 
-                                  + K_{11}\left[\sum_{k=1}^{o} A_{ik}\xi_k-\xi_i\right] 
-                                  - K_{12}\left[\sum_{k =1}^{o} B_{i k}\alpha_k-\xi_i\right] + cIE_i                       \\ 
-                                 &\, + \left[\sum_{k=1}^{o} \mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right] 
+                \dot{\xi}_{i}    &=  c\left(\xi_i-e_i\frac{\xi_{i}^3}{3} -\eta_{i}\right)
+                                  + K_{11}\left[\sum_{k=1}^{o} A_{ik}\xi_k-\xi_i\right]
+                                  - K_{12}\left[\sum_{k =1}^{o} B_{i k}\alpha_k-\xi_i\right] + cIE_i                       \\
+                                 &\, + \left[\sum_{k=1}^{o} \mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right]
                                   +  \left[\sum_{k=1}^{o} W_{\zeta}\cdot\xi_{kr} \right],                            \\
                 \dot{\eta}_i     &= \frac{1}{c}\left(\xi_i-b\eta_i+m_i\right),                                              \\
-                &                                                                                                \\ 
-                \dot{\alpha}_i   &= c\left(\alpha_i-f_i\frac{\alpha_i^3}{3}-\beta_i\right) 
+                &                                                                                                \\
+                \dot{\alpha}_i   &= c\left(\alpha_i-f_i\frac{\alpha_i^3}{3}-\beta_i\right)
                                   + K_{21}\left[\sum_{k=1}^{o} C_{ik}\xi_i-\alpha_i\right] + cII_i                          \\
-                                 & \, + \left[\sum_{k=1}^{o} \mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right] 
+                                 & \, + \left[\sum_{k=1}^{o} \mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right]
                                   + \left[\sum_{k=1}^{o} W_{\zeta}\cdot\xi_{kr}\right],                          \\
-                                 &                                                                               \\ 
+                                 &                                                                               \\
                 \dot{\beta}_i    &= \frac{1}{c}\left(\alpha_i-b\beta_i+n_i\right),
 
     .. automethod:: ReducedSetFitzHughNagumo.update_derived_parameters
@@ -1050,18 +1050,18 @@ class ReducedSetFitzHughNagumo(Model):
         The system's equations for the i-th mode at node q are:
 
         .. math::
-                \dot{\xi}_{i}    &=  c\left(\xi_i-e_i\frac{\xi_{i}^3}{3} -\eta_{i}\right) 
-                                  + K_{11}\left[\sum_{k=1}^{o} A_{ik}\xi_k-\xi_i\right] 
-                                  - K_{12}\left[\sum_{k =1}^{o} B_{i k}\alpha_k-\xi_i\right] + cIE_i                       \\ 
-                                 &\, + \left[\sum_{k=1}^{o} \mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right] 
+                \dot{\xi}_{i}    &=  c\left(\xi_i-e_i\frac{\xi_{i}^3}{3} -\eta_{i}\right)
+                                  + K_{11}\left[\sum_{k=1}^{o} A_{ik}\xi_k-\xi_i\right]
+                                  - K_{12}\left[\sum_{k =1}^{o} B_{i k}\alpha_k-\xi_i\right] + cIE_i                       \\
+                                 &\, + \left[\sum_{k=1}^{o} \mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right]
                                   +  \left[\sum_{k=1}^{o} W_{\zeta}\cdot\xi_{kr} \right],                            \\
                 \dot{\eta}_i     &= \frac{1}{c}\left(\xi_i-b\eta_i+m_i\right),                                              \\
-                &                                                                                                \\ 
-                \dot{\alpha}_i   &= c\left(\alpha_i-f_i\frac{\alpha_i^3}{3}-\beta_i\right) 
+                &                                                                                                \\
+                \dot{\alpha}_i   &= c\left(\alpha_i-f_i\frac{\alpha_i^3}{3}-\beta_i\right)
                                   + K_{21}\left[\sum_{k=1}^{o} C_{ik}\xi_i-\alpha_i\right] + cII_i                          \\
-                                 & \, + \left[\sum_{k=1}^{o} \mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right] 
+                                 & \, + \left[\sum_{k=1}^{o} \mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right]
                                   + \left[\sum_{k=1}^{o} W_{\zeta}\cdot\xi_{kr}\right],                          \\
-                                 &                                                                               \\ 
+                                 &                                                                               \\
                 \dot{\beta}_i    &= \frac{1}{c}\left(\alpha_i-b\beta_i+n_i\right),
 
         """
@@ -1285,21 +1285,21 @@ class ReducedSetHindmarshRose(Model):
     The equations of the population model for i-th mode at node q are:
 
     .. math::
-                \dot{\xi}_i     &=  \eta_i-a_i\xi_i^3 + b_i\xi_i^2- \tau_i                                         
+                \dot{\xi}_i     &=  \eta_i-a_i\xi_i^3 + b_i\xi_i^2- \tau_i
                                  + K_{11} \left[\sum_{k=1}^{o} A_{ik} \xi_k - \xi_i \right]
                                  - K_{12} \left[\sum_{k=1}^{o} B_{ik} \alpha_k - \xi_i\right] + IE_i                \\
                                 &\, + \left[\sum_{k=1}^{o} \mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right]
                                  + \left[\sum_{k=1}^{o} W_{\zeta}\cdot\xi_{kr} \right],                     \\
-                                &                                                                         \\ 
+                                &                                                                         \\
                 \dot{\eta}_i    &=  c_i-d_i\xi_i^2 -\tau_i,                                                         \\
                 %
                 \dot{\tau}_i    &=  rs\xi_i - r\tau_i -m_i,                                                         \\
                 %
-                \dot{\alpha}_i  &=  \beta_i - e_i \alpha_i^3 + f_i \alpha_i^2 - \gamma_i 
+                \dot{\alpha}_i  &=  \beta_i - e_i \alpha_i^3 + f_i \alpha_i^2 - \gamma_i
                                  + K_{21} \left[\sum_{k=1}^{o} C_{ik} \xi_k - \alpha_i \right] + II_i               \\
-                                &\, +\left[\sum_{k=1}^{o}\mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right]             
+                                &\, +\left[\sum_{k=1}^{o}\mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right]
                                  + \left[\sum_{k=1}^{o}W_{\zeta}\cdot\xi_{kr}\right],                    \\
-                                &                                                                         \\                     
+                                &                                                                         \\
                 \dot{\beta}_i   &= h_i - p_i \alpha_i^2 - \beta_i,                                                   \\
                 \dot{\gamma}_i  &= rs \alpha_i - r \gamma_i - n_i,
 
@@ -1520,21 +1520,21 @@ class ReducedSetHindmarshRose(Model):
         The equations of the population model for i-th mode at node q are:
 
         .. math::
-                \dot{\xi}_i     &=  \eta_i-a_i\xi_i^3 + b_i\xi_i^2- \tau_i                                         
+                \dot{\xi}_i     &=  \eta_i-a_i\xi_i^3 + b_i\xi_i^2- \tau_i
                                  + K_{11} \left[\sum_{k=1}^{o} A_{ik} \xi_k - \xi_i \right]
                                  - K_{12} \left[\sum_{k=1}^{o} B_{ik} \alpha_k - \xi_i\right] + IE_i                \\
                                 &\, + \left[\sum_{k=1}^{o} \mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right]
                                  + \left[\sum_{k=1}^{o} W_{\zeta}\cdot\xi_{kr} \right],                     \\
-                                &                                                                         \\ 
+                                &                                                                         \\
                 \dot{\eta}_i    &=  c_i-d_i\xi_i^2 -\tau_i,                                                         \\
                 %
                 \dot{\tau}_i    &=  rs\xi_i - r\tau_i -m_i,                                                         \\
                 %
-                \dot{\alpha}_i  &=  \beta_i - e_i \alpha_i^3 + f_i \alpha_i^2 - \gamma_i 
+                \dot{\alpha}_i  &=  \beta_i - e_i \alpha_i^3 + f_i \alpha_i^2 - \gamma_i
                                  + K_{21} \left[\sum_{k=1}^{o} C_{ik} \xi_k - \alpha_i \right] + II_i               \\
-                                &\, +\left[\sum_{k=1}^{o}\mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right]             
+                                &\, +\left[\sum_{k=1}^{o}\mathbf{\Gamma}(\xi_{kq}, \xi_{kr}, u_{qr})\right]
                                  + \left[\sum_{k=1}^{o}W_{\zeta}\cdot\xi_{kr}\right],                    \\
-                                &                                                                         \\                     
+                                &                                                                         \\
                 \dot{\beta}_i   &= h_i - p_i \alpha_i^2 - \beta_i,                                                   \\
                 \dot{\gamma}_i  &= rs \alpha_i - r \gamma_i - n_i,
 
@@ -3045,9 +3045,9 @@ class LarterBreakspear(Model):
 
     NOTES about parameters
 
-    :math:`\delta_V` : for :math:`\delta_V` < 0.55, in an uncoupled network, 
-    the system exhibits fixed point dynamics; for 0.55 < :math:`\delta_V` < 0.59, 
-    limit cycle attractors; and for :math:`\delta_V` > 0.59 chaotic attractors 
+    :math:`\delta_V` : for :math:`\delta_V` < 0.55, in an uncoupled network,
+    the system exhibits fixed point dynamics; for 0.55 < :math:`\delta_V` < 0.59,
+    limit cycle attractors; and for :math:`\delta_V` > 0.59 chaotic attractors
     (eg, d_V=0.6,aee=0.5,aie=0.5, gNa=0, Iext=0.165)
 
     :math:`\delta_Z`
@@ -3069,12 +3069,12 @@ class LarterBreakspear(Model):
     Dynamic equations:
 
     .. math::
-            \dot{V}_k & = - (g_{Ca} + (1 - C) \, r_{NMDA} \, a_{ee} \, Q_V + C \, r_{NMDA} \, a_{ee} \, \langle Q_V\rangle^{k}) \, m_{Ca} \, (V - VCa) \\ 
-                           & \,\,- g_K \, W \, (V - VK) -  g_L \, (V - VL) \\ 
-                           & \,\,- (g_{Na} \, m_{Na} + (1 - C) \, a_{ee} \, Q_V + C \, a_{ee} \, \langle Q_V\rangle^{k}) \,(V - VNa) \\ 
-                           & \,\,- a_{ei} \, Z \, Q_Z + a_{ne} \, I, \\ 
-                           & \\        
-            \dot{W}_k & = \phi \, \dfrac{m_K - W}{\tau_{K}},\\ 
+            \dot{V}_k & = - (g_{Ca} + (1 - C) \, r_{NMDA} \, a_{ee} \, Q_V + C \, r_{NMDA} \, a_{ee} \, \langle Q_V\rangle^{k}) \, m_{Ca} \, (V - VCa) \\
+                           & \,\,- g_K \, W \, (V - VK) -  g_L \, (V - VL) \\
+                           & \,\,- (g_{Na} \, m_{Na} + (1 - C) \, a_{ee} \, Q_V + C \, a_{ee} \, \langle Q_V\rangle^{k}) \,(V - VNa) \\
+                           & \,\,- a_{ei} \, Z \, Q_Z + a_{ne} \, I, \\
+                           & \\
+            \dot{W}_k & = \phi \, \dfrac{m_K - W}{\tau_{K}},\\
                            & \nonumber\\
             \dot{Z}_k &= b (a_{ni}\, I + a_{ei}\,V\,Q_V),\\
             Q_{V}   &= Q_{V_{max}} \, (1 + \tanh\left(\dfrac{V_{k} - VT}{\delta_{V}}\right)),\\
@@ -3332,12 +3332,12 @@ class LarterBreakspear(Model):
         Dynamic equations:
 
         .. math::
-            \dot{V}_k & = - (g_{Ca} + (1 - C) \, r_{NMDA} \, a_{ee} \, Q_V + C \, r_{NMDA} \, a_{ee} \, \langle Q_V\rangle^{k}) \, m_{Ca} \, (V - VCa) \\ 
-                           & \,\,- g_K \, W \, (V - VK) -  g_L \, (V - VL) \\ 
-                           & \,\,- (g_{Na} \, m_{Na} + (1 - C) \, a_{ee} \, Q_V + C \, a_{ee} \, \langle Q_V\rangle^{k}) \,(V - VNa) \\ 
-                           & \,\,- a_{ei} \, Z \, Q_Z + a_{ne} \, I, \\ 
-                           & \\        
-            \dot{W}_k & = \phi \, \dfrac{m_K - W}{\tau_{K}},\\ 
+            \dot{V}_k & = - (g_{Ca} + (1 - C) \, r_{NMDA} \, a_{ee} \, Q_V + C \, r_{NMDA} \, a_{ee} \, \langle Q_V\rangle^{k}) \, m_{Ca} \, (V - VCa) \\
+                           & \,\,- g_K \, W \, (V - VK) -  g_L \, (V - VL) \\
+                           & \,\,- (g_{Na} \, m_{Na} + (1 - C) \, a_{ee} \, Q_V + C \, a_{ee} \, \langle Q_V\rangle^{k}) \,(V - VNa) \\
+                           & \,\,- a_{ei} \, Z \, Q_Z + a_{ne} \, I, \\
+                           & \\
+            \dot{W}_k & = \phi \, \dfrac{m_K - W}{\tau_{K}},\\
                            & \nonumber\\
             \dot{Z}_k &= b (a_{ni}\, I + a_{ei}\,V\,Q_V),\\
             Q_{V}   &= Q_{V_{max}} \, (1 + \tanh\left(\dfrac{V_{k} - VT}{\delta_{V}}\right)),\\
@@ -3395,7 +3395,7 @@ class ReducedWongWang(Model):
     .. math::
                  x_k       &=   w\,J_N \, S_k + I_o + J_N \mathbf\Gamma(S_k, S_j, u_{kj}),\\
                  H(x_k)    &=  \dfrac{ax_k - b}{1 - \exp(-d(ax_k -b))},\\
-                 \dot{S}_k &= -\dfrac{S_k}{\tau_s} + (1 - S_k) \, H(x_k) \, \gamma 
+                 \dot{S}_k &= -\dfrac{S_k}{\tau_s} + (1 - S_k) \, H(x_k) \, \gamma
 
     """
     _ui_name = "Reduced Wong-Wang"
@@ -3517,7 +3517,7 @@ class ReducedWongWang(Model):
         .. math::
                  x_k       &=   w\,J_N \, S_k + I_o + J_N \mathbf\Gamma(S_k, S_j, u_{kj}),\\
                  H(x_k)    &=  \dfrac{ax_k - b}{1 - \exp(-d(ax_k -b))},\\
-                 \dot{S}_k &= -\dfrac{S_k}{\tau_s} + (1 - S_k) \, H(x_k) \, \gamma 
+                 \dot{S}_k &= -\dfrac{S_k}{\tau_s} + (1 - S_k) \, H(x_k) \, \gamma
 
         """
 
@@ -3563,7 +3563,7 @@ class Kuramoto(Model):
 
     Dynamic equations:
         .. math::
-            
+
                 \dot{\theta}_{k} = \omega_{k} + \mathbf{\Gamma}(\theta_k, \theta_j, u_{kj}) + \sin(\W_{\zeta}\theta)
 
     """
@@ -4338,6 +4338,8 @@ class EpileptorPermittivityCoupling(Model):
                 a x_{1}^{3} - b x_{1}^2 & \text{if } x_{1} <0\\
                 -(slope - x_{2} + 0.6(z-4)^2) x_{1} &\text{if }x_{1} \geq 0
                 \end{cases}
+
+        and:
 
             .. math::
                 f_{2}(x_{2}) =
