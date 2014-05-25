@@ -3,6 +3,8 @@
 import string
 import logging
 
+from numpy import int32, float32
+
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.DEBUG)
 
@@ -43,7 +45,7 @@ class Global(object):
     "Interface to global (scalar) variables stored on device. "
 
     def __init__(self, name, dtype):
-        self.code  = device_code
+        self.code  = None # Code.build()
         self.name  = name
         self.dtype = dtype
         self.__post_init = True
@@ -97,19 +99,19 @@ class RegionParallel(Driver):
                        'n_tavg', 'n_msik', 'n_mode'])
 
     # generate accessors for global constants
-    horizon = device_global('horizon', int32)
-    n_node  = device_global('n_node', int32)
-    n_thr   = device_global('n_thr', int32)
-    n_rthr  = device_global('n_rthr', int32)
-    n_svar  = device_global('n_svar', int32)
-    n_cvar  = device_global('n_cvar', int32)
-    n_cfpr  = device_global('n_cfpr', int32)
-    n_mmpr  = device_global('n_mmpr', int32)
-    n_nspr  = device_global('n_nspr', int32)
-    n_inpr  = device_global('n_inpr', int32)
-    n_tavg  = device_global('n_tavg', int32)
-    n_msik  = device_global('n_msik', int32)
-    n_mode  = device_global('n_mode', int32)
+    horizon = Global('horizon', int32)
+    n_node  = Global('n_node', int32)
+    n_thr   = Global('n_thr', int32)
+    n_rthr  = Global('n_rthr', int32)
+    n_svar  = Global('n_svar', int32)
+    n_cvar  = Global('n_cvar', int32)
+    n_cfpr  = Global('n_cfpr', int32)
+    n_mmpr  = Global('n_mmpr', int32)
+    n_nspr  = Global('n_nspr', int32)
+    n_inpr  = Global('n_inpr', int32)
+    n_tavg  = Global('n_tavg', int32)
+    n_msik  = Global('n_msik', int32)
+    n_mode  = Global('n_mode', int32)
 
 
     ##########################################################
@@ -119,28 +121,28 @@ class RegionParallel(Driver):
         'input', 'x', 'hist', 'dx1', 'dx2', 'gx', 'ns', 'stim', 'tavg']
 
     # thread invariant, call invariant
-    idel  = device_array('idel',    int32, ('n_node', 'n_node'))
-    cvars = device_array('cvars',   int32, ('n_cvar', ))
-    inpr  = device_array('inpr',  float32, ('n_inpr', ))
+    idel  = Array('idel',    int32, ('n_node', 'n_node'))
+    cvars = Array('cvars',   int32, ('n_cvar', ))
+    inpr  = Array('inpr',  float32, ('n_inpr', ))
 
     # possibly but not currently thread varying, call invariant
-    conn  = device_array('conn',  float32, ('n_node', 'n_node'))
+    conn  = Array('conn',  float32, ('n_node', 'n_node'))
 
     # thread varying, call invariant
-    nspr  = device_array('nspr',  float32, ('n_node', 'n_nspr', 'n_thr'))
-    mmpr  = device_array('mmpr',  float32, ('n_node', 'n_mmpr', 'n_thr'))
-    cfpr  = device_array('cfpr',  float32, (          'n_cfpr', 'n_thr'))
+    nspr  = Array('nspr',  float32, ('n_node', 'n_nspr', 'n_thr'))
+    mmpr  = Array('mmpr',  float32, ('n_node', 'n_mmpr', 'n_thr'))
+    cfpr  = Array('cfpr',  float32, (          'n_cfpr', 'n_thr'))
 
     # thread varying, call varying
-    input = device_array('input', float32, (                     'n_cvar', 'n_thr'))
-    x     = device_array('x',     float32, (           'n_node', 'n_svar', 'n_thr'))
-    hist  = device_array('hist',  float32, ('horizon', 'n_node', 'n_cvar', 'n_thr'))
-    dx1   = device_array('dx1',   float32, (                     'n_svar', 'n_thr'))
-    dx2   = device_array('dx2',   float32, (                     'n_svar', 'n_thr'))
-    gx    = device_array('gx',    float32, (                     'n_svar', 'n_thr'))
-    ns    = device_array('ns',    float32, (           'n_node', 'n_svar', 'n_thr'))
-    stim  = device_array('stim',  float32, (           'n_node', 'n_svar', 'n_thr'))
-    tavg  = device_array('tavg',  float32, (           'n_node', 'n_svar', 'n_thr'))
+    input = Array('input', float32, (                     'n_cvar', 'n_thr'))
+    x     = Array('x',     float32, (           'n_node', 'n_svar', 'n_thr'))
+    hist  = Array('hist',  float32, ('horizon', 'n_node', 'n_cvar', 'n_thr'))
+    dx1   = Array('dx1',   float32, (                     'n_svar', 'n_thr'))
+    dx2   = Array('dx2',   float32, (                     'n_svar', 'n_thr'))
+    gx    = Array('gx',    float32, (                     'n_svar', 'n_thr'))
+    ns    = Array('ns',    float32, (           'n_node', 'n_svar', 'n_thr'))
+    stim  = Array('stim',  float32, (           'n_node', 'n_svar', 'n_thr'))
+    tavg  = Array('tavg',  float32, (           'n_node', 'n_svar', 'n_thr'))
 
     
 
