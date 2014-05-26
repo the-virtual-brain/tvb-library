@@ -129,8 +129,7 @@ class SensorsScientific(sensors_data.SensorsData):
             #TODO: add checks for no or multiple intersections...
             #      no: surface incomplete, misaligned, irregular triangulation
             #      multiple: surface possibly too folded or misaligned...
-            # todo: the line below triggers DeprecationWarning: converting an array with ndim > 0 to an index will result in an error in the future
-            sensor_tri[k] = local_tri[local_triangle_index]
+            sensor_tri[k] = local_tri[local_triangle_index[0]]
             #Scale sensor unit vector by t so that it lies on the surface.
             sensor_locations[k] = sensor_loc * tuv[local_triangle_index, 0]
 
