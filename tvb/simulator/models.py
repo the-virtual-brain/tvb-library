@@ -2504,6 +2504,7 @@ class Generic2dOscillator(Model):
     .. math::
                 \dot{V} &= d \, \tau (-f V^3 + e V^2 + g V + \alpha W + \gamma I), \\
                 \dot{W} &= \dfrac{d}{\tau}\,\,(c V^2 + b V - \beta W + a),
+
     See:
 
 
