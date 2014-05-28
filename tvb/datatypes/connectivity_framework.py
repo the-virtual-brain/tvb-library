@@ -45,11 +45,12 @@ class ConnectivityFramework(connectivity_data.ConnectivityData):
     
     __tablename__ = None
     
-
+    # todo-mh: see what has to be adapted new_weights and/or interest_areas
     def generate_new_connectivity(self, new_weights, interest_areas, storage_path, new_tracts=None):
         """
         Generate new Connectivity object based on current one, by changing weights (e.g. simulate lesion).
         """
+        # todo-mh: move do not accept strings. replace evals with a json.loads in calling code
         if isinstance(new_weights, str) or isinstance(new_weights, unicode):
             new_weights = eval(new_weights)
             new_tracts = eval(new_tracts)
@@ -61,7 +62,8 @@ class ConnectivityFramework(connectivity_data.ConnectivityData):
                 new_tracts[i][j] = numpy.float(new_tracts[i][j])
         for i in xrange(len(interest_areas)):
             interest_areas[i] = int(interest_areas[i]) 
-                     
+        # end do not accept strings
+
         final_weights = []
         for i in xrange(len(self.weights)):
             weight_line = []
@@ -132,21 +134,34 @@ class ConnectivityFramework(connectivity_data.ConnectivityData):
 
     @property
     def ordered_weights(self):
+        """
+        This view of the weights matrix lists all left hemisphere nodes before the right ones.
+        It is used by viewers of the connectivity.
+        """
         permutation = self.hemisphere_order_indices
         return self.weights[permutation, :][:,permutation]
 
     @property
     def ordered_tracts(self):
+        """
+        Similar to :meth:`ordered_weights`
+        """
         permutation = self.hemisphere_order_indices
         return self.tract_lengths[permutation, :][:,permutation]
 
     @property
     def ordered_labels(self):
+        """
+        Similar to :meth:`ordered_weights`
+        """
         permutation = self.hemisphere_order_indices
         return self.region_labels[permutation]
 
     @property
     def ordered_centres(self):
+        """
+        Similar to :meth:`ordered_weights`
+        """
         permutation = self.hemisphere_order_indices
         return self.centres[permutation]
 
