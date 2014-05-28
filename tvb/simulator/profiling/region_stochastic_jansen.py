@@ -37,28 +37,7 @@ stochastic stimulus p(t) as described in [JanseRit_1995]
 
 """
 
-# Third party python libraries
-import numpy
-
-# Try and import from "The Virtual Brain"
-try:
-    from tvb.basic.logger.builder import get_logger
-    LOG = get_logger(__name__)
-except ImportError:
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
-    LOG = logging.getLogger(__name__)
-    LOG.warning("Failed to import TVB logger, using Python logging directly...")
-
-#Import from tvb.simulator modules:
-import tvb.simulator.simulator as simulator
-import tvb.simulator.models as models
-import tvb.simulator.noise as noise
-import tvb.simulator.coupling as coupling
-import tvb.simulator.integrators as integrators
-import tvb.simulator.monitors as monitors
-
-import tvb.datatypes.connectivity as connectivity
+from tvb.simulator.lab import *
 
 
 ##----------------------------------------------------------------------------##
@@ -70,41 +49,41 @@ LOG.info("Configuring...")
 jrm = models.JansenRit()
 nsigma = 0.022
 
-white_matter = connectivity.Connectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 white_matter.speed = numpy.array([4.0])
 
 white_matter_coupling = coupling.Linear(a=0.0)
 
 #Initialise an Integrator adding noise to only one state variable
-hiss = noise.Additive(nsig = numpy.array([0., 0., 0., 0., nsigma, 0.]))
-heunint = integrators.HeunStochastic(dt=2**-4, noise = hiss)
+hiss = noise.Additive(nsig=numpy.array([0., 0., 0., 0., nsigma, 0.]))
+heunint = integrators.HeunStochastic(dt=2 ** -4, noise=hiss)
 
 #Initialise some Monitors with period in physical time
 
 momo = monitors.Raw()
-mama = monitors.TemporalAverage(period=2**-2)
+mama = monitors.TemporalAverage(period=2 ** -2)
 
 #Bundle them
 what_to_watch = list((momo, mama))
 
 
 #Initialise Simulator -- Model, Connectivity, Integrator, Monitors, and stimulus.
-sim = simulator.Simulator(model = jrm, 
-                          connectivity = white_matter,
-                          coupling = white_matter_coupling, 
-                          integrator = heunint, 
-                          monitors = what_to_watch)
+sim = simulator.Simulator(model=jrm,
+                          connectivity=white_matter,
+                          coupling=white_matter_coupling,
+                          integrator=heunint,
+                          monitors=what_to_watch)
 
 sim.configure()
 
 LOG.info("Starting simulation...")
 #Perform the simulation
-raw_data  = []
-raw_time  = []
+raw_data = []
+raw_time = []
 tavg_time = []
 tavg_data = []
 
-for raw, tavg in sim(simulation_length=2**10):
+for raw, tavg in sim(simulation_length=2 ** 10):
     if not raw is None:
         raw_time.append(raw[0])
         raw_data.append(raw[1])

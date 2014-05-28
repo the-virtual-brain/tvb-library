@@ -39,30 +39,7 @@ Demonstrate using the simulator for a surface simulation.
 
 """
 
-# Third party python libraries
-import numpy
-
-# Try and import from "The Virtual Brain"
-try:
-    from tvb.basic.logger.builder import get_logger
-    LOG = get_logger(__name__)
-except ImportError:
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
-    LOG = logging.getLogger(__name__)
-    LOG.warning("Failed to import TVB logger, using Python logging directly...")
-
-#Import from tvb.simulator modules:
-import tvb.simulator.simulator as simulator
-import tvb.simulator.models as models
-import tvb.simulator.coupling as coupling
-import tvb.simulator.integrators as integrators
-import tvb.simulator.monitors as monitors
-
-import tvb.datatypes.connectivity as connectivity
-import tvb.datatypes.surfaces as surfaces
-import tvb.datatypes.equations as equations
-import tvb.datatypes.patterns as patterns
+from tvb.simulator.lab import *
 
 ##----------------------------------------------------------------------------##
 ##-                      Perform the simulation                              -##
@@ -71,18 +48,18 @@ import tvb.datatypes.patterns as patterns
 LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
 oscilator = models.Generic2dOscillator()
-white_matter = connectivity.Connectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 white_matter.speed = 4.0
 
-white_matter_coupling = coupling.Linear(a=-2**-9)
+white_matter_coupling = coupling.Linear(a=-2 ** -9)
 
 #Initialise an Integrator
-heunint = integrators.HeunDeterministic(dt=2**-4)
+heunint = integrators.HeunDeterministic(dt=2 ** -4)
 
 #Initialise some Monitors with period in physical time
-mon_tavg = monitors.TemporalAverage(period=2**-2)
-mon_savg = monitors.SpatialAverage(period=2**-2)
-mon_eeg = monitors.EEG(period=2**-2)
+mon_tavg = monitors.TemporalAverage(period=2 ** -2)
+mon_savg = monitors.SpatialAverage(period=2 ** -2)
+mon_eeg = monitors.EEG(period=2 ** -2)
 
 #Bundle them
 what_to_watch = (mon_tavg, mon_savg, mon_eeg)
@@ -90,12 +67,13 @@ what_to_watch = (mon_tavg, mon_savg, mon_eeg)
 #Initialise a surface
 local_coupling_strength = numpy.array([0.0121])
 
-grey_matter = surfaces.LocalConnectivity(equation = equations.Gaussian(),
-                                         cutoff = 60.0)
+grey_matter = surfaces.LocalConnectivity(equation=equations.Gaussian(),
+                                         cutoff=60.0)
 grey_matter.equation.parameters['sigma'] = 10.0
 grey_matter.equation.parameters['amp'] = 0.0
 
-default_cortex = surfaces.Cortex(local_connectivity=grey_matter, 
+default_cortex = surfaces.Cortex(load_default=True,
+                                 local_connectivity=grey_matter,
                                  coupling_strength=local_coupling_strength)
 
 #Define the stimulus
@@ -104,18 +82,18 @@ eqn_t.parameters["amp"] = 0.0
 eqn_t.parameters["midpoint"] = 8.0
 eqn_x = equations.Gaussian()
 
-eqn_x.parameters["amp"] =  -0.0625
-eqn_x.parameters["sigma"] =  28.0
+eqn_x.parameters["amp"] = -0.0625
+eqn_x.parameters["sigma"] = 28.0
 
-stimulus = patterns.StimuliSurface(surface = default_cortex, #TODO: This is required because UI requires the surface associated with the Stimuli
-                                   temporal = eqn_t, spatial = eqn_x, 
-                                   focal_points_surface = numpy.array([8000]))
+stimulus = patterns.StimuliSurface(surface=default_cortex,
+                                   temporal=eqn_t, spatial=eqn_x,
+                                   focal_points_surface=numpy.array([8000]))
 
 #Initialise Simulator -- Model, Connectivity, Integrator, Monitors, and surface.
-sim = simulator.Simulator(model = oscilator, connectivity = white_matter,
-                          coupling = white_matter_coupling, 
-                          integrator = heunint,  monitors = what_to_watch, 
-                          surface = default_cortex, stimulus = stimulus)
+sim = simulator.Simulator(model=oscilator, connectivity=white_matter,
+                          coupling=white_matter_coupling,
+                          integrator=heunint, monitors=what_to_watch,
+                          surface=default_cortex, stimulus=stimulus)
 
 sim.configure()
 
@@ -136,7 +114,7 @@ savg_data = []
 savg_time = []
 eeg_data = []
 eeg_time = []
-for tavg, savg, eeg in sim(simulation_length=2**5):
+for tavg, savg, eeg in sim(simulation_length=2 ** 5):
     if not tavg is None:
         tavg_time.append(tavg[0])
         tavg_data.append(tavg[1])
@@ -149,7 +127,7 @@ for tavg, savg, eeg in sim(simulation_length=2**5):
         eeg_time.append(eeg[0])
         eeg_data.append(eeg[1])
 
-print 'simulation only took %f s'%(time.time() - tic,)
+print 'simulation took %f s' % (time.time() - tic,)
 
 LOG.info("finished simulation")
 
