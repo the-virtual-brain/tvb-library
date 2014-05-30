@@ -515,35 +515,41 @@ class SurfaceScientific(surfaces_data.SurfaceData):
         isolated = []
         pinched_off = []
         holes = []
+        error_message = ""
 
         #The Euler characteristic for a 2D sphere embedded in a 3D space is 2.
         euler = self.number_of_vertices + self.number_of_triangles - self.number_of_edges
         if euler not in (2, 4):
-            LOG.error("The surface is expected to be 1 or 2 closed spheres.")
+            error_message = "The surface is expected to be 1 or 2 closed spheres."
+            LOG.error(error_message)
             is_good = False
 
         if self.triangles.max() >= self.number_of_vertices:
-            LOG.error("There are triangles that index nonexistent vertices.")
+            error_message = "There are triangles that index nonexistent vertices."
+            LOG.error(error_message)
             is_good = False
 
         triangles_per_vertex = numpy.array(map(len, self.vertex_triangles))
         if numpy.any(triangles_per_vertex < 3):
-            LOG.error("The surface contains isolated vertices.")
+            error_message = "The surface contains isolated vertices."
+            LOG.error(error_message)
             is_good = False
             isolated = numpy.nonzero(triangles_per_vertex < 3)
 
         triangles_per_edge = numpy.array(map(len, self.edge_triangles))
         if numpy.any(triangles_per_edge > 2):
-            LOG.error("There are edges with more than 2 triangles, part of the surface is pinched off.")
+            error_message = "There are edges with more than 2 triangles, part of the surface is pinched off."
+            LOG.error(error_message)
             is_good = False
             pinched_off = numpy.nonzero(triangles_per_edge > 2)
 
         if numpy.any(triangles_per_edge < 2):
-            LOG.error("Free boundaries, there are holes in the surface.")
+            error_message = "Free boundaries, there are holes in the surface."
+            LOG.error(error_message)
             is_good = False
             holes = numpy.nonzero(triangles_per_edge < 2)
 
-        return is_good, euler, isolated, pinched_off, holes
+        return is_good, euler, isolated, pinched_off, holes, error_message
 
 
     def compute_equation(self, focal_points, equation):

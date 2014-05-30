@@ -97,7 +97,9 @@ class Surface(surfaces_scientific.SurfaceScientific, surfaces_framework.SurfaceF
 
     @classmethod
     def default(cls):
-        "Construct a Surface from the default cortex surface"
+        """
+        Construct a Surface from the default cortex surface
+        """
         return cls.from_file()
 
 
@@ -124,10 +126,11 @@ class Surface(surfaces_scientific.SurfaceScientific, surfaces_framework.SurfaceF
             msg += " Please upload a new surface or change max number in application settings."
             raise exceptions.ValidationException(msg)
 
-            # Now check if the surface is closed
-        is_closed, _, _, _, _ = self.check()
-        if not is_closed:
-            msg = "Could not import surface because it's not closed.Please correct the problem and upload again."
+        # Now check if the surface is compatible with TVB
+        is_good, _, _, _, _, error_message = self.check()
+        if not is_good:
+            msg = "Could not import surface because it's not compatible with TVB. %s" \
+                  "Please correct the problem and upload again." % error_message
             raise exceptions.ValidationException(msg)
 
 
