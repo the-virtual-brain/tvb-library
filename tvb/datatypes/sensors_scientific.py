@@ -38,6 +38,9 @@ Scientific methods for the Sensor dataTypes.
 
 import numpy
 import tvb.datatypes.sensors_data as sensors_data
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 
 
 class SensorsScientific(sensors_data.SensorsData):
@@ -58,8 +61,8 @@ class SensorsScientific(sensors_data.SensorsData):
         Gather scientifically interesting summary information from an instance
         of this datatype.
         """
-        summary = {"Sensor type": self.sensors_type}
-        summary["Number of Sensors"] = self.number_of_sensors
+        summary = {"Sensor type": self.sensors_type,
+                   "Number of Sensors": self.number_of_sensors}
         return summary
     
     
@@ -82,12 +85,12 @@ class SensorsScientific(sensors_data.SensorsData):
         #SK  : Works but it's a bit of a mess, cleanup...
         
         #Normalize sensor and vertex locations to unit vectors
-        norm_sensors = numpy.sqrt(numpy.sum(self.locations**2, axis=1))
+        norm_sensors = numpy.sqrt(numpy.sum(self.locations ** 2, axis=1))
         unit_sensors = self.locations / norm_sensors[:, numpy.newaxis]
-        norm_verts = numpy.sqrt(numpy.sum(surface_to_map.vertices**2, axis=1))
+        norm_verts = numpy.sqrt(numpy.sum(surface_to_map.vertices ** 2, axis=1))
         unit_vertices = surface_to_map.vertices / norm_verts[:, numpy.newaxis]
         
-        sensor_tri = numpy.zeros((self.number_of_sensors, 1), dtype=numpy.int32)
+        #sensor_tri = numpy.zeros((self.number_of_sensors, 1), dtype=numpy.int32)
         sensor_locations = numpy.zeros((self.number_of_sensors, 3))
         for k in range(self.number_of_sensors):
             #Find the surface vertex most closely aligned with current sensor.
@@ -124,14 +127,19 @@ class SensorsScientific(sensors_data.SensorsData):
             #by imposing the condition that u, v, & u+v are contained in [0 1]
             local_triangle_index = ((0 < tuv[:, 1]) * (tuv[:, 1] < 1) *
                                     (0 < tuv[:, 2]) * (tuv[:, 2] < 1) *
-                                    (0 < (tuv[:,1] + tuv[:,2])) *
-                                    ((tuv[:,1] + tuv[:,2]) < 1)).nonzero()[0]
+                                    (0 < (tuv[:, 1] + tuv[:, 2])) *
+                                    ((tuv[:, 1] + tuv[:, 2]) < 1)).nonzero()[0]
             #TODO: add checks for no or multiple intersections...
             #      no: surface incomplete, misaligned, irregular triangulation
             #      multiple: surface possibly too folded or misaligned...
-            sensor_tri[k] = local_tri[local_triangle_index[0]]
-            #Scale sensor unit vector by t so that it lies on the surface.
-            sensor_locations[k] = sensor_loc * tuv[local_triangle_index, 0]
+            #sensor_tri[k] = local_tri[local_triangle_index[0]]
+            if len(local_triangle_index) > 0:
+                #Scale sensor unit vector by t so that it lies on the surface.
+                sensor_locations[k] = sensor_loc * tuv[local_triangle_index, 0]
+            else:
+                sensor_locations[k] = self.locations[k]
+                LOG.warning("Could not find a proper position on the given surface for sensor %d:%s. "
+                            "It will appear in %s" % (k, self.labels[k], str(self.locations[k])))
 
         # sensor_tri seems to be unused
         # commented to make async data retrieval easy from the ui
