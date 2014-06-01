@@ -90,7 +90,7 @@ class SensorsScientific(sensors_data.SensorsData):
         norm_verts = numpy.sqrt(numpy.sum(surface_to_map.vertices ** 2, axis=1))
         unit_vertices = surface_to_map.vertices / norm_verts[:, numpy.newaxis]
         
-        #sensor_tri = numpy.zeros((self.number_of_sensors, 1), dtype=numpy.int32)
+        sensor_tri = numpy.zeros((self.number_of_sensors, 1), dtype=numpy.int32)
         sensor_locations = numpy.zeros((self.number_of_sensors, 3))
         for k in range(self.number_of_sensors):
             #Find the surface vertex most closely aligned with current sensor.
@@ -132,11 +132,14 @@ class SensorsScientific(sensors_data.SensorsData):
             #TODO: add checks for no or multiple intersections...
             #      no: surface incomplete, misaligned, irregular triangulation
             #      multiple: surface possibly too folded or misaligned...
-            #sensor_tri[k] = local_tri[local_triangle_index[0]]
+
             if len(local_triangle_index) > 0:
+                sensor_tri[k] = local_tri[local_triangle_index[0]]
                 #Scale sensor unit vector by t so that it lies on the surface.
                 sensor_locations[k] = sensor_loc * tuv[local_triangle_index, 0]
             else:
+                ## TODO: is this a wrong default?
+                sensor_tri[k] = local_tri[0]
                 sensor_locations[k] = self.locations[k]
                 LOG.warning("Could not find a proper position on the given surface for sensor %d:%s. "
                             "It will appear in %s" % (k, self.labels[k], str(self.locations[k])))
