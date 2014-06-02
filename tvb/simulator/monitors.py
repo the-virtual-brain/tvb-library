@@ -310,6 +310,7 @@ class SpatialAverage(Monitor):
     """
     _ui_name = "Spatial average" #with temporal sub-sample
     #TODO: Consider modifying to "with temporal-average"
+
     spatial_mask = arrays.IntegerArray( #TODO: Check it's a vector of length Nodes (like region mapping for surface)
         label = "An index mask of nodes into areas",
         doc = """A vector of length==nodes that assigns an index to each node
@@ -323,7 +324,7 @@ class SpatialAverage(Monitor):
                               default = ["hemispheres"],
                               doc = r"""Fallback in case spatial mask is none and no surface provided 
                               to use either connectivity hemispheres or cortical attributes.""",
-                              order = 2)
+                              order = -1)
 
 
 
