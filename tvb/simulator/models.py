@@ -3565,7 +3565,7 @@ class Kuramoto(Model):
     Dynamic equations:
         .. math::
 
-                \dot{\theta}_{k} = \omega_{k} + \mathbf{\Gamma}(\theta_k, \theta_j, u_{kj}) + \sin(\W_{\zeta}\theta)
+                \dot{\theta}_{k} = \omega_{k} + \mathbf{\Gamma}(\theta_k, \theta_j, u_{kj}) + \sin(W_{\zeta}\theta)
 
     """
 
@@ -3629,7 +3629,7 @@ class Kuramoto(Model):
         The :math:`\theta` variable is the phase angle of the oscillation.
 
         .. math::
-            \dot{\theta}_{k} = \omega_{k} + \mathbf{\Gamma}(\theta_k, \theta_j, u_{kj}) + \sin(\W_{\zeta}\theta)
+            \dot{\theta}_{k} = \omega_{k} + \mathbf{\Gamma}(\theta_k, \theta_j, u_{kj}) + \sin(W_{\zeta}\theta)
 
         where :math:`I` is the input via local and long range connectivity,
         passing first through the Kuramoto coupling function,
