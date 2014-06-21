@@ -325,7 +325,6 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
         """
         from_idx, to_idx = int(from_idx), int(to_idx)
         overall_shape = self.read_data_shape()
-        print("HERE!!!", overall_shape)
         slices = (slice(from_idx, to_idx), slice(overall_shape[1]), slice(overall_shape[2]), slice(overall_shape[3]))
         slices = self.read_data_slice(tuple(slices))
         slices = slices[:, :,:,::-1]
