@@ -1,7 +1,0 @@
-Matrix label:  O52R00_IRP2008 
-Centres space:  mni 
-Number of regions:  74 
-Left hemisphere regions: 
-11111111111111111111111111111111111110000000000000000000000000000000000000
-weights_unit = "au"
-length_unit = "mm"area_unit = "mm^2"

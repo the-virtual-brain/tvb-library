@@ -32,16 +32,16 @@
 The Sensors dataType. This brings together the scientific and framework 
 methods that are associated with the sensor dataTypes.
 
-.. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
+.. moduleauthor:: Stuart A. Knock <stuart.knock@gmail.com>
 
 """
 
-import tvb.datatypes.sensors_data as sensors_data
-import tvb.datatypes.sensors_scientific as sensors_scientific
-import tvb.datatypes.sensors_framework as sensors_framework
-from tvb.basic.logger.builder import get_logger
+from tvb.datatypes import sensors_data
+from tvb.datatypes import sensors_scientific
+from tvb.datatypes import sensors_framework
+from tvb.basic.readers import FileReader, try_get_absolute_path
 
-LOG = get_logger(__name__)
+
 
 
 class Sensors(sensors_scientific.SensorsScientific, sensors_framework.SensorsFramework):
@@ -61,7 +61,23 @@ class Sensors(sensors_scientific.SensorsScientific, sensors_framework.SensorsFra
         
     
     """
-    pass
+
+    @classmethod
+    def from_file(cls, source_file="EEG_unit_vectors_BrainProducts_62.txt.bz2", instance=None):
+
+        if instance is None:
+            result = cls()
+        else:
+            result = instance
+
+        source_full_path = try_get_absolute_path("tvb_data.sensors", source_file)
+        reader = FileReader(source_full_path)
+
+        result.labels = reader.read_array(dtype="string", use_cols=(0,))
+        result.locations = reader.read_array(use_cols=(1, 2, 3))
+
+        return result
+
 
 
 class SensorsEEG(sensors_scientific.SensorsEEGScientific,
@@ -82,8 +98,9 @@ class SensorsEEG(sensors_scientific.SensorsEEGScientific,
         
     
     """
-    ## TODO try to make this happen behind the scene through Traits.core
+
     __mapper_args__ = {'polymorphic_identity': sensors_data.EEG_POLYMORPHIC_IDENTITY}
+
 
 
 class SensorsMEG(sensors_scientific.SensorsMEGScientific,
@@ -104,8 +121,21 @@ class SensorsMEG(sensors_scientific.SensorsMEGScientific,
         
     
     """
-    ## TODO try to make this happen behind the scene through Traits.core
+
     __mapper_args__ = {'polymorphic_identity': sensors_data.MEG_POLYMORPHIC_IDENTITY}
+
+
+    @classmethod
+    def from_file(cls, source_file="meg_channels_reg13.txt.bz2", instance=None):
+
+        result = super(SensorsMEG, cls).from_file(source_file, instance)
+
+        source_full_path = try_get_absolute_path("tvb_data.sensors", source_file)
+        reader = FileReader(source_full_path)
+        result.orientations = reader.read_array(use_cols=(4, 5, 6))
+
+        return result
+
 
 
 class SensorsInternal(sensors_scientific.SensorsInternalScientific,
@@ -126,6 +156,10 @@ class SensorsInternal(sensors_scientific.SensorsInternalScientific,
         
     
     """
-    ## TODO try to make this happen behind the scene through Traits.core
+
     __mapper_args__ = {'polymorphic_identity': sensors_data.INTERNAL_POLYMORPHIC_IDENTITY}
 
+
+    @classmethod
+    def from_file(cls, source_file="internal_39.txt.bz2", instance=None):
+        return super(SensorsInternal, cls).from_file(source_file, instance)

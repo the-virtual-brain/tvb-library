@@ -59,7 +59,7 @@ class MappedTypeLight(Type):
     Current light implementation is to be used with the scientific-library stand-alone mode.
     """
 
-    METADATA_EXCLUDE_PARAMS = ['id', 'LINKS', 'fk_datatype_group', 'visible', 'disk_size',
+    METADATA_EXCLUDE_PARAMS = ['id', 'LINKS', 'fk_datatype_group', 'disk_size',
                                'fk_from_operation', 'parent_operation', 'fk_parent_burst']
 
     ### Constants when retrieving meta-data about Array attributes on the current instance.
@@ -67,12 +67,29 @@ class MappedTypeLight(Type):
     METADATA_ARRAY_MIN = "Minimum"
     METADATA_ARRAY_MEAN = "Mean"
     METADATA_ARRAY_VAR = "Variance"
+    METADATA_ARRAY_MIN_NON_ZERO = "Min. non zero"
+    METADATA_ARRAY_MAX_NON_ZERO = "Max. non zero"
+    METADATA_ARRAY_MEAN_NON_ZERO = "Mean non zero"
+    METADATA_ARRAY_VAR_NON_ZERO = "Var. non zero"
     METADATA_ARRAY_SHAPE = "Shape"
     _METADATA_ARRAY_SIZE = "Size"
+    _METADATA_ARRAY_SIZE_NON_ZERO = "Size"
 
-    ALL_METADATA_ARRAY = {METADATA_ARRAY_MAX: 'max', METADATA_ARRAY_MIN: 'min',
-                          METADATA_ARRAY_MEAN: 'mean', METADATA_ARRAY_VAR: 'var',
-                          METADATA_ARRAY_SHAPE: 'shape'}
+    DEFAULT_STORED_ARRAY_METADATA = [METADATA_ARRAY_MAX, METADATA_ARRAY_MIN, METADATA_ARRAY_MEAN,
+                                     METADATA_ARRAY_VAR, METADATA_ARRAY_SHAPE]
+    DEFAULT_WITH_ZERO_METADATA = [METADATA_ARRAY_MAX, METADATA_ARRAY_MIN, METADATA_ARRAY_MEAN,
+                                  METADATA_ARRAY_VAR, METADATA_ARRAY_SHAPE, METADATA_ARRAY_MIN_NON_ZERO,
+                                  METADATA_ARRAY_MEAN_NON_ZERO, METADATA_ARRAY_VAR_NON_ZERO]
+
+    METADATA_FORMULAS = {METADATA_ARRAY_MAX: '$ARRAY$.max()',
+                         METADATA_ARRAY_MIN: '$ARRAY$.min()',
+                         METADATA_ARRAY_MEAN: '$ARRAY$.mean()',
+                         METADATA_ARRAY_VAR: '$ARRAY$.var()',
+                         METADATA_ARRAY_MAX_NON_ZERO: '$ARRAY$[$MASK$.nonzero()].max()',
+                         METADATA_ARRAY_MIN_NON_ZERO: '$ARRAY$[$MASK$.nonzero()].min()',
+                         METADATA_ARRAY_MEAN_NON_ZERO: '$ARRAY$[$MASK$.nonzero()].mean()',
+                         METADATA_ARRAY_VAR_NON_ZERO: '$ARRAY$[$MASK$.nonzero()].var()',
+                         METADATA_ARRAY_SHAPE: '$ARRAY$.shape()'}
 
     logger = get_logger(__module__)
 
@@ -82,6 +99,11 @@ class MappedTypeLight(Type):
         self._current_metadata = dict()
 
 
+    @classmethod
+    def from_file(cls, source_file="", instance=None):
+        raise NotImplementedError("This DataType can not be used with load_default=True")
+
+
     def accepted_filters(self):
         """
         Just offer dummy functionality in library mode.
@@ -89,13 +111,13 @@ class MappedTypeLight(Type):
         return {}
 
 
-    def get_info_about_array(self, array_name, included_info=None):
+    def get_info_about_array(self, array_name, included_info=None, mask_array_name=None, key_suffix=''):
         """
         :return: dictionary {label: value} about an attribute of type mapped.Array
-                 Generic informations, like Max/Min/Mean/Var are to be retrieved for this array_attr
+                 Generic information, like Max/Min/Mean/Var are to be retrieved for this array_attr
         """
         included_info = included_info or {}
-        summary = self.__get_summary_info(array_name, included_info)
+        summary = self._get_summary_info(array_name, included_info, mask_array_name, key_suffix)
         ### Before return, prepare names for UI display.                
         result = dict()
         for key, value in summary.iteritems():
@@ -103,16 +125,24 @@ class MappedTypeLight(Type):
         return result
 
 
-    def __get_summary_info(self, array_name, included_info):
+    def _get_summary_info(self, array_name, included_info, mask_array_name, key_suffix):
         """
         Get a summary from the metadata of the current array.
+        :return: dictionary {label: value} about an attribute of type mapped.Array, with information like max/mean/etc
         """
         summary = dict()
+
         array_attr = getattr(self, array_name)
-        if isinstance(array_attr, numpy.ndarray):
+        if mask_array_name is not None:
+            mask_attr = getattr(self, mask_array_name)
+        else:
+            mask_attr = array_attr
+
+        if isinstance(array_attr, numpy.ndarray) and isinstance(mask_attr, numpy.ndarray):
             for key in included_info:
-                if key in self.ALL_METADATA_ARRAY:
-                    summary[key] = eval("array_attr." + self.ALL_METADATA_ARRAY[key] + "()")
+                if key in self.METADATA_FORMULAS:
+                    summary[key + key_suffix] = eval(self.METADATA_FORMULAS[key].replace(
+                        "$ARRAY$", "array_attr").replace("$MASK$", "mask_attr"))
                 else:
                     self.logger.warning("Not supported meta-data will be ignored " + str(key))
         return summary
@@ -151,7 +181,7 @@ class Array(Type):
     dtype = DType()
     defaults = ((0, ), {})
     data = None
-    _stored_metadata = MappedTypeLight.ALL_METADATA_ARRAY.keys()
+    stored_metadata = [key for key in MappedTypeLight.DEFAULT_STORED_ARRAY_METADATA]
     logger = get_logger(__module__)
 
 

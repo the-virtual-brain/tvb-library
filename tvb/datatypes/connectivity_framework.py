@@ -48,45 +48,52 @@ class ConnectivityFramework(connectivity_data.ConnectivityData):
 
     def generate_new_connectivity(self, new_weights, interest_areas, storage_path, new_tracts=None):
         """
-        Generate new Connectivity object based on current one, by changing
-        weights (e.g. simulate leasion).
+        Generate new Connectivity object based on current one, by changing weights (e.g. simulate lesion).
+        :param new_weights: a numpy array of the weights
+        :param interest_areas: a numpy array of the selected node id's
+        :param new_tracts: a numpy array of the tracts.
         """
-        if isinstance(new_weights, str) or isinstance(new_weights, unicode):
-            new_weights = eval(new_weights)
-            new_tracts = eval(new_tracts)
-            interest_areas = eval(interest_areas)
-        
-        for i in xrange(len(new_weights)):
-            for j in xrange(len(new_weights)):
-                new_weights[i][j] = numpy.float(new_weights[i][j])
-                new_tracts[i][j] = numpy.float(new_tracts[i][j])
-        for i in xrange(len(interest_areas)):
-            interest_areas[i] = int(interest_areas[i]) 
-                     
-        final_weights = []
+        if new_tracts is None:
+            new_tracts = self.tract_lengths
+
         for i in xrange(len(self.weights)):
-            weight_line = []
             for j in xrange(len(self.weights)):
-                if interest_areas and i in interest_areas and j in interest_areas:
-                    weight_line.append(new_weights[i][j])
-                else:
-                    weight_line.append(0)
-            final_weights.append(weight_line)
+                if i not in interest_areas or j not in interest_areas:
+                    new_weights[i][j] = 0
+
         final_conn = self.__class__()
         final_conn.parent_connectivity = self.gid
         final_conn.storage_path = storage_path
         final_conn.nose_correction = self.nose_correction
-        final_conn.weights = final_weights
+        final_conn.weights = new_weights
         final_conn.centres = self.centres
         final_conn.region_labels = self.region_labels
         final_conn.orientations = self.orientations
         final_conn.cortical = self.cortical
         final_conn.hemispheres = self.hemispheres
         final_conn.areas = self.areas
-        final_conn.tract_lengths = new_tracts or self.tract_lengths
-        final_conn.saved_selection = interest_areas
+        final_conn.tract_lengths = new_tracts
+        final_conn.saved_selection = interest_areas.tolist()
         final_conn.subject = self.subject
         return final_conn
+
+
+    def generate_new_connectivity_from_ordered_arrays(self, new_weights, interest_areas, storage_path, new_tracts=None):
+        """
+        Similar to :meth:`generate_new_connectivity`.
+        The difference is that the parameters are consistent with the ordered versions of weights, tracts, labels
+        This is used by the connectivity viewer to save a lesion of a connectivity.
+        """
+        permutation = self.hemisphere_order_indices
+        inverse_permutation = numpy.argsort(permutation)  # trick to invert a permutation represented as an array
+        interest_areas = inverse_permutation[interest_areas]
+        # see :meth"`ordered_weights` for why [p:][:p]
+        new_weights = new_weights[inverse_permutation, :][:, inverse_permutation]
+
+        if new_tracts is not None:
+            new_tracts = new_tracts[inverse_permutation, :][:, inverse_permutation]
+
+        return self.generate_new_connectivity(new_weights, interest_areas, storage_path, new_tracts)
 
 
     @property
@@ -112,4 +119,90 @@ class ConnectivityFramework(connectivity_data.ConnectivityData):
                                                               'operations': ['==', '<', '>']}})
         return filters
 
+    @property
+    def hemisphere_order_indices(self):
+        """
+        A sequence of indices of rows/colums.
+        These permute rows/columns so that the first half would belong to the first hemisphere
+        If there is no hemisphere information returns the identity permutation
+        """
+        if self.hemispheres is not None:
+            li, ri = [], []
+            for i, is_right in enumerate(self.hemispheres):
+                if is_right:
+                    ri.append(i)
+                else:
+                    li.append(i)
+            return numpy.array(li + ri)
+        else:
+            return numpy.arange(len(self.hemispheres))
+
+
+    @property
+    def ordered_weights(self):
+        """
+        This view of the weights matrix lists all left hemisphere nodes before the right ones.
+        It is used by viewers of the connectivity.
+        """
+        permutation = self.hemisphere_order_indices
+        # how this works:
+        # w[permutation, :] selects all rows at the indices present in the permutation array thus permuting the rows
+        # [:, permutation] does the same to columns. See numpy index arrays
+        return self.weights[permutation, :][:, permutation]
+
+    @property
+    def ordered_tracts(self):
+        """
+        Similar to :meth:`ordered_weights`
+        """
+        permutation = self.hemisphere_order_indices
+        return self.tract_lengths[permutation, :][:, permutation]
+
+    @property
+    def ordered_labels(self):
+        """
+        Similar to :meth:`ordered_weights`
+        """
+        permutation = self.hemisphere_order_indices
+        return self.region_labels[permutation]
+
+    @property
+    def ordered_centres(self):
+        """
+        Similar to :method:`ordered_weights`
+        """
+        permutation = self.hemisphere_order_indices
+        return self.centres[permutation]
+
+    def get_grouped_space_labels(self):
+        """
+        :return: A list [('left', [lh_labels)], ('right': [rh_labels])]
+        """
+        if self.hemispheres is not None:
+            l, r = [], []
+
+            for i, (is_right, label) in enumerate(zip(self.hemispheres, self.region_labels)):
+                if is_right:
+                    r.append((i, label))
+                else:
+                    l.append((i, label))
+            return [('left', l), ('right', r)]
+        else:
+            return [('', list(enumerate(self.region_labels)))]
+
+
+    def get_default_selection(self):
+        # should this be sub-selection or all always?
+        sel = self.saved_selection
+        if sel is not None:
+            return sel
+        else:
+            return range(len(self.region_labels))
+
+
+    def get_measure_points_selection_gid(self):
+        """
+        :return: the associated connectivity gid
+        """
+        return self.gid
 

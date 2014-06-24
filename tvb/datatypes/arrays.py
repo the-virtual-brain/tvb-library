@@ -39,9 +39,7 @@ methods that are associated with the Array datatypes.
 
 import tvb.datatypes.arrays_scientific as arrays_scientific
 import tvb.datatypes.arrays_framework as arrays_framework
-from tvb.basic.logger.builder import get_logger
 
-LOG = get_logger(__name__)
 
 
 class FloatArray(arrays_scientific.FloatArrayScientific, arrays_framework.FloatArrayFramework):
@@ -64,8 +62,7 @@ class FloatArray(arrays_scientific.FloatArrayScientific, arrays_framework.FloatA
     pass
 
 
-class IntegerArray(arrays_scientific.IntegerArrayScientific,
-                 arrays_framework.IntegerArrayFramework):
+class IntegerArray(arrays_scientific.IntegerArrayScientific, arrays_framework.IntegerArrayFramework):
     """
     This class brings together the scientific and framework methods that are
     associated with the IntegerArray datatype.
@@ -85,8 +82,7 @@ class IntegerArray(arrays_scientific.IntegerArrayScientific,
     pass
 
 
-class ComplexArray(arrays_scientific.ComplexArrayScientific,
-                 arrays_framework.ComplexArrayFramework):
+class ComplexArray(arrays_scientific.ComplexArrayScientific, arrays_framework.ComplexArrayFramework):
     """
     This class brings together the scientific and framework methods that are
     associated with the ComplexArray datatype.
@@ -106,8 +102,7 @@ class ComplexArray(arrays_scientific.ComplexArrayScientific,
     pass
 
 
-class BoolArray(arrays_scientific.BoolArrayScientific,
-                 arrays_framework.BoolArrayFramework):
+class BoolArray(arrays_scientific.BoolArrayScientific, arrays_framework.BoolArrayFramework):
     """
     This class brings together the scientific and framework methods that are
     associated with the BoolArray datatype.
@@ -127,8 +122,7 @@ class BoolArray(arrays_scientific.BoolArrayScientific,
     pass
 
 
-class StringArray(arrays_scientific.StringArrayScientific,
-                 arrays_framework.StringArrayFramework):
+class StringArray(arrays_scientific.StringArrayScientific, arrays_framework.StringArrayFramework):
     """
     This class brings together the scientific and framework methods that are
     associated with the StringArray datatype.
@@ -148,8 +142,7 @@ class StringArray(arrays_scientific.StringArrayScientific,
     pass
 
 
-class PositionArray(arrays_scientific.PositionArrayScientific,
-                 arrays_framework.PositionArrayFramework):
+class PositionArray(arrays_scientific.PositionArrayScientific, arrays_framework.PositionArrayFramework):
     """
     This class brings together the scientific and framework methods that are
     associated with the PositionArray datatype.
@@ -169,8 +162,7 @@ class PositionArray(arrays_scientific.PositionArrayScientific,
     pass
 
 
-class OrientationArray(arrays_scientific.OrientationArrayScientific,
-                       arrays_framework.OrientationArrayFramework):
+class OrientationArray(arrays_scientific.OrientationArrayScientific, arrays_framework.OrientationArrayFramework):
     """
     This class brings together the scientific and framework methods that are
     associated with the OrientationArray datatype.
@@ -190,8 +182,7 @@ class OrientationArray(arrays_scientific.OrientationArrayScientific,
     pass
 
 
-class IndexArray(arrays_scientific.IndexArrayScientific,
-                 arrays_framework.IndexArrayFramework):
+class IndexArray(arrays_scientific.IndexArrayScientific, arrays_framework.IndexArrayFramework):
     """
     This class brings together the scientific and framework methods that are
     associated with the IndexArray datatype.
@@ -211,8 +202,7 @@ class IndexArray(arrays_scientific.IndexArrayScientific,
     pass
 
 
-class MappedArray(arrays_scientific.MappedArrayScientific,
-                  arrays_framework.MappedArrayFramework):
+class MappedArray(arrays_scientific.MappedArrayScientific, arrays_framework.MappedArrayFramework):
     """
     This class brings together the scientific and framework methods that are
     associated with the MappedArray datatype.

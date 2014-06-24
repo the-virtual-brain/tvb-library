@@ -41,12 +41,13 @@ import pdb
 from time import time
 from numpy import * # for load & save not available in pylab
 import numpy as np
+import numpy
 
 from tvb.basic.profile import TvbProfile
 TvbProfile.set_profile(["-profile", "LIBRARY_PROFILE"], try_reload=False)
 
 from tvb.simulator import (simulator, models, coupling, integrators, monitors, noise)
-from tvb.datatypes import connectivity, surfaces, equations, patterns
+from tvb.datatypes import connectivity, surfaces, equations, patterns, sensors
 
 from tvb.simulator.common import get_logger
 LOG = get_logger(__name__)
@@ -82,10 +83,9 @@ def timed(fn, t=time):
 
 
 # try to import plotting tools and matplotlib
-if 'DISPLAY' in os.environ:
-    try:
-        from tvb.simulator.plot.tools import *
-        from matplotlib.pyplot import *
-    except ImportError as exc:
-        LOG.warning("Plotting tools will not be available: %s:", exc)
+try:
+    from tvb.simulator.plot.tools import *
+    from matplotlib.pyplot import *
+except ImportError as exc:
+    LOG.warning("Plotting tools will not be available: %s:", exc)
 

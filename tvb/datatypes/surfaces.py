@@ -33,18 +33,19 @@ Surface relates DataTypes. This brings together the scientific and framework
 methods that are associated with the surfaces data.
 
 .. moduleauthor:: Bogdan Neacsa <bogdan.neacsa@codemart.ro>
-.. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
+.. moduleauthor:: Stuart A. Knock <stuart.knock@gmail.com>
 
 """
 
-import tvb.datatypes.surfaces_scientific as surfaces_scientific
-import tvb.datatypes.surfaces_framework as surfaces_framework
-import tvb.datatypes.surfaces_data as surfaces_data
-import tvb.basic.traits.exceptions as exceptions
+import os
+import numpy
+from tvb.datatypes import surfaces_scientific
+from tvb.datatypes import surfaces_framework
+from tvb.datatypes import surfaces_data
+from tvb.basic.traits import exceptions
 from tvb.basic.config.settings import TVBSettings as cfg
-from tvb.basic.logger.builder import get_logger
+from tvb.basic.readers import FileReader, ZipReader, try_get_absolute_path
 
-LOG = get_logger(__name__)
 
 CORTICAL = surfaces_data.CORTICAL
 OUTER_SKIN = surfaces_data.OUTER_SKIN
@@ -73,6 +74,34 @@ class Surface(surfaces_scientific.SurfaceScientific, surfaces_framework.SurfaceF
     
     """
 
+    @classmethod
+    def from_file(cls, source_file=os.path.join("cortex_reg13", "surface_cortex_reg13.zip"), instance=None):
+        """
+        Construct a Surface from source_file.
+        """
+
+        if instance is None:
+            result = cls()
+        else:
+            result = instance
+
+        source_full_path = try_get_absolute_path("tvb_data.surfaceData", source_file)
+        reader = ZipReader(source_full_path)
+
+        result.vertices = reader.read_array_from_file("vertices.txt")
+        result.vertex_normals = reader.read_array_from_file("normals.txt")
+        result.triangles = reader.read_array_from_file("triangles.txt", dtype=numpy.int32)
+
+        return result
+
+
+    @classmethod
+    def default(cls):
+        """
+        Construct a Surface from the default cortex surface
+        """
+        return cls.from_file()
+
 
     def configure(self):
         """
@@ -97,10 +126,11 @@ class Surface(surfaces_scientific.SurfaceScientific, surfaces_framework.SurfaceF
             msg += " Please upload a new surface or change max number in application settings."
             raise exceptions.ValidationException(msg)
 
-            # Now check if the surface is closed
-        is_closed, _, _, _, _ = self.check()
-        if not is_closed:
-            msg = "Could not import surface because it's not closed.Please correct the problem and upload again."
+        # Now check if the surface is compatible with TVB
+        is_good, _, _, _, _, error_message = self.check()
+        if not is_good:
+            msg = "Could not import surface because it's not compatible with TVB. %s" \
+                  "Please correct the problem and upload again." % error_message
             raise exceptions.ValidationException(msg)
 
 
@@ -146,6 +176,10 @@ class SkinAir(surfaces_scientific.SkinAirScientific, surfaces_framework.SkinAirF
     """
     __mapper_args__ = {'polymorphic_identity': OUTER_SKIN}
 
+    @classmethod
+    def from_file(cls, source_file="outer_skin_4096.zip", instance=None):
+        return super(SkinAir, cls).from_file(source_file, instance)
+
 
 
 class BrainSkull(surfaces_scientific.BrainSkullScientific, surfaces_framework.BrainSkullFramework, Surface):
@@ -167,6 +201,10 @@ class BrainSkull(surfaces_scientific.BrainSkullScientific, surfaces_framework.Br
     """
     __mapper_args__ = {'polymorphic_identity': INNER_SKULL}
 
+    @classmethod
+    def from_file(cls, source_file="inner_skull_4096.zip", instance=None):
+        return super(BrainSkull, cls).from_file(source_file, instance)
+
 
 
 class SkullSkin(surfaces_scientific.SkullSkinScientific, surfaces_framework.SkullSkinFramework, Surface):
@@ -187,6 +225,10 @@ class SkullSkin(surfaces_scientific.SkullSkinScientific, surfaces_framework.Skul
     
     """
     __mapper_args__ = {'polymorphic_identity': OUTER_SKULL}
+
+    @classmethod
+    def from_file(cls, source_file="outer_skull_4096.zip", instance=None):
+        return super(SkullSkin, cls).from_file(source_file, instance)
 
 
 ##--------------------- CLOSE SURFACES End Here---------------------------------------##
@@ -235,6 +277,10 @@ class EEGCap(surfaces_scientific.EEGCapScientific, surfaces_framework.EEGCapFram
     """
     __mapper_args__ = {'polymorphic_identity': EEG_CAP}
 
+    @classmethod
+    def from_file(cls, source_file="eeg_skin_surface.zip", instance=None):
+        return super(EEGCap, cls).from_file(source_file, instance)
+
 
 
 class FaceSurface(surfaces_scientific.FaceSurfaceScientific, surfaces_framework.FaceSurfaceFramework, OpenSurface):
@@ -255,6 +301,10 @@ class FaceSurface(surfaces_scientific.FaceSurfaceScientific, surfaces_framework.
     
     """
     __mapper_args__ = {'polymorphic_identity': FACE}
+
+    @classmethod
+    def from_file(cls, source_file="face_surface_old.zip", instance=None):
+        return super(FaceSurface, cls).from_file(source_file, instance)
 
 ##--------------------- OPEN SURFACES End Here---------------------------------------##
 
@@ -279,7 +329,20 @@ class RegionMapping(surfaces_framework.RegionMappingFramework, surfaces_scientif
         
     
     """
-    pass
+
+    @staticmethod
+    def from_file(source_file=os.path.join("cortex_reg13", "region_mapping", "o52r00_irp2008_hemisphere_both_subcortical_false_regions_74.txt.bz2"), instance=None):
+
+        if instance is None:
+            result = RegionMapping()
+        else:
+            result = instance
+
+        source_full_path = try_get_absolute_path("tvb_data.surfaceData", source_file)
+        reader = FileReader(source_full_path)
+
+        result.array_data = reader.read_array(dtype=numpy.int32)
+        return result
 
 
 
@@ -300,7 +363,21 @@ class LocalConnectivity(surfaces_scientific.LocalConnectivityScientific, surface
         
     
     """
-    pass
+
+    @staticmethod
+    def from_file(source_file=os.path.join("cortex_reg13", "local_connectivity_surface_cortex_reg13.mat"),
+                  instance=None):
+
+        if instance is None:
+            result = LocalConnectivity()
+        else:
+            result = instance
+
+        source_full_path = try_get_absolute_path("tvb_data.surfaceData", source_file)
+        reader = FileReader(source_full_path)
+
+        result.matrix = reader.read_array(matlab_data_name="LocalCoupling")
+        return result
 
 
 
@@ -321,5 +398,55 @@ class Cortex(surfaces_scientific.CortexScientific, surfaces_framework.CortexFram
         
     
     """
-    pass
 
+    @classmethod
+    def from_file(cls, source_file=os.path.join("cortex_reg13", "surface_cortex_reg13.zip"), instance=None):
+
+        result = super(Cortex, cls).from_file(source_file, instance)
+
+        result.region_mapping_data = RegionMapping.from_file()
+        result.eeg_projection = Cortex.from_file_projection_array()
+        #result.meg_projection = Cortex.from_file_projection_array()
+
+        return result
+
+
+    @staticmethod
+    def from_file_projection_array(source_file="surface_reg_13_eeg_62.mat", matlab_data_name="ProjectionMatrix"):
+
+        source_full_path = try_get_absolute_path("tvb_data.projectionMatrix", source_file)
+        reader = FileReader(source_full_path)
+
+        return reader.read_array(matlab_data_name=matlab_data_name)
+
+
+    @staticmethod
+    def from_file_region_mapping_array(source_file=os.path.join("cortex_reg13", "all_regions_cortex_reg13.txt")):
+
+        source_full_path = try_get_absolute_path("tvb_data.surfaceData", source_file)
+        reader = FileReader(source_full_path)
+
+        return reader.read_array(dtype=numpy.int32)
+
+
+
+def make_surface(surface_type):
+    """
+    Build a Surface instance, based on an input type
+    :param surface_type: one of the supported surface types
+    :return: Instance of the corresponding surface lass, or None
+    """
+    if surface_type == CORTICAL:
+        return CorticalSurface()
+    elif surface_type == INNER_SKULL:
+        return BrainSkull()
+    elif surface_type == OUTER_SKULL:
+        return SkullSkin()
+    elif surface_type == OUTER_SKIN:
+        return SkinAir()
+    elif surface_type == EEG_CAP:
+        return EEGCap()
+    elif surface_type == FACE:
+        return FaceSurface()
+
+    return None

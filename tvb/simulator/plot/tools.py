@@ -43,6 +43,7 @@ import an usage for MAYAVI based plots should look like::
 """
 
 import numpy
+import scipy as sp
 import networkx as nx
 from tvb.basic.logger.builder import get_logger
 
@@ -58,8 +59,14 @@ import matplotlib.pyplot as pyplot
 import matplotlib.colors
 import matplotlib.ticker as ticker
 import matplotlib.colors as colors
-from mpl_toolkits.axes_grid import make_axes_locatable  
 
+
+try:
+    from mpl_toolkits.axes_grid import make_axes_locatable
+    IMPORTED_MPL_TOOLKITS = True
+except ImportError:
+    IMPORTED_MPL_TOOLKITS = False
+    LOG.error("You need mpl_toolkits")
 
 def _blob(x, y, area, colour):
     """
@@ -300,7 +307,76 @@ def show_me_the_colours():
         ax.text(0.05, 0.5, colours[k])
 
 
-def plot_tri_matrix(mat, num='plot_part_of_this_matrix', size=None, 
+
+def plot_matrix(mat, fig_name='plot_this_matrix', connectivity=None, binary_matrix=False):
+    """
+    An embellished matshow display
+    """
+    #NOTE: I could add more stuff in plot_connectivity, but I rather have
+    # a dummy function for displaying a pretty matrix with the 
+    # value of each element.
+
+    from matplotlib import colors
+
+    fig, ax = pyplot.subplots(num=fig_name, figsize=(12,10))
+
+
+    if binary_matrix:
+        cmap = colors.ListedColormap(['black', 'white'])
+        bounds=[0,1,2]
+        norm = colors.BoundaryNorm(bounds, cmap.N)
+
+        p = ax.pcolormesh(mat, cmap=cmap, norm=norm, edgecolors='k')
+        ax.invert_yaxis()
+        cbar = fig.colorbar(p, cmap=cmap, norm=norm, boundaries=bounds, ticks=[0.5, 1.5])
+        cbar.ax.set_yticklabels(['no connections', 'connections'], fontsize=24)
+
+    else:
+        fig = pyplot.figure(num=fig_name)
+        ax = fig.gca()
+        res = ax.imshow(mat, cmap=pyplot.cm.coolwarm, interpolation='nearest')
+        fig.colorbar(res)
+
+    if connectivity is not None:
+        order = numpy.arange(connectivity.number_of_regions)
+        labels = connectivity.region_labels
+        pyplot.xticks(numpy.arange(connectivity.number_of_regions)+0.5, list(labels[order]), fontsize=10, rotation=90)
+        pyplot.yticks(numpy.arange(connectivity.number_of_regions)+0.5, list(labels[order]), fontsize=10)
+    
+    width  = mat.shape[0]
+    height = mat.shape[1]
+
+    # for x in xrange(width):
+    #     for y in xrange(height):
+    #         ax.annotate(str(int(mat[x][y])),
+    #                     xy=(y, x),
+    #                     horizontalalignment='center',
+    #                     verticalalignment  = 'center',
+    #                     fontsize=10)
+
+
+
+def plot_3d_centres(xyz):
+
+        import matplotlib as mpl
+        from mpl_toolkits.mplot3d import Axes3D
+        import matplotlib.pyplot as plt
+
+
+        fig = plt.figure(1)
+        fig.clf()
+        ax = Axes3D(fig)
+        ax.plot(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', alpha=0.6)
+        ax.set_xlim([min(xyz[:, 0]), max(xyz[:, 0])])
+        ax.set_ylim([min(xyz[:, 1]), max(xyz[:, 1])])
+        ax.set_zlim([min(xyz[:, 2]), max(xyz[:, 2])])
+        ax.set_xlabel('x [mm]')
+        ax.set_ylabel('y [mm]')
+        ax.set_zlabel('z [mm]')
+
+
+
+def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
                         cmap=pyplot.cm.RdBu_r, colourbar=True,
                         color_anchor=None, node_labels=None, x_tick_rot=0, 
                         title=None):
@@ -336,10 +412,13 @@ def plot_tri_matrix(mat, num='plot_part_of_this_matrix', size=None,
         thisidx = numpy.clip(int(x), 0, N - 1)
         return node_labels[thisidx]
 
-    if num is None:
-        fig = pyplot.figure()
-    else:
-        fig = pyplot.figure(num=num) 
+    if figure is not None:
+        fig = figure
+    else :
+        if num is None:
+            fig = pyplot.figure()
+        else:
+            fig = pyplot.figure(num=num)
 
     if size is not None:
         fig.set_figwidth(size[0])
@@ -351,12 +430,16 @@ def plot_tri_matrix(mat, num='plot_part_of_this_matrix', size=None,
     ax_im = fig.add_subplot(1, 1, 1)
 
     N   = mat.shape[0]
-    idx = numpy.arange(N)  
-    if colourbar:
-        divider = make_axes_locatable(ax_im)
-        ax_cb   = divider.new_vertical(size="10%", pad=0.1, pack_start=True)
-        fig.add_axes(ax_cb)
+    idx = numpy.arange(N) 
 
+     
+    if colourbar:
+        if IMPORTED_MPL_TOOLKITS:
+            divider = make_axes_locatable(ax_im)
+            ax_cb   = divider.new_vertical(size="10%", pad=0.1, pack_start=True)
+            fig.add_axes(ax_cb)
+        else:
+            pass
 
     mat_copy = mat.copy()
 
@@ -427,17 +510,184 @@ def plot_tri_matrix(mat, num='plot_part_of_this_matrix', size=None,
 
 
         #colourbar:
-        cb = fig.colorbar(im, cax=ax_cb, orientation='horizontal',
-                          cmap=cmap,
-                          norm=im.norm,
-                          boundaries=numpy.linspace(color_min, color_max, 256),
-                          ticks=ticks,
-                          format='%.2f')
+        if IMPORTED_MPL_TOOLKITS:
+            cb = fig.colorbar(im, cax=ax_cb, orientation='horizontal',
+                              cmap=cmap,
+                              norm=im.norm,
+                              boundaries=numpy.linspace(color_min, color_max, 256),
+                              ticks=ticks,
+                              format='%.2f')
+
+        else:
+            # the colourbar will be wider than the matrix
+            cb = fig.colorbar(im, orientation='horizontal',
+                              cmap=cmap,
+                              norm=im.norm,
+                              boundaries=numpy.linspace(color_min, color_max, 256),
+                              ticks=ticks,
+                              format='%.2f')
 
     fig.sca(ax)
 
     return fig
 
+
+def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500), 
+             extents=None, nocorrelation=False, weights=None, norm = True, pdf=False, **kwargs):
+    """
+    A faster gaussian kernel density estimate (KDE).  Intended for
+    computing the KDE on a regular grid (different use case than
+    scipy's original scipy.stats.kde.gaussian_kde()).  
+
+    Author: Joe Kington
+    License:  MIT License <http://www.opensource.org/licenses/mit-license.php>
+
+    Performs a gaussian kernel density estimate over a regular grid using a
+    convolution of the gaussian kernel with a 2D histogram of the data.
+
+    This function is typically several orders of magnitude faster than 
+    scipy.stats.kde.gaussian_kde for large (>1e7) numbers of points and 
+    produces an essentially identical result.
+
+    **Input**:
+    
+        *x*: array
+            The x-coords of the input data points
+        
+        *y*: array
+            The y-coords of the input data points
+        
+        *kern_nx*: float 
+            size (in units of *x*) of the kernel
+
+        *kern_ny*: float
+            size (in units of *y*) of the kernel
+
+        *gridsize*: (Nx , Ny) tuple (default: 500x500) 
+            Size of the output grid
+                    
+        *extents*: (default: extent of input data) A (xmin, xmax, ymin, ymax)
+            tuple of the extents of output grid
+
+        *nocorrelation*: (default: False) If True, the correlation between the
+            x and y coords will be ignored when preforming the KDE.
+        
+        *weights*: (default: None) An array of the same shape as x & y that 
+            weighs each sample (x_i, y_i) by each value in weights (w_i).
+            Defaults to an array of ones the same size as x & y.
+            
+        *norm*: boolean (default: False) 
+            If False, the output is only corrected for the kernel. If True,
+            the result is normalized such that the integral over the area 
+            yields 1. 
+
+    **Output**:
+        A gridded 2D kernel density estimate of the input points. 
+    """
+   
+    #---- Setup --------------------------------------------------------------
+    x, y = numpy.asarray(x), numpy.asarray(y)
+    x, y = numpy.squeeze(x), numpy.squeeze(y)
+    
+    if x.size != y.size:
+        raise ValueError('Input x & y arrays must be the same size!')
+
+    nx, ny = gridsize
+    n = x.size
+
+    if weights is None:
+        # Default: Weight all points equally
+        weights = numpy.ones(n)
+    else:
+        weights = numpy.squeeze(numpy.asarray(weights))
+        if weights.size != x.size:
+            raise ValueError('Input weights must be an array of the same size'
+                    ' as input x & y arrays!')
+
+    # Default extents are the extent of the data
+    if extents is None:
+        xmin, xmax = x.min(), x.max()
+        ymin, ymax = y.min(), y.max()
+    else:
+        xmin, xmax, ymin, ymax = map(float, extents)
+        
+    dx = (xmax - xmin) / (nx - 1)
+    dy = (ymax - ymin) / (ny - 1)
+
+    #---- Preliminary Calculations -------------------------------------------
+
+    # First convert x & y over to pixel coordinates
+    # (Avoiding np.digitize due to excessive memory usage!)
+    xyi = numpy.vstack((x,y)).T
+    xyi -= [xmin, ymin]
+    xyi /= [dx, dy]
+    xyi = numpy.floor(xyi, xyi).T
+
+    # Next, make a 2D histogram of x & y
+    # Avoiding np.histogram2d due to excessive memory usage with many points
+    grid = sp.sparse.coo_matrix((weights, xyi), shape=(nx, ny)).toarray()
+
+    # Calculate the covariance matrix (in pixel coords)
+    cov = numpy.cov(xyi)
+
+    if nocorrelation:
+        cov[1,0] = 0
+        cov[0,1] = 0
+
+    # Scaling factor for bandwidth
+    scotts_factor = numpy.power(n, -1.0 / 6) # For 2D
+
+    #---- Make the gaussian kernel -------------------------------------------
+
+    # First, determine how big the kernel needs to be
+    std_devs = numpy.diag(numpy.sqrt(cov))
+
+    if kern_nx is None or kern_ny is None: 
+        kern_nx, kern_ny = numpy.round(scotts_factor * 2 * numpy.pi * std_devs)
+    
+    else: 
+        kern_nx = numpy.round(kern_nx / dx)
+        kern_ny = numpy.round(kern_ny / dy)
+
+    # Determine the bandwidth to use for the gaussian kernel
+    inv_cov = numpy.linalg.inv(cov * scotts_factor**2) 
+
+    # x & y (pixel) coords of the kernel grid, with <x,y> = <0,0> in center
+    xx = numpy.arange(kern_nx, dtype=numpy.float) - kern_nx / 2.0
+    yy = numpy.arange(kern_ny, dtype=numpy.float) - kern_ny / 2.0
+    xx, yy = numpy.meshgrid(xx, yy)
+
+    # Then evaluate the gaussian function on the kernel grid
+    kernel = numpy.vstack((xx.flatten(), yy.flatten()))
+    kernel = numpy.dot(inv_cov, kernel) * kernel 
+    kernel = numpy.sum(kernel, axis=0) / 2.0 
+    kernel = numpy.exp(-kernel) 
+    kernel = kernel.reshape((kern_ny, kern_nx))
+
+    #---- Produce the kernel density estimate --------------------------------
+
+    # Convolve the gaussian kernel with the 2D histogram, producing a gaussian
+    # kernel density estimate on a regular grid
+    grid = sp.signal.convolve2d(grid, kernel, mode='same', boundary='fill').T
+
+    # Normalization factor to divide result by so that units are in the same
+    # units as scipy.stats.kde.gaussian_kde's output.  
+    norm_factor = 2 * numpy.pi * cov * scotts_factor**2
+    norm_factor = numpy.linalg.det(norm_factor)
+    #norm_factor = n * dx * dy * np.sqrt(norm_factor)
+    norm_factor = numpy.sqrt(norm_factor)
+    
+    if norm : 
+        norm_factor *= n * dx * dy
+    #---- Produce pdf                        --------------------------------
+
+    if pdf:
+        norm_factor, _ = sp.integrate.nquad(grid, [[xmin, xmax], [ymin, ymax]])
+
+    # Normalize the result
+    grid /= norm_factor
+
+    return grid
 
 #import pdb; pdb.set_trace()
 ##----------------------------------------------------------------------------##
@@ -451,7 +701,7 @@ except ImportError:
     LOG.error("Mayavi is needed for this demo but due to sizing and packaging constraints we are not distributing it. "
               "If you want to see the actual plot you should use the github version and install all the required "
               "dependencies as described here: (advanced users only)"
-              "https://github.com/the-virtual-brain/docs/blob/trunk/InstallationManual/InstallationManual.rst")
+              "http://docs.thevirtualbrain.com/advanced/link_installation_build.html")
     IMPORTED_MAYAVI = False
     #raise
 
@@ -490,7 +740,7 @@ if IMPORTED_MAYAVI:
             time_step.set(text=("%s of %s" % (str(k), str(tpts))))
             k += step
             yield
-        mlab.show(stop=True)
+        mlab.show()
         #--------------------------------------------------------------------------#
 
 
@@ -565,20 +815,19 @@ if IMPORTED_MAYAVI:
                                          scalars=cortex_boundaries.cortex.region_mapping[:number_of_vertices//2],
                                          figure=fig)
         surf_mesh.module_manager.scalar_lut_manager.lut.number_of_colors = number_of_regions
-        surf_mesh.module_manager.scalar_lut_manager.lut.table = lut
+        #surf_mesh.module_manager.scalar_lut_manager.lut.table = lut
 
         #TODO: can't get region labels to associate with colorbar...
         #mlab.colorbar(object=surf_mesh, orientation="vertical")
-
         x = cortex_boundaries.boundary[:, 0]
         y = cortex_boundaries.boundary[:, 1]
         z = cortex_boundaries.boundary[:, 2]
-        bpts = mlab.points3d(x, y, z, color=(0.25, 0.05, 0.05), scale_factor=1)
+        bpts = mlab.points3d(x, y, z, color=(0.25, 0.25, 0.25), scale_factor=1)
         mlab.show(stop=interaction)
         return surf_mesh, bpts
 
 
-    def surface_pattern(surface, vertex_colours):
+    def surface_pattern(surface, vertex_colours, custom_lut = None, foci=None):
         """
         Plot a surface and colour it based on a vector of length number of 
         vertices (vertex_colours).
@@ -604,6 +853,24 @@ if IMPORTED_MAYAVI:
         scalar_data.update()
         scalar_mesh = mlab.pipeline.set_active_attribute(surf_mesh, point_scalars='Scalar data')
         scalar_surf = mlab.pipeline.surface(scalar_mesh)
+
+
+        if custom_lut is not None:
+
+            # and finally we put this LUT back in the surface object. We could have
+            # added any 255*4 array rather than modifying an existing LUT.
+            scalar_surf.module_manager.scalar_lut_manager.lut.table = custom_lut
+        
+        if foci is not None:
+            pts = mlab.points3d(foci[:,0], 
+                                foci[:,1], 
+                                foci[:,2],
+                            scale_factor = 2.,
+                            scale_mode = 'none',
+                            resolution = 5,
+                            opacity=0.01)
+
+        
         mlab.show(stop=True)
         return sm_obj
 
@@ -713,7 +980,6 @@ if IMPORTED_MAYAVI:
         minD = connectivity.delays.min()
         maxD = connectivity.delays.max()
         stepD = (maxD - minD) / 10.
-
         if order is None:
             order = numpy.arange(0, N)
 
@@ -723,7 +989,6 @@ if IMPORTED_MAYAVI:
         # colourmap to emphasise large numbers
         #MAP = numpy.loadtxt('../plot/colourmaps/BlackToBlue')
         #mapstep = 1. / MAP.shape[0]
-
 
         # Loop over connectivity matrix, colouring and one cube per matrix element
         K = []
@@ -745,45 +1010,6 @@ if IMPORTED_MAYAVI:
 
 
         #--------------------------------------------------------------------------#
-
-
-    ##----------------------------------------------------------------------------##
-    ##-                    plotting functions for analysis output                -##
-    ##----------------------------------------------------------------------------##
-
-    def plot_matrix(mat, fig_name='plot_this_matrix', connectivity=None):
-        """
-        An embellished matshow display
-        """
-        #NOTE: I could add more stuff in plot_connectivity, but I rather have
-        # a dummy function for displaying a pretty matrix with the 
-        # value of each element.
-
-        fig = pyplot.figure(num=fig_name)
-        ax = fig.gca()
-        res = ax.imshow(mat, cmap=pyplot.cm.jet, interpolation='nearest', alpha=0.6)
-
-        if connectivity is not None:
-            order = numpy.arange(connectivity.number_of_regions)
-            labels = connectivity.region_labels
-            pyplot.xticks(numpy.arange(connectivity.number_of_regions), list(labels[order]), fontsize=9, rotation=90)
-            pyplot.yticks(numpy.arange(connectivity.number_of_regions), list(labels[order]), fontsize=9)
-
-        fig.colorbar(res)
-        width = mat.shape[0]
-        height = mat.shape[1]
-
-        for x in xrange(width):
-            for y in xrange(height):
-                ax.annotate(str(int(mat[x][y])),
-                            xy=(y, x),
-                            horizontalalignment='center',
-                            verticalalignment='center',
-                            fontsize=7)
-
-
-
-
 
 if __name__ == '__main__':
     # Do some stuff that tests or makes use of this module... 

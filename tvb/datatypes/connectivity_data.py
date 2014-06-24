@@ -39,7 +39,6 @@ The Data component of Connectivity datatype.
 import numpy
 import tvb.basic.traits.types_basic as basic
 import tvb.basic.traits.core as core
-import tvb.basic.traits.data_readers as readers
 import tvb.datatypes.volumes as volumes
 import tvb.datatypes.arrays as arrays
 from tvb.basic.traits.types_mapped import MappedType
@@ -52,8 +51,6 @@ class ConnectivityData(MappedType):
     data into a single object. 
     """
 
-    default = readers.File(folder_path="connectivity/o52r00_irp2008")
-
     parcellation_mask = volumes.ParcellationMask(
         label="Parcellation mask (volume)",
         required=False,
@@ -61,22 +58,20 @@ class ConnectivityData(MappedType):
 
     region_labels = arrays.StringArray(
         label="Region labels",
-        console_default=default.read_data(file_name="centres.txt.bz2", usecols=(0,),
-                                          dtype="string", field="region_labels"),
         doc="""Short strings, 'labels', for the regions represented by the connectivity matrix.""")
 
     weights = arrays.FloatArray(
         label="Connection strengths",
-        console_default=default.read_data(file_name="weights.txt.bz2", field="weights"),
+        stored_metadata=[key for key in MappedType.DEFAULT_WITH_ZERO_METADATA],
         doc="""Matrix of values representing the strength of connections between regions, arbitrary units.""")
 
-    unidirectional = basic.Integer(
+    undirected = basic.Integer(
         default=0, required=False,
         doc="1, when the weights matrix is square and symmetric over the main diagonal, 0 when bi-directional matrix.")
 
     tract_lengths = arrays.FloatArray(
         label="Tract lengths",
-        console_default=default.read_data(file_name="tract_lengths.txt.bz2", field="tract_lengths"),
+        stored_metadata=[key for key in MappedType.DEFAULT_WITH_ZERO_METADATA],
         doc="""The length of myelinated fibre tracts between regions.
         If not provided Euclidean distance between region centres is used.""")
 
@@ -87,12 +82,10 @@ class ConnectivityData(MappedType):
 
     centres = arrays.PositionArray(
         label="Region centres",
-        console_default=default.read_data(file_name="centres.txt.bz2", usecols=(1, 2, 3), field="centres"),
         doc="An array specifying the location of the centre of each region.")
 
     cortical = arrays.BoolArray(
         label="Cortical",
-        console_default=default.read_data(file_name="cortical.txt.bz2", dtype=numpy.bool, field="cortical"),
         required=False,
         doc="""A boolean vector specifying whether or not a region is part of the cortex.""")
 
@@ -103,14 +96,12 @@ class ConnectivityData(MappedType):
 
     orientations = arrays.OrientationArray(
         label="Average region orientation",
-        console_default=default.read_data(file_name="average_orientations.txt.bz2", field="orientations"),
         required=False,
         doc="""Unit vectors of the average orientation of the regions represented in the connectivity matrix.
         NOTE: Unknown data should be zeros.""")
 
     areas = arrays.FloatArray(
         label="Area of regions",
-        console_default=default.read_data(file_name="areas.txt.bz2", field="areas"),
         required=False,
         doc="""Estimated area represented by the regions in the connectivity matrix.
         NOTE: Unknown data should be zeros.""")
@@ -129,6 +120,10 @@ class ConnectivityData(MappedType):
     number_of_regions = basic.Integer(
         label="Number of regions",
         doc="""The number of regions represented in this Connectivity """)
+
+    number_of_connections = basic.Integer(
+        label="Number of connections",
+        doc="""The number of non-zero entries represented in this Connectivity """)
 
     # ------------- FRAMEWORK ATTRIBUTES -----------------------------
 

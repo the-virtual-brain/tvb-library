@@ -47,7 +47,7 @@ will be consistent with Monitor periods corresponding to any of [4096, 2048, 102
 
 # From standard python libraries
 
-# Third party python libraries
+# Third party python libraries  
 import numpy
 
 #The Virtual Brain
@@ -88,6 +88,7 @@ class Integrator(core.Type):
     dt = basic.Float(
         label = "Integration-step size (ms)", 
         default =  0.01220703125, #0.015625,
+        #range = basic.Range(lo= 0.0048828125, hi=0.244140625, step= 0.1, base=2.)
         required = True,
         doc = """The step size used by the integration routine in ms. This
         should be chosen to be small enough for the integration to be
@@ -330,7 +331,6 @@ class HeunStochastic(IntegratorStochastic):
         See page 1180.
 
         """
-
         noise = self.noise.generate(X.shape)
         noise_gfun = self.noise.gfun(X)
         if (noise_gfun.shape != (1,) and noise.shape[0] != noise_gfun.shape[0]):
@@ -411,9 +411,9 @@ class EulerDeterministic(Integrator):
 
         """
 
-        dX = dfun(X, coupling, local_coupling) * self.dt
+        self.dX = dfun(X, coupling, local_coupling) 
 
-        return X + dX + self.dt * stimulus
+        return X + self.dt * (self.dX + stimulus)
 
     device_info = integrator_device_info(
         pars = ['dt'],

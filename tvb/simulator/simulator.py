@@ -276,6 +276,7 @@ class Simulator(core.Type):
         if self.stimulus:
             self.stimulus.configure()
 
+        self.coupling.configure()
         self.model.configure()
         self.integrator.configure()
 
@@ -375,8 +376,8 @@ class Simulator(core.Type):
         if random_state is not None:
             if isinstance(self.integrator, integrators_module.IntegratorStochastic):
                 self.integrator.noise.random_stream.set_state(random_state)
-                #msg = "%s: random_state supplied. Seed is: %s"
-                #LOG.info(msg % str(self, self.integrator.noise.random_stream.get_state()[1][0]))
+                msg = "%s: random_state supplied. Seed is: %s"
+                LOG.info(msg % (str(self),str(self.integrator.noise.random_stream.get_state()[1][0])))
             else:
                 msg = "%s: random_state supplied for non-stochastic integration"
                 LOG.warn(msg % str(self))
@@ -525,8 +526,8 @@ class Simulator(core.Type):
             ic_shape = initial_conditions.shape
             if ic_shape[1:] != self.good_history_shape[1:]:
                 msg = "%s: bad initial_conditions[1:] shape %s, should be %s"
-                LOG.error(msg % (str(self), str(ic_shape[1:]), 
-                                 str(self.good_history_shape[1:])))
+                msg %= self, ic_shape[1:], self.good_history_shape[1:]
+                raise ValueError(msg)
             else:
                 if ic_shape[0] >= self.horizon:
                     msg = "%s: Using last %s time-steps for history."
@@ -828,6 +829,3 @@ class Simulator(core.Type):
                         self.number_of_nodes * self.model.nvar * 
                         self.model.number_of_modes / monitor.period)
         self._storage_requirement = int(strgreq)
-
-
-#EoF

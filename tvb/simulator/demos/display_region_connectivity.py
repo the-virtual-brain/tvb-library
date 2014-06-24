@@ -34,22 +34,17 @@ Xmas balls scaled is in the range [0 - 1], representing
 the cumulative input to each region.
 
 
-.. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
+.. moduleauthor:: Paula Sanz Leon <pau.sleon@gmail.com>
 
 """
 
-from tvb.basic.logger.builder import get_logger
-LOG = get_logger(__name__)
-
-import tvb.datatypes.connectivity as connectivity
-from tvb.simulator.plot.tools import *
-
+from tvb.simulator.lab import *
 
 ##----------------------------------------------------------------------------##
 ##-                      Load the object                                     -##
 ##----------------------------------------------------------------------------##
 
-white_matter = connectivity.Connectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 
 #Compute cumulative input for each region
 node_data = white_matter.weights.sum(axis=1)
@@ -60,6 +55,6 @@ scaling_factor = node_data.max()
 ##----------------------------------------------------------------------------##
 
 if IMPORTED_MAYAVI:
-    xmas_balls(white_matter, node_data= node_data / scaling_factor)
+    xmas_balls(white_matter, node_data=node_data / scaling_factor)
     
 ###EoF###

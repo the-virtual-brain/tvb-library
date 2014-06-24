@@ -83,7 +83,7 @@ HOVERCOLOUR = "darkred"
 
 #Set the resolution of the phase-plane and sample trajectories. 
 NUMBEROFGRIDPOINTS = 42
-TRAJ_STEPS = 1024
+TRAJ_STEPS = 4096
 
 import colorsys
 def get_color(num_colours):

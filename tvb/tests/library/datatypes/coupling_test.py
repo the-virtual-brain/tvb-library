@@ -34,7 +34,6 @@ Created on Mar 20, 2013
 """
 if __name__ == "__main__":
     from tvb.tests.library import setup_test_console_env
-
     setup_test_console_env()
 
 import unittest
@@ -48,25 +47,19 @@ class CouplingTest(BaseTestCase):
     """
     Tests the defaults for `tvb.datatypes.coupling` module.
     """
-
-
     def test_coupling(self):
         dt = coupling.Coupling()
         self.assertEqual(dt.parameters, {})
-        self.assertEqual(dt.ui_equation, '')
 
 
     def test_linear_coupling(self):
         dt = coupling.LinearCoupling()
         self.assertEqual(dt.parameters, {'a': 0.00390625, 'b': 0.0})
-        self.assertEqual(dt.ui_equation, 'a * var + b')
 
 
     def test_sigmoidal_coupling(self):
         dt = coupling.SigmoidalCoupling()
         self.assertEqual(dt.parameters, {'high': 1.0, 'sigma': 0.3, 'midpoint': 1.0, 'low': 0.0})
-        self.assertEqual(dt.ui_equation,
-                         'low + (high - low) / (1.0 + 2.71**(-1.8137993642342178 * (var-midpoint)/sigma))')
 
 
 

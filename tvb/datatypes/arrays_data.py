@@ -73,7 +73,7 @@ class BoolArrayData(Array):
 class StringArrayData(Array):
     """ A numpy.ndarray of dtype str """
     _ui_name = "Array of strings"
-    dtype = "128a"  # "42a"
+    dtype = None
 
 
 class PositionArrayData(FloatArrayData):

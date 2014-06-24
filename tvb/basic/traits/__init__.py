@@ -89,8 +89,6 @@ package modules
     types_basic     Provides basic predefined types as well as the Type that
                     should be inherited from when making new Types
 
-    data_readers    Means to load data from files, in console mode.
-
     traited_interface  Provides recursive interfaces classes that are data
                     descriptors, i.e. when placed on classes, they compute
                     the full description of the class and it's Traited

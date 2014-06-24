@@ -29,8 +29,7 @@
 #
 
 """
-Profiling example for running a stochastic surface simulation with EEG and 
-BOLD.
+Profiling example for running a stochastic surface simulation with EEG and BOLD.
 
 .. moduleauthor:: Marmaduke Woodman <mw@eml.cc>
 
@@ -40,27 +39,28 @@ from tvb.simulator.lab import *
 from time import time
 
 lconn = surfaces.LocalConnectivity(
-        equation=equations.Gaussian(),
-        cutoff=30.0,
-        )
+    equation=equations.Gaussian(),
+    cutoff=30.0,
+    )
 
 lconn.equation.parameters['sigma'] = 10.0
-lconn.equation.parameters['amp']   = 0.0
+lconn.equation.parameters['amp'] = 0.0
 
 
 sim = simulator.Simulator(
         model        = models.Generic2dOscillator(),
-        connectivity = connectivity.Connectivity(speed=4.0),
-        coupling     = coupling.Linear(a=-2**-9),
+        connectivity = connectivity.Connectivity(speed=4.0, load_default=True),
+        coupling     = coupling.Linear(a=-2 ** -9),
         integrator   = integrators.HeunStochastic(
-                            dt=2**-4,
-                            noise=noise.Additive(nsig=ones((2,))*0.001)
+                            dt=2 ** -4,
+                            noise=noise.Additive(nsig=ones((2,)) * 0.001)
                             ),
         monitors     = (
-            monitors.EEG(period=1e3/2**10), # 1024 Hz
+            monitors.EEG(period=1e3/2 ** 10), # 1024 Hz
             monitors.Bold(period=500)       # 0.5  Hz
             ),
         surface      = surfaces.Cortex(
+            load_default=True,
             local_connectivity = lconn,
             coupling_strength  = array([0.01])
             ),
@@ -74,7 +74,6 @@ sim.connectivity.delays[:] = sim.connectivity.delays.mean()
 sim.connectivity.set_idelays(sim.integrator.dt)
 print sim.connectivity.idelays
 
-1/0
 ts_eeg, ys_eeg = [], []
 ts_bold, ys_bold = [], []
 

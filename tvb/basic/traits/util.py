@@ -31,11 +31,11 @@
 """
 All the little functions that make life nicer in the Traits package.
 
+.. moduleauthor:: Mihai Andrei <mihai.andrei@codemart.ro>
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
 .. moduleauthor:: marmaduke <duke@eml.cc>
 """
 
-import os
 import numpy
 import collections
 import inspect
@@ -44,23 +44,6 @@ from tvb.basic.config.settings import TVBSettings
 
 # returns true if key is, by convention, public
 ispublic = lambda key: key[0] is not '_'
-
-
-
-def read_list_data(full_path, dimensions=None, dtype=numpy.float64, skiprows=0, usecols=None):
-    """
-    Read numpy.array from a text file.
-    """
-    try:
-        array_result = numpy.loadtxt(full_path, dtype=dtype, skiprows=skiprows, usecols=usecols)
-        if dimensions:
-            return array_result.reshape(dimensions)
-        return array_result
-    except ValueError, exc:
-        file_ending = os.path.split(full_path)[1]
-        exc.args = (exc.args[0] + " In file: " + file_ending,)
-        raise
-
 
 
 def str_class_name(thing, short_form=False):
@@ -161,3 +144,43 @@ class TypeRegister(list):
         return sublcasses
 
 
+def multiline_math_directives_to_matjax(doc):
+    """
+    Looks for multi-line sphinx math directives in the given rst string
+    It converts them in html text that will be interpreted by mathjax
+    The parsing is simplistic, not a rst parser.
+    Wraps .. math :: body in \[\begin{split}\end{split}\]
+    """
+
+    # doc = text | math
+    BEGIN = r'\[\begin{split}'
+    END = r'\end{split}\]'
+
+    in_math = False  # 2 state parser
+    out_lines = []
+    indent = ''
+
+    for line in doc.splitlines():
+        if not in_math:
+            # math = indent directive math_body
+            indent, sep, _ = line.partition('.. math::')
+            if sep:
+                out_lines.append(BEGIN)
+                in_math = True
+            else:
+                out_lines.append(line)
+        else:
+            # math body is at least 1 space more indented than the directive, but we tolerate empty lines
+            if line.startswith(indent + ' ') or line.strip() == '':
+                out_lines.append(line)
+            else:
+                # this line is not properly indented, math block is over
+                out_lines.append(END)
+                out_lines.append(line)
+                in_math = False
+
+    if in_math:
+        # close math tag
+        out_lines.append(END)
+
+    return '\n'.join(out_lines)

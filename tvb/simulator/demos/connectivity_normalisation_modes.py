@@ -34,40 +34,41 @@ strength range.
 
 Current modes are re-scaling methods.
 
-.. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
+.. moduleauthor:: Paula Sanz Leon <pau.sleon@gmail.com>
 
 """
 
-# Third party python libraries
-
-from tvb.basic.logger.builder import get_logger
-LOG = get_logger(__name__)
-
-#Import from tvb.datatypes modules:
-import tvb.datatypes.connectivity as connectivity
-
-from matplotlib.pyplot import *
-from tvb.simulator.plot.tools import *
+from tvb.simulator.lab import *
 
 LOG.info("Reading default connectivity...")
-
-#Initialise a Connectivity object
-white_matter = connectivity.Connectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 white_matter.configure()
-con = connectivity.Connectivity()
+con = connectivity.Connectivity(load_default=True)
 con.configure()
 
-#Normalise weights
-con.weights = white_matter.normalised_weights(mode='tract')
+#scale weights by the maximum absolute value
+con.weights = white_matter.scaled_weights(mode='tract')
 plot_connectivity(con, num="tract_mode", plot_tracts=False)
 
-#Undo normalisation
-con.weights = white_matter.normalised_weights(mode='none')
+#undo scaling
+con.weights = white_matter.scaled_weights(mode='none')
 plot_connectivity(con, num="default_mode", plot_tracts=False)
 
-#Re-normalise using another `` mode``
-con.weights = white_matter.normalised_weights(mode='region')
+#re-scale using another `` mode``
+con.weights = white_matter.scaled_weights(mode='region')
 plot_connectivity(con, num="region_mode", plot_tracts=False)
+
+#undo scaling
+con.weights = white_matter.scaled_weights(mode='none')
+plot_connectivity(con, num="default_mode", plot_tracts=False)
+
+#binarize
+con.weights = white_matter.transform_binarize_matrix()
+plot_connectivity(con, num="default_mode", plot_tracts=False)
+
+#remove-self connections 
+con.weights = white_matter.transform_remove_self_connections()
+plot_connectivity(con, num="default_mode", plot_tracts=False)
 
 pyplot.show()
 

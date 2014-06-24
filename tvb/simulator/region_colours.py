@@ -39,8 +39,8 @@ colouring dictionary that satisfies the constraint of a region's colour not
 being the same as any of its neighbours on the surface.
 
 ::
-    import tvb.simulator.surfaces as surfaces_module
-    from tvb.simulator.region_boundaries as RegionBoundaries
+    import tvb.datatypes.surfaces as surfaces_module
+    from tvb.simulator.region_boundaries import RegionBoundaries
     CORTEX = surfaces_module.Cortex()  
     CORTEX_BOUNDARIES = RegionBoundaries(CORTEX)
     region_colours = RegionColours(CORTEX_BOUNDARIES.region_neighbours)

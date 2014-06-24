@@ -60,8 +60,8 @@ class TraitsTest(BaseTestCase):
         Test that default attributes are populated as they are described in Traits.
         """
         model_wc = WilsonCowan()
-        self.assertTrue(type(model_wc.c_1) == numpy.ndarray)
-        self.assertEqual(1, len(model_wc.c_1))
+        self.assertTrue(type(model_wc.c_ii) == numpy.ndarray)
+        self.assertEqual(1, len(model_wc.c_ii))
         self.assertTrue(type(model_wc.tau_e) == numpy.ndarray)
         self.assertEqual(1, len(model_wc.tau_e))
         self.assertTrue(isinstance(model_wc._tau_e, str))

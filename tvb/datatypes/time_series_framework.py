@@ -105,17 +105,20 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
         :param specific_slices: optional parameter. If speficied slices the data accordingly.
         :param channels_list: the list of channels for which we want data
         """
-        channels_list = json.loads(channels_list)
         if channels_list:
-            channels_list = tuple(channels_list)
+            channels_list = json.loads(channels_list)
+
+        if channels_list:
+            channel_slice = tuple(channels_list)
         else:
-            channels_list = slice(None)
+            channel_slice = slice(None)
+
         data_page = self.read_data_page(from_idx, to_idx, step, specific_slices)
         # This is just a 1D array like in the case of Global Average monitor. No need for the channels list
         if len(data_page.shape) == 1:
             return data_page.reshape(data_page.shape[0], 1)
         else:
-            return data_page[:, channels_list]
+            return data_page[:, channel_slice]
 
 
     def read_data_page(self, from_idx, to_idx, step=None, specific_slices=None):
@@ -124,7 +127,7 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
         """
         from_idx = int(from_idx)
         to_idx = int(to_idx)
-        if isinstance(specific_slices, str) or isinstance(specific_slices, unicode):
+        if isinstance(specific_slices, basestring):
             specific_slices = json.loads(specific_slices)
         if step is None:
             step = 1
@@ -180,9 +183,37 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
 
     def get_space_labels(self):
         """
-        :return: An array of strings. Default empty.
+        It assumes that we want to select in the 3'rd dimension,
+        and generates labels for each point in that dimension.
+        Subclasses are more specific.
+        :return: An array of strings.
         """
-        return []
+        if self.nr_dimensions > 2:
+            return ['signal-%d' % i for i in xrange(self._length_3d)]
+        else:
+            return []
+
+    def get_grouped_space_labels(self):
+        """
+        :return: A list of label groups. A label group is a tuple (name, [(label_idx, label)...]).
+                 Default all labels in a group named ''
+        """
+        return [('', list(enumerate(self.get_space_labels())))]
+
+
+    def get_default_selection(self):
+        """
+        :return: The measure point indices that have to be shown by default. By default show all.
+        """
+        return range(len(self.get_space_labels()))
+
+
+    def get_measure_points_selection_gid(self):
+        """
+        :return: a datatype gid with which to obtain al valid measure point selection for this time series
+                 We have to decide if the default should be all selections or none
+        """
+        return ''
 
 
     @staticmethod
@@ -200,11 +231,10 @@ class TimeSeriesFramework(time_series_data.TimeSeriesData):
 
 
 
-class TimeSeriesEEGFramework(time_series_data.TimeSeriesEEGData, TimeSeriesFramework):
+class TimeSeriesSensorsFramework(TimeSeriesFramework):
     """
-    This class exists to add framework methods to TimeSeriesEEGData.
+    Base class for all sensor TS-datatypes
     """
-
 
     def get_space_labels(self):
         """
@@ -215,34 +245,16 @@ class TimeSeriesEEGFramework(time_series_data.TimeSeriesEEGData, TimeSeriesFrame
         return []
 
 
-
-class TimeSeriesMEGFramework(time_series_data.TimeSeriesMEGData, TimeSeriesFramework):
-    """
-    This class exists to add framework methods to TimeSeriesMEGData.
-    """
-
-
-    def get_space_labels(self):
-        """
-        :return: An array of strings with the sensors labels.
-        """
+    def get_measure_points_selection_gid(self):
         if self.sensors is not None:
-            return list(self.sensors.labels)
-        return []
-    
-    
-class TimeSeriesSEEGFramework(time_series_data.TimeSeriesSEEGData, TimeSeriesFramework):
-    """
-    This class exists to add framework methods to TimeSeriesMEGData.
-    """
+            return self.sensors.gid
+        return ''
 
 
-    def get_space_labels(self):
-        """
-        :return: An array of strings with the sensors labels.
-        """
+    def get_default_selection(self):
         if self.sensors is not None:
-            return list(self.sensors.labels)
+            # select only the first 8 channels
+            return range(min(8, len(self.get_space_labels())))
         return []
 
 
@@ -251,8 +263,6 @@ class TimeSeriesRegionFramework(time_series_data.TimeSeriesRegionData, TimeSerie
     """
     This class exists to add framework methods to TimeSeriesRegionData.
     """
-
-
     def get_space_labels(self):
         """
         :return: An array of strings with the connectivity node labels.
@@ -262,19 +272,71 @@ class TimeSeriesRegionFramework(time_series_data.TimeSeriesRegionData, TimeSerie
         return []
 
 
+    def get_grouped_space_labels(self):
+        """
+        :return: A structure of this form [('left', [(idx, lh_label)...]), ('right': [(idx, rh_label) ...])]
+        """
+        if self.connectivity is not None:
+            return self.connectivity.get_grouped_space_labels()
+        else:
+            return super(TimeSeriesRegionFramework, self).get_grouped_space_labels()
+
+
+    def get_default_selection(self):
+        """
+        :return: If the connectivity of this time series is edited from another
+                 return the nodes of the parent that are present in the connectivity.
+        """
+        if self.connectivity is not None:
+            return self.connectivity.get_default_selection()
+        else:
+            return super(TimeSeriesRegionFramework, self).get_default_selection()
+
+
+    def get_measure_points_selection_gid(self):
+        """
+        :return: the associated connectivity gid
+        """
+        if self.connectivity is not None:
+            return self.connectivity.get_measure_points_selection_gid()
+        else:
+            return super(TimeSeriesRegionFramework, self).get_measure_points_selection_gid()
+
+
 
 class TimeSeriesSurfaceFramework(time_series_data.TimeSeriesSurfaceData, TimeSeriesFramework):
     """ This class exists to add framework methods to TimeSeriesSurfaceData. """
-    pass
+    SELECTION_LIMIT = 200
+
+
+    def get_space_labels(self):
+        """
+        Return only the first `SELECTION_LIMIT` vertices/channels
+        """
+        return ['signal-%d' % i for i in xrange(min(self._length_3d, self.SELECTION_LIMIT))]
 
 
 
 class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSeriesFramework):
     """ This class exists to add framework methods to TimeSeriesVolumeData. """
 
-    def get_volume_slice(self, from_idx, to_idx):
+
+    def get_rotated_volume_slice(self, from_idx, to_idx):
+        """
+        :input: int from_idx, int to_idx.
+        :return: Multidimensional matrix with its last dimension rotated to get a better view of the brain.
+        """
         from_idx, to_idx = int(from_idx), int(to_idx)
         overall_shape = self.read_data_shape()
-
         slices = (slice(from_idx, to_idx), slice(overall_shape[1]), slice(overall_shape[2]), slice(overall_shape[3]))
-        return self.read_data_slice(tuple(slices))
+        slices = self.read_data_slice(tuple(slices))
+        slices = slices[:, :, :, ::-1]
+        return slices
+
+
+    @property
+    def get_volume_shape(self):
+        """
+        :return: Data size for each dimension. [Time, X, Y, Z]
+        """
+        return self.read_data_shape()

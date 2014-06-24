@@ -42,7 +42,7 @@ Returned dictionary will be generated from  traited definition of attributes.
 import numpy
 import json
 from tvb.basic.logger.builder import get_logger
-from tvb.basic.traits.util import get, str_class_name
+from tvb.basic.traits.util import get, str_class_name, multiline_math_directives_to_matjax
 from tvb.basic.traits.core import KWARG_AVOID_SUBCLASSES, TYPE_REGISTER, KWARG_FILTERS_UI
 
 LOG = get_logger(__name__)
@@ -173,10 +173,13 @@ class TraitedInterfaceGenerator(object):
                         else:
                             opt_class = opt
                         opt.trait.bound = INTERFACE_ATTRIBUTES_ONLY
+
+                        description = multiline_math_directives_to_matjax(opt_class.__doc__)
+
                         intr['options'].append({'name': get(opt, '_ui_name', opt_class.__name__),
                                                 'value': str_class_name(opt_class, short_form=True),
                                                 'class': str_class_name(opt_class, short_form=False),
-                                                'description': opt_class.__doc__,
+                                                'description': description,
                                                 'attributes': opt.interface['attributes']})
 
             if intr['default'] is not None and intr['default'].__class__:

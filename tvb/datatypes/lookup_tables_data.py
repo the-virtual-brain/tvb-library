@@ -40,12 +40,9 @@ At present, we only make use of these in the Brunel and Wang model.
 
 """
 
-
-
 import numpy
 import tvb.datatypes.arrays as arrays
 import tvb.basic.traits.types_basic as basic
-import tvb.basic.traits.data_readers as readers
 from tvb.basic.logger.builder import get_logger
 from tvb.basic.traits.types_mapped import MappedType
 
@@ -61,54 +58,47 @@ class LookUpTableData(MappedType):
     """
     Lookup Tables for storing pre-computed functions.
     Specific table subclasses are implemented below.
-    
     """
-    
+
     _base_classes = ['LookUpTables']
 
-    table = readers.Table(folder_path = "tables")
-    
     equation = basic.String(
-        label = "String representation of the precalculated function",
-        doc = """A latex representation of the function whose values are stored 
+        label="String representation of the precalculated function",
+        doc="""A latex representation of the function whose values are stored
             in the table, with the extra escaping needed for interpretation via sphinx.""")
-    
+
     xmin = arrays.FloatArray(
-        label = "x-min",
-        console_default = table.read_dimension('min_max', 0, field = "xmin"), 
-        doc = """Minimum value""")
-        
+        label="x-min",
+        doc="""Minimum value""")
+
     xmax = arrays.FloatArray(
-        label = "x-max",
-        console_default = table.read_dimension('min_max', 1, field = "xmax"), 
-        doc = """Maximum value""")
-    
+        label="x-max",
+        doc="""Maximum value""")
+
     data = arrays.FloatArray(
-        label = "data",
-        console_default = table.read_dimension('f', field = "data"), 
-        doc = """Tabulated values""")
-    
+        label="data",
+        doc="""Tabulated values""")
+
     number_of_values = basic.Integer(
-        label = "Number of values",
-        default = 0,
-        doc = """The number of values in the table """)
-        
+        label="Number of values",
+        default=0,
+        doc="""The number of values in the table """)
+
     df = arrays.FloatArray(
-        label = "df",
-        console_default = table.read_dimension('df', field = "df"), 
-        doc = """.""")
-     
+        label="df",
+        doc=""".""")
+
     dx = arrays.FloatArray(
-        label = "dx",
-        default = numpy.array([]), 
-        doc = """Tabulation step""")    
-    
+        label="dx",
+        default=numpy.array([]),
+        doc="""Tabulation step""")
+
     invdx = arrays.FloatArray(
-       label = "invdx",
-       default = numpy.array([]),
-       doc = """.""")
-            
-    
+        label="invdx",
+        default=numpy.array([]),
+        doc=""".""")
+
+
 
 class PsiTableData(LookUpTableData):
     """
@@ -117,13 +107,8 @@ class PsiTableData(LookUpTableData):
     
     """
     __tablename__ = None
-    
-    
-    def __init__(self, **kwargs):
-        super(PsiTableData, self).__init__(**kwargs)
-        self.table.reload(self.__class__, folder_path = "tables", file_name = "psi.npz")
-    
-    
+
+
 
 class NerfTableData(LookUpTableData):
     """
@@ -133,12 +118,5 @@ class NerfTableData(LookUpTableData):
     
     """
     __tablename__ = None
-    
-    
-    def __init__(self, **kwargs):
-        super(NerfTableData, self).__init__(**kwargs)
-        self.table.reload(self.__class__, folder_path = "tables", file_name = "nerf_int.npz")
-        
-    
-    
+
 

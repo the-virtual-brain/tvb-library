@@ -37,8 +37,7 @@ if __name__ == "__main__":
     setup_test_console_env()
 
 import unittest
-import tvb.datatypes.surfaces as surfaces
-import tvb.datatypes.connectivity as connectivity
+from tvb.datatypes import surfaces
 from tvb.tests.library.base_testcase import BaseTestCase
 
             
@@ -46,44 +45,22 @@ class ConsoleTraitedTest(BaseTestCase):
     """
     Test using traited classes from console.
     """
-
-    def test_default_attributes(self):
-        """
-        Test that default_console attributes are populated.
-        """
-        cortex = surfaces.CorticalSurface()
-        cortex.configure()
-        self.assertTrue(cortex.vertices is not None)
-        self.assertEqual(81924, cortex.number_of_vertices)
-        self.assertEqual((81924, 3), cortex.vertices.shape)
-        self.assertEqual((81924, 3), cortex.vertex_normals.shape)
-        self.assertEqual(163840, cortex.number_of_triangles)
-        self.assertEqual((163840, 3), cortex.triangles.shape)
-        
-        conn = connectivity.Connectivity()
-        conn.configure()
-        self.assertTrue(conn.centres is not None)
-        self.assertEqual((74,), conn.region_labels.shape)
-        self.assertEqual('lA1', conn.region_labels[0])
-        self.assertEquals((74, 3), conn.centres.shape)
-        self.assertEquals((74, 74), conn.weights.shape)
-        self.assertEquals((74, 74), conn.tract_lengths.shape)
-        self.assertEquals(conn.delays.shape, conn.tract_lengths.shape)
-        self.assertEqual(74, conn.number_of_regions)
-       
         
     def test_assign_complex_attr(self):
         """
         Test scientific methods are executed
         """
         local_coupling_strength = 0.0121
-        grey_matter = surfaces.LocalConnectivity(cutoff=10.0)
-        default_cortex = surfaces.Cortex(coupling_strength=local_coupling_strength)
-        #self.assertTrue(default_cortex.local_connectivity is None)
+        grey_matter = surfaces.LocalConnectivity(load_default=True)
+
+        default_cortex = surfaces.Cortex.from_file()
+        default_cortex.coupling_strength = local_coupling_strength
+        self.assertTrue(default_cortex.local_connectivity is None)
+
         default_cortex.local_connectivity = grey_matter
-        #default_cortex.region_average = default_cortex.region_mapping
         default_cortex.compute_local_connectivity()
         self.assertTrue(default_cortex.local_connectivity is not None)
+
 
 
 def suite():

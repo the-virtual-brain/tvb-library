@@ -59,13 +59,12 @@ from tvb.simulator.plot import timeseries_interactive as timeseries_interactive
 LOG.info("Configuring...")
 #Initialise a Model, Coupling, and Connectivity.
 lb = models.LarterBreakspear(QV_max=1.0, QZ_max=1.0, 
-                             d_V=0.6, C=0.1, 
-                             aee=0.5, aie=0.5, ani=0.1, 
-                             VT=0.5,  gNa=0.0, Iext=0.165)
+                             d_V=0.65, d_Z=0.65, 
+                             aee=0.36, ani=0.4, ane=1.0, C=0.1)
 
 lb.variables_of_interest = ["V", "W", "Z"]
 
-white_matter = connectivity.Connectivity()
+white_matter = connectivity.Connectivity(load_default=True)
 white_matter.speed = numpy.array([7.0])
 
 white_matter_coupling = coupling.HyperbolicTangent(a=0.5*lb.QV_max, 
@@ -97,7 +96,7 @@ LOG.info("Starting simulation...")
 bold_data, bold_time = [], []
 tavg_data, tavg_time = [], []
 
-for raw, tavg in sim(simulation_length=10000):
+for raw, tavg in sim(simulation_length=480000):
     if not raw is None:
         bold_time.append(raw[0])
         bold_data.append(raw[1])
@@ -113,55 +112,11 @@ LOG.info("Finished simulation.")
 ##----------------------------------------------------------------------------##
 
 #Make the lists numpy.arrays for easier use.
-BOLD = numpy.array(bold_data)
-TAVG = numpy.array(tavg_data)
-
-#Plot raw time series
-figure(1)
-plot(tavg_time, TAVG[:, 0, :, 0], 'k', alpha=0.1)
-title("Raw -- State variable 0")
-
-figure(2)
-plot(tavg_time, TAVG[:, 1, :, 0], 'b', alpha=0.1)
-title("Raw -- State variable 1")
-
-figure(3)
-plot(tavg_time, TAVG[:, 2, :, 0], 'r', alpha=0.1)
-title("Raw -- State variable 2")
-
-#Plot 3D trajectories
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-
-fig = plt.figure(4)
-ax = fig.gca(projection='3d')
-
-for node in range(white_matter.number_of_regions):
-  ax.plot(TAVG[:, 0, node, 0],  TAVG[:, 1, node, 0], TAVG[:, 2, node, 0], alpha=0.1)
-ax.set_xlabel('V')
-ax.set_ylabel('W')
-ax.set_zlabel('Z')
-plt.show()
-
-
-
-#Make the list a numpy.array.
 LOG.info("Converting result to array...")
 TAVG_TIME = numpy.array(tavg_time)
 BOLD_TIME = numpy.array(bold_time)
-
-#Save tavg output
-FILE_NAME = "demo_data_region_tavg_10s_500Hz_larterbreakspear"
-LOG.info("Saving array to %s..." % FILE_NAME)
-TAVG=numpy.load(FILE_NAME + '.npy')
-TAVG_TIME=numpy.load(FILE_NAME+'_time.npy')
-
-#Save bold output
-FILE_NAME = "demo_data_region_bold_10s_500Hz_larterbreakspear"
-LOG.info("Saving array to %s..." % FILE_NAME)
-numpy.save(FILE_NAME + '.npy', BOLD)
-numpy.save(FILE_NAME+'_time.npy', BOLD_TIME)
-
+BOLD = numpy.array(bold_data)
+TAVG = numpy.array(tavg_data)
 
 #Create TimeSeries instance
 tsr = TimeSeriesRegion(data = TAVG,
@@ -173,7 +128,7 @@ tsr.configure()
 bold_model = bold.BalloonModel(time_series = tsr)
 bold_data  = bold_model.evaluate()
 
-#Put the data into a TimeSeriesSurface datatype
+
 bold_tsr = TimeSeriesRegion(connectivity = white_matter,
                             data = bold_data.data, 
                             time = bold_data.time)
@@ -182,11 +137,5 @@ bold_tsr = TimeSeriesRegion(connectivity = white_matter,
 tsi = timeseries_interactive.TimeSeriesInteractive(time_series = bold_tsr)
 tsi.configure()
 tsi.show()
-
-#Save bold-balloon output
-FILE_NAME = "demo_data_region_balloon_10s_500Hz_larterbreakspear"
-LOG.info("Saving array to %s..." % FILE_NAME)
-numpy.save(FILE_NAME + '.npy', bold_data.data)
-numpy.save(FILE_NAME+'_time.npy', bold_data.time)
 
 ###EoF###

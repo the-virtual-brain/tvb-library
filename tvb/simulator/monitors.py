@@ -23,7 +23,7 @@
 #
 #   Paula Sanz Leon, Stuart A. Knock, M. Marmaduke Woodman, Lia Domide,
 #   Jochen Mersmann, Anthony R. McIntosh, Viktor Jirsa (2013)
-#       The Virtual Brain: a simulator of primate brain network dynamics.
+#   The Virtual Brain: a simulator of primate brain network dynamics.
 #   Frontiers in Neuroinformatics (7:10. doi: 10.3389/fninf.2013.00010)
 #
 #
@@ -230,10 +230,6 @@ class Raw(Monitor):
         """
         # Simulation time step
         self.dt = simulator.integrator.dt
-
-        if self.period is not None:
-            LOG.warning("%s: Raw monitor ignores period argument." % repr(self))
-
         self.period = simulator.integrator.dt #Needed for Monitor consistency
 
         # state-variables to monitor
@@ -310,6 +306,7 @@ class SpatialAverage(Monitor):
     """
     _ui_name = "Spatial average" #with temporal sub-sample
     #TODO: Consider modifying to "with temporal-average"
+
     spatial_mask = arrays.IntegerArray( #TODO: Check it's a vector of length Nodes (like region mapping for surface)
         label = "An index mask of nodes into areas",
         doc = """A vector of length==nodes that assigns an index to each node
@@ -323,7 +320,7 @@ class SpatialAverage(Monitor):
                               default = ["hemispheres"],
                               doc = r"""Fallback in case spatial mask is none and no surface provided 
                               to use either connectivity hemispheres or cortical attributes.""",
-                              order = 2)
+                              order = -1)
 
 
 
@@ -1460,14 +1457,14 @@ class SEEG(Monitor):
     """
     _ui_name = "Stereo-EEG"
 
-    sigma = basic.Float(label = "conductivity",
-                  default = 1.0)
+    sigma = basic.Float(label="conductivity",
+                        default=1.0)
 
     sensors = sensors_module.SensorsInternal(
-        label = "Internal brain sensors",
-        default = None,
-        required = True,
-        doc = """The set of SEEG sensors for which the forward solution will be
+        label="Internal brain sensors",
+        default=None,
+        required=True,
+        doc="""The set of SEEG sensors for which the forward solution will be
         calculated.""")
 
     def __init__(self, **kwargs):
@@ -1488,15 +1485,6 @@ class SEEG(Monitor):
           V(r) = 1/(4*pi*\sigma)*Q*(r-r_0)/|r-r_0|^3
         """
         super(SEEG, self).config_for_sim(simulator)
-
-        if self.sensors is None:
-            self.sensors = sensors_module.SensorsInternal(
-                label = "Internal brain sensors",
-                default = None,
-                required = True,
-                doc = """The set of SEEG sensors for which the forward solution will be
-                calculated.""")
-
         
         if simulator.surface is None:
             r_0 = simulator.connectivity.centres
@@ -1513,8 +1501,7 @@ class SEEG(Monitor):
 
         self.projection_matrix = V_r
 
-        util.log_debug_array(LOG, self.projection_matrix, "projection_matrix",
-                             owner=self.__class__.__name__)
+        util.log_debug_array(LOG, self.projection_matrix, "projection_matrix", owner=self.__class__.__name__)
 
         stock_size = (self.istep, self.voi.shape[0],
                       simulator.number_of_nodes,

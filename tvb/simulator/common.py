@@ -38,6 +38,8 @@ A module of classes and functions of common use.
 """
 
 import numpy
+import os
+import zipfile
 
 # route framework imports through this module so they are more easily updated
 
@@ -174,4 +176,43 @@ class Buffer(object):
 
     def __setindex__(self, idx, rawin):
         self.raw[(idx + self.step)% self.horizon, :, :] = rawin
+
+
+def zip_directory(path, zip_file):
+    """
+    Zip a given directory...
+    Didn't know where to put this. 
+    I need to pack zips from the scripting interface. 
+    To avoid duplicating code I leave this small function here. 
+
+    :param path -- where to store the zip
+    :param zip_file 
+    """
+    for dirname, subdirs, files in os.walk(path):
+        zip_file.write(dirname)
+        for filename in files:
+            zip_file.write(os.path.join(dirname, filename))
+        zip_file.close()
+
+
+# If I need the headers in the positions file
+def add_headers(filename):
+    """ 
+    Add the headers to the positions file.
+
+    This function is really temporary until we have consistent naming of the
+    files required to build a connectivity dtype.
+    #TODO: delete as soon as possible.
+
+    """
+    headers = ['Label', 'X', 'Y', 'Z']
+    tmp = open('TMP', 'w')
+    orig = open(filename, 'r')
+    tmp.write('\t'.join(headers) + '\n')
+    for line in orig.readlines():
+        tmp.write(line)
+    orig.close()
+    tmp.close()
+    os.remove(filename)
+    os.rename('TMP', filename)
 
