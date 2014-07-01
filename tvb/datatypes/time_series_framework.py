@@ -336,7 +336,7 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
     def get_volume_view(self, from_idx, to_idx, x_plane, y_plane, z_plane):
         """
         :input: int from_idx, int to_idx, int x_plane, int y_plane, int z_plane.
-        :return: An array of 3 elements containing the the planes xy, yz and xy.
+        :return: An array of 3 elements containing the planes xy, yz and xy.
         """
         from_idx = int(from_idx)
         to_idx  = int(to_idx)
