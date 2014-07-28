@@ -360,3 +360,14 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
         :return: Data size for each dimension. [Time, X, Y, Z]
         """
         return self.read_data_shape()
+
+    def get_voxel_time_series(self, x, y, z):
+        x, y, z = int(x), int(y), int(z)
+
+        overall_shape = self.read_data_shape()
+
+        slices = (slice(overall_shape[0]), slice(x,x+1), slice(y,y+1), slice(overall_shape[3]))
+        slices = self.read_data_slice(tuple(slices))
+        slices = slices[:, :,:,::-1]
+
+        return slices[ :, :, :, z].flatten()
