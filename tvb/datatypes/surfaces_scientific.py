@@ -168,17 +168,17 @@ class SurfaceScientific(surfaces_data.SurfaceData):
 
     def compute_geodesic_distance_matrix(self, max_dist):
         """
-        Calculate a sparse matrix of the geodesic distance from each vertex to 
-        all vertices within max_dist of them on the surface, 
+        Calculate a sparse matrix of the geodesic distance from each vertex to
+        all vertices within max_dist of them on the surface,
 
         ``max_dist``: find the distance to vertices out as far as max_dist.
 
-        NOTE: Compute time increases rapidly with max_dist and the memory 
-        efficiency of the sparse matrices decreases, so, don't use too large a 
+        NOTE: Compute time increases rapidly with max_dist and the memory
+        efficiency of the sparse matrices decreases, so, don't use too large a
         value for max_dist...
 
         """
-        #TODO: Probably should check that max_dist isn't "too" large or too 
+        #TODO: Probably should check that max_dist isn't "too" large or too
         #      small, min should probably be max edge length...
 
         #if NO_GEODESIC_DISTANCE:
@@ -641,8 +641,12 @@ class LocalConnectivityScientific(surfaces_data.LocalConnectivityData):
             LOG.error(msg)
             raise Exception(msg)
 
-        self.matrix = gdist.local_gdist_matrix(self.surface.vertices.astype(numpy.float64),
-                                               self.surface.triangles.astype(numpy.int32), max_distance=self.cutoff)
+        self.matrix_gdist = gdist.local_gdist_matrix(self.surface.vertices.astype(numpy.float64),
+                                                     self.surface.triangles.astype(numpy.int32),
+                                                     max_distance=self.cutoff)
+        self.compute()
+        # Avoid having a large data-set in memory.
+        self.matrix_gdist = None
 
 
 
@@ -670,13 +674,7 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
             self.compute_region_areas()
 
         if self.local_connectivity is None:
-            # TODO: Switch to degree weighted nearest neighbour, or store a default,
-            # computing this every time I want a configured Cortex is a pain...
-            self.local_connectivity = surfaces_data.LocalConnectivityData(cutoff=40.0, use_storage=False)
-
-        if self.local_connectivity.cutoff == 0:
-            self.local_connectivity.cutoff = 40.0
-            #TODO: Temporary hack
+            self.local_connectivity = LocalConnectivityScientific(cutoff=40.0, use_storage=False, surface=self)
 
         if self.local_connectivity.matrix.size == 0:
             self.compute_local_connectivity()
@@ -698,11 +696,10 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
         """
         """
         LOG.info("Computing local connectivity matrix")
-        #TODO: Better to put this in configure, then callers job, if change cutoff, to explicit call compute...matrix 
         loc_con_cutoff = self.local_connectivity.cutoff
         self.compute_geodesic_distance_matrix(max_dist=loc_con_cutoff)
 
-        self.local_connectivity.matrix = self.geodesic_distance_matrix.copy()
+        self.local_connectivity.matrix_gdist = self.geodesic_distance_matrix.copy()
         self.local_connectivity.compute()  # Evaluate equation based distance
         self.local_connectivity.trait["matrix"].log_debug(owner=self.__class__.__name__ + ".local_connectivity")
 
@@ -818,7 +815,7 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
         # TODO: try to remove 'collections'
         if number_of_nodes > self.number_of_vertices:
             counter = collections.Counter(self.region_mapping)
-            vertices_per_region  = numpy.asarray(counter.values())
+            vertices_per_region = numpy.asarray(counter.values())
             non_cortical_regions = numpy.where(vertices_per_region == 1)
             LOG.info("set vertex mapping: There are %d non-cortical regions" % len(non_cortical_regions[0]))
             cortical_regions = numpy.where(vertices_per_region > 1)
@@ -838,8 +835,7 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
     vertex_mapping = property(fget=_get_vertex_mapping, fset=_set_vertex_mapping)
     #--------------------------------------------------------------------------#
 
-    #TODO: May be better to have these return values for assignment to the
-    #      associated Connectivity...
+    #TODO: May be better to have these return values for assignment to the associated Connectivity...
     #TODO: These will need to do something sensible with non-cortical regions.
     def compute_region_areas(self):
         """
@@ -857,7 +853,7 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
             # Count how many vertices each region has.
             counter = collections.Counter(self.region_mapping)
             # Presumably non-cortical regions will have len 1. 
-            vertices_per_region  = numpy.asarray(counter.values())
+            vertices_per_region = numpy.asarray(counter.values())
             non_cortical_regions = numpy.where(vertices_per_region == 1)
             cortical_regions = numpy.where(vertices_per_region > 1)
             #Average orientation of the region
@@ -890,7 +886,7 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
             # Count how many vertices each region has.
             counter = collections.Counter(self.region_mapping)
             # Presumably non-cortical regions will have len 1 vertex assigned.
-            vertices_per_region  = numpy.asarray(counter.values())
+            vertices_per_region = numpy.asarray(counter.values())
             non_cortical_regions = numpy.where(vertices_per_region == 1)
             cortical_regions = numpy.where(vertices_per_region > 1)
             cortical_region_mapping = [x for x in self.region_mapping if x in cortical_regions[0]]
@@ -900,7 +896,7 @@ class CortexScientific(surfaces_data.CortexData, SurfaceScientific):
                 avg_orient = numpy.mean(orient, axis=0)
                 average_orientation[k, :] = avg_orient / numpy.sqrt(numpy.sum(avg_orient ** 2))
             for nk in non_cortical_regions[0]:
-                average_orientation[k, :] = numpy.zeros((1, 3))
+                average_orientation[nk, :] = numpy.zeros((1, 3))
         else:
             #Average orientation of the region
             for k in regions:
