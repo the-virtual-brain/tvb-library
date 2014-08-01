@@ -331,7 +331,7 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
         overall_shape = self.read_data_shape()
         slices = (slice(from_idx, to_idx), slice(overall_shape[1]), slice(overall_shape[2]), slice(overall_shape[3]))
         slices = self.read_data_slice(tuple(slices))
-        slices = slices[:, :, :, ::-1]
+        slices = slices[..., ::-1]
         return slices
 
     def get_volume_view(self, from_idx, to_idx, x_plane, y_plane, z_plane):
@@ -349,10 +349,10 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
 
         slices = (slice(from_idx, to_idx), slice(overall_shape[1]), slice(overall_shape[2]), slice(overall_shape[3]))
         slices = self.read_data_slice(tuple(slices))
-        slices = slices[:, :,:,::-1]
-        slicex = slices[:, :, :, z_plane].tolist()
-        slicey = slices[:, x_plane, :, :].tolist()
-        slicez = slices[:, :, y_plane, :].tolist()
+        slices = slices[...,::-1]
+        slicex = slices[..., z_plane].tolist()
+        slicey = slices[:, x_plane, ...].tolist()
+        slicez = slices[..., y_plane, :].tolist()
         return [slicex, slicey, slicez]
 
     @property
@@ -367,8 +367,8 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
 
         overall_shape = self.read_data_shape()
 
-        slices = (slice(overall_shape[0]), slice(x,x+1), slice(y,y+1), slice(overall_shape[3]))
-        slices = self.read_data_slice(tuple(slices))
-        slices = slices[:, :,:,::-1]
+        slices = slice(overall_shape[0]), slice(x,x+1), slice(y,y+1), slice(overall_shape[3])
+        slices = self.read_data_slice(slices)
+        slices = slices[ ...,::-1]
 
-        return slices[ :, :, :, z].flatten()
+        return slices[ ..., z].flatten()
