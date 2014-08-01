@@ -362,6 +362,10 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
         """
         return self.read_data_shape()
 
+    @property
+    def get_time_meta_data(self):
+        return [self._sample_period, self._sample_period_unit]
+
     def get_voxel_time_series(self, x, y, z):
         x, y, z = int(x), int(y), int(z)
 
