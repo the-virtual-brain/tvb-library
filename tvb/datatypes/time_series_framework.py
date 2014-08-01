@@ -368,9 +368,13 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
 
     def get_voxel_time_series(self, x, y, z):
         x, y, z = int(x), int(y), int(z)
-
-        overall_shape = self.read_data_shape()
-
+        try:
+            overall_shape = self.read_data_shape()
+            if  x > overall_shape[1] or y > overall_shape[2] or z > overall_shape[3]:
+                raise RuntimeError("Coordinates out of boundary")
+        except RuntimeError as e:
+            print "Exception RuntimeError: RuntimeError(", e,") in 'TimeSeriesVolumeFramework.get_voxel_time_series()'  ignored"
+            pass
         slices = slice(overall_shape[0]), slice(x,x+1), slice(y,y+1), slice(overall_shape[3])
         slices = self.read_data_slice(slices)
         slices = slices[ ...,::-1]
