@@ -328,7 +328,15 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
         :return: Multidimensional matrix with its last dimension rotated to get a better view of the brain.
         """
         from_idx, to_idx = int(from_idx), int(to_idx)
-        overall_shape = self.read_data_shape()
+
+        try:
+            overall_shape = self.read_data_shape()
+            if  from_idx > to_idx or to_idx > overall_shape[0] or from_idx < 0:
+                raise RuntimeError("Bad time indexes")
+        except RuntimeError as e:
+            print "Exception RuntimeError: RuntimeError(", e,") in 'TimeSeriesVolumeFramework.get_rotated_volume_slice()'  ignored"
+            pass
+
         slices = (slice(from_idx, to_idx), slice(overall_shape[1]), slice(overall_shape[2]), slice(overall_shape[3]))
         slices = self.read_data_slice(tuple(slices))
         slices = slices[..., ::-1]
@@ -345,7 +353,13 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
         y_plane = int(y_plane)
         z_plane = int(z_plane)
 
-        overall_shape = self.read_data_shape()
+        try:
+            overall_shape = self.read_data_shape()
+            if  from_idx > to_idx or to_idx > overall_shape[0] or from_idx < 0:
+                raise RuntimeError("Bad time indexes")
+        except RuntimeError as e:
+            print "Exception RuntimeError: RuntimeError(", e,") in 'TimeSeriesVolumeFramework.get_volume_view()'  ignored"
+            pass
 
         slices = (slice(from_idx, to_idx), slice(overall_shape[1]), slice(overall_shape[2]), slice(overall_shape[3]))
         slices = self.read_data_slice(tuple(slices))
@@ -355,18 +369,11 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
         slicez = slices[..., y_plane, :].tolist()
         return [slicex, slicey, slicez]
 
-    @property
-    def get_volume_shape(self):
-        """
-        :return: Data size for each dimension. [Time, X, Y, Z]
-        """
-        return self.read_data_shape()
-
-    @property
-    def get_time_meta_data(self):
-        return [self._sample_period, self._sample_period_unit]
-
     def get_voxel_time_series(self, x, y, z):
+        """
+        :input: int x, y, z as coodinates.
+        :return: An array containing all the values of the x,y,z coordinate in time.
+        """
         x, y, z = int(x), int(y), int(z)
         try:
             overall_shape = self.read_data_shape()
@@ -380,3 +387,17 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
         slices = slices[ ...,::-1]
 
         return slices[ ..., z].flatten()
+
+    @property
+    def get_volume_shape(self):
+        """
+        :return: Data size for each dimension. [Time, X, Y, Z]
+        """
+        return self.read_data_shape()
+
+    @property
+    def get_time_meta_data(self):
+        """
+        :return: an array containing [(int)_sample_period, (string)_sample_period_unit]
+        """
+        return [self._sample_period, self._sample_period_unit]
