@@ -356,7 +356,7 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
         try:
             overall_shape = self.read_data_shape()
             if  from_idx > to_idx or to_idx > overall_shape[0] or from_idx < 0:
-                raise RuntimeError("Bad time indexes")
+                raise RuntimeError("Time or coordinate indexes out of boundaries")
         except RuntimeError as e:
             print "Exception RuntimeError: RuntimeError(", e,") in 'TimeSeriesVolumeFramework.get_volume_view()'  ignored"
             pass
@@ -378,7 +378,7 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
         try:
             overall_shape = self.read_data_shape()
             if  x > overall_shape[1] or y > overall_shape[2] or z > overall_shape[3]:
-                raise RuntimeError("Coordinates out of boundary")
+                raise RuntimeError("Coordinates out of boundaries")
         except RuntimeError as e:
             print "Exception RuntimeError: RuntimeError(", e,") in 'TimeSeriesVolumeFramework.get_voxel_time_series()'  ignored"
             pass
