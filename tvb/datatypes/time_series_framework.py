@@ -335,6 +335,7 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
         overall_shape = self.read_data_shape()
         if  from_idx > to_idx or to_idx > overall_shape[0] or from_idx < 0:
             LOG.warning("Bad time indexes: From {0} to {1}".format(from_idx, to_idx))
+            raise Exception("Bad time indexes")
 
         slices = (slice(from_idx, to_idx), slice(overall_shape[1]), slice(overall_shape[2]), slice(overall_shape[3]))
         slices = self.read_data_slice(tuple(slices))
@@ -355,8 +356,10 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
         overall_shape = self.read_data_shape()
         if  from_idx > to_idx or to_idx > overall_shape[0] or from_idx < 0:
             LOG.warning("Time indexes out of boundaries: from {0} to {1}".format(from_idx, to_idx))
+            raise Exception("Time coordinates out of boundaries")
         if x_plane > overall_shape[1] or y_plane > overall_shape[2] or z_plane > overall_shape[3]:
             LOG.warning("Coordinates out of boundaries: {0}, {1}, {2}".format(x_plane, y_plane, z_plane))
+            raise Exception("Coordinates out of boundaries")
 
         slices = (slice(from_idx, to_idx), slice(overall_shape[1]), slice(overall_shape[2]), slice(overall_shape[3]))
         slices = self.read_data_slice(tuple(slices))
@@ -376,12 +379,24 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
 
         if x > overall_shape[1] or y > overall_shape[2] or z > overall_shape[3]:
             LOG.warning("Coordinates out of boundaries: [x,y,z] = [{0}, {1}, {2}]".format(x,y,z))
+            raise Exception("Coordinates out of boundaries")
 
         slices = slice(overall_shape[0]), slice(x,x+1), slice(y,y+1), slice(overall_shape[3])
         slices = self.read_data_slice(slices)
         slices = slices[ ...,::-1]
-
-        return slices[ ..., z].flatten()
+        slices = slices[ ..., z].flatten()
+        result = dict(  x = x,
+                        y = y,
+                        z = z,
+                        data = slices.tolist(),
+                        max = str(max(slices)),
+                        min =  str(min(slices)),
+                        mean = str(numpy.mean(slices)),
+                        median = str(numpy.median(slices)),
+                        variance = str(numpy.var(slices)),
+                        deviation = str(numpy.std(slices))
+                        )
+        return result
 
     @property
     def get_volume_shape(self):
