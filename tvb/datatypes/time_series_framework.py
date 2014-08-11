@@ -43,6 +43,9 @@ Framework methods for the TimeSeries datatypes.
 import json
 import numpy
 import tvb.datatypes.time_series_data as time_series_data
+from tvb.basic.logger.builder import get_logger
+
+LOG = get_logger(__name__)
 
 
 
@@ -329,13 +332,9 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
         """
         from_idx, to_idx = int(from_idx), int(to_idx)
 
-        try:
-            overall_shape = self.read_data_shape()
-            if  from_idx > to_idx or to_idx > overall_shape[0] or from_idx < 0:
-                raise RuntimeError("Bad time indexes: From ", from_idx, "to ", to_idx)
-        except RuntimeError as e:
-            print "Exception RuntimeError: RuntimeError(", e, ") in 'TimeSeriesVolumeFramework.get_rotated_volume_slice()'  ignored"
-            pass
+        overall_shape = self.read_data_shape()
+        if  from_idx > to_idx or to_idx > overall_shape[0] or from_idx < 0:
+            LOG.warning("Bad time indexes: From {0} to {1}".format(from_idx, to_idx))
 
         slices = (slice(from_idx, to_idx), slice(overall_shape[1]), slice(overall_shape[2]), slice(overall_shape[3]))
         slices = self.read_data_slice(tuple(slices))
@@ -353,13 +352,11 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
         y_plane = int(y_plane)
         z_plane = int(z_plane)
 
-        try:
-            overall_shape = self.read_data_shape()
-            if  from_idx > to_idx or to_idx > overall_shape[0] or from_idx < 0:
-                raise RuntimeError("Time or coordinate indexes out of boundaries:", from_idx, to_idx, x_plane, y_plane, z_plane)
-        except RuntimeError as e:
-            print "Exception RuntimeError: RuntimeError(", e,") in 'TimeSeriesVolumeFramework.get_volume_view()'  ignored"
-            pass
+        overall_shape = self.read_data_shape()
+        if  from_idx > to_idx or to_idx > overall_shape[0] or from_idx < 0:
+            LOG.warning("Time indexes out of boundaries: from {0} to {1}".format(from_idx, to_idx))
+        if x_plane > overall_shape[1] or y_plane > overall_shape[2] or z_plane > overall_shape[3]:
+            LOG.warning("Coordinates out of boundaries: {0}, {1}, {2}".format(x_plane, y_plane, z_plane))
 
         slices = (slice(from_idx, to_idx), slice(overall_shape[1]), slice(overall_shape[2]), slice(overall_shape[3]))
         slices = self.read_data_slice(tuple(slices))
@@ -375,13 +372,11 @@ class TimeSeriesVolumeFramework(time_series_data.TimeSeriesVolumeData, TimeSerie
         :return: An array containing all the values of the x,y,z coordinate in time.
         """
         x, y, z = int(x), int(y), int(z)
-        try:
-            overall_shape = self.read_data_shape()
-            if  x > overall_shape[1] or y > overall_shape[2] or z > overall_shape[3]:
-                raise RuntimeError("Coordinates out of boundaries: [x,y,z] = [", x, y, z,"]")
-        except RuntimeError as e:
-            print "Exception RuntimeError: RuntimeError(", e,") in 'TimeSeriesVolumeFramework.get_voxel_time_series()'  ignored"
-            pass
+        overall_shape = self.read_data_shape()
+
+        if x > overall_shape[1] or y > overall_shape[2] or z > overall_shape[3]:
+            LOG.warning("Coordinates out of boundaries: [x,y,z] = [{0}, {1}, {2}]".format(x,y,z))
+
         slices = slice(overall_shape[0]), slice(x,x+1), slice(y,y+1), slice(overall_shape[3])
         slices = self.read_data_slice(slices)
         slices = slices[ ...,::-1]
