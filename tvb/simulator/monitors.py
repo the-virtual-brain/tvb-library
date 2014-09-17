@@ -58,6 +58,7 @@ Conversion of power of 2 sample-rates(Hz) to Monitor periods(ms)
 
 # Third party python libraries
 import numpy
+import collections
 
 #The Virtual Brain
 from tvb.datatypes.time_series import TimeSeries, TimeSeriesRegion, TimeSeriesEEG
@@ -1550,6 +1551,17 @@ class SEEG(Monitor):
             r_0 = simulator.connectivity.centres
             Q = simulator.connectivity.orientations     # * simulator.connectivity.areas
         else:
+            # If true, they are subcortical regions
+            # we have to count them to build seeg projection_matrix 
+            if len(simulator.surface.region_mapping) > len(simulator.surface.vertex_normals):
+                counter = collections.Counter(simulator.surface.region_mapping)
+                # Presumably non-cortical regions will have len 1. 
+                vertices_per_region  = numpy.asarray(counter.values())
+                non_cortical_regions = numpy.where(vertices_per_region == 1)
+                r_0 = numpy.vstack((simulator.surface.vertices,
+                                    simulator.connectivity.centres[non_cortical_regions]))
+                Q = numpy.vstack((simulator.surface.vertex_normals,
+                                  simulator.connectivity.orientations[non_cortical_regions]))
             r_0 = simulator.surface.vertices
             Q = simulator.surface.vertex_normals
 
