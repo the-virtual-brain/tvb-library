@@ -36,11 +36,7 @@ if __name__ == "__main__":
     from tvb.tests.library import setup_test_console_env
     setup_test_console_env()
 
-try:
-    import unittest2 as unittest
-except Exception:
-    import unittest
-
+import unittest
 import sys
 import numpy
 import tvb.datatypes.surfaces_data as surfaces_data
@@ -73,7 +69,7 @@ class SurfacesTest(BaseTestCase):
         self.assertEqual(dt.triangle_angles.shape, (3, 3))
         self.assertEqual(len(dt.edges), 9)
         self.assertEqual(len(dt.edge_triangles), 9)
-        self.assertFalse(dt.check()[0])
+        self.assertFalse(dt.has_valid_topology_for_simulations()[0])
         self.assertEqual(dt.get_data_shape('vertices'), (10, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (10, 3))
         self.assertEqual(dt.get_data_shape('triangles'), (3, 3))
@@ -100,10 +96,65 @@ class SurfacesTest(BaseTestCase):
         self.assertTrue(abs(dt.edge_length_min - 0.663807567201) < 0.00000001)
         self.assertTrue(abs(dt.edge_length_max - 7.75671853782) < 0.00000001)
         self.assertEqual(len(dt.edge_triangles), 49140)
-        self.assertEqual(dt.check(), (True, 4, [], [], [], ""))
+        self.assertEqual(dt.has_valid_topology_for_simulations(), (True, ""))
         self.assertEqual(dt.get_data_shape('vertices'), (16384, 3))
         self.assertEqual(dt.get_data_shape('vertex_normals'), (16384, 3))
         self.assertEqual(dt.get_data_shape('triangles'), (32760, 3))
+        topologicals = dt.compute_topological_constants()
+        self.assertEqual(4, topologicals[0])
+        self.assertTrue(all([a.size == 0 for a in topologicals[1:]]))
+
+
+    def test_cortical_topology_pyramid(self):
+        dt = surfaces.Surface()
+        dt.vertices = numpy.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        dt.triangles = numpy.array([[0, 2, 1], [0, 1, 3], [0, 3, 2], [1, 2, 3]])
+        dt.configure()
+
+        euler, isolated, pinched_off, holes = dt.compute_topological_constants()
+        self.assertEqual(2, euler)
+        self.assertEqual(0, isolated.size)
+        self.assertEqual(0, pinched_off.size)
+        self.assertEqual(0, holes.size)
+
+
+    def test_cortical_topology_isolated_vertex(self):
+        dt = surfaces.Surface()
+        dt.vertices = numpy.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 2]])
+        dt.triangles = numpy.array([[0, 2, 1], [0, 1, 3], [0, 3, 2], [1, 2, 3]])
+        dt.configure()
+
+        euler, isolated, pinched_off, holes = dt.compute_topological_constants()
+        self.assertEqual(3, euler)
+        self.assertEqual(1, isolated.size)
+        self.assertEqual(0, pinched_off.size)
+        self.assertEqual(0, holes.size)
+
+
+    def test_cortical_topology_pinched(self):
+        dt = surfaces.Surface()
+        dt.vertices = numpy.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        dt.triangles = numpy.array([[0, 2, 1], [0, 1, 3], [0, 3, 2], [1, 2, 3], [1, 2, 3]])
+        dt.configure()
+
+        euler, isolated, pinched_off, holes = dt.compute_topological_constants()
+        self.assertEqual(3, euler)
+        self.assertEqual(0, isolated.size)
+        self.assertEqual(3, pinched_off.size)
+        self.assertEqual(0, holes.size)
+
+
+    def test_cortical_topology_hole(self):
+        dt = surfaces.Surface()
+        dt.vertices = numpy.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        dt.triangles = numpy.array([[0, 2, 1], [0, 1, 3], [0, 3, 2]])
+        dt.configure()
+
+        euler, isolated, pinched_off, holes = dt.compute_topological_constants()
+        self.assertEqual(1, euler)
+        self.assertEqual(3, isolated.size)
+        self.assertEqual(0, pinched_off.size)
+        self.assertEqual(3, holes.size)
 
 
     def test_skinair(self):

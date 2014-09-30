@@ -74,9 +74,13 @@ class TvbProfile():
     DEVELOPMENT_PROFILE = "DEVELOPMENT_PROFILE"
     DEPLOYMENT_PROFILE = "DEPLOYMENT_PROFILE"
     LIBRARY_PROFILE = "LIBRARY_PROFILE"
-    CONSOLE_PROFILE = "CONSOLE_PROFILE"
+    COMMAND_PROFILE = "COMMAND_PROFILE"
     TEST_POSTGRES_PROFILE = "TEST_POSTGRES_PROFILE"
     TEST_SQLITE_PROFILE = "TEST_SQLITE_PROFILE"
+    DESKTOP_PROFILE = "DESKTOP_PROFILE"
+
+    ALL = [DEVELOPMENT_PROFILE, DEPLOYMENT_PROFILE, LIBRARY_PROFILE, COMMAND_PROFILE,
+           TEST_POSTGRES_PROFILE, TEST_SQLITE_PROFILE, DESKTOP_PROFILE]
 
     # Used for setting the current TVB profile
     CURRENT_SELECTED_PROFILE = None
@@ -125,8 +129,10 @@ class TvbProfile():
         ### Ensure Python is using UTF-8 encoding (otherwise default encoding is ASCII)
         ### We should make sure UTF-8 gets set before reading from any TVB files
         ### e.g. TVB_STORAGE will differ if the .tvb.configuration file contains non-ascii bytes
-        reload(sys)
-        sys.setdefaultencoding('utf-8')
+        ### most of the comments in the simulator are having pieces outside of ascii coverage
+        if TvbProfile.is_development() and sys.getdefaultencoding().lower() != 'utf-8':
+            reload(sys)
+            sys.setdefaultencoding('utf-8')
 
         selected_profile = TvbProfile.get_profile(script_argv)
         
@@ -166,5 +172,66 @@ class TvbProfile():
 
         return TvbProfile.CURRENT_SELECTED_PROFILE == TvbProfile.LIBRARY_PROFILE or not framework_present     
             
-            
-            
+
+    @staticmethod
+    def is_development():
+        """
+        Return True when TVB is used with Python installed natively.
+        """
+        try:
+            import tvb_bin
+            bin_folder = os.path.dirname(os.path.abspath(tvb_bin.__file__))
+            tvb_version_file = os.path.join(bin_folder, "tvb.version")
+            if os.path.exists(tvb_version_file):
+                return False
+            return True
+        except ImportError:
+            return True
+
+
+    @staticmethod
+    def is_windows_deployment():
+        """
+        Return True if current run is not development and is running on Windows.
+        """
+        return TvbProfile.is_windows() and not TvbProfile.is_development()
+
+
+    @staticmethod
+    def is_linux_deployment():
+        """
+        Return True if current run is not development and is running on Linux.
+        """
+        return TvbProfile.is_linux() and not TvbProfile.is_development()
+
+
+    @staticmethod
+    def is_mac_deployment():
+        """
+        Return True if current run is not development and is running on Mac OS X
+        """
+        return TvbProfile.is_mac() and not TvbProfile.is_development()
+
+
+    @staticmethod
+    def is_windows():
+        return sys.platform.startswith('win')
+
+
+    @staticmethod
+    def is_linux():
+        return not TvbProfile.is_windows() and not TvbProfile.is_mac()
+
+
+    @staticmethod
+    def is_mac():
+        return sys.platform == 'darwin'
+
+
+    @staticmethod
+    def get_python_exe_name():
+        """ Returns the name of the python executable depending on the specific OS """
+        if TvbProfile.is_windows():
+            return 'python.exe'
+        else:
+            return 'python'
