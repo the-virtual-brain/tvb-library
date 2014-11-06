@@ -423,13 +423,13 @@ class Simulator(core.Type):
 
         #import pdb; pdb.set_trace()
         if self.surface is None:
-            local_coupling = 0.0
+            local_weights = 0.0
         else:
             region_average = self.surface.region_average
             region_history = npdot(region_average, history) 
             region_history = region_history.transpose((1, 2, 0, 3))
             if self.surface.coupling_strength.size == 1:
-                local_coupling = (self.surface.coupling_strength[0] *
+                local_weights = (self.surface.coupling_strength[0] *
                                   self.surface.local_connectivity.matrix)
                 # Compute the local coupling term here
 
@@ -440,7 +440,7 @@ class Simulator(core.Type):
                 sp_cs = sparse.csc_matrix((vec_cs, (ind, ind)),
                                            shape=(self.number_of_nodes,
                                                   self.number_of_nodes))
-                local_coupling = sp_cs * self.surface.local_connectivity.matrix
+                local_weights = sp_cs * self.surface.local_connectivity.matrix
 
         if self.stimulus is None:
             stimulus = 0.0
@@ -490,7 +490,7 @@ class Simulator(core.Type):
                 #import pdb; pdb.set_trace()
 
             #import pdb; pdb.set_trace()
-            local_coupling *= state[self.model.lcvar]
+            local_coupling = local_weights * state[self.model.lcvar]
             state = scheme(state, dfun, node_coupling, local_coupling, stimulus)
             history[step % horizon, :] = state
 
