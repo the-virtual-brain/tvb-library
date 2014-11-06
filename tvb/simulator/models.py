@@ -749,7 +749,7 @@ class WilsonCowan(Model):
         # self._state_variables = ["E", "I"]
         self._nvar = 2
         self.cvar  = numpy.array([0, 1], dtype=numpy.int32)
-        self.lcvar = numpy.array([0,], dtype=numpy.int32)
+        self.lcvar = 0
 
         LOG.debug('%s: inited.' % repr(self))
 
@@ -1482,7 +1482,7 @@ class ReducedSetHindmarshRose(Model):
         # self._state_variables = ["xi", "eta", "tau", "alpha", "beta", "gamma"]
         self._nvar = 6
         self.cvar  = numpy.array([0, 3], dtype=numpy.int32)
-        self.lcvar = numpy.array([0,], dtype=numpy.int32)
+        self.lcvar = 0
 
         # TODO: Hack fix, these cause issues with mapping spatialised parameters
         #      at the region level to the surface for surface sims.
@@ -2404,7 +2404,7 @@ class ZetterbergJansen(Model):
         self._nvar = 12
 
         self.cvar = numpy.array([10], dtype=numpy.int32)
-        self.lcvar = numpy.array([10], dtype=numpy.int32)
+        self.lcvar = 10
 
         self.Heke = None # self.He * self.ke
         self.Hiki = None # self.Hi * self.ki
