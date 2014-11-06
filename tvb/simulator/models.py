@@ -99,7 +99,7 @@ class Model(core.Type):
         # Assume the first state variable is the one used to compute local coupling.
         # This is flat out wrong. We need write down properly both global and local coupling.
         # This small change is only to start the pull request on github.
-        self.lcvar = numpy.array([0], dtype=numpy.int32)
+        self.lcvar = 0
         self.number_of_modes = 1  
 
     def configure(self):
@@ -769,11 +769,12 @@ class WilsonCowan(Model):
         c_0 = coupling[0, :]
 
         # short-range (local) coupling
-        lc_0 = local_coupling * E
-        lc_1 = local_coupling * I
+        #NOTE: Ideal case for interacting excitatory and inhibitory fields
+        #lc_0 = local_coupling * E
+        #lc_1 = local_coupling * I
 
-        x_e = self.alpha_e * (self.c_ee * E - self.c_ei * I + self.P  - self.theta_e +  c_0 + lc_0 + lc_1)
-        x_i = self.alpha_i * (self.c_ie * E - self.c_ii * I + self.Q  - self.theta_i + lc_0 + lc_1)
+        x_e = self.alpha_e * (self.c_ee * E - self.c_ei * I + self.P  - self.theta_e +  c_0 + local_coupling)
+        x_i = self.alpha_i * (self.c_ie * E - self.c_ii * I + self.Q  - self.theta_i + local_coupling)
 
         s_e = self.c_e / (1.0 + numpy.exp(-self.a_e * (x_e - self.b_e)))
         s_i = self.c_i / (1.0 + numpy.exp(-self.a_i * (x_i - self.b_i)))
