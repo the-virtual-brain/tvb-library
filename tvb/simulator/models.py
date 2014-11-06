@@ -93,8 +93,14 @@ class Model(core.Type):
         LOG.debug(str(kwargs))
 
         # self._state_variables = None
-        self._nvar = None
-        self.number_of_modes = 1  # NOTE: Models without modes can ignore this.
+        self._nvar  = None
+
+        # NOTE: 
+        # Assume the first state variable is the one used to compute local coupling.
+        # This is flat out wrong. We need write down properly both global and local coupling.
+        # This small change is only to start the pull request on github.
+        self.lcvar = 0
+        self.number_of_modes = 1  
 
     def configure(self):
         """  """
@@ -742,7 +748,9 @@ class WilsonCowan(Model):
         super(WilsonCowan, self).__init__(**kwargs)
         # self._state_variables = ["E", "I"]
         self._nvar = 2
-        self.cvar = numpy.array([0, 1], dtype=numpy.int32)
+        self.cvar  = numpy.array([0, 1], dtype=numpy.int32)
+        self.lcvar = 0
+
         LOG.debug('%s: inited.' % repr(self))
 
     def dfun(self, state_variables, coupling, local_coupling=0.0):
@@ -761,11 +769,12 @@ class WilsonCowan(Model):
         c_0 = coupling[0, :]
 
         # short-range (local) coupling
-        lc_0 = local_coupling * E
-        lc_1 = local_coupling * I
+        #NOTE: Ideal case for interacting excitatory and inhibitory fields
+        #lc_0 = local_coupling * E
+        #lc_1 = local_coupling * I
 
-        x_e = self.alpha_e * (self.c_ee * E - self.c_ei * I + self.P  - self.theta_e +  c_0 + lc_0 + lc_1)
-        x_i = self.alpha_i * (self.c_ie * E - self.c_ii * I + self.Q  - self.theta_i + lc_0 + lc_1)
+        x_e = self.alpha_e * (self.c_ee * E - self.c_ei * I + self.P  - self.theta_e +  c_0 + local_coupling)
+        x_i = self.alpha_i * (self.c_ie * E - self.c_ii * I + self.Q  - self.theta_i + local_coupling)
 
         s_e = self.c_e / (1.0 + numpy.exp(-self.a_e * (x_e - self.b_e)))
         s_i = self.c_i / (1.0 + numpy.exp(-self.a_i * (x_i - self.b_i)))
@@ -1006,7 +1015,7 @@ class ReducedSetFitzHughNagumo(Model):
         super(ReducedSetFitzHughNagumo, self).__init__(**kwargs)
         # self._state_variables = ["xi", "eta", "alpha", "beta"]
         self._nvar = 4
-        self.cvar = numpy.array([0, 2], dtype=numpy.int32)
+        self.cvar  = numpy.array([0, 2], dtype=numpy.int32)
 
         # TODO: Hack fix, these cause issues with mapping spatialised parameters
         #      at the region level to the surface for surface sims.
@@ -1080,13 +1089,13 @@ class ReducedSetFitzHughNagumo(Model):
         dxi = (self.tau * (xi - self.e_i * xi ** 3 / 3.0 - eta) +
                self.K11 * (numpy.dot(xi, self.Aik) - xi) -
                self.K12 * (numpy.dot(alpha, self.Bik) - xi) +
-               self.tau * (self.IE_i + c_0 + local_coupling * xi))
+               self.tau * (self.IE_i + c_0 + local_coupling))
 
         deta = (xi - self.b * eta + self.m_i) / self.tau
 
         dalpha = (self.tau * (alpha - self.f_i * alpha ** 3 / 3.0 - beta) +
                   self.K21 * (numpy.dot(xi, self.Cik) - alpha) +
-                  self.tau * (self.II_i + c_0 + local_coupling * xi))
+                  self.tau * (self.II_i + c_0 + local_coupling))
 
         dbeta = (alpha - self.b * beta + self.n_i) / self.tau
 
@@ -1472,7 +1481,8 @@ class ReducedSetHindmarshRose(Model):
         super(ReducedSetHindmarshRose, self).__init__(**kwargs)
         # self._state_variables = ["xi", "eta", "tau", "alpha", "beta", "gamma"]
         self._nvar = 6
-        self.cvar = numpy.array([0, 3], dtype=numpy.int32)
+        self.cvar  = numpy.array([0, 3], dtype=numpy.int32)
+        self.lcvar = 0
 
         # TODO: Hack fix, these cause issues with mapping spatialised parameters
         #      at the region level to the surface for surface sims.
@@ -1553,7 +1563,7 @@ class ReducedSetHindmarshRose(Model):
         dxi = (eta - self.a_i * xi ** 3 + self.b_i * xi ** 2 - tau +
                self.K11 * (numpy.dot(xi, self.A_ik) - xi) -
                self.K12 * (numpy.dot(alpha, self.B_ik) - xi) +
-               self.IE_i + c_0 + local_coupling * xi)
+               self.IE_i + c_0 + local_coupling)
 
         deta = self.c_i - self.d_i * xi ** 2 - eta
 
@@ -1561,7 +1571,7 @@ class ReducedSetHindmarshRose(Model):
 
         dalpha = (beta - self.e_i * alpha ** 3 + self.f_i * alpha ** 2 - gamma +
                   self.K21 * (numpy.dot(xi, self.C_ik) - alpha) +
-                  self.II_i + c_0 + local_coupling * xi)
+                  self.II_i + c_0 + local_coupling)
 
         dbeta = self.h_i - self.p_i * alpha ** 2 - beta
 
@@ -2037,7 +2047,9 @@ class JansenRit(Model):
 
         lrc = coupling[0, :]
 
-        short_range_coupling =  local_coupling*(y1 -  y2)
+        #TODO: change this once the local coupling is functional again
+        short_range_coupling =  local_coupling * (y1 -  y2)
+
 
         # NOTE: for local couplings
         # 0: pyramidal cells
@@ -2135,6 +2147,7 @@ class JRFast(JansenRit):
 
     """
 
+    #TODO: update this model once the local coupling is functional
     invalid_dfun_cache = True
 
     #@profile
@@ -2391,7 +2404,7 @@ class ZetterbergJansen(Model):
         self._nvar = 12
 
         self.cvar = numpy.array([10], dtype=numpy.int32)
-
+        self.lcvar = 10
 
         self.Heke = None # self.He * self.ke
         self.Hiki = None # self.Hi * self.ki
@@ -2438,7 +2451,7 @@ class ZetterbergJansen(Model):
         #       terms considered as extrinsic input (P, Q, U) (long range coupling) (local coupling)
         #       and noise.
 
-        coupled_input =  self.sigma_fun(coupling[0, :] + local_coupling * v6)
+        coupled_input =  self.sigma_fun(coupling[0, :] + local_coupling)
 
         # exc input to the excitatory interneurons
         dv1 = y1
@@ -2869,7 +2882,7 @@ class Generic2dOscillator(Model):
         alpha = self.alpha
         gamma = self.gamma
 
-        lc_0 = local_coupling * V
+
 
 
         #if not hasattr(self, 'derivative'):
@@ -2880,7 +2893,7 @@ class Generic2dOscillator(Model):
         # This avoids an expensive array concatenation
         deriv = numpy.empty_like(state_variables)
 
-        ev('d * tau * (alpha * W - f * V**3 + e * V**2 + g * V + gamma * I + gamma *c_0 + lc_0)', out=deriv[0])
+        ev('d * tau * (alpha * W - f * V**3 + e * V**2 + g * V + gamma * I + gamma *c_0 + local_coupling)', out=deriv[0])
         ev('d * (a + b * V + c * V**2 - beta * W) / tau', out=deriv[1])
 
         ## regular ndarray operation
@@ -3367,6 +3380,8 @@ class LarterBreakspear(Model):
         # voltage to firing rate
         QV    = 0.5 * self.QV_max * (1 + numpy.tanh((V - self.VT) / self.d_V))
         QZ    = 0.5 * self.QZ_max * (1 + numpy.tanh((Z - self.ZT) / self.d_Z))
+
+        #TODO: uopdate this model once the local coupling is functional
         lc_0  = local_coupling * QV
 
 
@@ -3535,10 +3550,7 @@ class ReducedWongWang(Model):
         c_0 = coupling[0, :]
 
 
-        # if applicable
-        lc_0 = local_coupling * S
-
-        x  = self.w * self.J_N * S + self.I_o + self.J_N * c_0 + self.J_N * lc_0
+        x  = self.w * self.J_N * S + self.I_o + self.J_N * c_0 + self.J_N * local_coupling
         H = ((self.a * x ) - self.b) / (1 - numpy.exp(-self.d * ((self.a *x)- self.b)))
         dS = - (S / self.tau_s) + (1 - S) * H * self.gamma
 
@@ -3648,7 +3660,7 @@ class Kuramoto(Model):
         #import pdb; pdb.set_trace()
 
         #A) Distribution of phases according to the local connectivity kernel
-        local_range_coupling = numpy.sin(local_coupling * theta)
+        local_range_coupling = numpy.sin(local_coupling)
 
         # NOTE: To evaluate.
         #B) Strength of the interactions
@@ -4098,7 +4110,7 @@ class Epileptor(Model):
 
         y = state_variables
 
-        Iext = self.Iext + local_coupling * y[0]
+        Iext = self.Iext + local_coupling
         c_pop1 = coupling[0, :]
         c_pop2 = coupling[1, :]
 
@@ -4360,7 +4372,7 @@ class EpileptorPermittivityCoupling(Model):
 
         y = state_variables
 
-        Iext = self.Iext + local_coupling * y[0]
+        Iext = self.Iext + local_coupling
         c_pop1 = coupling[0, :]
         c_pop2 = coupling[1, :]
 

@@ -398,7 +398,7 @@ class Simulator(core.Type):
         #import pdb; pdb.set_trace()
 
         #Create cvar index array of shape ...
-        cvar = numpy.tile(numpy.ones(nsn, dtype=numpy.int32), (1, ncvar, 1))
+        cvar  = numpy.tile(numpy.ones(nsn, dtype=numpy.int32), (1, ncvar, 1))
         for k in range(0, ncvar):
             cvar[:, k, :] = self.model.cvar[k] * cvar[:, k, :]
         LOG.debug("%s: cvar shape is: %s" % (str(self), str(cvar.shape)))
@@ -423,14 +423,16 @@ class Simulator(core.Type):
 
         #import pdb; pdb.set_trace()
         if self.surface is None:
-            local_coupling = 0.0
+            local_weights = 0.0
         else:
             region_average = self.surface.region_average
             region_history = npdot(region_average, history) 
             region_history = region_history.transpose((1, 2, 0, 3))
             if self.surface.coupling_strength.size == 1:
-                local_coupling = (self.surface.coupling_strength[0] *
+                local_weights = (self.surface.coupling_strength[0] *
                                   self.surface.local_connectivity.matrix)
+                # Compute the local coupling term here
+
             elif self.surface.coupling_strength.size == self.surface.number_of_vertices:
                 ind = numpy.arange(self.number_of_nodes, dtype=int)
                 vec_cs = numpy.zeros((self.number_of_nodes,))
@@ -438,9 +440,7 @@ class Simulator(core.Type):
                 sp_cs = sparse.csc_matrix((vec_cs, (ind, ind)),
                                            shape=(self.number_of_nodes,
                                                   self.number_of_nodes))
-                local_coupling = sp_cs * self.surface.local_connectivity.matrix
-
-            #local_coupling = local_coupling.tocsr()
+                local_weights = sp_cs * self.surface.local_connectivity.matrix
 
         if self.stimulus is None:
             stimulus = 0.0
@@ -471,13 +471,9 @@ class Simulator(core.Type):
         for step in xrange(self.current_step+1, self.current_step+int_steps+1):
             if self.surface is None:
                 delayed_state = history[(step-1-idelays) % horizon, cvar, node_ids, :]   #for region simulations this is the bottleneck
-                #coupling._set_pattern(npsum(delayed_state * weights, axis=0))
-                #node_coupling = coupling.pattern
                 node_coupling = coupling(weights, state[self.model.cvar], delayed_state)
             else:
                 delayed_state = region_history[(step-1-idelays) % horizon, cvar, node_ids, :] #expensive as well
-                #coupling._set_pattern(npsum(delayed_state * weights, axis=0))
-                #region_coupling = coupling.pattern
                 region_coupling = coupling(weights, region_history[(step - 1) % horizon, self.model.cvar], delayed_state)
 
                 node_coupling = numpy.empty(vertex_mapping.shape + (self.model.number_of_modes,))
@@ -494,6 +490,7 @@ class Simulator(core.Type):
                 #import pdb; pdb.set_trace()
 
             #import pdb; pdb.set_trace()
+            local_coupling = local_weights * state[self.model.lcvar]
             state = scheme(state, dfun, node_coupling, local_coupling, stimulus)
             history[step % horizon, :] = state
 
