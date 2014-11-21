@@ -164,6 +164,8 @@ class Coupling(core.Type):
         pass
 
 
+
+
 class coupling_device_info(object):
     """
     Utility class that allows Coupling subclass to annotate their requirements
@@ -255,6 +257,43 @@ class Linear(Coupling):
 
         """
         )
+
+
+class Sparse_Linear(Coupling):
+    """
+    Linear Coupling function for sparse matrix weights. Work around missing broadcasts for sparse matrices in scipy.
+    """
+
+    a = arrays.FloatArray(
+        label = ":math:`a`",
+        default=numpy.array([0.00390625,]),
+        range = basic.Range(lo = 0.0, hi = 1.0, step = 0.01),
+        doc = """Rescales the connection strength while maintaining the ratio
+        between different values.""",
+        order = 1)
+
+    b = arrays.FloatArray(
+        label = ":math:`b`",
+        default = numpy.array([0.0,]),
+        doc = """Shifts the base of the connection strength while maintaining
+        the absolute difference between different values.""",
+        order = 2)
+
+
+    def __call__(self, g_ij, x_i, x_j):
+        """
+        Evaluate the Linear function for the arg ``x``. The equation being
+        evaluated has the following form:
+
+            .. math::
+                a x + b
+
+        """
+        # TODO
+        #coupled_input = (g_ij * x_j).sum(axis=1)
+        #return self.a * coupled_input + self.b
+        return 
+
 
 
 
