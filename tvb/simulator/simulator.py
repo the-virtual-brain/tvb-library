@@ -473,6 +473,7 @@ class Simulator(core.Type):
                 delayed_state = history[(step-1-idelays) % horizon, cvar, node_ids, :]   #for region simulations this is the bottleneck
                 node_coupling = coupling(weights, state[self.model.cvar], delayed_state)
             else:
+                import ipdb; ipdb.set_trace()
                 delayed_state = region_history[(step-1-idelays) % horizon, cvar, node_ids, :] #expensive as well
                 region_coupling = coupling(weights, region_history[(step - 1) % horizon, self.model.cvar], delayed_state)
 
@@ -484,7 +485,6 @@ class Simulator(core.Type):
                     node_coupling[..., mi] = vertex_mapping.dot(region_coupling[..., mi].T)
 
                 node_coupling = node_coupling.transpose((1, 0, 2))
-                #import pdb; pdb.set_trace()
             if self.stimulus is not None:
                 stimulus[self.model.cvar, :, :] = numpy.reshape(self.stimulus(step - (self.current_step+1)), (1, -1, 1))
                 #import pdb; pdb.set_trace()
