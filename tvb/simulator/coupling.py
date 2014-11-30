@@ -239,6 +239,7 @@ class Linear(Coupling):
 
 
         """
+        import ipdb; ipdb.set_trace()
         coupled_input = (g_ij.transpose((2, 1, 0, 3)) * x_j).sum(axis=0)
 
         return self.a * coupled_input + self.b
@@ -292,9 +293,12 @@ class Sparse_Linear(Coupling):
 
         """
         # TODO
-        #coupled_input = (g_ij * x_j).sum(axis=1)
+        ## n_nodes, n_svar, n_nodes, n_modes
+        #coupled_input = (g_ij.transpose((2, 1, 0, 3)) * x_j).sum(axis=0)
         #return self.a * coupled_input + self.b
-        return 
+        pass
+
+
 
 
 
