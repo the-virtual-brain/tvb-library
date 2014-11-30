@@ -225,8 +225,8 @@ class Model(core.Type):
         nsig = numpy.zeros(nvar)
         loc = numpy.zeros(nvar)
 
-        for tpt in range(tpts):
-            for var in range(nvar):
+        for tpt in xrange(tpts):
+            for var in xrange(nvar):
                 loc[var] = self.state_variable_range[self.state_variables[var]].mean()
                 nsig[var] = (self.state_variable_range[self.state_variables[var]][1] -
                              self.state_variable_range[self.state_variables[var]][0]) / 2.0
@@ -237,11 +237,12 @@ class Model(core.Type):
                 hi = self.state_variable_range[self.state_variables[var]][1]
                 lo_bound, up_bound = (lo - loc[var]) / nsig[var], (hi - loc[var]) / nsig[var]
 
-                noise[tpt, var, :] = self.noise.generate(history_shape, truncate=True,
+                noise[tpt, var, :] = self.noise.generate(history_shape, truncate=True,    # this is expensive for many state vars and long tpts
                                                          lo=lo_bound, hi=up_bound)
 
-        for var in range(nvar):
-                # TODO: Hackery, validate me...-noise.mean(axis=0) ... self.noise.nsig
+        for var in xrange(nvar):
+            # TODO: Hackery, validate me...-noise.mean(axis=0) ... self.noise.nsig
+            # perf hint: cumsum is expensive
             initial_conditions[:, var, :] = numpy.sqrt(2.0 * nsig[var]) * numpy.cumsum(noise[:, var, :],axis=0) + loc[var]
 
         return initial_conditions
@@ -764,6 +765,7 @@ class WilsonCowan(Model):
 
         E = state_variables[0, :]
         I = state_variables[1, :]
+        derivative = numpy.empty_like(state_variables)
 
         # long-range coupling
         c_0 = coupling[0, :]
@@ -779,10 +781,8 @@ class WilsonCowan(Model):
         s_e = self.c_e / (1.0 + numpy.exp(-self.a_e * (x_e - self.b_e)))
         s_i = self.c_i / (1.0 + numpy.exp(-self.a_i * (x_i - self.b_i)))
 
-        dE = (-E + (self.k_e - self.r_e * E) * s_e) / self.tau_e
-        dI = (-I + (self.k_i - self.r_i * I) * s_i) / self.tau_i
-
-        derivative = numpy.array([dE, dI])
+        derivative[0] = (-E + (self.k_e - self.r_e * E) * s_e) / self.tau_e
+        derivative[1] = (-I + (self.k_i - self.r_i * I) * s_i) / self.tau_i
 
         return derivative
 
@@ -1079,28 +1079,26 @@ class ReducedSetFitzHughNagumo(Model):
         eta = state_variables[1, :]
         alpha = state_variables[2, :]
         beta = state_variables[3, :]
-
+        derivative = numpy.empty_like(state_variables)
         # sum the activity from the modes
         c_0 = coupling[0, :].sum(axis=1)[:, numpy.newaxis]
 
         # TODO: generalize coupling variables to a matrix form
         # c_1 = coupling[1, :] # this cv represents alpha
 
-        dxi = (self.tau * (xi - self.e_i * xi ** 3 / 3.0 - eta) +
+        derivative[0] = (self.tau * (xi - self.e_i * xi ** 3 / 3.0 - eta) +
                self.K11 * (numpy.dot(xi, self.Aik) - xi) -
                self.K12 * (numpy.dot(alpha, self.Bik) - xi) +
                self.tau * (self.IE_i + c_0 + local_coupling))
 
-        deta = (xi - self.b * eta + self.m_i) / self.tau
+        derivative[1] = (xi - self.b * eta + self.m_i) / self.tau
 
-        dalpha = (self.tau * (alpha - self.f_i * alpha ** 3 / 3.0 - beta) +
+        derivative[2] = (self.tau * (alpha - self.f_i * alpha ** 3 / 3.0 - beta) +
                   self.K21 * (numpy.dot(xi, self.Cik) - alpha) +
                   self.tau * (self.II_i + c_0 + local_coupling))
 
-        dbeta = (alpha - self.b * beta + self.n_i) / self.tau
+        derivative[3] = (alpha - self.b * beta + self.n_i) / self.tau
 
-        derivative = numpy.array([dxi, deta, dalpha, dbeta])
-        # import pdb; pdb.set_trace()
         return derivative
 
     def update_derived_parameters(self):
@@ -1556,28 +1554,27 @@ class ReducedSetHindmarshRose(Model):
         alpha = state_variables[3, :]
         beta = state_variables[4, :]
         gamma = state_variables[5, :]
+        derivative = numpy.empty_like(state_variables)
 
         c_0 = coupling[0, :].sum(axis=1)[:, numpy.newaxis]
         # c_1 = coupling[1, :]
 
-        dxi = (eta - self.a_i * xi ** 3 + self.b_i * xi ** 2 - tau +
+        derivative[0] = (eta - self.a_i * xi ** 3 + self.b_i * xi ** 2 - tau +
                self.K11 * (numpy.dot(xi, self.A_ik) - xi) -
                self.K12 * (numpy.dot(alpha, self.B_ik) - xi) +
                self.IE_i + c_0 + local_coupling)
 
-        deta = self.c_i - self.d_i * xi ** 2 - eta
+        derivative[1] = self.c_i - self.d_i * xi ** 2 - eta
 
-        dtau = self.r * self.s * xi - self.r * tau - self.m_i
+        derivative[2] = self.r * self.s * xi - self.r * tau - self.m_i
 
-        dalpha = (beta - self.e_i * alpha ** 3 + self.f_i * alpha ** 2 - gamma +
+        derivative[3] = (beta - self.e_i * alpha ** 3 + self.f_i * alpha ** 2 - gamma +
                   self.K21 * (numpy.dot(xi, self.C_ik) - alpha) +
                   self.II_i + c_0 + local_coupling)
 
-        dbeta = self.h_i - self.p_i * alpha ** 2 - beta
+        derivative[4] = self.h_i - self.p_i * alpha ** 2 - beta
 
-        dgamma = self.r * self.s * alpha - self.r * gamma - self.n_i
-
-        derivative = numpy.array([dxi, deta, dtau, dalpha, dbeta, dgamma])
+        derivative[5] = self.r * self.s * alpha - self.r * gamma - self.n_i
 
         return derivative
 
@@ -2042,7 +2039,7 @@ class JansenRit(Model):
         y3 = state_variables[3, :]
         y4 = state_variables[4, :]
         y5 = state_variables[5, :]
-
+        derivative = numpy.empty_like(state_variables)
         # NOTE: This is assumed to be \sum_j u_kj * S[y_{1_j} - y_{2_j}]
 
         lrc = coupling[0, :]
@@ -2065,6 +2062,8 @@ class JansenRit(Model):
         #p = p_min + (p_max - p_min) * numpy.random.uniform()
 
         #NOTE: We were getting numerical overflow in the three exp()s below...
+        # todo: factor out common subexpressions: python is not optimizing
+        # todo: FIXME: the if and else in these wheres are the same!
         temp       = self.r * (self.v0 - (y1 - y2))
         sigm_y1_y2 = numpy.where(temp > magic_exp_number,2.0 * self.nu_max / (1.0 + numpy.exp(temp)), 2.0 * self.nu_max / (1.0 + numpy.exp(temp)))
 
@@ -2074,14 +2073,12 @@ class JansenRit(Model):
         temp      = self.r * (self.v0 - (self.a_3 * self.J * y0))
         sigm_y0_3 = numpy.where(temp > magic_exp_number, 2.0 * self.nu_max / (1.0 + numpy.exp(temp)), 2.0 * self.nu_max / (1.0 + numpy.exp(temp)))
 
-        dy0 = y3
-        dy3 = self.A * self.a * sigm_y1_y2 - 2.0 * self.a * y3 - self.a ** 2 * y0
-        dy1 = y4
-        dy4 = self.A * self.a * (self.mu + self.a_2 * self.J * sigm_y0_1 + lrc + short_range_coupling) - 2.0 * self.a * y4 - self.a ** 2 * y1
-        dy2 = y5
-        dy5 = self.B * self.b * (self.a_4 * self.J * sigm_y0_3) - 2.0 * self.b * y5 - self.b ** 2 * y2
-
-        derivative = numpy.array([dy0, dy1, dy2, dy3, dy4, dy5])
+        derivative[0] = y3
+        derivative[3] = self.A * self.a * sigm_y1_y2 - 2.0 * self.a * y3 - self.a ** 2 * y0
+        derivative[1] = y4
+        derivative[4] = self.A * self.a * (self.mu + self.a_2 * self.J * sigm_y0_1 + lrc + short_range_coupling) - 2.0 * self.a * y4 - self.a ** 2 * y1
+        derivative[2] = y5
+        derivative[5] = self.B * self.b * (self.a_4 * self.J * sigm_y0_3) - 2.0 * self.b * y5 - self.b ** 2 * y2
 
         return derivative
 
@@ -2445,6 +2442,7 @@ class ZetterbergJansen(Model):
         v6 = state_variables[10, :]
         v7 = state_variables[11, :]
 
+        derivative = numpy.empty_like(state_variables)
         # NOTE: long_range_coupling term: coupling variable is v6 . EQUATIONS
         #       ASSUME linear coupling is used. 'coupled_input' represents a rate. It
         #       is very likely that coeffs gamma_xT should be independent for each of the
@@ -2454,27 +2452,25 @@ class ZetterbergJansen(Model):
         coupled_input =  self.sigma_fun(coupling[0, :] + local_coupling)
 
         # exc input to the excitatory interneurons
-        dv1 = y1
-        dy1 = self.Heke * (self.gamma_1 * self.sigma_fun(v2 - v3) + self.gamma_1T * (self.U + coupled_input )) - self.ke_2 * y1 - self.keke * v1
+        derivative[0] = y1
+        derivative[1] = self.Heke * (self.gamma_1 * self.sigma_fun(v2 - v3) + self.gamma_1T * (self.U + coupled_input )) - self.ke_2 * y1 - self.keke * v1
         # exc input to the pyramidal cells
-        dv2 = y2
-        dy2 = self.Heke * (self.gamma_2 * self.sigma_fun(v1)      + self.gamma_2T * (self.P + coupled_input )) - self.ke_2 * y2 - self.keke * v2
+        derivative[2] = y2
+        derivative[3] = self.Heke * (self.gamma_2 * self.sigma_fun(v1)      + self.gamma_2T * (self.P + coupled_input )) - self.ke_2 * y2 - self.keke * v2
         # inh input to the pyramidal cells
-        dv3 = y3
-        dy3 = self.Hiki * (self.gamma_4 * self.sigma_fun(v4 - v5)) - self.ki_2 * y3 - self.kiki * v3
-        dv4 = y4
+        derivative[4] = y3
+        derivative[5] = self.Hiki * (self.gamma_4 * self.sigma_fun(v4 - v5)) - self.ki_2 * y3 - self.kiki * v3
+        derivative[6] = y4
         # exc input to the inhibitory interneurons
-        dy4 = self.Heke * (self.gamma_3 * self.sigma_fun(v2 - v3) + self.gamma_3T * (self.Q + coupled_input)) - self.ke_2 * y4 - self.keke * v4
-        dv5 = y5
+        derivative[7] = self.Heke * (self.gamma_3 * self.sigma_fun(v2 - v3) + self.gamma_3T * (self.Q + coupled_input)) - self.ke_2 * y4 - self.keke * v4
+        derivative[8] = y5
         # inh input to the inhibitory interneurons
-        dy5 = self.Hiki * (self.gamma_5 * self.sigma_fun(v4 - v5)) - self.ki_2 * y5 - self.keke * v5
+        derivative[9] = self.Hiki * (self.gamma_5 * self.sigma_fun(v4 - v5)) - self.ki_2 * y5 - self.keke * v5
         # aux variables (the sum gathering the postsynaptic inh & exc potentials)
         # pyramidal cells
-        dv6 = y2 - y3
+        derivative[10] = y2 - y3
         # inhibitory cells
-        dv7 = y4 - y5
-
-        derivative = numpy.array([dv1, dy1, dv2, dy2, dv3, dy3, dv4, dy4, dv5, dy5, dv6, dv7])
+        derivative[11] = y4 - y5
 
         return derivative
 
@@ -3368,6 +3364,7 @@ class LarterBreakspear(Model):
         V = state_variables[0, :]
         W = state_variables[1, :]
         Z = state_variables[2, :]
+        derivative = numpy.empty_like(state_variables)
 
         c_0   = coupling[0, :]
 
@@ -3385,13 +3382,16 @@ class LarterBreakspear(Model):
         lc_0  = local_coupling * QV
 
 
-        dV = (- (self.gCa + (1.0 - self.C) * (self.rNMDA * self.aee) * (QV + lc_0)+ self.C * self.rNMDA * self.aee * c_0) * m_Ca * (V - self.VCa) - self.gK * W * (V - self.VK) -  self.gL * (V - self.VL) - (self.gNa * m_Na + (1.0 - self.C) * self.aee * (QV  + lc_0) + self.C * self.aee * c_0) * (V - self.VNa) - self.aie * Z * QZ + self.ane * self.Iext)
+        derivative[0] = (- (self.gCa + (1.0 - self.C) * (self.rNMDA * self.aee) * (QV + lc_0)+ self.C * self.rNMDA * self.aee * c_0) * m_Ca * (V - self.VCa)
+                         - self.gK * W * (V - self.VK)
+                         - self.gL * (V - self.VL)
+                         - (self.gNa * m_Na + (1.0 - self.C) * self.aee * (QV  + lc_0) + self.C * self.aee * c_0) * (V - self.VNa)
+                         - self.aie * Z * QZ
+                         + self.ane * self.Iext)
 
-        dW = (self.phi * (m_K - W) / self.tau_K)
+        derivative[1] = self.phi * (m_K - W) / self.tau_K
 
-        dZ = (self.b * (self.ani * self.Iext + self.aei * V * QV))
-
-        derivative = numpy.array([dV, dW, dZ])
+        derivative[2] = self.b * (self.ani * self.Iext + self.aei * V * QV)
 
         return derivative
 
@@ -3551,7 +3551,7 @@ class ReducedWongWang(Model):
 
 
         x  = self.w * self.J_N * S + self.I_o + self.J_N * c_0 + self.J_N * local_coupling
-        H = ((self.a * x ) - self.b) / (1 - numpy.exp(-self.d * ((self.a *x)- self.b)))
+        H = (self.a * x - self.b) / (1 - numpy.exp(-self.d * (self.a * x - self.b)))
         dS = - (S / self.tau_s) + (1 - S) * H * self.gamma
 
         derivative = numpy.array([dS])
@@ -3742,6 +3742,11 @@ class Hopfield(Model):
             \dot{x_{i}} &= 1 / \tau_{x} (-x_{i} + c_0(i)) \\
             \dot{\\theta_{i}} &= 1 / \tau_{\theta_{i}} (-\theta + c_1(i))
 
+
+    .. figure :: img/Hopfield_01_mode_0_pplane.svg
+
+        The phase-plane for the Hopfield model.
+
     """
 
     _ui_name = "Hopfield"
@@ -3830,6 +3835,7 @@ class Hopfield(Model):
         x = state_variables[0, :]
         dx = (- x + coupling[0]) / self.taux
 
+        # todo: display dependent hack
         # We return 2 arrays here, because we have 2 possible state Variable, even if not dynamic
         # Otherwise the phase-plane display will fail.
         derivative = numpy.array([dx, dx])
@@ -4109,6 +4115,7 @@ class Epileptor(Model):
         """
 
         y = state_variables
+        ydot = numpy.empty_like(state_variables)
 
         Iext = self.Iext + local_coupling
         c_pop1 = coupling[0, :]
@@ -4117,25 +4124,22 @@ class Epileptor(Model):
         # population 1
         if_ydot0 = y[1] - self.a*y[0]**3 + self.b*y[0]**2 - y[2] + Iext + self.Kvf*c_pop1
         else_ydot0 = y[1] + (self.slope - y[3] + 0.6*(y[2]-4.0)**2)*y[0] - y[2] + Iext + self.Kvf*c_pop1
-        ydot0 = where(y[0] < 0., if_ydot0, else_ydot0)
-        ydot1 = self.c - self.d*y[0]**2 - y[1]
+        ydot[0] = where(y[0] < 0., if_ydot0, else_ydot0)
+        ydot[1] = self.c - self.d*y[0]**2 - y[1]
 
         # energy
         if_ydot2 = self.r*(4*(y[0] - self.x0) - y[2] - 0.1*y[2]**7)
         else_ydot2 = self.r*(4*(y[0] - self.x0) - y[2])
-        ydot2 = where(y[2] < 0., if_ydot2, else_ydot2)
+        ydot[2] = where(y[2] < 0., if_ydot2, else_ydot2)
 
         # population 2
-        ydot3 = -y[4] + y[3] - y[3]**3 + self.Iext2 + 2*y[5] - 0.3*(y[2] - 3.5) + self.Kf*c_pop2
+        ydot[3] = -y[4] + y[3] - y[3]**3 + self.Iext2 + 2*y[5] - 0.3*(y[2] - 3.5) + self.Kf*c_pop2
         if_ydot4 = -y[4]/self.tau
         else_ydot4 = (-y[4] + self.aa*(y[3] + 0.25))/self.tau
-        ydot4 = where(y[3] < -0.25, if_ydot4, else_ydot4)
+        ydot[4] = where(y[3] < -0.25, if_ydot4, else_ydot4)
 
         # filter
-        ydot5 = -0.01*(y[5] - 0.1*y[0])
-
-        #
-        ydot = numpy.array([ydot0, ydot1, ydot2, ydot3, ydot4, ydot5])
+        ydot[5] = -0.01*(y[5] - 0.1*y[0])
 
         return ydot
 
@@ -4371,6 +4375,7 @@ class EpileptorPermittivityCoupling(Model):
 """
 
         y = state_variables
+        ydot = numpy.empty_like(state_variables)
 
         Iext = self.Iext + local_coupling
         c_pop1 = coupling[0, :]
@@ -4379,24 +4384,22 @@ class EpileptorPermittivityCoupling(Model):
         # population 1
         if_ydot0 = self.tt*(y[1] - self.a*y[0]**3 + self.b*y[0]**2 - y[2] + Iext + self.Kvf*c_pop1)
         else_ydot0 = self.tt*(y[1] + (self.slope - y[3] + 0.6*(y[2]-4.0)**2)*y[0] - y[2] + Iext + self.Kvf*c_pop1)
-        ydot0 = where(y[0] < 0., if_ydot0, else_ydot0)
-        ydot1 = self.tt*(self.c - self.d*y[0]**2 - y[1])
+        ydot[0] = where(y[0] < 0., if_ydot0, else_ydot0)
+        ydot[1] = self.tt*(self.c - self.d*y[0]**2 - y[1])
 
         # energy
-        ydot2 = self.tt*(self.r*(3./(1.+numpy.exp(-(y[0]+0.5)/0.2)) + self.x0 - y[2] - self.Ks*c_pop1))
+        ydot[2] = self.tt*(self.r*(3./(1.+numpy.exp(-(y[0]+0.5)/0.2)) + self.x0 - y[2] - self.Ks*c_pop1))
 
         # population 2
-        ydot3 = self.tt*(-y[4] + y[3] - y[3]**3 + self.Iext2 + 2*y[5] - 0.3*(y[2] - 3.5) + self.Kf*c_pop2)
+        ydot[3] = self.tt*(-y[4] + y[3] - y[3]**3 + self.Iext2 + 2*y[5] - 0.3*(y[2] - 3.5) + self.Kf*c_pop2)
         if_ydot4 = self.tt*(-y[4]/self.tau)
         else_ydot4 = self.tt*((-y[4] + self.aa*(y[3] + 0.25))/self.tau)
-        ydot4 = where(y[3] < -0.25, if_ydot4, else_ydot4)
+        ydot[4] = where(y[3] < -0.25, if_ydot4, else_ydot4)
 
         # filter
-        ydot5 = self.tt*(-0.01*(y[5] - 0.1*y[0]))
+        ydot[5] = self.tt*(-0.01*(y[5] - 0.1*y[0]))
 
         # output time series
-        ydot6 = -ydot0 + ydot3
-
-        ydot = numpy.array([ydot0, ydot1, ydot2, ydot3, ydot4, ydot5, ydot6])
+        ydot[6] = -ydot[0] + ydot[3]
 
         return ydot
