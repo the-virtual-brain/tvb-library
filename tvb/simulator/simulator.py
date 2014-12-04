@@ -130,6 +130,16 @@ class Simulator(core.Type):
         between regions by the ``Long-range connectivity`` before it enters the local
         dynamic equations of the Model. Its primary purpose is to 'rescale' the
         incoming activity to a level appropriate to Model.""")
+    
+    surface_coupling = coupling_module.Surface_Coupling(
+        label="Short-range coupling function",
+        default=coupling_module.Sparse_Basic(),
+        required=False,
+        order=2,
+        doc="""The coupling function is applied to the activity propagated
+        on the cortical surface by the ``Short-range connectivity`` before it enters the local
+        dynamic equations of the Model. Its primary purpose is to 'rescale' the
+        incoming activity to a level appropriate to Model.""")
 
     surface = surfaces_dtype.Cortex(
         label="Cortical surface",
@@ -398,6 +408,8 @@ class Simulator(core.Type):
         history = self.history
         dfun = self.model.dfun
         coupling = self.coupling
+        if self.surface is not None:
+            surface_coupling = self.surface_coupling
         scheme = self.integrator.scheme
         npsum = numpy.sum
         npdot = numpy.dot
@@ -473,6 +485,7 @@ class Simulator(core.Type):
             if self.surface is None:
                 delayed_state = history[(step - 1 - idelays) % horizon, cvar, node_ids, :]   # for region simulations this is the bottleneck
                 node_coupling = coupling(weights, state[self.model.cvar], delayed_state)
+                local_coupling = 0.0
             else:
                 delayed_state   = region_history[(step - 1 - idelays) % horizon, cvar, node_ids, :]  # expensive as well
                 region_coupling = coupling(weights, region_history[(step - 1) % horizon, self.model.cvar], delayed_state)
@@ -483,12 +496,14 @@ class Simulator(core.Type):
                     node_coupling[..., mi] = vertex_mapping * region_coupling[..., mi].T
 
                 node_coupling = node_coupling.transpose((1, 0, 2))
+                local_coupling = surface_coupling(local_weights, state[self.model.lcvar],state[self.model.lcvar]) # TODO incorporate delays on surface
 
             if self.stimulus is not None:
                 stimulus[self.model.cvar, :, :] = numpy.reshape(self.stimulus(step - (self.current_step + 1)),
                                                                 (1, -1, 1))
             #import pdb; pdb.set_trace()
-            local_coupling = local_weights * state[self.model.lcvar]
+            #local_coupling = local_weights * state[self.model.lcvar]
+            
             state = scheme(state, dfun, node_coupling, local_coupling, stimulus)
             history[step % horizon, :] = state
 

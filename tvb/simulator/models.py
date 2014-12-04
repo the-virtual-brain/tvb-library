@@ -99,7 +99,8 @@ class Model(core.Type):
         # Assume the first state variable is the one used to compute local coupling.
         # This is flat out wrong. We need write down properly both global and local coupling.
         # This small change is only to start the pull request on github.
-        self.lcvar = 0
+        #self.lcvar = 0
+        self.lcvar  = numpy.array([0], dtype=numpy.int32)
         self.number_of_modes = 1  
 
     def configure(self):
@@ -750,7 +751,8 @@ class WilsonCowan(Model):
         # self._state_variables = ["E", "I"]
         self._nvar = 2
         self.cvar  = numpy.array([0, 1], dtype=numpy.int32)
-        self.lcvar = 0
+        #self.lcvar = 0
+        self.lcvar  = numpy.array([0], dtype=numpy.int32)
 
         LOG.debug('%s: inited.' % repr(self))
 
@@ -1480,7 +1482,9 @@ class ReducedSetHindmarshRose(Model):
         # self._state_variables = ["xi", "eta", "tau", "alpha", "beta", "gamma"]
         self._nvar = 6
         self.cvar  = numpy.array([0, 3], dtype=numpy.int32)
-        self.lcvar = 0
+
+        #self.lcvar = 0
+        self.lcvar  = numpy.array([0], dtype=numpy.int32)
 
         # TODO: Hack fix, these cause issues with mapping spatialised parameters
         #      at the region level to the surface for surface sims.
@@ -2401,7 +2405,8 @@ class ZetterbergJansen(Model):
         self._nvar = 12
 
         self.cvar = numpy.array([10], dtype=numpy.int32)
-        self.lcvar = 10
+        #self.lcvar = 10
+        self.lcvar  = numpy.array([10], dtype=numpy.int32)
 
         self.Heke = None # self.He * self.ke
         self.Hiki = None # self.Hi * self.ki
@@ -2864,6 +2869,7 @@ class Generic2dOscillator(Model):
 
         #[State_variables, nodes]
         c_0 = coupling[0, :]
+        l_0 = local_coupling[0, :]
 
         tau = self.tau
         I = self.I
@@ -2889,7 +2895,7 @@ class Generic2dOscillator(Model):
         # This avoids an expensive array concatenation
         deriv = numpy.empty_like(state_variables)
 
-        ev('d * tau * (alpha * W - f * V**3 + e * V**2 + g * V + gamma * I + gamma *c_0 + local_coupling)', out=deriv[0])
+        ev('d * tau * (alpha * W - f * V**3 + e * V**2 + g * V + gamma * I + gamma *c_0 + l_0)', out=deriv[0])
         ev('d * (a + b * V + c * V**2 - beta * W) / tau', out=deriv[1])
 
         ## regular ndarray operation

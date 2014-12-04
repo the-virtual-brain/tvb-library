@@ -261,27 +261,16 @@ class Linear(Coupling):
         """
         )
 
-
-class Sparse_Linear(Coupling):
+class Surface_Coupling(Coupling):
     """
-    Linear Coupling function for sparse matrix weights. Work around missing broadcasts for sparse matrices in scipy.
+    Parent class for surface coupling functions. Separated from region coupling to make use for more efficient data structures (sparse matrices and alike).
     """
 
-    a = arrays.FloatArray(
-        label = ":math:`a`",
-        default=numpy.array([0.00390625,]),
-        range = basic.Range(lo = 0.0, hi = 1.0, step = 0.01),
-        doc = """Rescales the connection strength while maintaining the ratio
-        between different values.""",
-        order = 1)
 
-    b = arrays.FloatArray(
-        label = ":math:`b`",
-        default = numpy.array([0.0,]),
-        doc = """Shifts the base of the connection strength while maintaining
-        the absolute difference between different values.""",
-        order = 2)
-
+class Sparse_Basic(Surface_Coupling):
+    """
+    Coupling function for surface weights represented by sparse matrix. Only single coupling variable supported.
+    """
 
     def __call__(self, g_ij, x_i, x_j):
         """
@@ -291,15 +280,15 @@ class Sparse_Linear(Coupling):
             .. math::
                 a x + b
 
+        
         """
-        # TODO
-        ## n_nodes, n_svar, n_nodes, n_modes
-        #coupled_input = (g_ij.transpose((2, 1, 0, 3)) * x_j).sum(axis=0)
-        #return self.a * coupled_input + self.b
-        pass
-
-
-
+        # n_nodes, n_svar, n_nodes, n_modes
+        coupled_input = numpy.zeros(x_j.shape)
+        for v in range(x_j.shape[0]):
+            for m in range(x_j.shape[2]):
+                coupled_input[v,:,m] = (g_ij * x_j[v,:,m])
+        
+        return coupled_input
 
 
 
