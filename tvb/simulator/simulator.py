@@ -485,7 +485,7 @@ class Simulator(core.Type):
             if self.surface is None:
                 delayed_state = history[(step - 1 - idelays) % horizon, cvar, node_ids, :]   # for region simulations this is the bottleneck
                 node_coupling = coupling(weights, state[self.model.cvar], delayed_state)
-                local_coupling = 0.0
+                local_coupling = numpy.zeros((1,1,1))
             else:
                 delayed_state   = region_history[(step - 1 - idelays) % horizon, cvar, node_ids, :]  # expensive as well
                 region_coupling = coupling(weights, region_history[(step - 1) % horizon, self.model.cvar], delayed_state)

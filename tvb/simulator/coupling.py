@@ -239,7 +239,6 @@ class Linear(Coupling):
 
 
         """
-        import ipdb; ipdb.set_trace()
         coupled_input = (g_ij.transpose((2, 1, 0, 3)) * x_j).sum(axis=0)
 
         return self.a * coupled_input + self.b
