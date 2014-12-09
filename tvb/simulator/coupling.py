@@ -285,7 +285,7 @@ class Sparse_Basic(Surface_Coupling):
         coupled_input = numpy.zeros(x_j.shape)
         for v in range(x_j.shape[0]):
             for m in range(x_j.shape[2]):
-                coupled_input[v,:,m] = (g_ij * x_j[v,:,m])
+                coupled_input[v,:,m] = (g_ij * x_j[v,:,m]).sum(axis=0)
         
         return coupled_input
 

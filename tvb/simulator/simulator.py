@@ -484,10 +484,12 @@ class Simulator(core.Type):
         for step in xrange(self.current_step + 1, self.current_step+int_steps+1):
             if self.surface is None:
                 delayed_state = history[(step - 1 - idelays) % horizon, cvar, node_ids, :]   # for region simulations this is the bottleneck
+                import ipdb; ipdb.set_trace()
                 node_coupling = coupling(weights, state[self.model.cvar], delayed_state)
                 local_coupling = numpy.zeros((1,1,1))
             else:
                 delayed_state   = region_history[(step - 1 - idelays) % horizon, cvar, node_ids, :]  # expensive as well
+                import ipdb; ipdb.set_trace()
                 region_coupling = coupling(weights, region_history[(step - 1) % horizon, self.model.cvar], delayed_state)
                 node_coupling = numpy.empty(node_coupling_shape)
 
@@ -495,6 +497,7 @@ class Simulator(core.Type):
                 for mi in xrange(self.model.number_of_modes):
                     node_coupling[..., mi] = vertex_mapping * region_coupling[..., mi].T
 
+                import ipdb; ipdb.set_trace()
                 node_coupling = node_coupling.transpose((1, 0, 2))
                 local_coupling = surface_coupling(local_weights, state[self.model.lcvar],state[self.model.lcvar]) # TODO incorporate delays on surface
 
