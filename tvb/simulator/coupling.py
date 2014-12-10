@@ -268,7 +268,7 @@ class Surface_Coupling(Coupling):
 
 class Sparse_Basic(Surface_Coupling):
     """
-    Coupling function for surface weights represented by sparse matrix. Only single coupling variable supported.
+    Coupling function for surface weights represented by sparse matrix. Only single coupling variable supported, g_ij has to be sparse matrix.
     """
 
     def __call__(self, g_ij, x_i, x_j):
@@ -285,7 +285,7 @@ class Sparse_Basic(Surface_Coupling):
         coupled_input = numpy.zeros(x_j.shape)
         for v in range(x_j.shape[0]):
             for m in range(x_j.shape[2]):
-                coupled_input[v,:,m] = (g_ij * x_j[v,:,m]).sum(axis=0)
+                coupled_input[v,:,m] = g_ij * x_j[v,:,m]
         
         return coupled_input
 

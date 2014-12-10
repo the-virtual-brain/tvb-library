@@ -46,6 +46,7 @@ from tvb.tests.library.base_testcase import BaseTestCase
 from tvb.simulator import coupling
 
 import numpy
+import scipy.sparse as sparse
 
 
 class CouplingTest(BaseTestCase):
@@ -84,7 +85,7 @@ class CouplingTest(BaseTestCase):
         n_modes = 3
         n_nodes = 10
 
-        weights = numpy.random.rand(n_nodes,n_nodes)
+        weights = sparse.rand(n_nodes, n_nodes, density=0.5)
         cvar_state = numpy.random.rand(n_cvar, n_nodes,n_modes)
         delayed_state = numpy.random.rand(n_cvar, n_nodes,n_modes)
 
