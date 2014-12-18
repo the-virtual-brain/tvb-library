@@ -164,6 +164,8 @@ class Coupling(core.Type):
         pass
 
 
+
+
 class coupling_device_info(object):
     """
     Utility class that allows Coupling subclass to annotate their requirements
@@ -237,8 +239,10 @@ class Linear(Coupling):
 
 
         """
-        coupled_input = (g_ij * x_j).sum(axis=1)
+        coupled_input = (g_ij.transpose((2, 1, 0, 3)) * x_j).sum(axis=0)
+
         return self.a * coupled_input + self.b
+
 
     device_info = coupling_device_info(
         pars = ['a', 'b'],
@@ -255,6 +259,35 @@ class Linear(Coupling):
 
         """
         )
+
+class Surface_Coupling(Coupling):
+    """
+    Parent class for surface coupling functions. Separated from region coupling to make use for more efficient data structures (sparse matrices and alike).
+    """
+
+
+class Sparse_Basic(Surface_Coupling):
+    """
+    Coupling function for surface weights represented by sparse matrix. Only single coupling variable supported, g_ij has to be sparse matrix.
+    """
+
+    def __call__(self, g_ij, x_i, x_j):
+        """
+        Evaluate the Linear function for the arg ``x``. The equation being
+        evaluated has the following form:
+
+            .. math::
+                a x + b
+
+        
+        """
+        # n_nodes, n_svar, n_nodes, n_modes
+        coupled_input = numpy.zeros(x_j.shape)
+        for v in range(x_j.shape[0]):
+            for m in range(x_j.shape[2]):
+                coupled_input[v,:,m] = g_ij * x_j[v,:,m]
+        
+        return coupled_input
 
 
 
@@ -290,7 +323,7 @@ class Scaling(Coupling):
 
 
         """
-        coupled_input = (g_ij * x_j).sum(axis=1)
+        coupled_input = (g_ij.transpose((2, 1, 0, 3)) * x_j).sum(axis=2)
         return self.a * coupled_input
 
     device_info = coupling_device_info(
@@ -365,11 +398,11 @@ class HyperbolicTangent(Coupling):
             #NOTE: normalising by the strength or degrees may yield NaNs, so fill these values with inf
             in_strength = g_ij.sum(axis=2)[:, :, numpy.newaxis, :]
             in_strength[in_strength==0] = numpy.inf
-            temp *= (g_ij / in_strength) #region mode normalisation
+            temp *= (g_ij.transpose((2, 1, 0, 3)) / in_strength) #region mode normalisation
 
-            coupled_input = temp.mean(axis=1)
+            coupled_input = temp.mean(axis=0)
         else:
-            coupled_input = (g_ij*temp).mean(axis=1)
+            coupled_input = (g_ij.transpose((2, 1, 0, 3))*temp).mean(axis=0)
 
         return coupled_input
 
@@ -515,7 +548,7 @@ class SigmoidalJansenRit(Sigmoidal):
         diff_input = x_j[:, 0, numpy.newaxis, :, :] - x_j[:, 1, numpy.newaxis, :, :]        
         temp       = self.r * (self.midpoint - (diff_input))
         sigm_y1_y2 = numpy.where(temp > magic_exp_number, self.cmax / (1.0 + numpy.exp(temp)), self.cmax / (1.0 + numpy.exp(temp)))     
-        coupled_input = self.a * ( g_ij * sigm_y1_y2).sum(axis=1)
+        coupled_input = self.a * ( g_ij.transpose((2, 1, 0, 3)) * sigm_y1_y2).sum(axis=0)
 
         return coupled_input
 
@@ -625,7 +658,7 @@ class PreSigmoidal(Coupling):
         A_j = self.H * (self.Q + numpy.tanh(self.G * (self.P * x_j \
             - self.theta[self.sliceT,numpy.newaxis])))
         
-        return (g_ij * A_j).sum(axis=0)
+        return (g_ij.transpose((2, 1, 0, 3)) * A_j).sum(axis=0)
 
 
     def call_dynamic(self, g_ij, x_i, x_j):
@@ -636,7 +669,7 @@ class PreSigmoidal(Coupling):
         A_j = self.H * (self.Q + numpy.tanh(self.G * (self.P * x_j[:,0,:,:] \
             - x_j[:,1,self.sliceT,:])[:,numpy.newaxis,:,:]))
         
-        c_0 = (g_ij[:,0] * A_j[:,0]).sum(axis=1)
+        c_0 = (g_ij[:,0] * A_j[:,0]).sum(axis=0)
         c_1 = self.meanOrNot(A_j)
         return numpy.array([c_0, c_1])
 
@@ -662,7 +695,7 @@ class Difference(Coupling):
 
         """
 
-        return self.a*(g_ij*(x_j - x_i)).sum(axis=1)
+        return self.a*(g_ij.transpose((2, 1, 0, 3))*(x_j - x_i)).sum(axis=0)
 
     device_info = coupling_device_info(
         pars = ['a'],
@@ -704,7 +737,7 @@ class Kuramoto(Coupling):
         """
         number_of_regions = g_ij.shape[0]
 
-        return (self.a / number_of_regions)*(g_ij*sin(x_j-x_i)).sum(axis=1)
+        return (self.a / number_of_regions)*(g_ij.transpose((2, 1, 0, 3))*sin(x_j-x_i)).sum(axis=0)
 
     device_info = coupling_device_info(
         pars = ['a'],

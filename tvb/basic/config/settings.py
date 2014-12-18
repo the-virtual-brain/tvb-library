@@ -47,7 +47,7 @@ class VersionSettings(object):
     """
 
     # Current release number
-    BASE_VERSION = "1.2.3"
+    BASE_VERSION = "1.3"
 
     # Current DB version. Increment this and create a new xxx_update_db.py migrate script
     DB_STRUCTURE_VERSION = 13
@@ -232,9 +232,10 @@ class WebSettings(object):
                                              'tools.encode.encoding': 'utf-8',
                                              'tools.decode.on': True,
                                              'tools.gzip.on': True,
+                                             # 'tools.gzip.mime_types': ['text/*'],
                                              'tools.sessions.on': True,
                                              'tools.sessions.storage_type': 'ram',
-                                             'tools.sessions.timeout': 6000,  # 100 hours
+                                             'tools.sessions.timeout': 600,  # 10 hours
                                              'response.timeout': 1000000,
                                              'tools.sessions.locking': 'explicit',
                                              'tools.upload.on': True,    # Tool to check upload content size

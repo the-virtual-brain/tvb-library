@@ -45,6 +45,8 @@ import unittest
 from tvb.tests.library.base_testcase import BaseTestCase
 from tvb.simulator import coupling
 
+import numpy
+import scipy.sparse as sparse
 
 
 class CouplingTest(BaseTestCase):
@@ -75,6 +77,22 @@ class CouplingTest(BaseTestCase):
         self.assertEqual(k.midpoint, 0.0)
         self.assertEqual(k.sigma, 230.)
         self.assertEqual(k.a, 1.0)
+
+    def test_surface_coupling(self):
+        sc = coupling.Sparse_Basic()
+
+        n_cvar = 2
+        n_modes = 3
+        n_nodes = 10
+
+        weights = sparse.rand(n_nodes, n_nodes, density=0.5)
+        cvar_state = numpy.random.rand(n_cvar, n_nodes,n_modes)
+        delayed_state = numpy.random.rand(n_cvar, n_nodes,n_modes)
+
+        coupling_term = sc(weights, cvar_state, delayed_state)
+        self.assertEqual(coupling_term.shape, (n_cvar, n_nodes, n_modes))
+
+        # TODO test for correctness
 
 
 
