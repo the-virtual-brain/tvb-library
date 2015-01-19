@@ -130,6 +130,16 @@ class Coupling(core.Type):
         return informal
 
 
+    def dot(self, g_ij, x):
+        """
+        Perform coupling specific dot product between weights and state
+        matrices, take care of shapes.
+
+        """
+
+        return (g_ij * x).sum(axis=2).transpose((1, 0, 2))
+
+
     def __call__(self, g_ij, x_i, x_j):
         """
         Instances of the Coupling class are called by the simulator in the
@@ -150,7 +160,7 @@ class Coupling(core.Type):
 
         ::
 
-            (g_ij * x_j).sum(axis=0)
+            (g_ij * x_j).sum(axis=2)
 
         in the simplest case.
 
@@ -231,9 +241,8 @@ class Linear(Coupling):
 
 
         """
-        coupled_input = (g_ij.transpose((2, 1, 0, 3)) * x_j).sum(axis=0)
 
-        return self.a * coupled_input + self.b
+        return self.a * self.dot(g_ij, x_j) + self.b
 
 
     device_info = coupling_device_info(
@@ -286,8 +295,8 @@ class Scaling(Coupling):
 
 
         """
-        coupled_input = (g_ij.transpose((2, 1, 0, 3)) * x_j).sum(axis=2)
-        return self.a * coupled_input
+
+        return self.a * self.dot(g_ij, x_j)
 
     device_info = coupling_device_info(
         pars = ['a'],
@@ -511,9 +520,7 @@ class SigmoidalJansenRit(Sigmoidal):
         diff_input = x_j[:, 0, numpy.newaxis, :, :] - x_j[:, 1, numpy.newaxis, :, :]        
         temp       = self.r * (self.midpoint - (diff_input))
         sigm_y1_y2 = numpy.where(temp > magic_exp_number, self.cmax / (1.0 + numpy.exp(temp)), self.cmax / (1.0 + numpy.exp(temp)))     
-        coupled_input = self.a * ( g_ij.transpose((2, 1, 0, 3)) * sigm_y1_y2).sum(axis=0)
-
-        return coupled_input
+        return self.a * self.dot(g_ij, sigm_y1_y2)
 
 
 class PreSigmoidal(Coupling):
@@ -621,7 +628,7 @@ class PreSigmoidal(Coupling):
         A_j = self.H * (self.Q + numpy.tanh(self.G * (self.P * x_j \
             - self.theta[self.sliceT,numpy.newaxis])))
         
-        return (g_ij.transpose((2, 1, 0, 3)) * A_j).sum(axis=0)
+        return self.dot(g_ij, A_j)
 
 
     def call_dynamic(self, g_ij, x_i, x_j):
@@ -658,7 +665,7 @@ class Difference(Coupling):
 
         """
 
-        return self.a*(g_ij.transpose((2, 1, 0, 3))*(x_j - x_i)).sum(axis=0)
+        return self.a * self.dot(g_ij, x_j - x_i)
 
     device_info = coupling_device_info(
         pars = ['a'],
@@ -700,7 +707,7 @@ class Kuramoto(Coupling):
         """
         number_of_regions = g_ij.shape[0]
 
-        return (self.a / number_of_regions)*(g_ij.transpose((2, 1, 0, 3))*sin(x_j-x_i)).sum(axis=0)
+        return (self.a / number_of_regions) * self.dot(g_ij, sin(x_j - x_i))
 
     device_info = coupling_device_info(
         pars = ['a'],
