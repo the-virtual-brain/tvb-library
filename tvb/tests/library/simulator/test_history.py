@@ -38,7 +38,6 @@ class ExactPropagationTests(BaseTestCase):
             self.conn[i, i+1] = 1
         self.dist = np.r_[:n*n].reshape((n, n))
         self.sim = sim.Simulator(
-            conduction_speed=1,
             coupling=IdCoupling(),
             surface=None,
             stimulus=None,
