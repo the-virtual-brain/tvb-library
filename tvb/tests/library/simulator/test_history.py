@@ -47,7 +47,8 @@ class ExactPropagationTests(BaseTestCase):
             simulation_length=10,
             connectivity=sim.connectivity_dtype.Connectivity(
                 weights=self.conn,
-                tract_lengths=self.dist
+                tract_lengths=self.dist,
+                speed=1
             ),
             model=Sum(),
             monitors=(sim.monitors_module.Raw(), ),
