@@ -1,13 +1,48 @@
-virtualenv:
-  system_site_packages: true
-before_install:
-- sudo apt-get install -qq python-numpy python-scipy python-nose python3-nose python-coverage python-matplotlib
-
 language: python
 python:
-    - "2.7"
-    - "3.3"
+  - "2.6"
+  - "2.7"
+  - "3.2"
+  - "3.3"
+  - "3.4"
 
-install: "pip install numpy; pip install cython; pip install -r requirements.txt"
-script: "nosetests"
+matrix:
+  allow_failures:
+    - python: "3.2"
+    - python: "3.3"
+    - python: "3.4"
+
+install:
+- sudo apt-get update
+- case "$TRAVIS_PYTHON_VERSION" in
+  2*)
+    wget http://repo.continuum.io/miniconda/Miniconda-3.4.2-Linux-x86_64.sh -O miniconda.sh;
+    PYTHON="python"
+    ;;
+  3*)
+    wget http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Linux-x86_64.sh -O miniconda.sh;
+    PYTHON="python3"
+    ;;
+  esac
+
+- bash miniconda.sh -b -p $HOME/miniconda
+- export PATH="$HOME/miniconda/bin:$PATH"
+- hash -r
+- conda config --set always_yes yes --set changeps1 no
+- conda update -q conda
+- conda info -a
+
+- conda create -q -n tvb-test
+    -c https://conda.binstar.org/mmwoodman gdist
+    numpy numexpr matplotlib scipy ipython-notebook coverage h5py
+
+- source activate tvb-test
+
+- cd ..
+- git clone https://github.com/the-virtual-brain/tvb-data
+- export PYTHONPATH=$(pwd)/tvb-data:$(pwd)/tvb-library:$PYTHONPATH
+- cd tvb-library
+- $PYTHON --version
+
+script: $PYTHON .test.py
 
