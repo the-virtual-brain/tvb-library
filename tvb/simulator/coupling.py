@@ -652,12 +652,14 @@ class Difference(Coupling):
     def __call__(self, g_ij, x_i, x_j):
         r"""
         Evaluates a difference coupling:
+        x_i: current state. shape ncv, n, m
+        x_j: past state. shape n, ncv, n, m
 
             .. math::
                 a \sum_j^N g_ij (x_j - x_i)
 
         """
-
+        x_i = x_i[None, :, :, :].transpose((2, 1, 3, 0))
         return self.a*(g_ij.transpose((2, 1, 0, 3))*(x_j - x_i)).sum(axis=0)
 
     device_info = coupling_device_info(
@@ -692,14 +694,14 @@ class Kuramoto(Coupling):
 
             .. math::
                 a / N \sum_j^N g_ij sin(x_j - x_i - alpha_ij)
-                x_i: current state
-                x_j: past state
+                x_i: current state. shape ncv, n, m
+                x_j: past state. shape n, ncv, n, m
                 
         Assumes heterogenous coupling.        
 
         """
         number_of_regions = g_ij.shape[0]
-
+        x_i = x_i[None, :, :, :].transpose((2, 1, 3, 0))
         return (self.a / number_of_regions)*(g_ij.transpose((2, 1, 0, 3))*sin(x_j-x_i)).sum(axis=0)
 
     device_info = coupling_device_info(
