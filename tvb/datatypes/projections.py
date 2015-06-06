@@ -36,9 +36,6 @@ methods that are associated with the surfaces data.
 
 import tvb.datatypes.projections_scientific as scientific
 import tvb.datatypes.projections_framework as framework
-from tvb.datatypes.projections import ProjectionMatrix
-import numpy
-import scipy.io as sio
 
 
 
@@ -60,41 +57,54 @@ class ProjectionMatrix(framework.ProjectionMatrixFramework, scientific.Projectio
     
     """
     @staticmethod
-    def load_region_projection(source_file)
-            source_full_path = try_get_absolute_path("tvb_data.projectionMatrix", source_file)
+    def load_region_projection(source_file):
+        source_full_path = try_get_absolute_path("tvb_data.projectionMatrix", source_file)
 
         if source_file.endswith(".mat"):
             # consider we have a brainstorm format
+
             raise LaunchException(
                     'Please import your Brainstorm Projection matrix by'
                     'instantiating the surface projection Class')
+
         elif source_file.endswith(".npy"):
             # numpy array with the projectino matrix arleady computed
-            result.projection_data = numpy.load(source_full_path)
+
+            reader = NpyReader(source_full_path)
+
+            result.projection_data = reader.read_array_from_file()
+
         else:
             raise LaunchException(
                     'The projection matrix must be either a numpy array'
-                    ' or a brainstorm mat file'
-    return result
+                    ' or a brainstorm mat file')
+
+        return result
 
     @staticmethod
-    def load_surface_projection(source_file)
-            source_full_path = try_get_absolute_path("tvb_data.projectionMatrix", source_file)
+    def load_surface_projection(source_file):
+        source_full_path = try_get_absolute_path("tvb_data.projectionMatrix", source_file)
 
         if source_file.endswith(".mat"):
             # consider we have a brainstorm format
-            mat = sio.loadmat(source_full_path)
-            gain, loc, ori = (mat[field] for field in 'Gain GridLoc GridOrient'.split())
+
+            reader = MatReader(source_full_path)
+            gain, loc, ori = (reader.read_field(field) for field in 'Gain GridLoc GridOrient'.split())
             result.projection_data = (gain.reshape((n_sens, -1, 3)) * ori).sum(axis=-1)
 
         elif source_file.endswith(".npy"):
             # numpy array with the projectino matrix arleady computed
-            result.projection_data = numpy.load(source_full_path) 
+
+            reader = NpyReader(source_full_path)
+
+            result.projection_data = reader.read_array_from_file()
+
         else:
             raise LaunchException(
                     'The projection matrix must be either a numpy array'
-                    ' or a brainstorm mat file'
-    return result
+                    ' or a brainstorm mat file')
+
+        return result
 
     
 class ProjectionRegionEEG(framework.ProjectionRegionEEGFramework, 
@@ -125,7 +135,7 @@ class ProjectionRegionEEG(framework.ProjectionRegionEEGFramework,
         
         result = load_region_projection_matrix(source_file=source_file)
 
-   return result 
+        return result 
 
 
 
@@ -157,7 +167,7 @@ class ProjectionSurfaceEEG(framework.ProjectionSurfaceEEGFramework,
         
         result = load_surface_projection_matrix(source_file=source_file)
 
-   return result 
+        return result 
 
 
 class ProjectionRegionMEG(framework.ProjectionRegionMEGFramework,
@@ -188,7 +198,7 @@ class ProjectionRegionMEG(framework.ProjectionRegionMEGFramework,
         
         result = load_region_projection_matrix(source_file=source_file)
 
-   return result 
+        return result 
 
 
 class ProjectionSurfaceMEG(framework.ProjectionSurfaceMEGFramework,
@@ -219,7 +229,7 @@ class ProjectionSurfaceMEG(framework.ProjectionSurfaceMEGFramework,
         
         result = load_surface_projection_matrix(source_file=source_file)
 
-    return result 
+        return result 
 
 
 class ProjectionRegionSEEG(framework.ProjectionRegionMEGFramework,
@@ -250,7 +260,7 @@ class ProjectionRegionSEEG(framework.ProjectionRegionMEGFramework,
         
         result = load_region_projection_matrix(source_file=source_file)
 
-   return result 
+        return result 
 
 
 class ProjectionSurfaceSEEG(framework.ProjectionSurfaceMEGFramework,
@@ -281,5 +291,5 @@ class ProjectionSurfaceSEEG(framework.ProjectionSurfaceMEGFramework,
         
         result = load_surface_projection_matrix(source_file=source_file)
 
-    return result 
+        return result 
 
