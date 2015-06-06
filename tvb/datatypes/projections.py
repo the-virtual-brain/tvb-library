@@ -36,6 +36,8 @@ methods that are associated with the surfaces data.
 
 import tvb.datatypes.projections_scientific as scientific
 import tvb.datatypes.projections_framework as framework
+from tvb.datatypes.projections import ProjectionMatrix
+from tvb.basic.readers import MatReader, NpyReader
 
 
 
@@ -56,8 +58,55 @@ class ProjectionMatrix(framework.ProjectionMatrixFramework, scientific.Projectio
         
     
     """
-    pass
+    @staticmethod
+    def load_region_projection(source_file)
+            source_full_path = try_get_absolute_path("tvb_data.projectionMatrix", source_file)
 
+        if source_file.endswith(".mat"):
+            # consider we have a brainstorm format
+
+            raise LaunchException(
+                    'Please import your Brainstorm Projection matrix by'
+                    'instantiating the surface projection Class')
+
+        elif source_file.endswith(".npy"):
+            # numpy array with the projectino matrix arleady computed
+
+            reader = NpyReader(source_full_path)
+
+            result.projection_data = reader.read_array_from_file()
+
+        else:
+            raise LaunchException(
+                    'The projection matrix must be either a numpy array'
+                    ' or a brainstorm mat file'
+
+    return result
+
+    @staticmethod
+    def load_surface_projection(source_file)
+            source_full_path = try_get_absolute_path("tvb_data.projectionMatrix", source_file)
+
+        if source_file.endswith(".mat"):
+            # consider we have a brainstorm format
+
+            reader = MatReader(source_full_path)
+            gain, loc, ori = (reader.read_field(field) for field in 'Gain GridLoc GridOrient'.split())
+            result.projection_data = (gain.reshape((n_sens, -1, 3)) * ori).sum(axis=-1)
+
+        elif source_file.endswith(".npy"):
+            # numpy array with the projectino matrix arleady computed
+
+            reader = NpyReader(source_full_path)
+
+            result.projection_data = reader.read_array_from_file()
+
+        else:
+            raise LaunchException(
+                    'The projection matrix must be either a numpy array'
+                    ' or a brainstorm mat file'
+
+    return result
 
     
 class ProjectionRegionEEG(framework.ProjectionRegionEEGFramework, 
@@ -78,7 +127,17 @@ class ProjectionRegionEEG(framework.ProjectionRegionEEGFramework,
         
     
     """
-    pass
+    @staticmethod
+    def from_file(source_file='projection_EEG_region.npy', instance=None):
+
+        if instance is None:
+            result = ProjectionRegionEEG()
+        else:
+            result = instance
+        
+        result = load_region_projection_matrix(source_file=source_file)
+
+   return result 
 
 
 
@@ -100,8 +159,17 @@ class ProjectionSurfaceEEG(framework.ProjectionSurfaceEEGFramework,
         
     
     """
-    pass
+    @staticmethod
+    def from_file(source_file='projection_EEG_surface.npy', instance=None):
 
+        if instance is None:
+            result = ProjectionSurfaceEEG()
+        else:
+            result = instance
+        
+        result = load_surface_projection_matrix(source_file=source_file)
+
+   return result 
 
 
 class ProjectionRegionMEG(framework.ProjectionRegionMEGFramework,
@@ -122,8 +190,17 @@ class ProjectionRegionMEG(framework.ProjectionRegionMEGFramework,
 
 
     """
-    pass
+    @staticmethod
+    def from_file(source_file='projection_MEG_region.npy', instance=None):
 
+        if instance is None:
+            result = ProjectionRegionMEG()
+        else:
+            result = instance
+        
+        result = load_region_projection_matrix(source_file=source_file)
+
+   return result 
 
 
 class ProjectionSurfaceMEG(framework.ProjectionSurfaceMEGFramework,
@@ -144,4 +221,77 @@ class ProjectionSurfaceMEG(framework.ProjectionSurfaceMEGFramework,
 
 
     """
-    pass
+    @staticmethod
+    def from_file(source_file='projection_MEG_surface.npy', instance=None):
+
+        if instance is None:
+            result = ProjectionSurfaceMEG()
+        else:
+            result = instance
+        
+        result = load_surface_projection_matrix(source_file=source_file)
+
+    return result 
+
+
+class ProjectionRegionSEEG(framework.ProjectionRegionMEGFramework,
+                          scientific.ProjectionRegionMEGScientific, ProjectionMatrix):
+    """
+    This class brings together the scientific and framework methods that are
+    associated with the ProjectionMatrix DataType.
+
+    ::
+
+                          ProjectionRegionMEGData
+                                     |
+                                    / \\
+        ProjectionRegionMEGFramework   ProjectionRegionMEGScientific
+                                    \ /
+                                     |
+                           ProjectionRegionMEG
+
+
+    """
+    @staticmethod
+    def from_file(source_file='projection_SEEG_region.npy', instance=None):
+
+        if instance is None:
+            result = ProjectionRegionSEEG()
+        else:
+            result = instance
+        
+        result = load_region_projection_matrix(source_file=source_file)
+
+   return result 
+
+
+class ProjectionSurfaceSEEG(framework.ProjectionSurfaceMEGFramework,
+                           scientific.ProjectionSurfaceMEGScientific, ProjectionMatrix):
+    """
+    This class brings together the scientific and framework methods that are
+    associated with the ProjectionMatrix DataType.
+
+    ::
+
+                          ProjectionSurfaceMEGData
+                                      |
+                                     / \\
+        ProjectionSurfaceMEGFramework   ProjectionSurfaceMEGScientific
+                                     \ /
+                                      |
+                          ProjectionSurfaceMEG
+
+
+    """
+    @staticmethod
+    def from_file(source_file='projection_SEEG_surface.npy', instance=None):
+
+        if instance is None:
+            result = ProjectionSurfaceSEEG()
+        else:
+            result = instance
+        
+        result = load_surface_projection_matrix(source_file=source_file)
+
+    return result 
+
