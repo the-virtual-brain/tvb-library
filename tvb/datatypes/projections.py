@@ -37,7 +37,8 @@ methods that are associated with the surfaces data.
 import tvb.datatypes.projections_scientific as scientific
 import tvb.datatypes.projections_framework as framework
 from tvb.datatypes.projections import ProjectionMatrix
-from tvb.basic.readers import MatReader, NpyReader
+import numpy
+import scipy.io as sio
 
 
 
@@ -64,23 +65,16 @@ class ProjectionMatrix(framework.ProjectionMatrixFramework, scientific.Projectio
 
         if source_file.endswith(".mat"):
             # consider we have a brainstorm format
-
             raise LaunchException(
                     'Please import your Brainstorm Projection matrix by'
                     'instantiating the surface projection Class')
-
         elif source_file.endswith(".npy"):
             # numpy array with the projectino matrix arleady computed
-
-            reader = NpyReader(source_full_path)
-
-            result.projection_data = reader.read_array_from_file()
-
+            result.projection_data = numpy.load(source_full_path)
         else:
             raise LaunchException(
                     'The projection matrix must be either a numpy array'
                     ' or a brainstorm mat file'
-
     return result
 
     @staticmethod
@@ -89,23 +83,17 @@ class ProjectionMatrix(framework.ProjectionMatrixFramework, scientific.Projectio
 
         if source_file.endswith(".mat"):
             # consider we have a brainstorm format
-
-            reader = MatReader(source_full_path)
-            gain, loc, ori = (reader.read_field(field) for field in 'Gain GridLoc GridOrient'.split())
+            mat = sio.loadmat(source_full_path)
+            gain, loc, ori = (mat[field] for field in 'Gain GridLoc GridOrient'.split())
             result.projection_data = (gain.reshape((n_sens, -1, 3)) * ori).sum(axis=-1)
 
         elif source_file.endswith(".npy"):
             # numpy array with the projectino matrix arleady computed
-
-            reader = NpyReader(source_full_path)
-
-            result.projection_data = reader.read_array_from_file()
-
+            result.projection_data = numpy.load(source_full_path) 
         else:
             raise LaunchException(
                     'The projection matrix must be either a numpy array'
                     ' or a brainstorm mat file'
-
     return result
 
     
