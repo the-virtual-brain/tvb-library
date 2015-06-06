@@ -36,6 +36,9 @@ methods that are associated with the surfaces data.
 
 import tvb.datatypes.projections_scientific as scientific
 import tvb.datatypes.projections_framework as framework
+from tvb.basic.readers import try_get_absolute_path
+import numpy
+import scipy.io as sio
 
 
 
@@ -57,7 +60,7 @@ class ProjectionMatrix(framework.ProjectionMatrixFramework, scientific.Projectio
     
     """
     @staticmethod
-    def load_region_projection(source_file):
+    def load_region_projection_matrix(result, source_file):
         source_full_path = try_get_absolute_path("tvb_data.projectionMatrix", source_file)
 
         if source_file.endswith(".mat"):
@@ -70,9 +73,7 @@ class ProjectionMatrix(framework.ProjectionMatrixFramework, scientific.Projectio
         elif source_file.endswith(".npy"):
             # numpy array with the projectino matrix arleady computed
 
-            reader = NpyReader(source_full_path)
-
-            result.projection_data = reader.read_array_from_file()
+            result.projection_data = numpy.load(source_full_path)
 
         else:
             raise LaunchException(
@@ -82,22 +83,20 @@ class ProjectionMatrix(framework.ProjectionMatrixFramework, scientific.Projectio
         return result
 
     @staticmethod
-    def load_surface_projection(source_file):
+    def load_surface_projection_matrix(result, source_file):
         source_full_path = try_get_absolute_path("tvb_data.projectionMatrix", source_file)
 
         if source_file.endswith(".mat"):
             # consider we have a brainstorm format
 
-            reader = MatReader(source_full_path)
-            gain, loc, ori = (reader.read_field(field) for field in 'Gain GridLoc GridOrient'.split())
+            mat = sio.loadmat(source_full_path)
+            gain, loc, ori = (mat[field] for field in 'Gain GridLoc GridOrient'.split())
             result.projection_data = (gain.reshape((n_sens, -1, 3)) * ori).sum(axis=-1)
 
         elif source_file.endswith(".npy"):
             # numpy array with the projectino matrix arleady computed
 
-            reader = NpyReader(source_full_path)
-
-            result.projection_data = reader.read_array_from_file()
+            result.projection_data = numpy.load(source_full_path)
 
         else:
             raise LaunchException(
@@ -133,7 +132,7 @@ class ProjectionRegionEEG(framework.ProjectionRegionEEGFramework,
         else:
             result = instance
         
-        result = load_region_projection_matrix(source_file=source_file)
+        result = ProjectionMatrix.load_region_projection_matrix(result, source_file=source_file)
 
         return result 
 
@@ -165,7 +164,7 @@ class ProjectionSurfaceEEG(framework.ProjectionSurfaceEEGFramework,
         else:
             result = instance
         
-        result = load_surface_projection_matrix(source_file=source_file)
+        result = ProjectionMatrix.load_surface_projection_matrix(result, source_file=source_file)
 
         return result 
 
@@ -196,7 +195,7 @@ class ProjectionRegionMEG(framework.ProjectionRegionMEGFramework,
         else:
             result = instance
         
-        result = load_region_projection_matrix(source_file=source_file)
+        result = ProjectionMatrix.load_region_projection_matrix(result, source_file=source_file)
 
         return result 
 
@@ -227,7 +226,7 @@ class ProjectionSurfaceMEG(framework.ProjectionSurfaceMEGFramework,
         else:
             result = instance
         
-        result = load_surface_projection_matrix(source_file=source_file)
+        result = ProjectionMatrix.load_surface_projection_matrix(result, source_file=source_file)
 
         return result 
 
@@ -258,7 +257,7 @@ class ProjectionRegionSEEG(framework.ProjectionRegionMEGFramework,
         else:
             result = instance
         
-        result = load_region_projection_matrix(source_file=source_file)
+        result = ProjectionMatrix.load_region_projection_matrix(result, source_file=source_file)
 
         return result 
 
@@ -289,7 +288,7 @@ class ProjectionSurfaceSEEG(framework.ProjectionSurfaceMEGFramework,
         else:
             result = instance
         
-        result = load_surface_projection_matrix(source_file=source_file)
+        result = ProjectionMatrix.load_surface_projection_matrix(result, source_file=source_file)
 
         return result 
 
