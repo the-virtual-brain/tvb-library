@@ -65,7 +65,7 @@ class ProjectionMatrix(framework.ProjectionMatrixFramework, scientific.Projectio
         if source_file.endswith(".mat"):
             # consider we have a brainstorm format
             raise Exception(
-                    'Please import your Brainstorm Projection matrix by'
+                    'Please import your Brainstorm Projection matrix by '
                     'instantiating the surface projection Class')
         elif source_file.endswith(".npy"):
             # numpy array with the projectino matrix arleady computed
@@ -73,7 +73,7 @@ class ProjectionMatrix(framework.ProjectionMatrixFramework, scientific.Projectio
         else:
             raise Exception(
                     'The projection matrix must be either a numpy array'
-                    ' or a brainstorm mat file')
+                    ' or a brainstorm .mat file')
         return result
 
     @staticmethod
@@ -83,7 +83,7 @@ class ProjectionMatrix(framework.ProjectionMatrixFramework, scientific.Projectio
             # consider we have a brainstorm format
             mat = scipy.io.loadmat(source_full_path)
             gain, loc, ori = (mat[field] for field in 'Gain GridLoc GridOrient'.split())
-            result.projection_data = (gain.reshape((n_sens, -1, 3)) * ori).sum(axis=-1)
+            result.projection_data = (gain.reshape((gain.shape[0], -1, 3)) * ori).sum(axis=-1)
         elif source_file.endswith(".npy"):
             # numpy array with the projectino matrix arleady computed
             result.projection_data = numpy.load(source_full_path)
