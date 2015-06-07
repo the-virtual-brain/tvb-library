@@ -38,8 +38,7 @@ import tvb.datatypes.projections_scientific as scientific
 import tvb.datatypes.projections_framework as framework
 from tvb.basic.readers import try_get_absolute_path
 import numpy
-import scipy.io as sio
-
+from scipy import io
 
 
 class ProjectionMatrix(framework.ProjectionMatrixFramework, scientific.ProjectionMatrixScientific):
@@ -59,50 +58,39 @@ class ProjectionMatrix(framework.ProjectionMatrixFramework, scientific.Projectio
         
     
     """
+
     @staticmethod
     def load_region_projection_matrix(result, source_file):
         source_full_path = try_get_absolute_path("tvb_data.projectionMatrix", source_file)
-
         if source_file.endswith(".mat"):
             # consider we have a brainstorm format
-
             raise LaunchException(
                     'Please import your Brainstorm Projection matrix by'
                     'instantiating the surface projection Class')
-
         elif source_file.endswith(".npy"):
             # numpy array with the projectino matrix arleady computed
-
             result.projection_data = numpy.load(source_full_path)
-
         else:
             raise LaunchException(
                     'The projection matrix must be either a numpy array'
                     ' or a brainstorm mat file')
-
         return result
 
     @staticmethod
     def load_surface_projection_matrix(result, source_file):
         source_full_path = try_get_absolute_path("tvb_data.projectionMatrix", source_file)
-
         if source_file.endswith(".mat"):
             # consider we have a brainstorm format
-
-            mat = sio.loadmat(source_full_path)
+            mat = scipy.io.loadmat(source_full_path)
             gain, loc, ori = (mat[field] for field in 'Gain GridLoc GridOrient'.split())
             result.projection_data = (gain.reshape((n_sens, -1, 3)) * ori).sum(axis=-1)
-
         elif source_file.endswith(".npy"):
             # numpy array with the projectino matrix arleady computed
-
             result.projection_data = numpy.load(source_full_path)
-
         else:
             raise LaunchException(
                     'The projection matrix must be either a numpy array'
                     ' or a brainstorm mat file')
-
         return result
 
     
@@ -124,16 +112,14 @@ class ProjectionRegionEEG(framework.ProjectionRegionEEGFramework,
         
     
     """
+
     @staticmethod
     def from_file(source_file='projection_EEG_region.npy', instance=None):
-
         if instance is None:
             result = ProjectionRegionEEG()
         else:
             result = instance
-        
         result = ProjectionMatrix.load_region_projection_matrix(result, source_file=source_file)
-
         return result 
 
 
@@ -156,16 +142,14 @@ class ProjectionSurfaceEEG(framework.ProjectionSurfaceEEGFramework,
         
     
     """
+
     @staticmethod
     def from_file(source_file='projection_EEG_surface.npy', instance=None):
-
         if instance is None:
             result = ProjectionSurfaceEEG()
         else:
             result = instance
-        
         result = ProjectionMatrix.load_surface_projection_matrix(result, source_file=source_file)
-
         return result 
 
 
@@ -187,16 +171,14 @@ class ProjectionRegionMEG(framework.ProjectionRegionMEGFramework,
 
 
     """
+
     @staticmethod
     def from_file(source_file='projection_MEG_region.npy', instance=None):
-
         if instance is None:
             result = ProjectionRegionMEG()
         else:
             result = instance
-        
         result = ProjectionMatrix.load_region_projection_matrix(result, source_file=source_file)
-
         return result 
 
 
@@ -218,16 +200,14 @@ class ProjectionSurfaceMEG(framework.ProjectionSurfaceMEGFramework,
 
 
     """
+
     @staticmethod
     def from_file(source_file='projection_MEG_surface.npy', instance=None):
-
         if instance is None:
             result = ProjectionSurfaceMEG()
         else:
             result = instance
-        
         result = ProjectionMatrix.load_surface_projection_matrix(result, source_file=source_file)
-
         return result 
 
 
@@ -249,16 +229,14 @@ class ProjectionRegionSEEG(framework.ProjectionRegionMEGFramework,
 
 
     """
+
     @staticmethod
     def from_file(source_file='projection_SEEG_region.npy', instance=None):
-
         if instance is None:
             result = ProjectionRegionSEEG()
         else:
             result = instance
-        
         result = ProjectionMatrix.load_region_projection_matrix(result, source_file=source_file)
-
         return result 
 
 
@@ -280,15 +258,12 @@ class ProjectionSurfaceSEEG(framework.ProjectionSurfaceMEGFramework,
 
 
     """
+
     @staticmethod
     def from_file(source_file='projection_SEEG_surface.npy', instance=None):
-
         if instance is None:
             result = ProjectionSurfaceSEEG()
         else:
             result = instance
-        
         result = ProjectionMatrix.load_surface_projection_matrix(result, source_file=source_file)
-
         return result 
-
