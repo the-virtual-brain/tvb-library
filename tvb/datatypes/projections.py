@@ -38,7 +38,7 @@ import tvb.datatypes.projections_scientific as scientific
 import tvb.datatypes.projections_framework as framework
 from tvb.basic.readers import try_get_absolute_path
 import numpy
-from scipy import io
+import scipy.io
 
 
 class ProjectionMatrix(framework.ProjectionMatrixFramework, scientific.ProjectionMatrixScientific):
@@ -64,14 +64,14 @@ class ProjectionMatrix(framework.ProjectionMatrixFramework, scientific.Projectio
         source_full_path = try_get_absolute_path("tvb_data.projectionMatrix", source_file)
         if source_file.endswith(".mat"):
             # consider we have a brainstorm format
-            raise LaunchException(
+            raise Exception(
                     'Please import your Brainstorm Projection matrix by'
                     'instantiating the surface projection Class')
         elif source_file.endswith(".npy"):
             # numpy array with the projectino matrix arleady computed
             result.projection_data = numpy.load(source_full_path)
         else:
-            raise LaunchException(
+            raise Exception(
                     'The projection matrix must be either a numpy array'
                     ' or a brainstorm mat file')
         return result
@@ -88,7 +88,7 @@ class ProjectionMatrix(framework.ProjectionMatrixFramework, scientific.Projectio
             # numpy array with the projectino matrix arleady computed
             result.projection_data = numpy.load(source_full_path)
         else:
-            raise LaunchException(
+            raise Exception(
                     'The projection matrix must be either a numpy array'
                     ' or a brainstorm mat file')
         return result
