@@ -169,7 +169,8 @@ class Monitor(core.Type):
 
         # model state-variables to monitor
         if self.variables_of_interest.size == 0:
-            self.voi = numpy.array([simulator.model.state_variables.index(var) for var in simulator.model.variables_of_interest])
+            self.voi = numpy.array([simulator.model.state_variables.index(var)
+                                    for var in simulator.model.variables_of_interest])
         else:
             self.voi = self.variables_of_interest
 
@@ -565,7 +566,7 @@ class Projection(Monitor):
         "Apply orientations to gain matrix."
         return (gain.reshape((gain.shape[0], -1, 3)) * orient).sum(axis=-1)
 
-    def analytic(self, *args):
+    def analytic(self, loc, ori):
         "Construct analytic or default set of spatial filters for simulation."
         # this will not be implemented but kept for API uniformity
         raise NotImplementedError(
@@ -576,6 +577,8 @@ class Projection(Monitor):
 
     def config_for_sim(self, simulator):
         "Configure projection matrix monitor for given simulation."
+
+        super(Projection, self).config_for_sim(simulator)
 
         # setup convenient locals
         self._sim = simulator
@@ -594,15 +597,15 @@ class Projection(Monitor):
 
         # compute analytic if not provided
         if self.projection is None:
-            self.projection = self.analytic(**sources)
+            self.projection = ProjectionMatrix(projection_data=self.analytic(**sources))
 
         # reduce to region lead field if region sim
         if not using_cortical_surface:
-            proj = numpy.zeros((self.projection.shape[0], conn.number_of_regions))
+            proj = numpy.zeros((self.gain.shape[0], conn.number_of_regions))
             numpy.add.at(proj.T, surf.region_mapping, self.projection.T)
             self.projection = proj
 
-        # append analytic subcortical to lead field
+        # append analytic sub-cortical to lead field
         if have_subcortical:
             if using_cortical_surface:
                 sc_ind = numpy.array(
@@ -612,28 +615,34 @@ class Projection(Monitor):
                 # not reliable in all datasets
                 sc_ind = numpy.where(~conn.cortical)
             # need matrix of shape (proj.shape[0], len(sc_ind))
-            self.projection = numpy.hstack((
-                self.projection,
-                self.analytic(conn.centres[sc_ind], conn.orientations[sc_ind])
-            ))
+            src = conn.centres[sc_ind], conn.orientations[sc_ind]
+            self.gain = numpy.hstack((self.gain, self.analytic(*src)))
 
         # zero out unusable sensors
         if self.sensors.usable is not None and not self.sensors.usable.all():
-            self.projection[~self.sensors.usable] = 0.0
+            self.gain[~self.sensors.usable] = 0.0
 
         # attrs used for recording
-        self._state = numpy.zeros((simulator.number_of_nodes, ))
+        self._state = numpy.zeros((self.gain.shape[0], ))
         self._period = int(self.period / self.dt)
 
     def record(self, step, state):
         "Record state, returning sample at sampling frequency / period."
-        gain = self.projection.projection_data
-        self._state += gain.dot(state[self.voi].sum(axis=0).sum(axis=-1))
+        self._state += self.gain.dot(state[self.voi].sum(axis=0).sum(axis=-1))
         if step % self._period == 0:
             time = (step - self._period / 2.0) * self.dt
             sample = self._state.copy()
             self._state[:] = 0.0
             return time, sample.reshape((1, -1, 1)) # for compatibility
+
+    def _get_gain(self):
+        return self.projection.projection_data
+
+    def _set_gain(self, new_gain):
+        self.projection.projection_data = new_gain
+
+    gain = property(_get_gain, _set_gain)
+
 
 class EEG(Projection):
     """Forward solution monitor for electroencephalogy (EEG). If a
@@ -670,13 +679,13 @@ class EEG(Projection):
             else:
                 self._ref_vec[:] = 1.0 / self.sensors.number_of_sensors
 
-    def analytic(self, simulator):
+    def analytic(self, loc, ori):
         "Equation 12 of [Sarvas_1987]_"
         # r => sensor positions
         # r_0 => source positions
         # a => vector from sources_to_sensor
         # Q => source unit vectors
-        r_0, Q = self.sources['loc'], self.sources['ori']
+        r_0, Q = loc, ori
         center = numpy.mean(r_0, axis=0)[numpy.newaxis, ]
         radius = 1.05125 * max(numpy.sqrt(numpy.sum((r_0 - center)**2, axis=1)))
         loc = self.sensors.locations.copy()
@@ -687,12 +696,14 @@ class EEG(Projection):
             a = loc[sensor_k, :] - r_0
             na = numpy.sqrt(numpy.sum(a**2, axis=1))[:, numpy.newaxis]
             V_r[sensor_k, :] = numpy.sum(Q * (a / na**3), axis=1 ) / (4.0 * numpy.pi * self.sigma)
-        self.projection_matrix = V_r
+        return V_r
 
     def record(self, step, state):
-        time, sample = super(EEG, self).record(step, state).reshape((-1, ))
-        sample -= self._ref_vec.dot(sample)
-        return time, sample.reshape((1, -1, 1))
+        maybe_sample = super(EEG, self).record(step, state)
+        if maybe_sample is not None:
+            time, sample = maybe_sample
+            sample -= self._ref_vec.dot(sample.reshape((-1, )))
+            return time, sample.reshape((1, -1, 1))
 
     def create_time_series(self, storage_path, connectivity=None, surface=None,
                            region_map=None, region_volume_map=None):
@@ -713,7 +724,7 @@ class MEG(Projection):
         doc = """The set of MEG sensors for which the forward solution will be
         calculated.""")
 
-    def analytic(self, simulator):
+    def analytic(self, loc, ori):
         """Compute single sphere analytic form of MEG lead field.
         Equation 25 of [Sarvas_1987]_."""
         # the magnetic constant = 1.25663706 × 10-6 m kg s-2 A-2  (H/m)
@@ -722,7 +733,7 @@ class MEG(Projection):
         # r_0 => source positions
         # a => vector from sources_to_sensor
         # Q => source unit vectors
-        r_0, Q = self.sources['loc'], self.sources['ori']
+        r_0, Q = loc, ori
         centre = numpy.mean(r_0, axis=0)[numpy.newaxis, :]
         radius = 1.01 * max(numpy.sqrt(numpy.sum((r_0 - centre)**2, axis=1)))
         sensor_locations = self.sensors.locations.copy()
@@ -745,7 +756,7 @@ class MEG(Projection):
             B_r[sensor_k, :] = ((mu_0 / (4.0 * numpy.pi * F**2)) *
                                 (numpy.cross(F * Q, r_0) - numpy.sum(numpy.cross(Q, r_0) *
                                                                      (rsk * delF), axis=1)[:, numpy.newaxis]))
-        self.projection_matrix = numpy.sqrt(numpy.sum(B_r**2, axis=2))
+        return numpy.sqrt(numpy.sum(B_r**2, axis=2))
 
     def create_time_series(self, storage_path, connectivity=None, surface=None,
                            region_map=None, region_volume_map=None):
@@ -765,19 +776,19 @@ class iEEG(Projection):
         label="Internal brain sensors", default=None, required=True,
         doc="The set of SEEG sensors for which the forward solution will be calculated.")
 
-    def analytic(self, simulator):
+    def analytic(self, loc, ori):
         """Compute the projection matrix -- simple distance weight for now.
         Equation 12 from sarvas1987basic (point dipole in homogeneous space):
           V(r) = 1/(4*pi*\sigma)*Q*(r-r_0)/|r-r_0|^3
         """
         super(iEEG, self).config_for_sim(simulator)
-        r_0, Q = self.sources['loc'], self.sources['ori']
+        r_0, Q = loc, ori
         V_r = numpy.zeros((self.sensors.locations.shape[0], r_0.shape[0]))
         for sensor_k in numpy.arange(self.sensors.locations.shape[0]):
             a = self.sensors.locations[sensor_k, :] - r_0
             na = numpy.sqrt(numpy.sum(a ** 2, axis=1))[:, numpy.newaxis]
             V_r[sensor_k, :] = numpy.sum(Q * (a / na ** 3), axis=1) / (4.0 * numpy.pi * self.sigma)
-        self.projection_matrix = V_r
+        return V_r
 
     def create_time_series(self, storage_path, connectivity=None, surface=None,
                            region_map=None, region_volume_map=None):
