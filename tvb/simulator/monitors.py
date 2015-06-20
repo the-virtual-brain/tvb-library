@@ -580,6 +580,9 @@ class Projection(Monitor):
 
         super(Projection, self).config_for_sim(simulator)
 
+        if hasattr(self, 'sensors'):
+            self.sensors.configure()
+
         # setup convenient locals
         self._sim = simulator
         surf = simulator.surface
@@ -587,7 +590,11 @@ class Projection(Monitor):
         conn = simulator.connectivity
         ":type : Connectivity"
         using_cortical_surface = surf is not None
-        have_subcortical = len(numpy.unique(surf.region_mapping)) != conn.number_of_regions
+        if using_cortical_surface:
+            non_cortical_indices, = numpy.where(numpy.bincount(surf.region_mapping) == 1)
+        else:
+            non_cortical_indices, = numpy.where(~conn.cortical)
+        have_subcortical = len(non_cortical_indices) > 0
 
         # determine source space
         if using_cortical_surface:
@@ -607,15 +614,8 @@ class Projection(Monitor):
 
         # append analytic sub-cortical to lead field
         if have_subcortical:
-            if using_cortical_surface:
-                sc_ind = numpy.array(
-                      set(numpy.r_[:conn.number_of_regions])
-                    - set(numpy.unique(surf.region_mapping)))
-            else:
-                # not reliable in all datasets
-                sc_ind = numpy.where(~conn.cortical)
             # need matrix of shape (proj.shape[0], len(sc_ind))
-            src = conn.centres[sc_ind], conn.orientations[sc_ind]
+            src = conn.centres[non_cortical_indices], conn.orientations[non_cortical_indices]
             self.gain = numpy.hstack((self.gain, self.analytic(*src)))
 
         # zero out unusable sensors
@@ -781,7 +781,6 @@ class iEEG(Projection):
         Equation 12 from sarvas1987basic (point dipole in homogeneous space):
           V(r) = 1/(4*pi*\sigma)*Q*(r-r_0)/|r-r_0|^3
         """
-        super(iEEG, self).config_for_sim(simulator)
         r_0, Q = loc, ori
         V_r = numpy.zeros((self.sensors.locations.shape[0], r_0.shape[0]))
         for sensor_k in numpy.arange(self.sensors.locations.shape[0]):
