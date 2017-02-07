@@ -53,7 +53,7 @@ class BaseSettingsProfile(object):
     LOGGER_CONFIG_FILE_NAME = "logger_config.conf"
 
     # Access rights for TVB generated files/folders.
-    ACCESS_MODE_TVB_FILES = 0744
+    ACCESS_MODE_TVB_FILES = 0o744
 
     ## Number used for estimation of TVB used storage space
     MAGIC_NUMBER = 9
@@ -64,7 +64,7 @@ class BaseSettingsProfile(object):
         self.manager = stored.SettingsManager(self.TVB_CONFIG_FILE)
 
         ## Actual storage of all TVB related files
-        self.TVB_STORAGE = self.manager.get_attribute(stored.KEY_STORAGE, self.FIRST_RUN_STORAGE, unicode)
+        self.TVB_STORAGE = self.manager.get_attribute(stored.KEY_STORAGE, self.FIRST_RUN_STORAGE, str)
         self.TVB_LOG_FOLDER = os.path.join(self.TVB_STORAGE, "logs")
         self.TVB_TEMP_FOLDER = os.path.join(self.TVB_STORAGE, "TEMP")
         self.TVB_PATH = self.manager.get_attribute(stored.KEY_TVB_PATH, '')
@@ -185,8 +185,8 @@ class BaseSettingsProfile(object):
             # we need to reload all tvb related modules, since any call done with
             # 'python -m ...' will consider the current folder as the first to search in.
             sys.path = os.environ.get("PYTHONPATH", "").split(os.pathsep) + sys.path
-            for key in sys.modules.keys():
-                if (key.startswith("tvb.") and sys.modules[key] and not 'lab' in key and
+            for key in list(sys.modules.keys()):
+                if (key.startswith("tvb") and sys.modules[key] and
                         not key.startswith("tvb.basic.profile") and not 'profile_settings' in key):
                     try:
                         reload(sys.modules[key])

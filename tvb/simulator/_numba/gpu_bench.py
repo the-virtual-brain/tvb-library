@@ -94,7 +94,7 @@ def make_kernel(delays, n_thread_per_block, n_inner):
 
 if __name__ == '__main__':
     import sys
-    print sys.executable
+    print(sys.executable)
     cuda.close()
     cuda.select_device(0)
     # load data
@@ -125,10 +125,10 @@ if __name__ == '__main__':
     n_block = int(n_threads / n_thread_per_block)
     horizon, kernel = make_kernel(delays, n_thread_per_block, n_inner)
     buf = numpy.zeros((n_nodes, horizon, 1, n_threads), numpy.float32)
-    print 'buf dims', buf.shape
+    print('buf dims', buf.shape)
     # begin
     tic = time.time()
-    print datetime.datetime.now().isoformat(' ')
+    print(datetime.datetime.now().isoformat(' '))
     for i in range(n_iter):
         noise = async_noise.get().astype('f')
         kernel[(n_thread_per_block, ), (n_block,)](
@@ -138,6 +138,6 @@ if __name__ == '__main__':
             pct = i * 1e2 / n_iter
             tta = (time.time() - tic) / pct * (100 - pct)
             eta = (datetime.datetime.now() + datetime.timedelta(seconds=tta)).isoformat(' ')
-            print 'Step %d of %d, %02.2f %% done, ETA %s' % (i, n_iter, pct, eta)
+            print('Step %d of %d, %02.2f %% done, ETA %s' % (i, n_iter, pct, eta))
     toc = time.time() - tic
-    print toc
+    print(toc)

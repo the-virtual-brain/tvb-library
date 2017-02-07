@@ -73,7 +73,7 @@ def collapse_params(args, simple_select_list, parent=''):
     of parameters. This is used after parameters POST, on Operation Launch.
     """
     result = {}
-    for name, value in args.items():
+    for name, value in list(args.items()):
         short_name = name
         option = None
         key = None
@@ -97,12 +97,12 @@ def collapse_params(args, simple_select_list, parent=''):
                     result[short_name][option] = {}
                 result[short_name][option][key] = value
 
-    for level1_name, level1_params in result.items():
+    for level1_name, level1_params in list(result.items()):
         if KEYWORD_PARAMS[:-1] in level1_name and isinstance(level1_params, dict):
             short_parent_name = level1_name[0: level1_name.find(KEYWORD_PARAMS) - 10]
             if (parent + short_parent_name) in simple_select_list:
                 # simple select
-                if isinstance(result[short_parent_name], (str, unicode)):
+                if isinstance(result[short_parent_name], str):
                     parent_prefix = level1_name + KEYWORD_SEPARATOR + KEYWORD_OPTION
                     parent_prefix += result[short_parent_name]
                     parent_prefix += KEYWORD_SEPARATOR
@@ -119,7 +119,7 @@ def collapse_params(args, simple_select_list, parent=''):
                 result[level1_name] = transformed_params
             elif short_parent_name in result:
                 # multiple select
-                for level2_name, level2_params in level1_params.items():
+                for level2_name, level2_params in list(level1_params.items()):
                     parent_prefix = level1_name + KEYWORD_SEPARATOR + KEYWORD_OPTION
                     parent_prefix += level2_name + KEYWORD_SEPARATOR
                     transformed_params = collapse_params(level2_params, simple_select_list, parent + parent_prefix)
@@ -129,7 +129,7 @@ def collapse_params(args, simple_select_list, parent=''):
 
 def try_parse(val):
     if isinstance(val, dict):
-        return {str(k): try_parse(v) for k, v in val.iteritems()}
+        return {str(k): try_parse(v) for k, v in val.items()}
     if isinstance(val, list):
         return val
 

@@ -56,7 +56,7 @@ class RegionBoundariesTest(BaseTestCase):
         white_matter = connectivity.Connectivity(load_default=True)
         white_matter.configure()
         rb = region_boundaries.RegionBoundaries(cortex)
-        self.assertEqual(len(rb.region_neighbours.keys()), white_matter.number_of_regions)
+        self.assertEqual(len(list(rb.region_neighbours.keys())), white_matter.number_of_regions)
 
     
 def suite():

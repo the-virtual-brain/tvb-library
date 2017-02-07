@@ -6,7 +6,7 @@ XML Test Runner for PyUnit
 # the Public Domain. With contributions by Paolo Borelli and others.
 # Updated by Lia Domide <lia.domide@codemart.ro> by adding report of skipped tests.
 
-from __future__ import with_statement
+
 
 __version__ = "0.1"
 
@@ -16,7 +16,7 @@ import traceback
 import unittest
 from xml.sax.saxutils import escape
 try:
-    from StringIO import StringIO
+    from io import StringIO
 except ImportError:
     from io import StringIO
 

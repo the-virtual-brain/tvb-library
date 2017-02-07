@@ -128,7 +128,7 @@ class MappedTypeLight(Type):
         summary = self._get_summary_info(array_name, included_info, mask_array_name, key_suffix)
         ### Before return, prepare names for UI display.                
         result = dict()
-        for key, value in summary.iteritems():
+        for key, value in summary.items():
             result[array_name.capitalize().replace("_", " ") + " - " + key] = value
         return result
 

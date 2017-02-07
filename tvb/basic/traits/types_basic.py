@@ -61,7 +61,7 @@ class String(core.Type):
     """
     Traits type that wraps a Python string.
     """
-    wraps = (str, unicode)
+    wraps = (str, str)
 
 
 
@@ -78,7 +78,7 @@ class Integer(core.Type):
     """
     Traits type that wraps Numpy's int32.
     """
-    wraps = (int, long)
+    wraps = (int, int)
 
 
 
@@ -109,7 +109,7 @@ class MapAsJson():
                 return getattr(inst, '__' + self.trait.name)
 
             string = getattr(inst, '_' + self.trait.name)
-            if string is None or (not isinstance(string, (str, unicode))):
+            if string is None or (not isinstance(string, str)):
                 return string
             if len(string) < 1:
                 return None
@@ -136,8 +136,8 @@ class MapAsJson():
         """
         Used in the __convert_to_array to get an equation from the UI corresponding string.
         """
-        for key, value in dct.items():
-            if isinstance(value, unicode) and '__mapped_module' in value:
+        for key, value in list(dct.items()):
+            if isinstance(value, str) and '__mapped_module' in value:
                 dict_value = json.loads(value)
                 if '__mapped_module' not in dict_value:
                     dct[key] = MapAsJson.decode_map_as_json(dict_value)
@@ -403,7 +403,7 @@ class JSONType(String):
     def __get__(self, inst, cls):
         if inst:
             string = super(JSONType, self).__get__(inst, cls)
-            if string is None or (not isinstance(string, (str, unicode))):
+            if string is None or (not isinstance(string, str)):
                 return string
             if len(string) < 1:
                 return None
@@ -412,7 +412,7 @@ class JSONType(String):
 
 
     def __set__(self, inst, value):
-        if not isinstance(value, (str, unicode)):
+        if not isinstance(value, str):
             value = json.dumps(value)
         super(JSONType, self).__set__(inst, value)
 

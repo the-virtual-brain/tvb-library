@@ -277,7 +277,7 @@ class Simulator(core.Type):
         # Make sure spatialised model parameters have the right shape (number_of_nodes, 1)
         excluded_params = ("state_variable_range", "variables_of_interest", "noise", "psi_table", "nerf_table")
         spatial_reshape = self.model.spatial_param_reshape
-        for param in self.model.trait.keys():
+        for param in list(self.model.trait.keys()):
             if param in excluded_params:
                 continue
             # If it's a surface sim and model parameters were provided at the region level
@@ -405,7 +405,7 @@ class Simulator(core.Type):
 
         # integration loop
         n_steps = int(math.ceil(self.simulation_length / self.integrator.dt))
-        for step in xrange(self.current_step + 1, self.current_step + n_steps +1):
+        for step in range(self.current_step + 1, self.current_step + n_steps +1):
             # needs implementing by hsitory + coupling?
             node_coupling = self._loop_compute_node_coupling(step)
             self._loop_update_stimulus(step, stimulus)

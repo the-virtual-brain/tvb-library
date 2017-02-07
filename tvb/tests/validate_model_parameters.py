@@ -53,10 +53,10 @@ def sample_parameter_space_cartesian(path_assignments):
     ... [{'a': 1, 'b': 3}, {'a': 1, 'b': 4}, {'a': 2, 'b': 3}, {'a': 2, 'b': 4}]
     """
     # 'transpose' path_assignments
-    paths, values = zip(*path_assignments)
+    paths, values = list(zip(*path_assignments))
     # cartesian product of value assignments
     for value_assignment in itertools.product(*values):
-        yield dict(zip(paths, value_assignment))
+        yield dict(list(zip(paths, value_assignment)))
 
 
 def _set_sim_values(sim, path_assignment):
@@ -65,9 +65,9 @@ def _set_sim_values(sim, path_assignment):
     :param path_assignment: a dict Ex {'model.a': 12, 'param.subpar.s': 100}
     The string_accessor should access a field on sim. Ex: model.param.subparam
     """
-    for pth, val in path_assignment.iteritems():
+    for pth, val in path_assignment.items():
         code = 'sim.%s = val' % pth
-        exec code in {'sim': sim, 'val': val}
+        exec(code, {'sim': sim, 'val': val})
 
 
 def run_exploration(sim, simulation_length, parameters):
@@ -79,15 +79,15 @@ def run_exploration(sim, simulation_length, parameters):
     :return:
     """
 
-    print 'starting model parameter space exploration'
-    print '------------------------------------------'
+    print('starting model parameter space exploration')
+    print('------------------------------------------')
 
     numpy.seterr(divide='raise', invalid='raise')
 
     for params in parameters:
         _set_sim_values(sim, params)
         sim.configure()
-        print params,
+        print(params, end=' ')
 
         try:
             for traw in sim(simulation_length=simulation_length):
@@ -95,9 +95,9 @@ def run_exploration(sim, simulation_length, parameters):
                 state = traw[1]
                 if not numpy.all(numpy.isfinite(state)):
                     raise FloatingPointError('infinities generated outside numpy')
-            print 'ok'
+            print('ok')
         except FloatingPointError:
-            print 'bad'
+            print('bad')
 
 
 def example():
@@ -120,9 +120,9 @@ def example():
         # ('coupling.a', [1,3])  # you can also use non-model parameter dimensions like this
     ]
 
-    print 'cartesian sampling settings: '
-    print exploration_settings
-    print '------------------------------------------'
+    print('cartesian sampling settings: ')
+    print(exploration_settings)
+    print('------------------------------------------')
 
 
     run_exploration(

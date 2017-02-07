@@ -121,7 +121,7 @@ if __name__ == "__main__":
         XML_STREAM.close()
         OUT_STREAM.close()
         
-    print 'It run tests for %d sec.' % (datetime.datetime.now() - START_TIME).seconds
+    print('It run tests for %d sec.' % (datetime.datetime.now() - START_TIME).seconds)
     
     if KEY_COVERAGE in argv:
         COVERAGE.stop()

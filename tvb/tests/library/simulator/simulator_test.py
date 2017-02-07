@@ -61,8 +61,8 @@ LOG = get_logger(__name__)
 
 AVAILABLE_MODELS = get_traited_subclasses(models.Model)
 AVAILABLE_METHODS = get_traited_subclasses(integrators.Integrator)
-MODEL_CLASSES = AVAILABLE_MODELS.values()
-METHOD_NAMES = AVAILABLE_METHODS.keys()
+MODEL_CLASSES = list(AVAILABLE_MODELS.values())
+METHOD_NAMES = list(AVAILABLE_METHODS.keys())
 METHOD_NAMES.append('RungeKutta4thOrderDeterministic')
 
 

@@ -123,7 +123,7 @@ class Equation(basic.MapAsJson, core.Type):
 
         self.pattern = var
         y = self.pattern
-        result = zip(var.flat, y.flat)
+        result = list(zip(var.flat, y.flat))
         return result, False
 
     @staticmethod

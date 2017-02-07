@@ -582,7 +582,7 @@ class EEG(Projection):
 
     @classmethod
     def from_file(cls, sensors_fname='eeg_brainstorm_65.txt', projection_fname='projection_eeg_65_surface_16k.npy', **kwargs):
-        return Projection.from_file.im_func(cls, sensors_fname, projection_fname, **kwargs)
+        return Projection.from_file.__func__(cls, sensors_fname, projection_fname, **kwargs)
 
     def config_for_sim(self, simulator):
         super(EEG, self).config_for_sim(simulator)
@@ -650,7 +650,7 @@ class MEG(Projection):
     @classmethod
     def from_file(cls, sensors_fname='meg_brainstorm_276.txt',
                    projection_fname='projection_meg_276_surface_16k.npy', **kwargs):
-        return Projection.from_file.im_func(cls, sensors_fname, projection_fname, **kwargs)
+        return Projection.from_file.__func__(cls, sensors_fname, projection_fname, **kwargs)
 
     def analytic(self, loc, ori):
         """Compute single sphere analytic form of MEG lead field.
@@ -714,7 +714,7 @@ class iEEG(Projection):
     @classmethod
     def from_file(cls, sensors_fname='seeg_588.txt',
                    projection_fname='projection_seeg_588_surface_16k.npy', **kwargs):
-        return Projection.from_file.im_func(cls, sensors_fname, projection_fname, **kwargs)
+        return Projection.from_file.__func__(cls, sensors_fname, projection_fname, **kwargs)
 
     def analytic(self, loc, ori):
         """Compute the projection matrix -- simple distance weight for now.
@@ -893,7 +893,7 @@ class BoldRegionROI(Bold):
             t, data = result
             # TODO use reduceat
             return [t, array([data.flat[self.region_mapping==i].mean()
-                              for i in xrange(self.region_mapping.max())])]
+                              for i in range(self.region_mapping.max())])]
         else:
             return None
 

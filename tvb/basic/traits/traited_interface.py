@@ -183,7 +183,7 @@ class TraitedInterfaceGenerator(object):
     @staticmethod
     def __fill_entity_attributes(obj, intr):
         # Populate Attributes for current entity
-        attrs = sorted(obj.trait.values(), key=lambda entity: entity.trait.order_number)
+        attrs = sorted(list(obj.trait.values()), key=lambda entity: entity.trait.order_number)
         attrs = [val.interface for val in attrs if val.trait.order_number >= 0]
         attrs = [attr for attr in attrs if attr is not None and len(attr) > 0]
         intr['attributes'] = attrs

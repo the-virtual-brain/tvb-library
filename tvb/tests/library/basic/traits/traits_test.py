@@ -105,11 +105,11 @@ class TraitsTest(BaseTestCase):
         """
         simple Array test
         """
-        arr = arrays.MappedArray(array_data = numpy.array(range(10)))
+        arr = arrays.MappedArray(array_data = numpy.array(list(range(10))))
         arr.configure()
-        self.assertEquals(10, arr.array_data.shape[0])  
-        self.assertEquals(1, arr.nr_dimensions)
-        self.assertEquals(10, arr.length_1d)
+        self.assertEqual(10, arr.array_data.shape[0])  
+        self.assertEqual(1, arr.nr_dimensions)
+        self.assertEqual(10, arr.length_1d)
         
     def test_linked_attributes(self):
         """
@@ -122,7 +122,7 @@ class TraitsTest(BaseTestCase):
             j = basic.JSONType()
             class In_Internal_Class(object):
                 """Internal of Internal class"""
-                t = numpy.array(range(10))
+                t = numpy.array(list(range(10)))
             @property
             def y(self):
                 return self.x

@@ -195,7 +195,7 @@ class FcdCalculator(core.Type):
         """
         Returns the storage size in Bytes of the main result of .
         """
-        result_size = np.sum(map(np.prod, self.result_shape(input_shape))) * 8.0  # Bytes
+        result_size = np.sum(list(map(np.prod, self.result_shape(input_shape)))) * 8.0  # Bytes
         return result_size
 
 

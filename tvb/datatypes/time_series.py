@@ -196,7 +196,7 @@ class TimeSeries(types_mapped.MappedType):
         """
         from_idx, to_idx = int(from_idx), int(to_idx)
 
-        if isinstance(specific_slices, basestring):
+        if isinstance(specific_slices, str):
             specific_slices = json.loads(specific_slices)
         if step is None:
             step = 1
@@ -205,7 +205,7 @@ class TimeSeries(types_mapped.MappedType):
 
         slices = []
         overall_shape = self.read_data_shape()
-        for i in xrange(len(overall_shape)):
+        for i in range(len(overall_shape)):
             if i == 0:
                 # Time slice
                 slices.append(
@@ -259,7 +259,7 @@ class TimeSeries(types_mapped.MappedType):
         :return: An array of strings.
         """
         if self.nr_dimensions > 2:
-            return ['signal-%d' % i for i in xrange(self._length_3d)]
+            return ['signal-%d' % i for i in range(self._length_3d)]
         else:
             return []
 
@@ -274,7 +274,7 @@ class TimeSeries(types_mapped.MappedType):
         """
         :return: The measure point indices that have to be shown by default. By default show all.
         """
-        return range(len(self.get_space_labels()))
+        return list(range(len(self.get_space_labels())))
 
     def get_measure_points_selection_gid(self):
         """
@@ -334,7 +334,7 @@ class SensorsTSBase(TimeSeries):
     def get_default_selection(self):
         if self.sensors is not None:
             # select only the first 8 channels
-            return range(min(8, len(self.get_space_labels())))
+            return list(range(min(8, len(self.get_space_labels()))))
         return []
 
     def _find_summary_info(self):
@@ -529,7 +529,7 @@ class TimeSeriesSurface(TimeSeries):
         """
         Return only the first `SELECTION_LIMIT` vertices/channels
         """
-        return ['signal-%d' % i for i in xrange(min(self._length_3d, self.SELECTION_LIMIT))]
+        return ['signal-%d' % i for i in range(min(self._length_3d, self.SELECTION_LIMIT))]
 
     def _find_summary_info(self):
         """

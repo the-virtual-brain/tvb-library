@@ -114,7 +114,7 @@ class CrossCorrelate(core.Type):
         """
         Returns the storage size in Bytes of the main result of .
         """
-        result_size = numpy.sum(map(numpy.prod, self.result_shape(input_shape))) * 8.0  # Bytes
+        result_size = numpy.sum(list(map(numpy.prod, self.result_shape(input_shape)))) * 8.0  # Bytes
         return result_size
 
 

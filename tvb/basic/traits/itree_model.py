@@ -105,7 +105,7 @@ class DatatypeNode(object):
         '''
         type_ may be a FQN or a type
         '''
-        if not isinstance(type_, basestring):
+        if not isinstance(type_, str):
             type_ = type_.__module__ + '.' + type_.__name__
         self.name = name
         self.type = type_

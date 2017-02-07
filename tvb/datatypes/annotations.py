@@ -191,7 +191,7 @@ class ConnectivityAnnotations(MappedType):
         map_with_ids = self.get_activation_patterns()
         map_with_labels = dict()
 
-        for ann_id, activated_ids in map_with_ids.iteritems():
+        for ann_id, activated_ids in map_with_ids.items():
             map_with_labels[ann_id] = []
             for string_idx in activated_ids:
                 int_idx = int(string_idx)
@@ -207,7 +207,7 @@ class ConnectivityAnnotations(MappedType):
         """
         annotations_map = dict()
         regions_map = dict()
-        for i in xrange(self.connectivity.number_of_regions):
+        for i in range(self.connectivity.number_of_regions):
             regions_map[i] = []
 
         for ann in self.region_annotations:
@@ -225,7 +225,7 @@ class ConnectivityAnnotations(MappedType):
 
         left_nodes, right_nodes = [], []
         activation_patterns = self.get_activation_pattern_labels()
-        for region_idx, annotations_list in regions_map.iteritems():
+        for region_idx, annotations_list in regions_map.items():
             if_right_hemisphere = self.connectivity.is_right_hemisphere(region_idx)
             childred_json = []
             for ann_term in annotations_list:

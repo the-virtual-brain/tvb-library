@@ -89,8 +89,8 @@ def hinton_diagram(connectivity_weights, num, maxWeight=None):
     pyplot.axis('equal')
     weights_axes = weights_figure.gca()
 
-    for x in xrange(width):
-        for y in xrange(height):
+    for x in range(width):
+        for y in range(height):
             _x = x + 1
             _y = y + 1
             w = connectivity_weights[y, x]
@@ -287,7 +287,7 @@ def show_me_the_colours():
     """
     Create a plot of matplotlibs built-in "named" colours...
     """
-    colours = matplotlib.colors.cnames.keys()
+    colours = list(matplotlib.colors.cnames.keys())
     number_of_colors = len(colours)
     colours_fig = pyplot.figure(num="Built-in colours")
     rows = int(numpy.ceil(numpy.sqrt(number_of_colors)))
@@ -464,7 +464,7 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
     ax.grid(True)
     #Label each of the cells with the row and the column:
     if node_labels is not None:
-        for i in xrange(0, mat_copy.shape[0]):
+        for i in range(0, mat_copy.shape[0]):
             if i < (mat_copy.shape[0] - 1):
                 ax.text(i - 0.3, i, node_labels[i], rotation=x_tick_rot)
             if i > 0:
@@ -602,7 +602,7 @@ def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),
         xmin, xmax = x.min(), x.max()
         ymin, ymax = y.min(), y.max()
     else:
-        xmin, xmax, ymin, ymax = map(float, extents)
+        xmin, xmax, ymin, ymax = list(map(float, extents))
         
     dx = (xmax - xmin) / (nx - 1)
     dy = (ymax - ymin) / (ny - 1)

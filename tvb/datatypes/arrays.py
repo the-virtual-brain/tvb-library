@@ -210,10 +210,10 @@ class MappedArray(MappedType):
         if required_dimension is not None:
             #find the dimension of the resulted array
             dim = len(self.shape)
-            for key in aggregation_functions.keys():
+            for key in list(aggregation_functions.keys()):
                 if aggregation_functions[key] != "none":
                     dim -= 1
-            for key in dimensions.keys():
+            for key in list(dimensions.keys()):
                 if (len(dimensions[key]) == 1 and
                     (key not in aggregation_functions
                      or aggregation_functions[key] == "none")):
@@ -225,8 +225,8 @@ class MappedArray(MappedType):
         result = self.array_data
         full = slice(0, None)
         cut_dimensions = 0
-        for i in xrange(len(self.shape)):
-            if i in dimensions.keys():
+        for i in range(len(self.shape)):
+            if i in list(dimensions.keys()):
                 my_slice = [full for _ in range(i - cut_dimensions)]
                 if len(dimensions[i]) == 1:
                     my_slice.extend(dimensions[i])
@@ -234,14 +234,14 @@ class MappedArray(MappedType):
                 else:
                     my_slice.append(dimensions[i])
                 result = result[tuple(my_slice)]
-            if i in aggregation_functions.keys():
+            if i in list(aggregation_functions.keys()):
                 if aggregation_functions[i] != "none":
                     result = eval("numpy." + aggregation_functions[i] + "(result,axis=" + str(i - cut_dimensions) + ")")
                     cut_dimensions += 1
 
         #check that the shape for the resulted array respects given conditions
         result_shape = result.shape
-        for i in xrange(len(result_shape)):
+        for i in range(len(result_shape)):
             if i in shape_restrictions:
                 flag = eval(str(result_shape[i]) + shape_restrictions[i][self.KEY_OPERATION] +
                             str(shape_restrictions[i][self.KEY_SIZE]))
@@ -274,7 +274,7 @@ class MappedArray(MappedType):
         dimensions = dict()
         aggregation_functions = dict()
         required_dimension = None
-        for key in ui_selected_items.keys():
+        for key in list(ui_selected_items.keys()):
             split_array = str(key).split("_")
             current_dim = split_array[len(split_array) - 1]
             list_values = ui_selected_items[key]
@@ -315,7 +315,7 @@ class MappedArray(MappedType):
         op_array = str(operations_str).split(",")
 
         operations = self._get_operations()
-        for i in xrange(len(shape_array)):
+        for i in range(len(shape_array)):
             if str(shape_array[i]).isdigit() and i < len(op_array) and op_array[i] in operations:
                 result[i] = {self.KEY_SIZE: int(shape_array[i]),
                              self.KEY_OPERATION: operations[op_array[i]]}

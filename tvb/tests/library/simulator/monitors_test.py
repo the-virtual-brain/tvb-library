@@ -227,7 +227,7 @@ def suite():
     Gather all the tests in a test suite.
     """
     test_suite = unittest.TestSuite()
-    for obj in globals().itervalues():
+    for obj in globals().values():
         if isinstance(obj, type) and issubclass(obj, BaseTestCase):
             test_suite.addTest(unittest.makeSuite(obj))
             LOG.info('adding test suite from class %r' % (obj, ))

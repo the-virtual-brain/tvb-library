@@ -74,7 +74,7 @@ class Model(core.Type):
         )
         namespace = {'numpy': numpy}
         LOG.debug('building observer with code:\n%s', code)
-        exec code in namespace
+        exec(code, namespace)
         self.observe = namespace['observe']
         self.observe.code = code
 
@@ -159,7 +159,7 @@ class Model(core.Type):
         state = state[:, numpy.newaxis]
 
         out = [state.copy()]
-        for i in xrange(n_step):
+        for i in range(n_step):
             state += dt * self.dfun(state, coupling)
             if i % n_skip == 0:
                 out.append(state.copy())

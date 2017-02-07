@@ -39,10 +39,14 @@ methods that are associated with the sensor dataTypes.
 """
 
 import numpy
+import numpy as np
 from tvb.datatypes import arrays
 from tvb.basic.logger.builder import get_logger
 from tvb.basic.traits import types_basic
 from tvb.basic.traits.types_mapped import MappedType
+from tvb.datatypes import sensors_data
+from tvb.datatypes import sensors_scientific
+from tvb.datatypes import sensors_framework
 from tvb.basic.readers import FileReader, try_get_absolute_path
 
 LOG = get_logger(__name__)
@@ -93,7 +97,8 @@ class Sensors(MappedType):
         source_full_path = try_get_absolute_path("tvb_data.sensors", source_file)
         reader = FileReader(source_full_path)
 
-        result.labels = reader.read_array(dtype="string", use_cols=(0,))
+        bytes_labels = reader.read_array(dtype=np.bytes_, use_cols=(0,)).tolist()
+        result.labels = np.array([l.decode('ascii') for l in bytes_labels])
         result.locations = reader.read_array(use_cols=(1, 2, 3))
 
         return result

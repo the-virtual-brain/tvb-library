@@ -106,10 +106,10 @@ class Cortex(surfaces.CorticalSurface):
         for name in cortex_surface.trait:
             try:
                 setattr(self, name, getattr(cortex_surface, name))
-            except Exception, exc:
+            except Exception as exc:
                 self.logger.exception(exc)
                 self.logger.error("Could not set attribute '" + name + "' on Cortex")
-        for key, value in cortex_parameters.iteritems():
+        for key, value in cortex_parameters.items():
             setattr(self, key, value)
         return self
 
@@ -223,12 +223,12 @@ class Cortex(surfaces.CorticalSurface):
             for nk in non_cortical_regions:
                 region_surface_area[nk, :] = 0.0
             for k in cortical_regions:
-                regs = map(set, avt[cortical_region_mapping == k])
+                regs = list(map(set, avt[cortical_region_mapping == k]))
                 region_triangles = set.union(*regs)
                 region_surface_area[k] = self.triangle_areas[list(region_triangles)].sum()
         else:
             for k in regions:
-                regs = map(set, avt[self.region_mapping == k])
+                regs = list(map(set, avt[self.region_mapping == k]))
                 region_triangles = set.union(*regs)
                 region_surface_area[k] = self.triangle_areas[list(region_triangles)].sum()
 
@@ -243,7 +243,7 @@ class Cortex(surfaces.CorticalSurface):
             # Count how many vertices each region has.
             counter = collections.Counter(self.region_mapping)
             # Presumably non-cortical regions will have len 1 vertex assigned.
-            vertices_per_region = numpy.asarray(counter.values())
+            vertices_per_region = numpy.asarray(list(counter.values()))
             non_cortical_regions = numpy.where(vertices_per_region == 1)
             cortical_regions = numpy.where(vertices_per_region > 1)
             cortical_region_mapping = [x for x in self.region_mapping if x in cortical_regions[0]]
