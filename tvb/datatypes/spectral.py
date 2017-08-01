@@ -49,7 +49,7 @@ class FourierSpectrum(arrays.MappedArray):
     """
     Result of a Fourier  Analysis.
     """
-    #Overwrite attribute from superclass
+    # Overwrite attribute from superclass
     array_data = arrays.ComplexArray(file_storage=core.FILE_STORAGE_EXPAND)
 
     source = time_series.TimeSeries(
@@ -203,6 +203,27 @@ class FourierSpectrum(arrays.MappedArray):
                                          numpy.sum(self.average_power, axis=0))
         self.trait["normalised_average_power"].log_debug(owner=self.__class__.__name__)
 
+    def get_fourier_data(self, selected_state, selected_mode, normalized):
+        shape = list(self.read_data_shape())
+
+        slices = (slice(shape[0]),
+                  slice(int(selected_state), min(int(selected_state) + 1, shape[1]), None),
+                  slice(shape[2]),
+                  slice(int(selected_mode), min(int(selected_mode) + 1, shape[3]), None))
+
+        if normalized == "yes":
+            data_matrix = self.get_data('normalised_average_power', slices)
+        else:
+            data_matrix = self.get_data('average_power', slices)
+
+        data_matrix = data_matrix.reshape((shape[0], shape[2]))
+        ymin = numpy.amin(data_matrix)
+        ymax = numpy.amax(data_matrix)
+        data_matrix = data_matrix.transpose()
+        return dict(data_matrix=json.dumps(data_matrix.tolist()),
+                    ymin=ymin,
+                    ymax=ymax)
+
 
 class WaveletCoefficients(arrays.MappedArray):
     """
@@ -210,7 +231,7 @@ class WaveletCoefficients(arrays.MappedArray):
     object, including the input TimeSeries datatype and the output results as
     arrays (FloatArray)
     """
-    #Overwrite attribute from superclass
+    # Overwrite attribute from superclass
     array_data = arrays.ComplexArray()
 
     source = time_series.TimeSeries(label="Source time-series")
@@ -410,7 +431,7 @@ class ComplexCoherenceSpectrum(arrays.MappedArray):
     _frequency = None
     _freq_step = None
     _max_freq = None
-    spectrum_types=["Imag","Re","Abs"]
+    spectrum_types = ["Imag", "Re", "Abs"]
 
     def configure(self):
         """After populating few fields, compute the rest of the fields"""
