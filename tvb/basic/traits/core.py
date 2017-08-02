@@ -68,6 +68,7 @@ system work:
 """
 
 import abc
+import six
 from copy import deepcopy, copy
 from tvb.basic.traits.util import get, Args, TypeRegister, ispublic
 from tvb.basic.logger.builder import get_logger
@@ -195,7 +196,7 @@ class TraitsInfo(dict):
         new_value = deepcopy(self.value)
         copyed = TraitsInfo(new_value, self.name, self.bound,
                             self.wraps, self.inits, wraps_defaults=self.wraps_defaults)
-        for key, value in self.iteritems():
+        for key, value in six.iteritems(self):
             copyed[key] = copy(value)
         return copyed
 
@@ -265,7 +266,7 @@ class MetaType(abc.ABCMeta):
         else:
             trait = TraitsInfo(newcls)
 
-        for key in filter(ispublic, dir(newcls)):
+        for key in list(filter(ispublic, dir(newcls))):
             attr = getattr(newcls, key)
             if isinstance(attr, MetaType) or isinstance(attr, Type):
                 if isinstance(attr, MetaType):
@@ -293,7 +294,7 @@ class MetaType(abc.ABCMeta):
         newcls.trait = trait
 
         # bind traits unless told otherwise
-        for attr in newcls.trait.itervalues():
+        for attr in newcls.trait.values():
             attr.trait.bound = attr.trait.inits.kwd.get('bind', True)
 
         newcls.__doc__ = doc
@@ -364,7 +365,7 @@ class MetaType(abc.ABCMeta):
         inst.trait.value = deepcopy(value)
         inst.trait.inits = inits
 
-        for name, attr in inst.trait.iteritems():
+        for name, attr in six.iteritems(inst.trait):
             try:
                 setattr(inst, name, deepcopy(attr.trait.value))
             except Exception:
@@ -376,7 +377,7 @@ class MetaType(abc.ABCMeta):
             cls.from_file(instance=inst)
 
         ## 4. - Overwrite with **kwargs from constructor call:
-        for name, attr in kwdtraits.iteritems():
+        for name, attr in six.iteritems(kwdtraits):
             try:
                 setattr(inst, name, attr)
             except Exception:
@@ -515,8 +516,4 @@ class Type(object):
         return None
 
 
-
 TypeBase = Type
-
-
-

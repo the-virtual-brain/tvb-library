@@ -431,7 +431,7 @@ class ComplexCoherenceSpectrum(arrays.MappedArray):
     _frequency = None
     _freq_step = None
     _max_freq = None
-    spectrum_types = ["Imag", "Re", "Abs"]
+    spectrum_types=["Imaginary", "Real", "Absolute"]
 
     def configure(self):
         """After populating few fields, compute the rest of the fields"""
@@ -453,9 +453,11 @@ class ComplexCoherenceSpectrum(arrays.MappedArray):
         summary = {"Spectral type": self.__class__.__name__,
                    "Source": self.source.title,
                    "Frequency step": self.freq_step,
-                   "Maximum frequency": self.max_freq}
-        # summary["FFT length (time-points)"] = self.fft_points
-        # summary["Number of epochs"] = self.number_of_epochs
+                   "Maximum frequency": self.max_freq,
+                   "Epoch length": self.epoch_length,
+                   "Segment length": self.segment_length,
+                   "Windowing function": self.windowing_function
+                   }
         return summary
 
     @property
