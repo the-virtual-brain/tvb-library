@@ -33,19 +33,17 @@ Mark TVB-Simulator-Library as a Python import.
 Mention dependencies for this package.
 """
 
-import os
-import shutil
-import setuptools
-from setuptools import Extension
+from setuptools import setup, find_packages, Extension
+from setuptools.command.build_ext import build_ext as _build_ext
 
-try:
-    import numpy
-    from Cython.Distutils import build_ext
-except ImportError:
-    # It is not easy to make setuptools install them before attempting to install the c extensions
-    raise ImportError("Please install numpy and Cython before TVB library. "
-                      "We depend on them to compile Cython extensions.")
 
+class build_ext(_build_ext):
+    def run(self):
+        import numpy
+        numpy_inc = numpy.get_include()
+        for ext in self.extensions:
+            ext.include_dirs.append(numpy_inc)
+        _build_ext.run(self)
 
 
 LIBRARY_VERSION = "1.5.4"
@@ -54,17 +52,15 @@ TVB_TEAM = "Stuart Knock, Marmaduke Woodman, Paula Sanz Leon, Jan Fousek, Lia Do
 TVB_INSTALL_REQUIREMENTS = ["networkx", "nibabel", "numpy", "numba", "numexpr", "scikit-learn", "scipy", "gdist"]
 
 
-cython_ext = [
-    Extension("tvb._speedups.history", ["tvb/_speedups/history.pyx"], include_dirs=[numpy.get_include()])
-]
-
-setuptools.setup(
+setup(
     name='tvb',
     description='A package for performing whole brain simulations',
     url='https://github.com/the-virtual-brain/scientific_library',
     version=LIBRARY_VERSION,
-    packages=setuptools.find_packages(),
-    ext_modules=cython_ext,
+    packages=find_packages(),
+    ext_modules=[
+        Extension("tvb._speedups.history", ["tvb/_speedups/history.pyx"])
+    ],
     cmdclass={"build_ext": build_ext},
     license="GPL v3",
     author=TVB_TEAM,
@@ -80,18 +76,5 @@ progress, and a subject of on-going research efforts. Please refer
 to the following article for more information: 
 
 http://www.frontiersin.org/Journal/10.3389/fninf.2013.00010/abstract
-
 """
 )
-
-## Cleanup after EGG install. These are created by running setup.py in the source tree
-shutil.rmtree('tvb.egg-info', True)
-
-# clean up after extension build
-shutil.rmtree('build', True)
-SPEEDUPS_DIR = os.path.join('tvb', '_speedups')
-
-for f in os.listdir(SPEEDUPS_DIR):
-    if f.endswith('.c'):
-        os.remove(os.path.join(SPEEDUPS_DIR, f))
-
