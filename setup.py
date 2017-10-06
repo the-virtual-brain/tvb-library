@@ -42,6 +42,9 @@ TVB_TEAM = "Stuart Knock, Marmaduke Woodman, Paula Sanz Leon, Jan Fousek, Lia Do
            "Bogdan Neacsa, Laurent Pezard, Jochen Mersmann, Anthony R McIntosh, Viktor Jirsa"
 TVB_INSTALL_REQUIREMENTS = ["networkx", "nibabel", "numpy", "numba", "numexpr", "scikit-learn", "scipy", "gdist"]
 
+with open('README.md') as fd:
+    long_description = fd.read()
+
 setuptools.setup(
     name='tvb',
     description='A package for performing whole brain simulations',
@@ -53,8 +56,8 @@ setuptools.setup(
     author_email='tvb-users@googlegroups.com',
     include_package_data=True,
     install_requires=TVB_INSTALL_REQUIREMENTS,
-    download_url = 'https://github.com/the-virtual-brain/tvb-library',
-    keywords = 'brain simulator neuroscience human animal neuronal dynamics models delay',
+    download_url='https://github.com/the-virtual-brain/tvb-library',
+    keywords='brain simulator neuroscience human animal neuronal dynamics models delay',
     long_description=open('README.md').read()
 )
 
