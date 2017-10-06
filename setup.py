@@ -53,16 +53,9 @@ setuptools.setup(
     author_email='tvb-users@googlegroups.com',
     include_package_data=True,
     install_requires=TVB_INSTALL_REQUIREMENTS,
-    long_description="""
-This package contains the scientific library from the Virtual Brain 
-project which provides data handling and numerical routines 
-required to perform whole brain simulation. It is a work in 
-progress, and a subject of on-going research efforts. Please refer
-to the following article for more information: 
-
-http://www.frontiersin.org/Journal/10.3389/fninf.2013.00010/abstract
-
-"""
+    download_url = 'https://github.com/the-virtual-brain/tvb-library',
+    keywords = 'brain simulator neuroscience human animal neuronal dynamics models delay',
+    long_description=open('README.md').read()
 )
 
 ## Cleanup after EGG install. These are created by running setup.py in the source tree
