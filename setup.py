@@ -29,44 +29,39 @@
 #
 
 """
-Mark TVB-Simulator-Library as a Python import.
-Mention dependencies for this package.
+Install TVB Library package for developers.
+
+Execute:
+    python setup.py install/develop
 """
 
+import os
 import shutil
 import setuptools
 
 
 LIBRARY_VERSION = "1.5.4"
-TVB_TEAM = "Stuart Knock, Marmaduke Woodman, Paula Sanz Leon, Jan Fousek, Lia Domide, Noelia Montejo, " \
-           "Bogdan Neacsa, Laurent Pezard, Jochen Mersmann, Anthony R McIntosh, Viktor Jirsa"
-TVB_INSTALL_REQUIREMENTS = ["networkx", "nibabel", "numpy", "numba", "numexpr", "scikit-learn", "scipy", "gdist"]
 
-setuptools.setup(
-    name='tvb',
-    description='A package for performing whole brain simulations',
-    url='https://github.com/the-virtual-brain/scientific_library',
-    version=LIBRARY_VERSION,
-    packages=setuptools.find_packages(),
-    license="GPL v3",
-    author=TVB_TEAM,
-    author_email='tvb-users@googlegroups.com',
-    include_package_data=True,
-    install_requires=TVB_INSTALL_REQUIREMENTS,
-    long_description="""
-This package contains the scientific library from the Virtual Brain 
-project which provides data handling and numerical routines 
-required to perform whole brain simulation. It is a work in 
-progress, and a subject of on-going research efforts. Please refer
-to the following article for more information: 
+TVB_TEAM = "Stuart Knock, Marmaduke Woodman, Paula Sanz Leon, Laurent Pezard, Viktor Jirsa"
 
-http://www.frontiersin.org/Journal/10.3389/fninf.2013.00010/abstract
+TVB_INSTALL_REQUIREMENTS = ["gdist", "networkx", "nibabel", "numpy", "numba", "numexpr", "scikit-learn", "scipy"]
 
-"""
-)
+with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as fd:
+    DESCRIPTION = fd.read()
+
+setuptools.setup(name='tvb-library',
+                 version=LIBRARY_VERSION,
+                 packages=setuptools.find_packages(),
+                 include_package_data=True,
+                 install_requires=TVB_INSTALL_REQUIREMENTS,
+                 description='A package for performing whole brain simulations',
+                 long_description=DESCRIPTION,
+                 license="GPL v3",
+                 author=TVB_TEAM,
+                 author_email='tvb.admin@thevirtualbrain.org',
+                 url='http://www.thevirtualbrain.org',
+                 download_url='https://github.com/the-virtual-brain/tvb-library',
+                 keywords='brain simulator neuroscience human animal neuronal dynamics models delay')
 
 ## Cleanup after EGG install. These are created by running setup.py in the source tree
-shutil.rmtree('tvb.egg-info', True)
-
-# clean up after extension build
-shutil.rmtree('build', True)
+shutil.rmtree('tvb_library.egg-info', True)
