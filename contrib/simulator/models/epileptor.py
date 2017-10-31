@@ -37,6 +37,7 @@ The Epileptor model
 
 # Third party python libraries
 import numpy
+import scipy.specfun
 
 #The Virtual Brain
 from tvb.simulator.common import psutil, get_logger
@@ -291,3 +292,24 @@ class HMJEpileptor(models.Model):
         # ydot = [ydot1;ydot2;ydot3;ydot4;ydot5;ydot6];
 
         return concat((pop1, pop2, energy))
+
+
+class EpiCoDim3(models.Model):
+
+
+    state_variable_range = basic.Dict(
+        label="State variable ranges [lo, hi]",
+        default = {"y0": numpy.array([0., 1e-10]),
+                   "y1": numpy.array([-5., 0.]),
+                   "y2": numpy.array([3., 4.]),
+        doc = "n/a",
+        order=-1
+        )
+
+    variables_of_interest = basic.Enumerate(
+                              label = "Variables watched by Monitors",
+                              options = ["y0", "y1", "y2"],
+                              default = ["y0", "y2"],
+                              select_multiple = True,
+                              doc = """default state variables to be monitored""",
+                              order = 10)
