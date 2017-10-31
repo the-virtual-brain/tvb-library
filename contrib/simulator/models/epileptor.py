@@ -296,20 +296,21 @@ class HMJEpileptor(models.Model):
 
 class EpiCoDim3(models.Model):
 
+    # I have no idea what x y z are in fact
 
     state_variable_range = basic.Dict(
         label="State variable ranges [lo, hi]",
-        default = {"y0": numpy.array([0., 1e-10]),
-                   "y1": numpy.array([-5., 0.]),
-                   "y2": numpy.array([3., 4.]),
+        default = {"x": numpy.array([0., 1e-10]),
+                   "y": numpy.array([-5., 0.]),
+                   "z": numpy.array([3., 4.]),
         doc = "n/a",
         order=-1
         )
 
     variables_of_interest = basic.Enumerate(
                               label = "Variables watched by Monitors",
-                              options = ["y0", "y1", "y2"],
-                              default = ["y0", "y2"],
+                              options = ["x", "y", "z"],
+                              default = ["x", "z"],
                               select_multiple = True,
                               doc = """default state variables to be monitored""",
                               order = 10)
