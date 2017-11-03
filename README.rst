@@ -111,14 +111,18 @@ of the form test_*.py or \*_test.py.
 More generally, it follows `standard test discovery rules
 <https://docs.pytest.org/en/latest/getting-started.html>`_
 
-The command for running our tests is::
+The command for running our tests has two forms. 
+Recommandation when working with a git clone of tvb-library::
 
   cd [folder_where_tvb_library_is]
   pytest tvb/test
-  (when installed from git)
-  or
+
+When installing TVB from Pypi, the recommandation is to run our tests with::
+ 
+  pip install -U tvb-library
+  pip install -U tvb-data
   pytest --pyargs tvb.tests.library
-  (when installed with pip command)
+  
 
 Further Resources
 =================
