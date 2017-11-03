@@ -116,8 +116,8 @@ More generally, it follows `standard test discovery rules <https://docs.pytest.o
 
 - Command for running tests:
 
-Run tests on pypi package: pytest --pyargs tvb.tests.library
-or run tests from directory cd .... folder pytest tvb/test
+Run tests on pypi installed package: pytest --pyargs tvb.tests.library
+or run tests from directory when installed from git: cd .... folder pytest tvb/test
 
 Further Resources
 =================
