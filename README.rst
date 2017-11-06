@@ -111,14 +111,29 @@ of the form test_*.py or \*_test.py.
 More generally, it follows `standard test discovery rules
 <https://docs.pytest.org/en/latest/getting-started.html>`_
 
-The command for running our tests is::
+The command for running our tests has two forms.
+Recommandation when working with a git clone of tvb-library::
 
   cd [folder_where_tvb_library_is]
-  pytest tvb/test
-  (when installed from git)
-  or
-  pytest --pyargs tvb.tests.library
-  (when installed with pip command)
+  pytest tvb/test [--junitxml=path]
+
+When installing TVB from Pypi, the recommandation is to run our tests with::
+
+pip install -U tvb-library
+pip install -U tvb-data
+pytest --pyargs tvb.tests.library
+pytest --pyargs tvb.tests.library
+
+
+Coverage
+========
+
+
+
+A coverage report can be generated with::
+
+pip install pytest-cov
+py.test --cov=[folder_where_tvb_library_is] tvb/tests/ --cov-branch --cov-report xml:[file_where_xml_will_be_generated]
 
 Further Resources
 =================
