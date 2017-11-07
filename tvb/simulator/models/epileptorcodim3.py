@@ -212,7 +212,7 @@ class EpileptorCodim3(models.Model):
         If the bool modification is True, then the equation for zdot will been modified to ensure stability for negative dstar
 
             .. math::
-                    \dot{z} = -c(\sqrt{(x-x_s}^2+y^2} - d^* + 0.1(z-0.5)^5)
+                    \dot{z} = -c(\sqrt{(x-x_s}^2+y^2} - d^* + 0.1(z-0.5)^7)
 
         Where :math:`\mu_1, \mu_2` and :math:`\nu` lie on a great arc of a sphere of radius R parametrised by the unit vectors E and F.
 
@@ -255,13 +255,10 @@ class EpileptorCodim3(models.Model):
                 mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (1.0 / 3.0)
         xs = numpy.real(xs)
 
-        # global coupling: To be implemented
-        # my_first_global_coupling_coefficient = coupling[0, :]
-
         xdot = -y
         ydot = x ** 3 - mu2 * x - mu1 - y * (nu + self.b * x + x ** 2)
         if self.modification:
-            zdot = -self.c * (numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar + 0.1 * (z - 0.5) ** 5 + self.Ks*coupling[0, :])
+            zdot = -self.c * (numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar + 0.1 * (z - 0.5) ** 7 + self.Ks*coupling[0, :])
         else:
             zdot = -self.c * (numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar + self.Ks*coupling[0, :])
 
@@ -305,7 +302,7 @@ class EpileptorCodim3_slowmod(models.Model):
         with a planar fast subsystem.
 
         In this implementation the model can produce Hysteresis-Loop bursters of classes c0, c0', c2s, c3s, c4s,
-        c10s, c11s, c2b, c4b, c8b, c14b and c16b as classified by [Saggioetal_2017] Table 2. Through slow-modulation
+        c10s, c11s, c2b, c4b, c8b, c14b and c16b as classified by [Saggioetal_2017] Table 2. Through ultra-slow modulation
         of the path through the parameter space we can switch between different classes of bursters.
 
     .. automethod:: EpileptorCodim3.__init__
@@ -494,7 +491,7 @@ class EpileptorCodim3_slowmod(models.Model):
         If the bool modification is True, then the equation for zdot will been modified to ensure stability for negative dstar
 
             .. math::
-                    \dot{z} = -c(\sqrt{(x-x_s}^2+y^2} - d^* + 0.1(z-0.5)^5)
+                    \dot{z} = -c(\sqrt{(x-x_s}^2+y^2} - d^* + 0.1(z-0.5)^7)
 
         Where :math:`\mu_1, \mu_2` and :math:`\nu` lie on a great arc of a sphere of radius R parametrised by the unit vectors E and F.
 
@@ -510,7 +507,6 @@ class EpileptorCodim3_slowmod(models.Model):
              If :math:`x_s` is complex, we take the real part.
 
         """
-        global xs
         x = state_variables[0, :]
         y = state_variables[1, :]
         z = state_variables[2, :]
@@ -520,14 +516,14 @@ class EpileptorCodim3_slowmod(models.Model):
         Au = self.R * (self.G * numpy.cos(uA) + self.H * numpy.sin(uA))
         Bu = self.R * (self.L * numpy.cos(uB) + self.M * numpy.sin(uB))
 
-        Eu = Au / numpy.linalg.norm(Au)
+        Eu = Au / (numpy.linalg.norm(Au, axis=1)).reshape(-1,1)
         Fu = numpy.cross(numpy.cross(Au, Bu), Au)
-        Fu = Fu / numpy.linalg.norm(Fu)
+        Fu = Fu / (numpy.linalg.norm(Fu, axis=1)).reshape(-1,1)
 
         # Computes the values of mu2,mu1 and nu given the great arc (E,F,R) and the value of the slow variable z
-        mu2 = self.R * (Eu[:, 0] * numpy.cos(z) + Fu[:, 0] * numpy.sin(z))
-        mu1 = -self.R * (Eu[:, 1] * numpy.cos(z) + Fu[:, 1] * numpy.sin(z))
-        nu = self.R * (Eu[:, 2] * numpy.cos(z) + Fu[:, 2] * numpy.sin(z))
+        mu2 = self.R * (numpy.array([Eu[:, 0]]).T * numpy.cos(z) + numpy.array([Fu[:, 0]]).T * numpy.sin(z))
+        mu1 = -self.R * (numpy.array([Eu[:, 1]]).T * numpy.cos(z) + numpy.array([Fu[:, 1]]).T * numpy.sin(z))
+        nu = self.R * (numpy.array([Eu[:, 2]]).T * numpy.cos(z) + numpy.array([Fu[:, 2]]).T * numpy.sin(z))
 
         # Computes x_s, which is the solution to x_s^3 - mu2*x_s - mu1 = 0
         if self.N == 1:
@@ -547,16 +543,15 @@ class EpileptorCodim3_slowmod(models.Model):
         xs = numpy.real(xs)
 
         # global coupling: To be implemented
-        # my_first_global_coupling_coefficient = coupling[0, :]
 
         xdot = -y
         ydot = x ** 3 - mu2 * x - mu1 - y * (nu + self.b * x + x ** 2)
         if self.modification:
-            zdot = -self.c * (numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar + 0.1 * (z - 0.5) ** 5)
+            zdot = -self.c * (numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar + 0.1 * (z - 0.5) ** 7)
         else:
             zdot = -self.c * (numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar)
-        uAdot = self.cA + 0 * uA
-        uBdot = self.cB + 0 * uB
+        uAdot = numpy.full_like(uA,self.cA)
+        uBdot = numpy.full_like(uB,self.cB)
 
         derivative = numpy.array([xdot, ydot, zdot, uAdot, uBdot])
         return derivative
