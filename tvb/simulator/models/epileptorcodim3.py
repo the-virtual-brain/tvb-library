@@ -33,26 +33,10 @@ Saggio codimension 3 Epileptor model
 
 """
 
-# Third party python libraries
-import numpy
-
-# The Virtual Brain
-try:
-    from tvb.basic.logger.builder import get_logger
-
-    LOG = get_logger(__name__)
-except ImportError:
-    import logging
-
-    LOG = logging.getLogger(__name__)
-
-# import datatypes and traited datatypes
-from tvb.datatypes.arrays import FloatArray, IntegerArray, BoolArray
-from tvb.basic.traits.types_basic import Range, Dict, Enumerate
-import tvb.simulator.models as models
+from .base import Model, LOG, numpy, basic, arrays
 
 
-class EpileptorCodim3(models.Model):
+class EpileptorCodim3(Model):
     r"""
     .. [Saggioetal_2017] Saggio ML, Spiegler A, Bernard C, Jirsa VK. *Fast–Slow Bursters in the Unfolding of a
         High Codimension Singularity and the Ultra-slow Transitions of Classes.*
@@ -76,88 +60,88 @@ class EpileptorCodim3(models.Model):
     ui_configurable_parameters = ['mu1_start', 'mu2_start', 'nu_start', 'mu1_stop', 'mu2_stop', 'nu_stop', 'b', 'R',
                                   'c', 'dstar', 'N']
 
-    mu1_start = FloatArray(
+    mu1_start = arrays.FloatArray(
         label="mu1_start",
         default=numpy.array([-0.02285]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation parameter mu1 at the offset point for the given class, default for class c2s "
             "(Saddle-Node at onset and Saddle-Homoclinic at offset)")
 
-    mu2_start = FloatArray(
+    mu2_start = arrays.FloatArray(
         label="mu2_start",
         default=numpy.array([0.3448]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation mu2 parameter at the offset point for the given class, default for class c2s "
             "(Saddle-Node at onset and Saddle-Homoclinic at offset)")
 
-    nu_start = FloatArray(
+    nu_start = arrays.FloatArray(
         label="nu_start",
         default=numpy.array([0.2014]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation nu parameter at the offset point for the given class, default for class c2s "
             "(Saddle-Node at onset and Saddle-Homoclinic at offset)")
 
-    mu1_stop = FloatArray(
+    mu1_stop = arrays.FloatArray(
         label="mu1_stop",
         default=numpy.array([-0.07465]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation mu1 parameter at the onset point for the given class, default for class c2s "
             "(Saddle-Node at onset and Saddle-Homoclinic at offset)")
 
-    mu2_stop = FloatArray(
+    mu2_stop = arrays.FloatArray(
         label="mu2_stop",
         default=numpy.array([0.3351]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation mu2 parameter at the onset point for the given class, default for class c2s "
             "(Saddle-Node at onset and Saddle-Homoclinic at offset)")
 
-    nu_stop = FloatArray(
+    nu_stop = arrays.FloatArray(
         label="nu_stop",
         default=numpy.array([0.2053]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation nu parameter at the onset point for the given class, default for class c2s "
             "(Saddle-Node at onset and Saddle-Homoclinic at offset)")
 
-    b = FloatArray(
+    b = arrays.FloatArray(
         label="b",
         default=numpy.array([1.0]),
         doc="Unfolding type of the degenerate Takens-Bogdanov bifurcation, default is a focus type")
 
-    R = FloatArray(
+    R = arrays.FloatArray(
         label="R",
         default=numpy.array([0.4]),
-        range=Range(lo=0.0, hi=2.5),
+        range=basic.Range(lo=0.0, hi=2.5),
         doc="Radius in unfolding")
 
-    c = FloatArray(
+    c = arrays.FloatArray(
         label="c",
         default=numpy.array([0.001]),
-        range=Range(lo=0.0, hi=0.01),
+        range=basic.Range(lo=0.0, hi=0.01),
         doc="Speed of the slow variable")
 
-    dstar = FloatArray(
+    dstar = arrays.FloatArray(
         label="dstar",
         default=numpy.array([0.3]),
-        range=Range(lo=-0.1, hi=0.5),
+        range=basic.Range(lo=-0.1, hi=0.5),
         doc="Threshold for the inversion of the slow variable")
 
-    Ks = FloatArray(
+    Ks = arrays.FloatArray(
         label="Ks",
         default=numpy.array([0.0]),
         doc="Slow permittivity coupling strength")
 
-    N = IntegerArray(
+    N = arrays.IntegerArray(
         label="N",
         default=numpy.array([1]),
         doc="The branch of the resting state, default is 1")
 
-    modification = BoolArray(
+    modification = arrays.BoolArray(
         label="modification",
         default=numpy.array([0]),
         doc="When modification is True, then use the modification to stabilise the system for negative values of "
             "dstar. If modification is False, then don't use the modification. The default value is False ")
 
-    state_variable_range = Dict(
+    state_variable_range = basic.Dict(
         label="State variable ranges [lo, hi]",
         default={"x": numpy.array([0.4, 0.6]),
                  "y": numpy.array([-0.1, 0.1]),
@@ -165,7 +149,7 @@ class EpileptorCodim3(models.Model):
         doc="Typical bounds on state variables."
     )
 
-    variables_of_interest = Enumerate(
+    variables_of_interest = basic.Enumerate(
         label="Variables watched by Monitors",
         options=['x', 'y', 'z'],
         default=['x', 'z'],
@@ -258,9 +242,10 @@ class EpileptorCodim3(models.Model):
         xdot = -y
         ydot = x ** 3 - mu2 * x - mu1 - y * (nu + self.b * x + x ** 2)
         if self.modification:
-            zdot = -self.c * (numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar + 0.1 * (z - 0.5) ** 7 + self.Ks*coupling[0, :])
+            zdot = -self.c * (
+            numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar + 0.1 * (z - 0.5) ** 7 + self.Ks * coupling[0, :])
         else:
-            zdot = -self.c * (numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar + self.Ks*coupling[0, :])
+            zdot = -self.c * (numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar + self.Ks * coupling[0, :])
 
         derivative = numpy.array([xdot, ydot, zdot])
         return derivative
@@ -289,7 +274,8 @@ class EpileptorCodim3(models.Model):
         self.F = numpy.cross(numpy.cross(A, B), A)
         self.F = self.F / numpy.linalg.norm(self.F)
 
-class EpileptorCodim3_slowmod(models.Model):
+
+class EpileptorCodim3_slowmod(Model):
     r"""
     .. [Saggioetal_2017] Saggio ML, Spiegler A, Bernard C, Jirsa VK. *Fast–Slow Bursters in the Unfolding of a
         High Codimension Singularity and the Ultra-slow Transitions of Classes.*
@@ -314,126 +300,126 @@ class EpileptorCodim3_slowmod(models.Model):
                                   'mu2_Aend', 'nu_Aend', 'mu1_Bend', 'mu2_Bend', 'nu_Bend', 'b', 'R',
                                   'c', 'dstar', 'N']
 
-    mu1_Ain = FloatArray(
+    mu1_Ain = arrays.FloatArray(
         label="mu1_start",
         default=numpy.array([0.05494]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation parameter mu1 at the initial point at bursting offset.")
 
-    mu2_Ain = FloatArray(
+    mu2_Ain = arrays.FloatArray(
         label="mu2_start",
         default=numpy.array([0.2731]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation parameter mu2 at the initial point at bursting offset.")
 
-    nu_Ain = FloatArray(
+    nu_Ain = arrays.FloatArray(
         label="nu_start",
         default=numpy.array([0.287]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation parameter nu at the initial point at bursting offset.")
 
-    mu1_Bin = FloatArray(
+    mu1_Bin = arrays.FloatArray(
         label="mu1_stop",
         default=numpy.array([-0.0461]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation parameter mu1 at the initial point at bursting onset.")
 
-    mu2_Bin = FloatArray(
+    mu2_Bin = arrays.FloatArray(
         label="mu2_stop",
         default=numpy.array([0.243]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation parameter mu2 at the initial point at bursting onset.")
 
-    nu_Bin = FloatArray(
+    nu_Bin = arrays.FloatArray(
         label="nu_stop",
         default=numpy.array([0.3144]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation parameter nu at the initial point at bursting onset.")
 
-    mu1_Aend = FloatArray(
+    mu1_Aend = arrays.FloatArray(
         label="mu1_start",
         default=numpy.array([0.06485]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation parameter mu1 at the initial point at bursting offset.")
 
-    mu2_Aend = FloatArray(
+    mu2_Aend = arrays.FloatArray(
         label="mu2_start",
         default=numpy.array([0.07337]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation parameter mu2 at the initial point at bursting offset.")
 
-    nu_Aend = FloatArray(
+    nu_Aend = arrays.FloatArray(
         label="nu_start",
         default=numpy.array([-0.3878]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation parameter nu at the initial point at bursting offset.")
 
-    mu1_Bend = FloatArray(
+    mu1_Bend = arrays.FloatArray(
         label="mu1_stop",
         default=numpy.array([0.03676]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation parameter mu1 at the initial point at bursting onset.")
 
-    mu2_Bend = FloatArray(
+    mu2_Bend = arrays.FloatArray(
         label="mu2_stop",
         default=numpy.array([-0.02792]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation parameter mu2 at the initial point at bursting onset.")
 
-    nu_Bend = FloatArray(
+    nu_Bend = arrays.FloatArray(
         label="nu_stop",
         default=numpy.array([-0.3973]),
-        range=Range(lo=-1.0, hi=1.0),
+        range=basic.Range(lo=-1.0, hi=1.0),
         doc="The bifurcation parameter nu at the initial point at bursting onset.")
 
-    b = FloatArray(
+    b = arrays.FloatArray(
         label="b",
         default=numpy.array([1.0]),
         doc="Unfolding type of the degenerate Takens-Bogdanov bifurcation, default is a focus type")
 
-    R = FloatArray(
+    R = arrays.FloatArray(
         label="R",
         default=numpy.array([0.4]),
-        range=Range(lo=0.0, hi=2.5),
+        range=basic.Range(lo=0.0, hi=2.5),
         doc="Radius in unfolding")
 
-    c = FloatArray(
+    c = arrays.FloatArray(
         label="c",
         default=numpy.array([0.002]),
-        range=Range(lo=0.0, hi=0.01),
+        range=basic.Range(lo=0.0, hi=0.01),
         doc="Speed of the slow variable")
 
-    cA = FloatArray(
+    cA = arrays.FloatArray(
         label="cA",
         default=numpy.array([0.0001]),
-        range=Range(lo=0.0, hi=0.001),
+        range=basic.Range(lo=0.0, hi=0.001),
         doc="Speed of the ultra-slow transition of the initial point")
 
-    cB = FloatArray(
+    cB = arrays.FloatArray(
         label="cB",
         default=numpy.array([0.00012]),
-        range=Range(lo=0.0, hi=0.001),
+        range=basic.Range(lo=0.0, hi=0.001),
         doc="Speed of the ultra-slow transition of the final point")
 
-    dstar = FloatArray(
+    dstar = arrays.FloatArray(
         label="dstar",
         default=numpy.array([0.3]),
-        range=Range(lo=-0.1, hi=0.5),
+        range=basic.Range(lo=-0.1, hi=0.5),
         doc="Threshold for the inversion of the slow variable")
 
-    N = IntegerArray(
+    N = arrays.IntegerArray(
         label="N",
         default=numpy.array([1]),
         doc="The branch of the resting state, default is 1")
 
-    modification = BoolArray(
+    modification = arrays.BoolArray(
         label="modification",
         default=numpy.array([0]),
         doc="When modification is True, then use the modification to stabilise the system for negative values of "
             "dstar. If modification is False, then don't use the modification. The default value is False "
     )
 
-    state_variable_range = Dict(
+    state_variable_range = basic.Dict(
         label="State variable ranges [lo, hi]",
         default={"x": numpy.array([0.4, 0.6]),
                  "y": numpy.array([-0.1, 0.1]),
@@ -443,7 +429,7 @@ class EpileptorCodim3_slowmod(models.Model):
         doc="Typical bounds on state variables."
     )
 
-    variables_of_interest = Enumerate(
+    variables_of_interest = basic.Enumerate(
         label="Variables watched by Monitors",
         options=['x', 'y', 'z'],
         default=['x', 'z'],
@@ -516,9 +502,9 @@ class EpileptorCodim3_slowmod(models.Model):
         Au = self.R * (self.G * numpy.cos(uA) + self.H * numpy.sin(uA))
         Bu = self.R * (self.L * numpy.cos(uB) + self.M * numpy.sin(uB))
 
-        Eu = Au / (numpy.linalg.norm(Au, axis=1)).reshape(-1,1)
+        Eu = Au / (numpy.linalg.norm(Au, axis=1)).reshape(-1, 1)
         Fu = numpy.cross(numpy.cross(Au, Bu), Au)
-        Fu = Fu / (numpy.linalg.norm(Fu, axis=1)).reshape(-1,1)
+        Fu = Fu / (numpy.linalg.norm(Fu, axis=1)).reshape(-1, 1)
 
         # Computes the values of mu2,mu1 and nu given the great arc (E,F,R) and the value of the slow variable z
         mu2 = self.R * (numpy.array([Eu[:, 0]]).T * numpy.cos(z) + numpy.array([Fu[:, 0]]).T * numpy.sin(z))
@@ -550,8 +536,8 @@ class EpileptorCodim3_slowmod(models.Model):
             zdot = -self.c * (numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar + 0.1 * (z - 0.5) ** 7)
         else:
             zdot = -self.c * (numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar)
-        uAdot = numpy.full_like(uA,self.cA)
-        uBdot = numpy.full_like(uB,self.cB)
+        uAdot = numpy.full_like(uA, self.cA)
+        uBdot = numpy.full_like(uB, self.cB)
 
         derivative = numpy.array([xdot, ydot, zdot, uAdot, uBdot])
         return derivative
@@ -585,8 +571,6 @@ class EpileptorCodim3_slowmod(models.Model):
         self.L = Bin / numpy.linalg.norm(Bin);
         self.M = numpy.cross(numpy.cross(Bin, Bend), Bin);
         self.M = self.M / numpy.linalg.norm(self.M);
-
-
 
 
 if __name__ == "__main__":
