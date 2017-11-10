@@ -8,18 +8,19 @@
 #
 # (c) 2012-2017, Baycrest Centre for Geriatric Care ("Baycrest") and others
 #
-# This program is free software: you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software Foundation,
-# either version 3 of the License, or (at your option) any later version.
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License along with this
-# program.  If not, see <http://www.gnu.org/licenses/>.
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option)
+# any later version. This program is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+# Public License for more details. You should have received a copy of the GNU
+#  General Public License along with this program.  If not,
+# see <http://www.gnu.org/licenses/>.
 #
 #
-#   CITATION:
-# When using The Virtual Brain for scientific publications, please cite it as follows:
+# CITATION: When using The Virtual Brain for scientific publications, please
+# cite it as follows:
 #
 #   Paula Sanz Leon, Stuart A. Knock, M. Marmaduke Woodman, Lia Domide,
 #   Jochen Mersmann, Anthony R. McIntosh, Viktor Jirsa (2013)
@@ -38,27 +39,31 @@ from .base import Model, LOG, numpy, basic, arrays
 
 class EpileptorCodim3(Model):
     r"""
-    .. [Saggioetal_2017] Saggio ML, Spiegler A, Bernard C, Jirsa VK. *Fast–Slow Bursters in the Unfolding of a
-        High Codimension Singularity and the Ultra-slow Transitions of Classes.*
-        Journal of Mathematical Neuroscience. 2017;7:7. doi:10.1186/s13408-017-0050-8.
+    .. [Saggioetal_2017] Saggio ML, Spiegler A, Bernard C, Jirsa VK.
+    *Fast–Slow Bursters in the Unfolding of a High Codimension Singularity
+    and the Ultra-slow Transitions of Classes.* Journal of Mathematical
+    Neuroscience. 2017;7:7. doi:10.1186/s13408-017-0050-8.
 
-    .. The Epileptor codim 3 model is a neural mass model which contains two subsystems acting at different timescales.
-        For the fast subsystem we use the unfolding of a degenerate Takens-Bogdanov bifucation of codimension 3.
-        The slow subsystem steers the fast one back and forth along these paths leading to bursting behavior.
-        The model is able to produce almost all the classes of bursting predicted for systems
-        with a planar fast subsystem.
+    .. The Epileptor codim 3 model is a neural mass model which contains two
+    subsystems acting at different timescales. For the fast subsystem we use
+    the unfolding of a degenerate Takens-Bogdanov bifucation of codimension
+    3. The slow subsystem steers the fast one back and forth along paths
+    leading to bursting behavior. The model is able to produce almost all the
+    classes of bursting predicted for systems with a planar fast subsystem.
 
-        In this implementation the model can produce Hysteresis-Loop bursters of classes c0, c0', c2s, c3s, c4s, c10s,
-        c11s, c2b, c4b, c8b, c14b and c16b as classified by [Saggioetal_2017] Table 2. The default model parameters
-        correspond to class c2s.
+    .. In this implementation the model can produce Hysteresis-Loop bursters
+    of classes c0, c0', c2s, c3s, c4s, c10s, c11s, c2b, c4b, c8b, c14b and
+    c16b as classified by [Saggioetal_2017] Table 2. The default model
+    parameters correspond to class c2s.
 
     .. automethod:: EpileptorCodim3.__init__
 
     """
 
     _ui_name = "Epileptor codim 3"
-    ui_configurable_parameters = ['mu1_start', 'mu2_start', 'nu_start', 'mu1_stop', 'mu2_stop', 'nu_stop', 'b', 'R',
-                                  'c', 'dstar', 'N']
+    ui_configurable_parameters = ['mu1_start', 'mu2_start', 'nu_start',
+                                  'mu1_stop', 'mu2_stop', 'nu_stop', 'b', 'R',
+                                  'c', 'dstar', 'N', 'Ks']
 
     mu1_start = arrays.FloatArray(
         label="mu1_start",
@@ -158,7 +163,6 @@ class EpileptorCodim3(Model):
     )
 
     def __init__(self, **kwargs):
-        # type: (object) -> object
         """
         Initialise parameters
 
@@ -185,31 +189,34 @@ class EpileptorCodim3(Model):
         The equations were taken from [Saggioetal_2017]
         cf. Eqns. (4) and (7), page 17
 
-        The state variables x and y correspond to the fast subsystem and the state variable z corresponds to the slow
-        subsystem.
+        The state variables x and y correspond to the fast subsystem and the
+        state variable z corresponds to the slow subsystem.
 
             .. math::
                 \dot{x} &= -y \\
                 \dot{y} &= x^3 - \mu_2 x - \mu_1 - y(\nu + b x + x^2) \\
                 \dot{z} &= -c(\sqrt{(x-x_s}^2+y^2} - d^*)
 
-        If the bool modification is True, then the equation for zdot will been modified to ensure stability for negative dstar
+        If the bool modification is True, then the equation for zdot will
+        been modified to ensure stability for negative dstar
 
             .. math::
                     \dot{z} = -c(\sqrt{(x-x_s}^2+y^2} - d^* + 0.1(z-0.5)^7)
 
-        Where :math:`\mu_1, \mu_2` and :math:`\nu` lie on a great arc of a sphere of radius R parametrised by the unit vectors E and F.
+        Where :math:`\mu_1, \mu_2` and :math:`\nu` lie on a great arc of a
+        sphere of radius R parametrised by the unit vectors E and F.
 
             .. math::
                 \begin{pmatrix}\mu_2 & -\mu_1 & \nu \end{pmatrix} = R(E \cos z + F \sin z)
 
-        And where :math:`x_s` is the x-coördinate of the resting state (stable equilibrium).
-            This is computed by finding the solution of
+        And where :math:`x_s` is the x-coordinate of the resting state
+        (stable equilibrium). This is computed by finding the solution of
+
             .. math::
                 x_s^3 - mu_2*x_s - mu_1 = 0
 
-             And taking the branch which corresponds to the resting state.
-             If :math:`x_s` is complex, we take the real part.
+        And taking the branch which corresponds to the resting state.
+        If :math:`x_s` is complex, we take the real part.
 
         """
 
@@ -224,28 +231,29 @@ class EpileptorCodim3(Model):
 
         # Computes x_s, which is the solution to x_s^3 - mu2*x_s - mu1 = 0
         if self.N == 1:
-            xs = (mu1 / 2.0 + numpy.sqrt(mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (
-                1.0 / 3.0) + (mu1 / 2.0 - numpy.sqrt(mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (
-                1.0 / 3.0)
+            xs = (mu1 / 2.0 + numpy.sqrt(
+                mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (1.0 / 3.0) + (mu1 / 2.0 - numpy.sqrt(
+                mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (1.0 / 3.0)
         elif self.N == 2:
             xs = -1.0 / 2.0 * (1.0 - 1j * 3 ** (1.0 / 2.0)) * (mu1 / 2.0 + numpy.sqrt(
                 mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (1.0 / 3.0) - 1.0 / 2.0 * (
-                1.0 + 1j * 3 ** (1.0 / 2.0)) * (mu1 / 2.0 - numpy.sqrt(
-                mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (1.0 / 3.0)
+                1.0 + 1j * 3 ** (1.0 / 2.0)) * (mu1 / 2.0 - numpy.sqrt(mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (
+                1.0 / 3.0)
         elif self.N == 3:
             xs = -1.0 / 2.0 * (1.0 + 1j * 3 ** (1.0 / 2.0)) * (mu1 / 2.0 + numpy.sqrt(
                 mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (1.0 / 3.0) - 1.0 / 2.0 * (
-                1.0 - 1j * 3 ** (1.0 / 2.0)) * (mu1 / 2.0 - numpy.sqrt(
-                mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (1.0 / 3.0)
+                1.0 - 1j * 3 ** (1.0 / 2.0)) * (mu1 / 2.0 - numpy.sqrt(mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (
+                1.0 / 3.0)
         xs = numpy.real(xs)
 
         xdot = -y
         ydot = x ** 3 - mu2 * x - mu1 - y * (nu + self.b * x + x ** 2)
         if self.modification:
             zdot = -self.c * (
-            numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar + 0.1 * (z - 0.5) ** 7 + self.Ks * coupling[0, :])
+                numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar + 0.1 * (z - 0.5) ** 7 + self.Ks * coupling[0, :])
         else:
-            zdot = -self.c * (numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar + self.Ks * coupling[0, :])
+            zdot = -self.c * (numpy.sqrt(
+                (x - xs) ** 2 + y ** 2) - self.dstar + self.Ks * coupling[0, :])
 
         derivative = numpy.array([xdot, ydot, zdot])
         return derivative
@@ -255,19 +263,23 @@ class EpileptorCodim3(Model):
         The equations were taken from [Saggioetal_2017]
         cf. Eqn. (7), page 17
 
-        Here we parametrize the great arc which lies on a sphere of radius R between the points A and B, which are given by:
+        Here we parametrize the great arc which lies on a sphere of radius R
+        between the points A and B, which are given by:
+
             .. math::
                 A &= \begin{pmatrix}\mu_{2,start} & -\mu_{1,start} & \nu_{start} \end{pmatrix} \\
                 B &= \begin{pmatrix}\mu_{2,stop} & -\mu_{1,stop} & \nu_{stop} \end{pmatrix}
 
         Then we parametrize this great arc with z as parameter by :math:`R(E \cos z + F \sin z)`
             where the unit vectors E and F are given by:
+
             .. math::
                 E &= A/\|A\| \\
                 F &= ((A \times B) \times A)/\|(A \times B) \times A\|
         """
 
-        A = numpy.array([self.mu2_start[0], -self.mu1_start[0], self.nu_start[0]])
+        A = numpy.array(
+            [self.mu2_start[0], -self.mu1_start[0], self.nu_start[0]])
         B = numpy.array([self.mu2_stop[0], -self.mu1_stop[0], self.nu_stop[0]])
 
         self.E = A / numpy.linalg.norm(A)
@@ -277,27 +289,34 @@ class EpileptorCodim3(Model):
 
 class EpileptorCodim3_slowmod(Model):
     r"""
-    .. [Saggioetal_2017] Saggio ML, Spiegler A, Bernard C, Jirsa VK. *Fast–Slow Bursters in the Unfolding of a
-        High Codimension Singularity and the Ultra-slow Transitions of Classes.*
-        Journal of Mathematical Neuroscience. 2017;7:7. doi:10.1186/s13408-017-0050-8.
+    .. [Saggioetal_2017] Saggio ML, Spiegler A, Bernard C, Jirsa VK.
+    *Fast–Slow Bursters in the Unfolding of a High Codimension Singularity
+    and the Ultra-slow Transitions of Classes.* Journal of Mathematical
+    Neuroscience. 2017;7:7. doi:10.1186/s13408-017-0050-8.
 
-    .. The Epileptor codim 3 model is a neural mass model which contains two subsystems acting at different timescales.
-        For the fast subsystem we use the unfolding of a degenerate Takens-Bogdanov bifucation of codimension 3.
-        The slow subsystem steers the fast one back and forth along these paths leading to bursting behavior.
-        The model is able to produce almost all the classes of bursting predicted for systems
-        with a planar fast subsystem.
+    .. The Epileptor codim 3 model is a neural mass model which contains two
+    subsystems acting at different timescales. For the fast subsystem we use
+    the unfolding of a degenerate Takens-Bogdanov bifucation of codimension
+    3. The slow subsystem steers the fast one back and forth along these
+    paths leading to bursting behavior. The model is able to produce almost
+    all the classes of bursting predicted for systems with a planar fast
+    subsystem.
 
-        In this implementation the model can produce Hysteresis-Loop bursters of classes c0, c0', c2s, c3s, c4s,
-        c10s, c11s, c2b, c4b, c8b, c14b and c16b as classified by [Saggioetal_2017] Table 2. Through ultra-slow modulation
-        of the path through the parameter space we can switch between different classes of bursters.
+    .. In this implementation the model can produce Hysteresis-Loop bursters
+    of classes c0, c0', c2s, c3s, c4s, c10s, c11s, c2b, c4b, c8b, c14b and
+    c16b as classified by [Saggioetal_2017] Table 2. Through ultra-slow
+    modulation of the path through the parameter space we can switch between
+    different classes of bursters.
 
     .. automethod:: EpileptorCodim3.__init__
 
     """
 
     _ui_name = "Epileptor codim 3"
-    ui_configurable_parameters = ['mu1_Ain', 'mu2_Ain', 'nu_Ain', 'mu1_Bin', 'mu2_Bin', 'nu_Bin', 'mu1_Aend',
-                                  'mu2_Aend', 'nu_Aend', 'mu1_Bend', 'mu2_Bend', 'nu_Bend', 'b', 'R',
+    ui_configurable_parameters = ['mu1_Ain', 'mu2_Ain', 'nu_Ain', 'mu1_Bin',
+                                  'mu2_Bin', 'nu_Bin', 'mu1_Aend',
+                                  'mu2_Aend', 'nu_Aend', 'mu1_Bend', 'mu2_Bend',
+                                  'nu_Bend', 'b', 'R',
                                   'c', 'dstar', 'N']
 
     mu1_Ain = arrays.FloatArray(
@@ -464,33 +483,53 @@ class EpileptorCodim3_slowmod(Model):
     def dfun(self, state_variables, coupling, local_coupling=0.0):
         r"""
         The equations were taken from [Saggioetal_2017]
-        cf. Eqns. (4) and (7), page 17
+        cf. Eqns. (4) and (7), page 17 and 21
 
-        The state variables x and y correspond to the fast subsystem and the state variable z corresponds to the slow
-        subsystem.
+        The state variables x and y correspond to the fast subsystem and the
+        state variable z corresponds to the slow subsystem. The state
+        variables uA and uB correspond to the transition of the offset and
+        onset bifurcations.
 
             .. math::
                 \dot{x} &= -y \\
                 \dot{y} &= x^3 - \mu_2 x - \mu_1 - y(\nu + b x + x^2) \\
-                \dot{z} &= -c(\sqrt{(x-x_s}^2+y^2} - d^*)
+                \dot{z} &= -c(\sqrt{(x-x_s}^2+y^2} - d^*)\\
+                \dot(uA) &= cA\\
+                \dot(uB) &= cB\\
 
-        If the bool modification is True, then the equation for zdot will been modified to ensure stability for negative dstar
+        If the bool modification is True, then the equation for zdot will
+        been modified to ensure stability for negative dstar
 
             .. math::
                     \dot{z} = -c(\sqrt{(x-x_s}^2+y^2} - d^* + 0.1(z-0.5)^7)
 
-        Where :math:`\mu_1, \mu_2` and :math:`\nu` lie on a great arc of a sphere of radius R parametrised by the unit vectors E and F.
+        Where :math:`\mu_1, \mu_2` and :math:`\nu` lie on a great arc of a
+        sphere of radius R parametrised by the unit vectors E and F.
 
             .. math::
                 \begin{pmatrix}\mu_2 & -\mu_1 & \nu \end{pmatrix} = R(E \cos z + F \sin z)
 
-        And where :math:`x_s` is the x-coördinate of the resting state (stable equilibrium).
-            This is computed by finding the solution of
+        Where the unit vectors E and F are given by:
+
+            .. math::
+                E &= A/\|A\| \\
+                F &= ((A \times B) \times A)/\|(A \times B) \times A\|
+
+        The vectors A and B transition across a great arc of the same sphere
+        of radius R parametrised by G, H and L, M respectively.
+
+            .. math::
+                A &= R(G \cos(uA) + H \sin(uA))
+                B &= R(L \cos(uB) + M \sin(uB))
+
+        Finally :math:`x_s` is the x-coordinate of the resting state
+        (stable equilibrium). This is computed by finding the solution of
+
             .. math::
                 x_s^3 - mu_2*x_s - mu_1 = 0
 
-             And taking the branch which corresponds to the resting state.
-             If :math:`x_s` is complex, we take the real part.
+        And taking the branch which corresponds to the resting state.
+        If :math:`x_s` is complex, we take the real part.
 
         """
         x = state_variables[0, :]
@@ -499,33 +538,36 @@ class EpileptorCodim3_slowmod(Model):
         uA = state_variables[3, :]
         uB = state_variables[4, :]
 
-        Au = self.R * (self.G * numpy.cos(uA) + self.H * numpy.sin(uA))
-        Bu = self.R * (self.L * numpy.cos(uB) + self.M * numpy.sin(uB))
+        A = self.R * (self.G * numpy.cos(uA) + self.H * numpy.sin(uA))
+        B = self.R * (self.L * numpy.cos(uB) + self.M * numpy.sin(uB))
 
-        Eu = Au / (numpy.linalg.norm(Au, axis=1)).reshape(-1, 1)
-        Fu = numpy.cross(numpy.cross(Au, Bu), Au)
-        Fu = Fu / (numpy.linalg.norm(Fu, axis=1)).reshape(-1, 1)
+        E = A / (numpy.linalg.norm(A, axis=1)).reshape(-1, 1)
+        F = numpy.cross(numpy.cross(A, B), A)
+        F = F / (numpy.linalg.norm(F, axis=1)).reshape(-1, 1)
 
         # Computes the values of mu2,mu1 and nu given the great arc (E,F,R) and the value of the slow variable z
-        mu2 = self.R * (numpy.array([Eu[:, 0]]).T * numpy.cos(z) + numpy.array([Fu[:, 0]]).T * numpy.sin(z))
-        mu1 = -self.R * (numpy.array([Eu[:, 1]]).T * numpy.cos(z) + numpy.array([Fu[:, 1]]).T * numpy.sin(z))
-        nu = self.R * (numpy.array([Eu[:, 2]]).T * numpy.cos(z) + numpy.array([Fu[:, 2]]).T * numpy.sin(z))
+        mu2 = self.R * (numpy.array([E[:, 0]]).T * numpy.cos(z) + numpy.array(
+            [F[:, 0]]).T * numpy.sin(z))
+        mu1 = -self.R * (numpy.array([E[:, 1]]).T * numpy.cos(z) + numpy.array(
+            [F[:, 1]]).T * numpy.sin(z))
+        nu = self.R * (numpy.array([E[:, 2]]).T * numpy.cos(z) + numpy.array(
+            [F[:, 2]]).T * numpy.sin(z))
 
         # Computes x_s, which is the solution to x_s^3 - mu2*x_s - mu1 = 0
         if self.N == 1:
-            xs = (mu1 / 2.0 + numpy.sqrt(mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (
-                1.0 / 3.0) + (mu1 / 2.0 - numpy.sqrt(mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (
-                1.0 / 3.0)
+            xs = (mu1 / 2.0 + numpy.sqrt(
+                mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (1.0 / 3.0) + (mu1 / 2.0 - numpy.sqrt(
+                mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (1.0 / 3.0)
         elif self.N == 2:
             xs = -1.0 / 2.0 * (1.0 - 1j * 3 ** (1.0 / 2.0)) * (mu1 / 2.0 + numpy.sqrt(
                 mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (1.0 / 3.0) - 1.0 / 2.0 * (
-                1.0 + 1j * 3 ** (1.0 / 2.0)) * (mu1 / 2.0 - numpy.sqrt(
-                mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (1.0 / 3.0)
+                1.0 + 1j * 3 ** (1.0 / 2.0)) * (mu1 / 2.0 - numpy.sqrt(mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (
+                1.0 / 3.0)
         elif self.N == 3:
             xs = -1.0 / 2.0 * (1.0 + 1j * 3 ** (1.0 / 2.0)) * (mu1 / 2.0 + numpy.sqrt(
                 mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (1.0 / 3.0) - 1.0 / 2.0 * (
-                1.0 - 1j * 3 ** (1.0 / 2.0)) * (mu1 / 2.0 - numpy.sqrt(
-                mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (1.0 / 3.0)
+                1.0 - 1j * 3 ** (1.0 / 2.0)) * (mu1 / 2.0 - numpy.sqrt(mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (
+                1.0 / 3.0)
         xs = numpy.real(xs)
 
         # global coupling: To be implemented
@@ -533,7 +575,9 @@ class EpileptorCodim3_slowmod(Model):
         xdot = -y
         ydot = x ** 3 - mu2 * x - mu1 - y * (nu + self.b * x + x ** 2)
         if self.modification:
-            zdot = -self.c * (numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar + 0.1 * (z - 0.5) ** 7)
+            zdot = -self.c * (
+                numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar + 0.1 * (
+                    z - 0.5) ** 7)
         else:
             zdot = -self.c * (numpy.sqrt((x - xs) ** 2 + y ** 2) - self.dstar)
         uAdot = numpy.full_like(uA, self.cA)
@@ -544,52 +588,37 @@ class EpileptorCodim3_slowmod(Model):
 
     def update_derived_parameters(self):
         r"""
-        The equations were taken from [Saggioetal_2017]
-        cf. Eqn. (7), page 17
+        The equations were adapted from [Saggioetal_2017]
+        cf. Eqn. (7), page 17 and page 21
 
-        Here we parametrize the great arc which lies on a sphere of radius R between the points A and B, which are given by:
-            .. math::
-                A &= \begin{pmatrix}\mu_{2,start} & -\mu_{1,start} & \nu_{start} \end{pmatrix} \\
-                B &= \begin{pmatrix}\mu_{2,stop} & -\mu_{1,stop} & \nu_{stop} \end{pmatrix}
+        We parametrize the great arc on the sphere of radius R between the
+        points Ain and Aend with the vectors G and H. This great arc is used
+        for the offset point of the burster, given by the vector A.
 
-        Then we parametrize this great arc with z as parameter by :math:`R(E \cos z + F \sin z)`
-            where the unit vectors E and F are given by:
             .. math::
-                E &= A/\|A\| \\
-                F &= ((A \times B) \times A)/\|(A \times B) \times A\|
+                G &= Ain/\|Ain\| \\
+                H &= ((Ain \times Aend) \times Ain)/\|(Ain \times Aend) \times Ain\|
+
+        We also parametrize the great arc on the sphere of radius R between the
+        points Bin and Bend with the vectors L and M. This great arc is used
+        for the onset point of the burster, given by the vector B.
+
+            .. math::
+                L &= Bin/\|Bin\| \\
+                M &= ((Bin \times Bend) \times Bin)/\|(Bin \times Bend) \times Bin\|
         """
 
         Ain = numpy.array([self.mu2_Ain[0], -self.mu1_Ain[0], self.nu_Ain[0]])
         Bin = numpy.array([self.mu2_Bin[0], -self.mu1_Bin[0], self.nu_Bin[0]])
-        Aend = numpy.array([self.mu2_Aend[0], -self.mu1_Aend[0], self.nu_Aend[0]])
-        Bend = numpy.array([self.mu2_Bend[0], -self.mu1_Bend[0], self.nu_Bend[0]])
+        Aend = numpy.array(
+            [self.mu2_Aend[0], -self.mu1_Aend[0], self.nu_Aend[0]])
+        Bend = numpy.array(
+            [self.mu2_Bend[0], -self.mu1_Bend[0], self.nu_Bend[0]])
 
-        self.G = Ain / numpy.linalg.norm(Ain);
-        self.H = numpy.cross(numpy.cross(Ain, Aend), Ain);
-        self.H = self.H / numpy.linalg.norm(self.H);
+        self.G = Ain / numpy.linalg.norm(Ain)
+        self.H = numpy.cross(numpy.cross(Ain, Aend), Ain)
+        self.H = self.H / numpy.linalg.norm(self.H)
 
-        self.L = Bin / numpy.linalg.norm(Bin);
-        self.M = numpy.cross(numpy.cross(Bin, Bend), Bin);
-        self.M = self.M / numpy.linalg.norm(self.M);
-
-
-if __name__ == "__main__":
-    # Do some stuff that tests or makes use of this module...
-    LOG.info("Testing %s module..." % __file__)
-
-    # Check that the docstring examples, if there are any, are accurate.
-    import doctest
-
-    doctest.testmod()
-
-    # Initialise Model in their default state:
-    model = EpileptorCodim3()  # c2s
-
-    LOG.info("EpileptorCodim3 model initialised in its default state without error...")
-
-    from tvb.simulator.plot.phase_plane_interactive import PhasePlaneInteractive
-    import tvb.simulator.integrators
-
-    INTEGRATOR = tvb.simulator.integrators.HeunDeterministic(dt=2 ** -5)
-    ppi_fig = PhasePlaneInteractive(model=model, integrator=INTEGRATOR)
-    ppi_fig.show()
+        self.L = Bin / numpy.linalg.norm(Bin)
+        self.M = numpy.cross(numpy.cross(Bin, Bend), Bin)
+        self.M = self.M / numpy.linalg.norm(self.M)
