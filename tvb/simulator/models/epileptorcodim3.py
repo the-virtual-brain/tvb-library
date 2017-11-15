@@ -34,10 +34,11 @@ Saggio codimension 3 Epileptor model
 
 """
 
-from .base import Model, LOG, numpy, basic, arrays
+from .base import Model, LOG, numpy, basic, arrays, ModelNumbaDfun
+from numba import guvectorize, float64, int32
 
 
-class EpileptorCodim3(Model):
+class EpileptorCodim3(ModelNumbaDfun):
     r"""
     .. [Saggioetal_2017] Saggio ML, Spiegler A, Bernard C, Jirsa VK.
     *Fast–Slow Bursters in the Unfolding of a High Codimension Singularity
@@ -162,29 +163,13 @@ class EpileptorCodim3(Model):
         doc="Quantities available to monitor."
     )
 
-    def __init__(self, **kwargs):
-        """
-        Initialise parameters
+    state_variables = ['x', 'y', 'z']
+    _nvar = 3
+    cvar = numpy.array([0], dtype=numpy.int32)
+    E = None
+    F = None
 
-        """
-
-        super(EpileptorCodim3, self).__init__(**kwargs)
-
-        # state variables names
-        self.state_variables = ['x', 'y', 'z']
-
-        # number of state variables
-        self._nvar = 3
-        self.cvar = numpy.array([0], dtype=numpy.int32)
-
-        # the variable of interest
-        self.voi = numpy.array([0], dtype=numpy.int32)
-
-        # If there are derived parameters from the predefined parameters, then initialize them to None
-        self.E = None
-        self.F = None
-
-    def dfun(self, state_variables, coupling, local_coupling=0.0):
+    def _numpy_dfun(self, state_variables, coupling, local_coupling=0.0):
         r"""
         The equations were taken from [Saggioetal_2017]
         cf. Eqns. (4) and (7), page 17
@@ -285,6 +270,51 @@ class EpileptorCodim3(Model):
         self.E = A / numpy.linalg.norm(A)
         self.F = numpy.cross(numpy.cross(A, B), A)
         self.F = self.F / numpy.linalg.norm(self.F)
+
+    def dfun(self, state_variables, coupling, local_coupling=0.0):
+        """"The dfun using numba for speed"""
+        state_variables_ = state_variables.reshape(state_variables.shape[:-1]).T
+        coupling_ = coupling.reshape(coupling.shape[:-1]).T
+        derivative = _numba_dfun(state_variables_, coupling_, self.E[0], self.E[1], self.E[2], self.F[0], self.F[1],
+                                 self.F[2], self.b, self.R, self.c, self.dstar, self.Ks, self.modification, 1)
+        return derivative.T[..., numpy.newaxis]
+
+
+@guvectorize([(float64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],
+               float64[:], float64[:], float64[:], float64[:], float64[:], int32[:], int32[:], float64[:])],
+             '(n),(m)' + ',()' * 13 + '->(n)', nopython=True)
+def _numba_dfun(state_variables, coupling, E0, E1, E2, F0, F1, F2, b, R, c, dstar, Ks, modification, N, derivative):
+    """Gufunction for the Epileptor Codim 3 model"""
+
+    x = state_variables[0]
+    y = state_variables[1]
+    z = state_variables[2]
+
+    # Computes the values of mu2,mu1 and nu given the great arc (E,F,R) and the value of the slow variable z
+    mu2 = R[0] * (E0[0] * numpy.cos(z) + F0[0] * numpy.sin(z))
+    mu1 = -R[0] * (E1[0] * numpy.cos(z) + F1[0] * numpy.sin(z))
+    nu = R[0] * (E2[0] * numpy.cos(z) + F2[0] * numpy.sin(z))
+
+    # Computes x_s, which is the solution to x_s^3 - mu2*x_s - mu1 = 0
+    if N[0] == 1:
+        xs = (mu1 / 2.0 + numpy.sqrt(
+            mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (1.0 / 3.0) + (mu1 / 2.0 - numpy.sqrt(
+            mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (1.0 / 3.0)
+    elif N[0] == 2:
+        xs = -1.0 / 2.0 * (1.0 - 1j * 3 ** (1.0 / 2.0)) * (mu1 / 2.0 + numpy.sqrt(
+            mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (1.0 / 3.0) - 1.0 / 2.0 * (
+            1.0 + 1j * 3 ** (1.0 / 2.0)) * (mu1 / 2.0 - numpy.sqrt(mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (
+            1.0 / 3.0)
+    elif N[0] == 3:
+        xs = -1.0 / 2.0 * (1.0 + 1j * 3 ** (1.0 / 2.0)) * (mu1 / 2.0 + numpy.sqrt(
+            mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (1.0 / 3.0) - 1.0 / 2.0 * (
+            1.0 - 1j * 3 ** (1.0 / 2.0)) * (mu1 / 2.0 - numpy.sqrt(mu1 ** 2 / 4.0 - mu2 ** 3 / 27.0 + 0 * 1j)) ** (
+            1.0 / 3.0)
+    xs = xs.real
+
+    derivative[0] = -y
+    derivative[1] = x ** 3 - mu2 * x - mu1 - y * (nu + b[0] * x + x ** 2)
+    derivative[2] = -c[0] * (numpy.sqrt((x - xs) ** 2 + y ** 2) - dstar[0] + modification[0] * 0.1 * (z - 0.5) ** 7 + Ks[0] * coupling[0])
 
 
 class EpileptorCodim3_slowmod(Model):
