@@ -38,40 +38,23 @@ Test for tvb.simulator.noise module
 if __name__ == "__main__":
     from tvb.tests.library import setup_test_console_env
     setup_test_console_env()
-    
-import unittest
 
 from tvb.tests.library.base_testcase import BaseTestCase
 from tvb.simulator import noise
 from tvb.datatypes import equations
 
-class NoiseTest(BaseTestCase):
+class TestNoise(BaseTestCase):
     def test_stream(self):
         noise_stream = noise.RandomStream()
-        self.assertEqual(noise_stream.init_seed, 42)
+        assert noise_stream.init_seed == 42
 
 
     def test_additive(self):
         noise_additive = noise.Additive()
-        self.assertEqual(noise_additive.ntau,  0.0)
+        assert noise_additive.ntau ==  0.0
         
         
     def test_multiplicative(self):
         noise_multiplicative = noise.Multiplicative()
-        self.assertEqual(noise_multiplicative.ntau,  0.0)
-        self.assertTrue(isinstance(noise_multiplicative.b, equations.Linear))
-    
-def suite():
-    """
-    Gather all the tests in a test suite.
-    """
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.makeSuite(NoiseTest))
-    return test_suite
-
-
-if __name__ == "__main__":
-    #So you can run tests from this package individually.
-    TEST_RUNNER = unittest.TextTestRunner()
-    TEST_SUITE = suite()
-    TEST_RUNNER.run(TEST_SUITE) 
+        assert noise_multiplicative.ntau ==  0.0
+        assert isinstance(noise_multiplicative.b, equations.Linear)

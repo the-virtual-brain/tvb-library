@@ -35,26 +35,24 @@ Created on Mar 20, 2013
 if __name__ == "__main__":
     from tvb.tests.library import setup_test_console_env
     setup_test_console_env()
-    
-import unittest
 
+from tvb.tests.library.base_testcase import BaseTestCase
 from tvb.datatypes import arrays
 from tvb.basic.traits.util import str_class_name
 from tvb.basic.traits.core import FILE_STORAGE_DEFAULT
-from tvb.tests.library.base_testcase import BaseTestCase
-        
-class CoreTest(BaseTestCase):
+
+class TestCore(BaseTestCase):
     
     def test_traits_default(self):
         """
         Tests for default values upon creation of a FloatArray traited class.
         """
         array_dt = arrays.FloatArray()
-        self.assertEqual(array_dt.trait.file_storage, FILE_STORAGE_DEFAULT)
-        self.assertEqual(array_dt.trait.order_number, 0)
-        self.assertEqual(array_dt.trait.required, True)
-        self.assertEqual(array_dt.trait.use_storage, True)
-        self.assertEqual(array_dt.trait.range_interval, None)
+        assert array_dt.trait.file_storage == FILE_STORAGE_DEFAULT
+        assert array_dt.trait.order_number == 0
+        assert array_dt.trait.required == True
+        assert array_dt.trait.use_storage == True
+        assert array_dt.trait.range_interval == None
      
      
     def test_traits_specific(self):
@@ -66,33 +64,17 @@ class CoreTest(BaseTestCase):
                                      required = False,
                                      use_storage = False,
                                      range = [1, 2, 3])
-        self.assertEqual(array_dt.trait.file_storage, 'txt')
-        self.assertEqual(array_dt.trait.order_number, 6)
-        self.assertEqual(array_dt.trait.required, False)
-        self.assertEqual(array_dt.trait.use_storage, False)
-        self.assertEqual(array_dt.trait.range_interval, [1, 2, 3]) 
+        assert array_dt.trait.file_storage == 'txt'
+        assert array_dt.trait.order_number == 6
+        assert array_dt.trait.required == False
+        assert array_dt.trait.use_storage == False
+        assert array_dt.trait.range_interval == [1, 2, 3]
     
     
     def test_str_class_name(self):
         """
         Tests method `tvb.basic.traits.util.str_class_name` works as expected with the FloatArray class
         """
-        self.assertEqual(str_class_name(arrays.FloatArray), 'tvb.datatypes.arrays.FloatArray')
-        self.assertEqual(str_class_name(arrays.FloatArray, True), 'FloatArray')
-        self.assertEqual(str_class_name(1), '1')
-    
-        
-def suite():
-    """
-    Gather all the tests in a test suite.
-    """
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.makeSuite(CoreTest))
-    return test_suite
-
-
-if __name__ == "__main__":
-    #So you can run tests from this package individually.
-    TEST_RUNNER = unittest.TextTestRunner()
-    TEST_SUITE = suite()
-    TEST_RUNNER.run(TEST_SUITE) 
+        assert str_class_name(arrays.FloatArray) == 'tvb.datatypes.arrays.FloatArray'
+        assert str_class_name(arrays.FloatArray, True) == 'FloatArray'
+        assert str_class_name(1) == '1'

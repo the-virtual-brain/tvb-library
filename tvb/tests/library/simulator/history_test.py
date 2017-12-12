@@ -40,7 +40,6 @@ if __name__ == "__main__":
     setup_test_console_env()
 
 import numpy
-import unittest
 import tvb.basic.traits.types_basic as basic
 from tvb.datatypes.connectivity import Connectivity
 from tvb.simulator.coupling import Coupling
@@ -75,7 +74,7 @@ class Sum(Model):
 
 
 
-class ExactPropagationTests(BaseTestCase):
+class TestsExactPropagation(BaseTestCase):
 
     def build_simulator(self, n=4):
 
@@ -117,22 +116,4 @@ class ExactPropagationTests(BaseTestCase):
                            [30., 10., 9., 1.],
                            [38., 13., 10., 1.],
                            [48., 17., 11., 1.]])
-        self.assertTrue(numpy.allclose(xs, xs_))
-
-
-
-def suite():
-    """
-    Gather all the tests in a test suite.
-    """
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.makeSuite(ExactPropagationTests))
-    return test_suite
-
-
-
-if __name__ == "__main__":
-    #So you can run tests from this package individually.
-    TEST_RUNNER = unittest.TextTestRunner()
-    TEST_SUITE = suite()
-    TEST_RUNNER.run(TEST_SUITE)
+        assert numpy.allclose(xs, xs_)

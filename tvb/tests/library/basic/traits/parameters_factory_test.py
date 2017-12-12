@@ -34,15 +34,14 @@
 if __name__ == "__main__":
     from tvb.tests.library import setup_test_console_env
     setup_test_console_env()
-    
-import unittest
+
 from tvb.datatypes import arrays
 from tvb.basic.traits.parameters_factory import get_traited_instance_for_name, get_traited_subclasses
 from tvb.basic.traits.types_mapped import Array
 from tvb.tests.library.base_testcase import BaseTestCase
 
 
-class ParametersFactoryTest(BaseTestCase):
+class TestParametersFactory(BaseTestCase):
     
     def test_traitedsubclassed(self):
         """
@@ -61,7 +60,7 @@ class ParametersFactoryTest(BaseTestCase):
                     'ComplexArray', 'Array', 'SparseMatrix']
         subclasses = get_traited_subclasses(Array)
         for key in expected:
-            self.assertTrue(key in subclasses)
+            assert key in subclasses
             
             
     def test_get_traited_instance(self):
@@ -69,21 +68,4 @@ class ParametersFactoryTest(BaseTestCase):
         Try to create an instance of a class using the traited method.
         """
         inst = get_traited_instance_for_name("StringArray", Array, {})
-        self.assertTrue(isinstance(inst, arrays.StringArray))
-
-
-
-def suite():
-    """
-    Gather all the tests in a test suite.
-    """
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.makeSuite(ParametersFactoryTest))
-    return test_suite
-
-
-if __name__ == "__main__":
-    #So you can run tests from this package individually.
-    TEST_RUNNER = unittest.TextTestRunner()
-    TEST_SUITE = suite()
-    TEST_RUNNER.run(TEST_SUITE) 
+        assert isinstance(inst, arrays.StringArray)
