@@ -58,6 +58,7 @@ import numpy
 from tvb.datatypes.time_series import (TimeSeries, TimeSeriesRegion,
     TimeSeriesEEG, TimeSeriesMEG, TimeSeriesSEEG, TimeSeriesSurface)
 from tvb.simulator.common import get_logger, simple_gen_astr
+from tvb.simulator import noise
 import tvb.datatypes.sensors as sensors_module
 from tvb.datatypes.sensors import SensorsMEG, SensorsInternal, SensorsEEG, Sensors
 import tvb.datatypes.arrays as arrays
@@ -91,6 +92,13 @@ class Monitor(core.Type):
         doc = """Sampling period in milliseconds, must be an integral multiple
         of integration-step size. As a guide: 2048 Hz => 0.48828125 ms ;  
         1024 Hz => 0.9765625 ms ; 512 Hz => 1.953125 ms.""")
+
+    noise = noise.Noise(
+        label = "Observation Noise",
+        default = noise.Additive,
+        required = True,
+        doc = """The monitor's noise source. It incorporates its
+        own instance of Numpy's RandomState.""")
 
     variables_of_interest = arrays.IntegerArray(
         label = "Model variables to watch", order=11,
@@ -134,8 +142,10 @@ class Monitor(core.Type):
         rather implement the `sample` method.
 
         """
-
-        return self.sample(step, observed)
+        sample = self.sample(step, observed)
+        if self.noise is not None
+            sample += self.noise.generate(shape=sample.shape)
+        return sample
 
     def sample(self, step, state):
         """
