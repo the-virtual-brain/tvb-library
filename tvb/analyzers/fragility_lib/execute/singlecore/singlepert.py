@@ -1,6 +1,6 @@
 import numpy as np 
-from fragility.linearmodels.base.basemodel import PerturbationModel
-from fragility.linearmodels.perturbationmodel import  MinNormPerturbModel
+from ...linearmodels.basemodel import PerturbationModel
+from ...linearmodels.perturbationmodel import  MinNormPerturbModel
 
 class SinglePert(PerturbationModel):
     '''
@@ -9,15 +9,11 @@ class SinglePert(PerturbationModel):
     @Input:
     - passes in a single instance of the Patient IEEG object
     '''
-    def __init__(self, winsizems=250, stepsizems=125, radius=1.5, perturbtype='C', samplerate=1000.):
+    def __init__(self, radius=1.5, perturbtype='C'):
         PerturbationModel.__init__(self, 
-                            winsizems=winsizems, 
-                            stepsizems=stepsizems, 
-                            radius=1.5, 
-                            perturbtype='C', 
-                            samplerate=samplerate)
-        self.pertmodel = MinNormPerturbModel(self.winsize, 
-                                        self.stepsize, 
+                            radius=radius, 
+                            perturbtype=perturbtype)
+        self.pertmodel = MinNormPerturbModel(
                                         self.radius, 
                                         self.perturbtype)
     def settempdir(self, tempdir):
@@ -50,14 +46,15 @@ class SinglePert(PerturbationModel):
 
     def runpert(self, adjmats):
         assert adjmats.ndim == 3
-        assert adjmat.shape[1] == adjmats.shape[2]
+        assert adjmats.shape[1] == adjmats.shape[2]
         # get shape of the adjmats
         numchans = adjmats.shape[1]
 
         pertmats = np.zeros((numchans, adjmats.shape[0]), dtype=np.float32)
         for iwin in range(adjmats.shape[0]):
+            adjmat = adjmats[iwin,:,:].squeeze()
             # perform perturbation model computation
             pertmat, delvecs = self.pertmodel.dcperturbation(adjmat)
 
-            pertmats[:,iwin] = pertmat
+            pertmats[:,iwin] = pertmat.ravel()
         return pertmats

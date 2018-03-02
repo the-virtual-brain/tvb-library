@@ -4,8 +4,8 @@
 
 # Imports necessary for this function 
 import numpy as np 
-from fragility.linearmodels.base.basemodel import BaseWindowModel
-from fragility.linearmodels.mvarmodel import MvarModel
+from ...linearmodels.basemodel import BaseWindowModel
+from ...linearmodels.mvarmodel import MvarModel
 
 # for multiprocessing on separate cpus
 import psutil

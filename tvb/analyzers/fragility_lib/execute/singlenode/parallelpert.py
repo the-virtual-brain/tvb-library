@@ -4,8 +4,8 @@
 
 # Imports necessary for this function 
 import numpy as np 
-from fragility.linearmodels.base.basemodel import PerturbationModel
-from fragility.linearmodels.perturbationmodel import MinNormPerturbModel
+from ...linearmodels.basemodel import PerturbationModel
+from ...linearmodels.perturbationmodel import MinNormPerturbModel
 
 # for multiprocessing on separate cpus
 import psutil
@@ -50,15 +50,11 @@ def pertjob(icore):
     return 1
 
 class ParallelPert(PerturbationModel):
-    def __init__(self, winsize=250, stepsize=125, radius=1.5, perturbtype='C', samplerate=1000., numcores=None):
+    def __init__(self, radius=1.5, perturbtype='C', samplerate=1000., numcores=None):
         PerturbationModel.__init__(self, 
-                            winsizems=winsize, 
-                            stepsizems=stepsize, 
                             radius=1.5, 
-                            perturbtype='C', 
-                            samplerate=samplerate)
-        self.pertmodel = MinNormPerturbModel(self.winsize, 
-                                        self.stepsize, 
+                            perturbtype='C')
+        self.pertmodel = MinNormPerturbModel(
                                         self.radius, 
                                         self.perturbtype)
         if numcores is None:

@@ -4,13 +4,10 @@ import sys
 from .basemodel import PerturbationModel
 
 class MinNormPerturbModel(PerturbationModel):
-    def __init__(self, winsizems=250, stepsizems=125, radius=1.5, perturbtype='C', samplerate=1000.):
+    def __init__(self, radius=1.5, perturbtype='C'):
         PerturbationModel.__init__(self, 
-                                winsizems=winsizems, 
-                                stepsizems=stepsizems, 
                                 radius=1.5, 
-                                perturbtype='C', 
-                                samplerate=samplerate)
+                                perturbtype='C')
 
     def _computeperturbation(self, A, w, pert_eig, ek):
         '''

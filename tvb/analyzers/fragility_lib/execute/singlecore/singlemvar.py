@@ -1,8 +1,9 @@
 import numpy as np 
 import sys
-sys.path.append('../../../')
-from fragility.linearmodels.basemodel import BaseWindowModel
-from fragility.linearmodels.mvarmodel import MvarModel
+import os
+sys.path.append('../../')
+from ...linearmodels.basemodel import BaseWindowModel
+from ...linearmodels.mvarmodel import MvarModel
 import warnings
 
 class SingleMvar(BaseWindowModel):
@@ -60,7 +61,7 @@ class SingleMvar(BaseWindowModel):
             self.compute_samplepoints(numsignals)
             self.winscomputed = True
 
-        adjmats = np.zeros((len(samplepoints, numchans, numchans)), dtype=np.float32)
+        adjmats = np.zeros((len(self.samplepoints), numchans, numchans), dtype=np.float32)
         for iwin in range(len(self.samplepoints)):
             # 1: fill matrix of all channels' next EEG data over window
             eegwin = raweeg[:, (self.samplepoints[iwin,0]):(self.samplepoints[iwin,1]+1)]

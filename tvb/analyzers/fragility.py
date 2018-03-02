@@ -1,32 +1,13 @@
 # -*- coding: utf-8 -*-
 #
 #
-#  TheVirtualBrain-Scientific Package. This package holds all simulators, and 
-# analysers necessary to run brain-simulations. You can use it stand alone or
-# in conjunction with TheVirtualBrain-Framework Package. See content of the
-# documentation-folder for more details. See also http://www.thevirtualbrain.org
-#
-# (c) 2012-2017, Baycrest Centre for Geriatric Care ("Baycrest") and others
-#
-# This program is free software: you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software Foundation,
-# either version 3 of the License, or (at your option) any later version.
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License along with this
-# program.  If not, see <http://www.gnu.org/licenses/>.
-#
+#  Fragility-Algorithm Package. 
 #
 #   CITATION:
-# When using The Virtual Brain for scientific publications, please cite it as follows:
+# When using for scientific publications, please cite it as follows:
 #
-#   Paula Sanz Leon, Stuart A. Knock, M. Marmaduke Woodman, Lia Domide,
-#   Jochen Mersmann, Anthony R. McIntosh, Viktor Jirsa (2013)
-#       The Virtual Brain: a simulator of primate brain network dynamics.
-#   Frontiers in Neuroinformatics (7:10. doi: 10.3389/fninf.2013.00010)
+#   <INCLUDE CITATION>
 #
-# 
 
 """
 Perform Fragility Analysis on a TimeSeries Object and returns an
@@ -41,7 +22,6 @@ import tvb.datatypes.time_series as time_series
 import tvb.datatypes.arrays as arrays
 import tvb.basic.traits.core as core
 import tvb.basic.traits.types_basic as basic
-import tvb.basic.traits.util as util
 from tvb.basic.logger.builder import get_logger
 
 from .fragility_lib.preprocess.filters import FilterLinearNoise
@@ -65,21 +45,21 @@ class mvarwindowed(core.Type):
     It uses a sliding window algorithm to estimate the mvar models
     """
 
-    timeseries = .TimeSeries(
+    timeseries = time_series.TimeSeries(
         label="Time Series",
         required=True,
         doc="The timeseries to which the fragility analysis is to be applied.")
 
     winsize = basic.Integer(
         label="Size of the windows to use in milliseconds.",
-        required=False,
+        required=True,
         default=250,
         doc="Size of the windows to use in milliseconds.")
 
     stepsize = basic.Integer(
         label="Size of the windows to use in milliseconds.",
-        required=False,
-        default=250,
+        required=True,
+        default=125,
         doc="Size of the windows to use in milliseconds.")
 
     samplerate = basic.Float(
@@ -92,15 +72,15 @@ class mvarwindowed(core.Type):
     parallelize = False
     numcores = psutil.cpu_count() / 2.
 
-    def evaluate(self):
-        rawdata = self.timeseries
+    def evaluate(self, linefreq=60):
+        rawdata = self.timeseries.data
 
         # first filter line noise
-        noisemodel = FilterLinearNoise(samplerate=samplerate)
-        rawdata = noisemodel.notchlinenoise(rawdata, freq=linefreq)
+        noisemodel = FilterLinearNoise(samplerate=self.samplerate)
+        rawdata = noisemodel.notchlinenoise(rawdata, linefreq=linefreq)
 
         # instantiate a mvarmodel object
-        if parallelize:
+        if self.parallelize:
             mvarmodel = ParallelMvar(self.winsize, self.stepsize, self.samplerate, numcores=numcores)
             
             # initialize model
@@ -111,7 +91,7 @@ class mvarwindowed(core.Type):
             mvarmodel = SingleMvar(self.winsize, self.stepsize, self.samplerate)
             adjmats = mvarmodel.runmvar(rawdata, normalize=True)
         self.adjmats = adjmats
-
+        return adjmats
 
     def result_shape(self):
         "Returns the resulting model."
@@ -146,18 +126,18 @@ class fragilitymodel(core.Type):
         # get dimensions of the pert matrix
         N, T = minnormpertmat.shape
         # assert N < T
-        fragilitymat = np.zeros((N, T))
+        fragilitymat = numpy.zeros((N, T))
         for icol in range(T):
-            fragilitymat[:,icol] = (np.max(minnormpertmat[:,icol]) - minnormpertmat[:,icol]) /\
-                                    np.max(minnormpertmat[:, icol])
+            fragilitymat[:,icol] = (numpy.max(minnormpertmat[:,icol]) - minnormpertmat[:,icol]) /\
+                                    numpy.max(minnormpertmat[:, icol])
         return fragilitymat
 
     def evaluate(self):
         adjmats = self.adjmats
         # instantiate a mvarmodel object
-        if parallelize:
+        if self.parallelize:
             # initialize model
-            pertmodel = ParallelPert(winsize=self.winsize, stepsize=self.stepsize, radius=1.5, perturbtype='C', samplerate=self.samplerate, numcores=numcores)
+            pertmodel = ParallelPert(radius=1.5, perturbtype='C', numcores=numcores)
             
             # create temp dir to save files
             tempdir = None
@@ -169,11 +149,12 @@ class fragilitymodel(core.Type):
             pertmats = mvarmodel.mergemvarresults()
         else:
             # run serial mvar model computationa
-            pertmodel = SinglePert(winsize=self.winsize, stepsize=self.stepsize, radius=1.5, perturbtype='C', samplerate=self.samplerate)
+            pertmodel = SinglePert(radius=1.5, perturbtype='C')
             pertmats = pertmodel.runpert(adjmats)
 
-        self.fragmats = self.fragilitymodel(pertmats)
+        self.fragmats = self._compute_fragilitymetric(pertmats)
         self.pertmats = pertmats
+        return self.fragmats
 
     def result_shape(self):
         "Returns the shape of the mixing matrix."

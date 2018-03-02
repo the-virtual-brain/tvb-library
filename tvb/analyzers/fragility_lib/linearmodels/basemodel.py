@@ -86,9 +86,8 @@ class BaseWindowModel(object):
         else:
             return samplepoints
 
-class PerturbationModel(BaseWindowModel):
-    def __init__(self, winsizems=250, stepsizems=125, radius=1.5, perturbtype='C', samplerate=1000.):
-        BaseWindowModel.__init__(self, winsizems=winsizems, stepsizems=stepsizems, samplerate=samplerate)
+class PerturbationModel(object):
+    def __init__(self, radius=1.5, perturbtype='C'):
         self.radius = radius
         self.perturbtype = perturbtype
 

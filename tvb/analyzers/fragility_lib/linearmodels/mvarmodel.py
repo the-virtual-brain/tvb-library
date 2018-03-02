@@ -69,10 +69,7 @@ class MvarModel(BaseWindowModel):
         numchans, numwinsamps = eegwin.shape
         
         # initialize H matrix as array filled with zeros
-        if numchans > 100:
-            H = np.zeros((numchans*(numwinsamps-1), numchans**2)) # N(T-1) x N^2
-        else:
-            H = dok_matrix((numchans*(numwinsamps-1), numchans**2))
+        H = dok_matrix((numchans*(numwinsamps-1), numchans**2))
         
         # 1: fill all columns in matrix H
         eegwin = eegwin.transpose()
@@ -87,12 +84,8 @@ class MvarModel(BaseWindowModel):
             # slice through H mat and build it
             H[np.ix_(rowinds, colinds)] = buff
         # 2: convert H mat into a sparse matrix to speed up computation
-        if numchans > 100:
-            H = csr_matrix(H)
-        else:
-            H = H.tocsr()
         # 3: compute sparse least squares
-        theta = linalg.lsqr(H, obvector)[0]
+        theta = linalg.lsqr(H.tocsr(), obvector)[0]
         return theta
 
 
