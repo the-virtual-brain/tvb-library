@@ -2,6 +2,9 @@ import numpy as np
 from ...linearmodels.basemodel import PerturbationModel
 from ...linearmodels.perturbationmodel import  MinNormPerturbModel
 
+from tvb.basic.logger.builder import get_logger
+LOG = get_logger(__name__)
+
 class SinglePert(PerturbationModel):
     '''
     These following functions are locally run on 1 CPU
@@ -57,4 +60,6 @@ class SinglePert(PerturbationModel):
             pertmat, delvecs = self.pertmodel.dcperturbation(adjmat)
 
             pertmats[:,iwin] = pertmat.ravel()
+
+            LOG.debug('Finished running %s window out of %s', (iwin, adjmats.shape[0]))
         return pertmats

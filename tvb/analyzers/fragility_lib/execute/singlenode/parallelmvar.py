@@ -21,6 +21,11 @@ import natsort
 import sys
 import warnings
 
+import tempfile
+
+from tvb.basic.logger.builder import get_logger
+LOG = get_logger(__name__)
+
 def _initmvar(raweeg, timepoints, mvarmodel, tempdir):
     global shared_raweeg
     global shared_timepoints
@@ -84,8 +89,13 @@ class ParallelMvar(BaseWindowModel):
         # initialize results queue to store all results
         # self.resultsqueue = mp.Queue()
 
-    def settempdir(self, tempdir):
+    def settempdir(self, tempdir=None):
         self.tempdir = tempdir
+
+        if tempdir is None:
+            # set temporary directory
+            self.tempdir = tempfile.TemporaryDirectory()
+        print('created temporary directory', self.tempdir)
 
     def runmvar(self, raweeg, listofwins=[]):
         # get number of channels and samples in the raw data

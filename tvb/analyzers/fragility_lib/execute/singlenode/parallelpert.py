@@ -18,6 +18,10 @@ import os
 import traceback
 import natsort
 import sys
+import tempfile
+
+from tvb.basic.logger.builder import get_logger
+LOG = get_logger(__name__)
 
 def _initpert(adjmats, pertmodel, tempdir):
     global shared_adjmats
@@ -50,7 +54,7 @@ def pertjob(icore):
     return 1
 
 class ParallelPert(PerturbationModel):
-    def __init__(self, radius=1.5, perturbtype='C', samplerate=1000., numcores=None):
+    def __init__(self, radius=1.5, perturbtype='C', numcores=None):
         PerturbationModel.__init__(self, 
                             radius=1.5, 
                             perturbtype='C')
@@ -62,9 +66,12 @@ class ParallelPert(PerturbationModel):
         else:
             self.numcores = numcores
 
-    def settempdir(self, tempdir):
+    def settempdir(self, tempdir=None):
         self.tempdir = tempdir
-
+        if tempdir is None:
+            # set temporary directory
+            self.tempdir = tempfile.TemporaryDirectory()
+        print('created temporary directory', self.tempdir)
     def runpert(self, adjmats, listofwins=[]):
         # get the dimensions of adjmats
         self.numwins, numchans, _ = adjmats.shape

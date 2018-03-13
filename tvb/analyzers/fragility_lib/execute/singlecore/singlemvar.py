@@ -6,6 +6,9 @@ from ...linearmodels.basemodel import BaseWindowModel
 from ...linearmodels.mvarmodel import MvarModel
 import warnings
 
+from tvb.basic.logger.builder import get_logger
+LOG = get_logger(__name__)
+
 class SingleMvar(BaseWindowModel):
     '''
     These following functions are locally run on 1 CPU
@@ -70,13 +73,10 @@ class SingleMvar(BaseWindowModel):
                 eegwin = (eegwin - np.mean(eegwin, axis=1)[:, np.newaxis]) / np.std(eegwin, axis=1)[:, np.newaxis]
             # 2. Compute the mvar-1 model
             adjmats[iwin,...] = self.mvarmodel.mvaradjacencymatrix(eegwin)
-        return adjmats
 
-    # def savesinglemodel(self, filename):
-    #     # save adjacency matrix
-    #     np.savez(os.path.join(self.tempdir,filename),
-    #              adjmat=self.adjmat, 
-    #              timepoints=self.timepoints)
+            LOG.debug('Finished running %s window out of %s', (iwin, len(self.samplepoints)))
+            
+        return adjmats
 
 if __name__ == '__main__':
     winsizems = 250
