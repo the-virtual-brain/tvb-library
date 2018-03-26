@@ -450,6 +450,16 @@ class Projection(Monitor):
         if hasattr(self, 'sensors'):
             self.sensors.configure()
 
+        # handle observation noise and configure white/coloured noise
+        # pass in access to the: i) dt and ii) sample shape
+        if self.obsnoise is not None:
+            # configure the noise level
+            if self.obsnoise.ntau > 0.0:
+                noiseshape = self.sensors.labels[:,numpy.newaxis].shape
+                self.obsnoise.configure_coloured(dt=self.dt, shape=noiseshape)
+            else:
+                self.obsnoise.configure_white(dt=self.dt)
+
         # handle region vs simulation, analytic vs numerical proj, cortical vs subcortical.
         # setup convenient locals
         surf = simulator.surface
@@ -522,18 +532,8 @@ class Projection(Monitor):
             time = (step - self._period_in_steps / 2.0) * self.dt
             sample = self._state.copy() / self._period_in_steps
 
-            # By: Adam Li - Needs to Be Checked
             # add observation noise if available
-            '''
-            1. Should dt be the same as in the source level?
-            2. how should shape be set here for colored noise?
-            '''
             if self.obsnoise is not None:
-                # configure the noise level
-                if self.obsnoise.ntau > 0.0:
-                    self.obsnoise.configure_coloured(self.dt, sample.shape)
-                else:
-                    self.obsnoise.configure_white(self.dt)
                 sample += self.obsnoise.generate(shape=sample.shape)
 
             self._state[:] = 0.0
