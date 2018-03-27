@@ -58,7 +58,6 @@ import numpy
 from tvb.datatypes.time_series import (TimeSeries, TimeSeriesRegion,
     TimeSeriesEEG, TimeSeriesMEG, TimeSeriesSEEG, TimeSeriesSurface)
 from tvb.simulator.common import get_logger, simple_gen_astr
-from tvb.simulator import noise
 import tvb.datatypes.sensors as sensors_module
 from tvb.datatypes.sensors import SensorsMEG, SensorsInternal, SensorsEEG, Sensors
 import tvb.datatypes.arrays as arrays
@@ -135,6 +134,7 @@ class Monitor(core.Type):
         rather implement the `sample` method.
 
         """
+
         return self.sample(step, observed)
 
     def sample(self, step, state):
@@ -395,13 +395,6 @@ class Projection(Monitor):
             " connectivity. For iEEG/EEG/MEG monitors, this must be specified when performing a region"
             " simulation but is optional for a surface simulation.")
 
-    obsnoise = noise.Noise(
-        label = "Observation Noise",
-        default = noise.Additive,
-        required = False,
-        doc = """The monitor's noise source. It incorporates its
-        own instance of Numpy's RandomState.""")
-
     @staticmethod
     def oriented_gain(gain, orient):
         "Apply orientations to gain matrix."
@@ -521,21 +514,6 @@ class Projection(Monitor):
         if step % self._period_in_steps == 0:
             time = (step - self._period_in_steps / 2.0) * self.dt
             sample = self._state.copy() / self._period_in_steps
-
-            # By: Adam Li - Needs to Be Checked
-            # add observation noise if available
-            '''
-            1. Should dt be the same as in the source level?
-            2. how should shape be set here for colored noise?
-            '''
-            if self.obsnoise is not None:
-                # configure the noise level
-                if self.obsnoise.ntau > 0.0:
-                    self.obsnoise.configure_coloured(self.dt, sample.shape)
-                else:
-                    self.obsnoise.configure_white(self.dt)
-                sample += self.obsnoise.generate(shape=sample.shape)
-
             self._state[:] = 0.0
             return time, sample.T[..., numpy.newaxis] # for compatibility
 
