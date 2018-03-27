@@ -1,5 +1,6 @@
-import numpy as np 
+import numpy as np
 import colorednoise as cn
+
 
 def fftnoise(f):
     '''
@@ -9,7 +10,7 @@ def fftnoise(f):
     - f         (np.ndarray) an array of frequencies
 
     @output:
-    the inverse fft to get the new signal with phase shifts 
+    the inverse fft to get the new signal with phase shifts
     '''
     f = np.array(f, dtype='complex')
     Np = (len(f) - 1) // 2
@@ -19,9 +20,10 @@ def fftnoise(f):
     phases = np.cos(phases) + 1j * np.sin(phases)
 
     # multiply by phases
-    f[1:Np+1] *= phases
-    f[-1:-1-Np:-1] = np.conj(f[1:Np+1])
+    f[1:Np + 1] *= phases
+    f[-1:-1 - Np:-1] = np.conj(f[1:Np + 1])
     return np.fft.ifft(f).real
+
 
 def band_limited_noise(min_freq, max_freq, samples, samplerate):
     '''
@@ -32,11 +34,12 @@ def band_limited_noise(min_freq, max_freq, samples, samplerate):
     @output:
     the noise at frequencies between min_freq and max_freq
     '''
-    freqs = np.abs(np.fft.fftfreq(samples, 1/samplerate))
+    freqs = np.abs(np.fft.fftfreq(samples, 1 / samplerate))
     f = np.zeros(samples)
-    idx = np.where(np.logical_and(freqs>=min_freq, freqs<=max_freq))[0]
+    idx = np.where(np.logical_and(freqs >= min_freq, freqs <= max_freq))[0]
     f[idx] = 1
     return fftnoise(f)
+
 
 class Noise(object):
     def __init__(self):
@@ -44,24 +47,28 @@ class Noise(object):
 
     @staticmethod
     def addcolorednoise(data, beta=2):
-        samples = data.shape[1] # number of samples to generate
+        samples = data.shape[1]  # number of samples to generate
         for ind in range(data.shape[0]):
             y = cn.powerlaw_psd_gaussian(beta, samples)
-            data[ind,:] += y
+            data[ind, :] += y
         return data
-
     ''' Abstract methods for all noise objects to implement '''
+
     def configure(self):
-        raise NotImplementedError('Noise object does not have configure method.')
+        raise NotImplementedError(
+            'Noise object does not have configure method.')
 
     def generate(self):
-        raise NotImplementedError('Noise object does not have generate method.')
+        raise NotImplementedError(
+            'Noise object does not have generate method.')
 
     def _summary(self):
         pass
 
+
 class LineNoise(Noise):
-    def __init__(self, linefreq=60, bandwidth=4, numharmonics=3, samplerate=1000.):
+    def __init__(self, linefreq=60, bandwidth=4,
+                 numharmonics=3, samplerate=1000.):
         self.linefreq = linefreq
         self.bandwidth = bandwidth
         self.numharmonics = numharmonics
@@ -73,7 +80,7 @@ class LineNoise(Noise):
     def generate(self, numsamps, perturbfreq=True):
         '''
         Generates noise for a vector and adds to it
-        
+
         @params:
         - numsamps      (int) the number of samples to generate
         '''
@@ -93,14 +100,15 @@ class LineNoise(Noise):
 
             # generate a random perturbation on the frequency band noise
             if perturbfreq:
-                randpert = np.random.normal(1,0.01)
+                randpert = np.random.normal(1, 0.01)
             else:
                 randpert = 1.
-            x_noise += band_limited_noise(lowfreq*randpert, highfreq*randpert, samples=numsamps, samplerate=samplerate)
+            x_noise += band_limited_noise(lowfreq *
+                                          randpert, highfreq *
+                                          randpert, samples=numsamps, samplerate=samplerate)
             scaled_noise = np.float16(x_noise * multfactor)
 
         return scaled_noise
-        
+
     def _summary(self):
         pass
-

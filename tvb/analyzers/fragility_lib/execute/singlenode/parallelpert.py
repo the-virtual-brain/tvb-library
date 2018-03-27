@@ -2,16 +2,13 @@
 # Authors: Adam Li
 # Edited by: Adam Li
 
-# Imports necessary for this function 
-import numpy as np 
+# Imports necessary for this function
+import numpy as np
 from ...linearmodels.basemodel import PerturbationModel
 from ...linearmodels.perturbationmodel import MinNormPerturbModel
 
 # for multiprocessing on separate cpus
-import psutil
 import multiprocessing as mp
-
-from contextlib import closing
 
 # utility libraries
 import os
@@ -23,46 +20,49 @@ import tempfile
 from tvb.basic.logger.builder import get_logger
 LOG = get_logger(__name__)
 
+
 def _initpert(adjmats, pertmodel, tempdir):
     global shared_adjmats
     global shared_pertmodel
     global shared_tempdir
 
     shared_adjmats = adjmats
-    shared_pertmodel = pertmodel  
-    shared_tempdir = tempdir     
+    shared_pertmodel = pertmodel
+    shared_tempdir = tempdir
+
 
 def pertjob(icore):
     winstoanalyze = processlist[icore]
     for win in winstoanalyze:
         # get specific A matrix in this window
         A = np.squeeze(shared_adjmats[win, :, :])
-        
+
         evals = np.abs(np.linalg.eigvals(A))
-        newradius = np.max(evals) *1.5
+        newradius = np.max(evals) * 1.5
         # perform perturbation model computation
         # minperturbnorm, delvecs_list, delfreqs_list = shared_pertmodel.minnormperturbation(A, searchnum=shared_searchnum)
         # return minperturbnorm, delvecs_list, delfreqs_list
         pertmat, delvecs = shared_pertmodel.dcperturbation(A, radius=newradius)
-    
-        tempfilename = os.path.join(shared_tempdir, 'temp_'+str(win)+'.npz')
+
+        tempfilename = os.path.join(shared_tempdir, 'temp_{0}.npz'.format(win))
         try:
             np.savez(tempfilename, pertmat=pertmat, delvecs=delvecs)
-        except:
+        except BaseException:
             sys.stdout.write(traceback.format_exc())
-            return 0   
+            return 0
     return 1
+
 
 class ParallelPert(PerturbationModel):
     def __init__(self, radius=1.5, perturbtype='C', numcores=None):
-        PerturbationModel.__init__(self, 
-                            radius=1.5, 
-                            perturbtype='C')
+        super(ParallelPert, self).__init__(self,
+                                           radius=1.5,
+                                           perturbtype='C')
         self.pertmodel = MinNormPerturbModel(
-                                        self.radius, 
-                                        self.perturbtype)
+            self.radius,
+            self.perturbtype)
         if numcores is None:
-            self.numcores = psutil.cpu_count() - 1 
+            self.numcores = mp.cpu_count() - 1
         else:
             self.numcores = numcores
 
@@ -71,7 +71,8 @@ class ParallelPert(PerturbationModel):
         if tempdir is None:
             # set temporary directory
             self.tempdir = tempfile.TemporaryDirectory()
-        print('created temporary directory', self.tempdir)
+        LOG.debug('created temporary directory %s', self.tempdir)
+
     def runpert(self, adjmats, listofwins=[]):
         # get the dimensions of adjmats
         self.numwins, numchans, _ = adjmats.shape
@@ -82,12 +83,12 @@ class ParallelPert(PerturbationModel):
         global shared_tempdir
 
         shared_adjmats = adjmats
-        shared_pertmodel = self.pertmodel       
+        shared_pertmodel = self.pertmodel
         shared_tempdir = self.tempdir
 
         # compute on different partitions at a time
-        percentsplit = np.array_split(np.arange(0, self.numwins), 
-                                    np.ceil(self.numwins / 1000.))
+        percentsplit = np.array_split(np.arange(0, self.numwins),
+                                      np.ceil(self.numwins / 1000.))
         for isplit in range(0, len(percentsplit)):
             processlist = np.array_split(percentsplit[isplit], self.numcores)
 
@@ -100,24 +101,24 @@ class ParallelPert(PerturbationModel):
             for p in processes:
                 p.join()
 
-        # create a multiprocessing pool with initializers to share memory arrays raweeg and timepoints
-        # with closing(mp.Pool(initializer=_initpert, initargs=(adjmats, self.searchnum, self.tempdir))) as p:
-        #     perturb_results = p.map_async(pertjob, range(0, self.numwins))
-        # p.join()
-        sys.stdout.write('Finished pert model computation for ' + str(self.numwins) + ' windows.')
+        LOG.debug(
+            'Finished pert model computation for %d windows.',
+            self.numwins)
         return 1
+
     def mergepertresults(self):
         tempfiles = natsort.natsort.natsorted(os.listdir(self.tempdir))
 
         # Loop through all temp files and merge them together
         for idx, tempfile in enumerate(tempfiles):
             tempdata = np.load(os.path.join(self.tempdir, tempfile))
-            if idx==0:
+            if idx == 0:
                 pertmat = tempdata['pertmat']
                 numchans = pertmat.shape[0]
 
                 pertmats = np.zeros((numchans, self.numwins))
-                delvecs_array = np.zeros((self.numwins, numchans, numchans), dtype='complex')
+                delvecs_array = np.zeros(
+                    (self.numwins, numchans, numchans), dtype='complex')
             else:
                 pertmats[:, idx] = tempdata['pertmat'].ravel()
                 delvecs_array[idx, :, :] = tempdata['delvecs']

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 #
-#  Fragility-Algorithm Package. 
+#  Fragility-Algorithm Package.
 #
 #   CITATION:
 # When using for scientific publications, please cite it as follows:
@@ -30,9 +30,10 @@ from .fragility_lib.execute.singlecore.singlepert import SinglePert
 from .fragility_lib.execute.singlenode.parallelmvar import ParallelMvar
 from .fragility_lib.execute.singlenode.parallelpert import ParallelPert
 
-import psutil
+import multiprocessing as mp
 
 LOG = get_logger(__name__)
+
 
 class mvarwindowed(core.Type):
     """
@@ -81,30 +82,50 @@ class mvarwindowed(core.Type):
 
         # instantiate a mvarmodel object
         if self.parallelize:
-            mvarmodel = ParallelMvar(self.winsize, self.stepsize, self.samplerate, numcores=numcores)
-            
+            mvarmodel = ParallelMvar(
+                self.winsize,
+                self.stepsize,
+                self.samplerate,
+                numcores=numcores)
+
+            # create temp dir to save files
+            tempdir = None
+            pertmodel.settempdir(tempdir)
+
+            # make sure that the model's tempdir is set
+            assert mvarmodel.tempdir is str
+
             # initialize model
             mvarmodel.runmvar(rawdata)
             adjmats = mvarmodel.mergemvarresults()
         else:
             # run serial mvar model computationa
-            mvarmodel = SingleMvar(self.winsize, self.stepsize, self.samplerate)
+            mvarmodel = SingleMvar(
+                self.winsize, self.stepsize, self.samplerate)
             adjmats = mvarmodel.runmvar(rawdata, normalize=True)
         self.adjmats = adjmats
         return adjmats
 
     def result_shape(self):
         "Returns the resulting model."
-        n = self.adjmats.shape 
+        n = self.adjmats.shape
         return n
+
     def result_size(self):
         "Returns the storage size in bytes of the mixing matrix of the ICA analysis, assuming 64-bit float."
         return numpy.prod(self.result_shape()) * 8
+
     def _find_summary_info(self):
         """
         To be implemented in every subclass.
         """
-        return None
+        return {
+            "ts_shape": self.timeseries.shape,
+            "winsize": self.winsize,
+            "stepsize": self.stepsize,
+            "samplerate": self.samplerate
+        }
+
 
 class fragilitymodel(core.Type):
     adjmats = arrays.FloatArray(
@@ -120,16 +141,20 @@ class fragilitymodel(core.Type):
 
     # whether or not to use multiprocessing
     parallelize = False
-    numcores = psutil.cpu_count() / 2.
+    numcores = mp.cpu_count() / 2.
 
     def _compute_fragilitymetric(self, minnormpertmat):
         # get dimensions of the pert matrix
         N, T = minnormpertmat.shape
-        # assert N < T
+        if N > T:
+            LOG.debug(
+                'Channel dim should generally be less then time. Double check input matrix shape!')
         fragilitymat = numpy.zeros((N, T))
+
+        # compute the fragility metric for each time window
         for icol in range(T):
-            fragilitymat[:,icol] = (numpy.max(minnormpertmat[:,icol]) - minnormpertmat[:,icol]) /\
-                                    numpy.max(minnormpertmat[:, icol])
+            fragilitymat[:, icol] = (numpy.max(minnormpertmat[:, icol]) - minnormpertmat[:, icol]) /\
+                numpy.max(minnormpertmat[:, icol])
         return fragilitymat
 
     def evaluate(self):
@@ -137,12 +162,14 @@ class fragilitymodel(core.Type):
         # instantiate a mvarmodel object
         if self.parallelize:
             # initialize model
-            pertmodel = ParallelPert(radius=1.5, perturbtype='C', numcores=numcores)
-            
+            pertmodel = ParallelPert(
+                radius=1.5, perturbtype='C', numcores=numcores)
+
             # create temp dir to save files
             tempdir = None
-            assert tempdir is str
             pertmodel.settempdir(tempdir)
+            # make sure that the model's tempdir is set
+            assert pertmodel.tempdir is str
 
             # run parallel scheme
             pertmodel.runpert(adjmats)
@@ -159,7 +186,7 @@ class fragilitymodel(core.Type):
     def result_shape(self):
         "Returns the shape of the mixing matrix."
         return self.pertmats.shape
-    
+
     def result_size(self):
         "Returns the storage size in bytes of the mixing matrix of the ICA analysis, assuming 64-bit float."
         return numpy.prod(self.result_shape()) * 8
@@ -168,5 +195,7 @@ class fragilitymodel(core.Type):
         """
         To be implemented in every subclass.
         """
-        return None
-
+        return {
+            "adjmats_shape": self.adjmats.shape,
+            "radius": self.radius
+        }

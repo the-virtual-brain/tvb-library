@@ -2,16 +2,13 @@
 # Authors: Adam Li
 # Edited by: Adam Li
 
-# Imports necessary for this function 
-import numpy as np 
+# Imports necessary for this function
+import numpy as np
 from ...linearmodels.basemodel import BaseWindowModel
 from ...linearmodels.mvarmodel import MvarModel
 
 # for multiprocessing on separate cpus
-import psutil
 import multiprocessing as mp
-
-import functools
 from contextlib import closing
 
 # utility libraries
@@ -20,11 +17,11 @@ import traceback
 import natsort
 import sys
 import warnings
-
 import tempfile
 
 from tvb.basic.logger.builder import get_logger
 LOG = get_logger(__name__)
+
 
 def _initmvar(raweeg, timepoints, mvarmodel, tempdir):
     global shared_raweeg
@@ -34,54 +31,60 @@ def _initmvar(raweeg, timepoints, mvarmodel, tempdir):
 
     shared_timepoints = timepoints
     shared_raweeg = raweeg
-    shared_mvarmodel = mvarmodel        
+    shared_mvarmodel = mvarmodel
     shared_tempdir = tempdir
+
 
 def mvarjob(icore):
     winstoanalyze = processlist[icore]
     for win in winstoanalyze:
         # 1: fill matrix of all channels' next EEG data over window
-        eegwin = shared_raweeg[:, (shared_timepoints[win,0]) : (shared_timepoints[win,1]+1)]
+        eegwin = shared_raweeg[:, (shared_timepoints[win, 0]): (
+            shared_timepoints[win, 1] + 1)]
 
         # 2: call the function to create the mvar model
         adjmat = shared_mvarmodel.mvaradjacencymatrix(eegwin)
-        
-        tempfilename = os.path.join(shared_tempdir, 'temp_'+str(win)+'.npz')
+
+        tempfilename = os.path.join(shared_tempdir, 'temp_{0}.npz'.format(win))
         try:
             np.savez_compressed(tempfilename, adjmat=adjmat)
-        except:
+        except BaseException:
             sys.stdout.write(traceback.format_exc())
             return 0
         # print("finished mvar job at ", win)
         # sys.stdout.flush()
     return 1
 
+
 def mvarjobwin(win):
     # 1: fill matrix of all channels' next EEG data over window
-    eegwin = shared_raweeg[:, (shared_timepoints[win,0]) : (shared_timepoints[win,1]+1)]
+    eegwin = shared_raweeg[:, (shared_timepoints[win, 0]): (
+        shared_timepoints[win, 1] + 1)]
     # normalize eeg
     # eegwin = _normalizets(eegwin)
     # eegwin = (eegwin - np.mean(eegwin, axis=1)[:, np.newaxis]) / np.std(eegwin, axis=1)[:, np.newaxis]
 
     # 2: call the function to create the mvar model
     adjmat = shared_mvarmodel.mvaradjacencymatrix(eegwin)
-        
-    tempfilename = os.path.join(shared_tempdir, 'temp_'+str(win)+'.npz')
+
+    tempfilename = os.path.join(shared_tempdir, 'temp_{0}.npz'.format(win))
     try:
         np.savez_compressed(tempfilename, adjmat=adjmat)
-    except:
+    except BaseException:
         sys.stdout.write(traceback.format_exc())
         return 0
     return 1
 
+
 class ParallelMvar(BaseWindowModel):
-    def __init__(self, winsizems=250, stepsizems=125, samplerate=1000,numcores=None):
-        BaseWindowModel.__init__(self, 
-                                winsizems=winsizems, 
-                                stepsizems=stepsizems, 
-                                samplerate=samplerate)
+    def __init__(self, winsizems=250, stepsizems=125,
+                 samplerate=1000, numcores=None):
+        super(ParallelMvar, self).__init__(self,
+                                           winsizems=winsizems,
+                                           stepsizems=stepsizems,
+                                           samplerate=samplerate)
         if numcores is None:
-            self.numcores = psutil.cpu_count() - 1 
+            self.numcores = mp.cpu_count() - 1
         else:
             self.numcores = numcores
         # instantiate the mvar model
@@ -95,39 +98,42 @@ class ParallelMvar(BaseWindowModel):
         if tempdir is None:
             # set temporary directory
             self.tempdir = tempfile.TemporaryDirectory()
-        print('created temporary directory', self.tempdir)
+        LOG.debug('created temporary directory %s', self.tempdir)
 
     def runmvar(self, raweeg, listofwins=[]):
         # get number of channels and samples in the raw data
-        numchans, numsignals  = raweeg.shape
+        numchans, numsignals = raweeg.shape
         if numchans >= 200:
-            warnings.warn("Whoa 200 channels to analyze? Could be too much to compute rn.")
+            warnings.warn(
+                "Whoa 200 channels to analyze? Could be too much to compute rn.")
 
         # compute time and sample windows array
         samplepoints = self.compute_samplepoints(numsignals, copy=False)
         self.numwins = samplepoints.shape[0]
 
         # Run multiprocessing pool over indices
-        with closing(mp.Pool(initializer=_initmvar, 
-                initargs=(raweeg, samplepoints, self.mvarmodel, self.tempdir))) as p:
+        with closing(mp.Pool(initializer=_initmvar,
+                             initargs=(raweeg, samplepoints, self.mvarmodel, self.tempdir))) as p:
             mvarresults = p.map(mvarjobwin, range(0, self.numwins))
         p.join()
-        # mvarresults = [1]
-        sys.stdout.write('Finished mvar model computation for ' +\
-                        str(self.numwins) + ' windows.')
+
+        LOG.debug(
+            'Finished mvar model computation for %d windows.',
+            self.numwins)
         return 1
 
     def mergemvarresults(self):
         tempfiles = natsort.natsort.natsorted(os.listdir(self.tempdir))
 
         if self.numwins != len(tempfiles):
-           raise Exception('MVAR Model did not finish running for all necessary windows!')
-           return 0
+            raise Exception(
+                'MVAR Model did not finish running for all necessary windows!')
+            return 0
 
         # Loop through all temp files and merge them together
         for idx, tempfile in enumerate(tempfiles):
             tempdata = np.load(os.path.join(self.tempdir, tempfile))
-            if idx==0:
+            if idx == 0:
                 adjmat = tempdata['adjmat']
                 numchans = adjmat.shape[0]
                 adjmats = np.zeros((self.numwins, numchans, numchans))

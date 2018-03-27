@@ -1,9 +1,10 @@
-import numpy as np 
+import numpy as np
 from ...linearmodels.basemodel import PerturbationModel
-from ...linearmodels.perturbationmodel import  MinNormPerturbModel
+from ...linearmodels.perturbationmodel import MinNormPerturbModel
 
 from tvb.basic.logger.builder import get_logger
 LOG = get_logger(__name__)
+
 
 class SinglePert(PerturbationModel):
     '''
@@ -12,13 +13,15 @@ class SinglePert(PerturbationModel):
     @Input:
     - passes in a single instance of the Patient IEEG object
     '''
+
     def __init__(self, radius=1.5, perturbtype='C'):
-        PerturbationModel.__init__(self, 
-                            radius=radius, 
-                            perturbtype=perturbtype)
+        super(SinglePert, self).__init__(self,
+                                         radius=radius,
+                                         perturbtype=perturbtype)
         self.pertmodel = MinNormPerturbModel(
-                                        self.radius, 
-                                        self.perturbtype)
+            self.radius,
+            self.perturbtype)
+
     def settempdir(self, tempdir):
         self.tempdir = tempdir
 
@@ -35,7 +38,8 @@ class SinglePert(PerturbationModel):
         # perform perturbation model computation
         if not fast:
             self.pertmat, self.delvecs, self.delfreqs = \
-                    self.pertmodel.gridsearchperturbation(adjmat, searchnum=searchnum)
+                self.pertmodel.gridsearchperturbation(
+                    adjmat, searchnum=searchnum)
             # save the corresponding arrays
             perturbation_dict['pertmat'] = self.pertmat
             perturbation_dict['delvecs'] = self.delvecs
@@ -55,11 +59,12 @@ class SinglePert(PerturbationModel):
 
         pertmats = np.zeros((numchans, adjmats.shape[0]), dtype=np.float32)
         for iwin in range(adjmats.shape[0]):
-            adjmat = adjmats[iwin,:,:].squeeze()
+            adjmat = adjmats[iwin, :, :].squeeze()
             # perform perturbation model computation
             pertmat, delvecs = self.pertmodel.dcperturbation(adjmat)
 
-            pertmats[:,iwin] = pertmat.ravel()
+            pertmats[:, iwin] = pertmat.ravel()
 
-            LOG.debug('Finished running %s window out of %s', (iwin, adjmats.shape[0]))
+            LOG.debug('Finished running %s window out of %s',
+                      (iwin, adjmats.shape[0]))
         return pertmats
