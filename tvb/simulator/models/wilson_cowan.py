@@ -338,7 +338,7 @@ class WilsonCowan(Model):
     _nvar = 2
     cvar = numpy.array([0, 1], dtype=numpy.int32)
 
-    def dfun(self, state_variables, coupling, local_coupling=0.0):
+    def dfun(self, state_variables, coupling, local_coupling=0.0,translate_sigmoide=True):
         r"""
 
         .. math::
@@ -361,8 +361,12 @@ class WilsonCowan(Model):
         x_e = self.alpha_e * (self.c_ee * E - self.c_ei * I + self.P  - self.theta_e +  c_0 + lc_0 + lc_1)
         x_i = self.alpha_i * (self.c_ie * E - self.c_ii * I + self.Q  - self.theta_i + lc_0 + lc_1)
 
-        s_e = self.c_e * (1.0 / (1.0 + numpy.exp(-self.a_e * (x_e - self.b_e))) - 1.0 / (1.0 + numpy.exp(-self.a_e * -self.b_e)))
-        s_i = self.c_i * (1.0 / (1.0 + numpy.exp(-self.a_i * (x_i - self.b_i))) - 1.0 / (1.0 + numpy.exp(-self.a_i * -self.b_i)))
+        if translate_sigmoide:
+            s_e = self.c_e * (1.0 / (1.0 + numpy.exp(-self.a_e * (x_e - self.b_e))) - 1.0 / (1.0 + numpy.exp(-self.a_e * -self.b_e)))
+            s_i = self.c_i * (1.0 / (1.0 + numpy.exp(-self.a_i * (x_i - self.b_i))) - 1.0 / (1.0 + numpy.exp(-self.a_i * -self.b_i)))
+        else:
+            s_e = self.c_e / (1.0 + numpy.exp(-self.a_e * (x_e - self.b_e)))
+            s_i = self.c_i / (1.0 + numpy.exp(-self.a_i * (x_i - self.b_i)))
 
         derivative[0] = (-E + (self.k_e - self.r_e * E) * s_e) / self.tau_e
         derivative[1] = (-I + (self.k_i - self.r_i * I) * s_i) / self.tau_i
