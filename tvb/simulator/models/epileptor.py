@@ -34,8 +34,8 @@ Hindmarsh-Rose-Jirsa Epileptor model.
 from .base import ModelNumbaDfun, LOG, numpy, basic, arrays
 from numba import guvectorize, float64
 
-@guvectorize([(float64[:],) * 20], '(n),(m)' + ',()'*17 + '->(n)', nopython=True)
-def _numba_dfun(y, c_pop, x0, Iext, Iext2, a, b, slope, tt, Kvf, c, d, r, Ks, Kf, aa, bb, tau, modification, ydot):
+@guvectorize([(float64[:],) * 20], '(n),(m)' + ',()'*18 + '->(n)', nopython=True)
+def _numba_dfun(y, c_pop, x0, Iext, Iext2, a, b, slope, tt, Kvf, c, d, r, Ks, Kf, aa, bb, tau, modification, eps, ydot):
     "Gufunc for Hindmarsh-Rose-Jirsa Epileptor model equations."
 
     c_pop1 = c_pop[0]
@@ -45,7 +45,7 @@ def _numba_dfun(y, c_pop, x0, Iext, Iext2, a, b, slope, tt, Kvf, c, d, r, Ks, Kf
     if y[0] < 0.0:
         ydot[0] = - a[0] * y[0] ** 2 + b[0] * y[0]
     else:
-        ydot[0] = slope[0] - y[3] + 0.6 * (y[2] - 4.0) ** 2
+        ydot[0] = slope[0] - (y[3] + eps[0]) + 0.6 * (y[2] - 4.0) ** 2
     ydot[0] = tt[0] * (y[1] - y[2] + Iext[0] + Kvf[0] * c_pop1 + ydot[0] * y[0])
     ydot[1] = tt[0] * (c[0] - d[0] * y[0] ** 2 - y[1])
 
@@ -267,6 +267,13 @@ class Epileptor(ModelNumbaDfun):
         doc="Permittivity coupling, that is from the fast time scale toward the slow time scale",
         order=8)
 
+    eps = arrays.FloatArray(
+        label="eps",
+        default=numpy.array([1.0]),
+        range=basic.Range(lo=0.001, hi=10.0, step=0.001),
+        doc="bla bla",
+        order=9)
+
     tt = arrays.FloatArray(
         label="tt",
         default=numpy.array([1.0]),
@@ -358,7 +365,7 @@ class Epileptor(ModelNumbaDfun):
 
         # population 1
         if_ydot0 = - self.a * y[0] ** 2 + self.b * y[0]
-        else_ydot0 = self.slope - y[3] + 0.6 * (y[2] - 4.0) ** 2
+        else_ydot0 = self.slope - (y[3] - self.eps) + 0.6 * (y[2] - 4.0) ** 2
         ydot[0] = self.tt * (y[1] - y[2] + Iext + self.Kvf * c_pop1 + where(y[0] < 0., if_ydot0, else_ydot0) * y[0])
         ydot[1] = self.tt * (self.c - self.d * y[0] ** 2 - y[1])
 
@@ -388,7 +395,8 @@ class Epileptor(ModelNumbaDfun):
         Iext = self.Iext + local_coupling * x[0, :, 0]
         deriv = _numba_dfun(x_, c_,
                          self.x0, Iext, self.Iext2, self.a, self.b, self.slope, self.tt, self.Kvf,
-                         self.c, self.d, self.r, self.Ks, self.Kf, self.aa, self.bb, self.tau, self.modification)
+                         self.c, self.d, self.r, self.Ks, self.Kf, self.aa, self.bb, self.tau, self.modification,
+                         self.eps)
         return deriv.T[..., numpy.newaxis]
 
 
