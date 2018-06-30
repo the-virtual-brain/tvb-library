@@ -1,0 +1,2 @@
+Test-Command: pytest --pyargs tvb.tests.library
+Depends: pytest
