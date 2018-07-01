@@ -1,0 +1,32 @@
+Source: tvb-library
+Maintainer: umar haruna abdullahi <umarbrowser20@gmail.com>
+Section: python
+Priority: optional
+Build-Depends: debhelper (>=11),
+               dh-python,
+               python-all,
+               python-setuptools,
+               python-networkx,
+               python-numpy,
+               python-numba,
+               python-numexpr,
+               python-matplotlib,
+               python-sklearn,
+               python-scipy,
+               tvb-gdist,
+               tvb-data
+Standards-Version: 4.1.4
+Vcs-Browser: https://github.com/the-virtual-brain/tvb-library
+Vcs-Git: https://github.com/the-virtual-brain/tvb-library.git
+Homepage: http://www.thevirtualbrain.org
+
+Package: tvb-library
+Architecture: all
+Depends: ${misc:Depends},
+         ${python:Depends}
+Description: most important scientific contribution of TVB Project
+ TVB Scientific Library comes in two major forms for code-contributors
+ as a light-weight Python library, or plugged into TVB framework
+ (including Web interface and Persistence of data layers), Depending on
+ your needs and resources, you could use any of the two available options
+ for contributing and testing new code
