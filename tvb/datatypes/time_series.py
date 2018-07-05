@@ -38,6 +38,7 @@ methods that are associated with the time-series data.
 
 import json
 import numpy
+import scipy.signal
 from tvb.basic.traits import core, types_basic as basic, exceptions, types_mapped
 from tvb.datatypes import sensors, surfaces, volumes, region_mapping, connectivity, arrays
 from tvb.basic.arguments_serialisation import (preprocess_space_parameters, preprocess_time_parameters,
@@ -126,6 +127,64 @@ class TimeSeries(types_mapped.MappedType):
 
         for i in range(min(self.nr_dimensions, 4)):
             setattr(self, 'length_%dd' % (i + 1), int(data_shape[i]))
+
+    def read_time_selection_energy(self,from_idx, to_idx, step=None, specific_slices=None, channels_list=None,
+                                   interval_length=0):
+        """
+        Expose energy calculated by the time selection
+        """
+        # functions used to calculate the energy
+        def butterworth_bandpass(lowcut, highcut, fs, order=5):
+            nyq = 0.5 * fs  # nyquist sampling rate
+            low = lowcut / nyq  # normalize frequency
+            high = highcut / nyq  # normalize frequency
+            b, a = scipy.signal.butter(order, [low, high], btype='band')
+            return b, a
+
+        def filter_data(data, lowcut, highcut, fs, order=5):
+            # get filter coefficients
+            b, a = butterworth_bandpass(lowcut, highcut, fs, order=order)
+
+            # filter data
+            y = scipy.signal.lfilter(b, a, data, axis=0)
+            return y
+
+        def compute_signal_energy(data,length):
+            channel_energy = []
+            for i in range(len(data)):
+                data[i] = abs(data[i]) ** 2
+
+            for i in range(len(data)):
+                if i + length < len(data):
+                    channel_energy.append(numpy.sum(data[i:i + length]))
+                else:
+                    channel_energy.append(numpy.sum(data[i:]))
+            return channel_energy
+
+        # get data
+        if channels_list:
+            channels_list = json.loads(channels_list)
+            for i in range(len(channels_list)):
+                channels_list[i] = int(channels_list[i])
+
+        if channels_list:
+            channel_slice = tuple(channels_list)
+        else:
+            channel_slice = slice(None)
+
+        data_page = self.read_data_page(from_idx, to_idx, step, specific_slices)
+
+        time_length = len(data_page[:, channel_slice])
+        data_to_compute_energy=data_page[:, channel_slice].reshape(len(channels_list),time_length)
+        energy = [[]for i in range(len(data_to_compute_energy))]
+        # filter data for each channel
+        for i in range(len(data_to_compute_energy)):
+            data_to_compute_energy[i] = filter_data(data_to_compute_energy[i], 0.5, 100, 500, order=5)
+        # calculate energy for each channel
+        for i in range(len(data_to_compute_energy)):
+            energy[i] = compute_signal_energy(data_to_compute_energy[i], int(interval_length))
+
+        return energy
 
     def read_data_shape(self):
         """
@@ -312,7 +371,7 @@ class TimeSeries(types_mapped.MappedType):
                    "Dimensions": self.labels_ordering,
                    "Time units": self.sample_period_unit,
                    "Sample period": self.sample_period,
-                   "Length": self.sample_period * self.get_data_shape('data')[0]}
+                   "Length": self.sample_period * self.read_data_shaperead_data_shape('data')[0]}
         summary.update(self.get_info_about_array('data'))
         return summary
 
