@@ -1,0 +1,30 @@
+Source: tvb-library
+Maintainer: umar haruna abdullahi <umarbrowser20@gmail.com>
+Section: python
+Priority: optional
+Build-Depends: debhelper (>=11),
+               dh-python,
+               python-all,
+               python-setuptools,
+               python-networkx,
+               python-numpy,
+               python-numba,
+               python-numexpr,
+               python-matplotlib,
+               python-sklearn,
+               python-scipy,
+               tvb-gdist,
+               tvb-data
+Standards-Version: 4.1.4
+Vcs-Browser: https://github.com/the-virtual-brain/tvb-library
+Vcs-Git: https://github.com/the-virtual-brain/tvb-library.git
+Homepage: http://www.thevirtualbrain.org
+
+Package: tvb-library
+Architecture: all
+Depends: ${misc:Depends},
+         ${python:Depends}
+Description: most important scientific contribution of TVB Project
+ This package is the base of TVB and holds sub-packages that are used by
+ most of the other packages like logging, global settings and the TVB
+ traits package.
