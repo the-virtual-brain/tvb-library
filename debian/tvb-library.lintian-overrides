@@ -1,3 +1,2 @@
 tvb-library: no-upstream-changelog
 tvb-library: dependency-on-python-version-marked-for-end-of-life
-tvb-library: macos-ds-store-file-in-package
