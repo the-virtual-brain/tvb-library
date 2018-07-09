@@ -39,6 +39,7 @@ methods that are associated with the time-series data.
 import json
 import numpy
 import scipy.signal
+from scipy.interpolate import interp1d
 from tvb.basic.traits import core, types_basic as basic, exceptions, types_mapped
 from tvb.datatypes import sensors, surfaces, volumes, region_mapping, connectivity, arrays
 from tvb.basic.arguments_serialisation import (preprocess_space_parameters, preprocess_time_parameters,
@@ -176,13 +177,21 @@ class TimeSeries(types_mapped.MappedType):
 
         time_length = len(data_page[:, channel_slice])
         data_to_compute_energy=data_page[:, channel_slice].reshape(len(channels_list),time_length)
-        energy = [[]for i in range(len(data_to_compute_energy))]
+        energy=numpy.empty(shape=(len(channels_list),time_length))
+
+        # energy = [[]for i in range(len(data_to_compute_energy))]
         # filter data for each channel
         for i in range(len(data_to_compute_energy)):
             data_to_compute_energy[i] = filter_data(data_to_compute_energy[i], 0.5, 100, 500, order=5)
         # calculate energy for each channel
         for i in range(len(data_to_compute_energy)):
             energy[i] = compute_signal_energy(data_to_compute_energy[i], int(interval_length))
+
+        # remap the range of the energy to make it appear visible in the 3d viewer
+        for i in range(len(energy)):
+            m = interp1d([0, numpy.max(energy[i])], [1, 7])
+            for j in range(len(energy[0])):
+                energy[i][j]=m(energy[i][j])
 
         return energy
 
