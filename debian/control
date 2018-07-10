@@ -1,5 +1,6 @@
 Source: tvb-library
-Maintainer: umar haruna abdullahi <umarbrowser20@gmail.com>
+Maintainer: the virtual brain <tvb.debian@codemart.ro>
+Uploaders: umar haruna abdullahi <umarbrowser20@gmail.com>
 Section: python
 Priority: optional
 Build-Depends: debhelper (>=11),
