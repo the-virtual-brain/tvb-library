@@ -142,9 +142,15 @@ class TimeSeries(types_mapped.MappedType):
             b, a = scipy.signal.butter(order, [low, high], btype='band')
             return b, a
 
-        def filter_data(data, lowcut, highcut, fs, order=5):
-            # get filter coefficients
-            b, a = butterworth_bandpass(lowcut, highcut, fs, order=order)
+        def filter_data(data):
+            # filter coefficients
+            # b, a = butterworth_bandpass(0.5,100,500,5)
+
+            b = [2.85877183e-03, 0.00000000e+00, -8.57631550e-03,
+                 2.53383906e-18, 8.57631550e-03, 0.00000000e+00,
+                 -2.85877183e-03]
+            a = [1., -5.37586409, 12.06062864, -14.4603995,
+                 9.77614063, -3.53427674, 0.53377106]
 
             # filter data
             y = scipy.signal.lfilter(b, a, data, axis=0)
@@ -179,17 +185,16 @@ class TimeSeries(types_mapped.MappedType):
         data_to_compute_energy=data_page[:, channel_slice].reshape(len(channels_list),time_length)
         energy=numpy.empty(shape=(len(channels_list),time_length))
 
-        # energy = [[]for i in range(len(data_to_compute_energy))]
         # filter data for each channel
         for i in range(len(data_to_compute_energy)):
-            data_to_compute_energy[i] = filter_data(data_to_compute_energy[i], 0.5, 100, 500, order=5)
+            data_to_compute_energy[i] = filter_data(data_to_compute_energy[i])
         # calculate energy for each channel
         for i in range(len(data_to_compute_energy)):
             energy[i] = compute_signal_energy(data_to_compute_energy[i], int(interval_length))
 
         # remap the range of the energy to make it appear visible in the 3d viewer
         for i in range(len(energy)):
-            m = interp1d([0, numpy.max(energy[i])], [1, 7])
+            m = interp1d([numpy.min(energy[i]), numpy.max(energy[i])], [1, 7])
             for j in range(len(energy[0])):
                 energy[i][j]=m(energy[i][j])
 
