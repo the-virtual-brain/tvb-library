@@ -385,7 +385,7 @@ class TimeSeries(types_mapped.MappedType):
                    "Dimensions": self.labels_ordering,
                    "Time units": self.sample_period_unit,
                    "Sample period": self.sample_period,
-                   "Length": self.sample_period * self.read_data_shaperead_data_shape('data')[0]}
+                   "Length": self.sample_period * self.get_data_shape('data')[0]}
         summary.update(self.get_info_about_array('data'))
         return summary
 
