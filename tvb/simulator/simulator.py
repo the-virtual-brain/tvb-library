@@ -42,6 +42,7 @@ simulation and the method for running the simulation.
 import time
 import math
 import numpy
+import numba
 import scipy.sparse
 from tvb.basic.profile import TvbProfile
 import tvb.basic.traits.core as core
@@ -364,11 +365,15 @@ class Simulator(core.Type):
             stim_step = step - (self.current_step + 1)
             stimulus[self.model.cvar, :, :] = self.stimulus(stim_step).reshape((1, -1, 1))
 
+    _use_faster_add_at = False
     def _loop_update_history(self, step, n_reg, state):
         "Update history."
         if self.surface is not None and state.shape[1] > self.connectivity.number_of_regions:
             region_state = numpy.zeros((n_reg, state.shape[0], state.shape[2]))         # temp (node, cvar, mode)
-            numpy_add_at(region_state, self._regmap, state.transpose((1, 0, 2)))        # sum within region
+            if self._use_faster_add_at:
+                _regmap_add_at(self._regmap, state.transpose((1, 0, 2)), region_state)
+            else:
+                numpy_add_at(region_state, self._regmap, state.transpose((1, 0, 2)))        # sum within region
             region_state /= numpy.bincount(self._regmap).reshape((-1, 1, 1))            # div by n node in region
             state = region_state.transpose((1, 0, 2))                                   # (cvar, node, mode)
         self.history.update(step, state)
@@ -751,3 +756,12 @@ class Simulator(core.Type):
             ts[i] = numpy.array(ts[i])
             xs[i] = numpy.array(xs[i])
         return list(zip(ts, xs))
+
+
+@numba.njit
+def _regmap_add_at(rm, st, rs):
+    for k in range(st.shape[-1]):
+        for j in range(st.shape[-2]):
+            for i in range(rm.size):
+                rs[rm[i], j, k] += st[i, j, k]
+    return rs
