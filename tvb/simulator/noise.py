@@ -162,6 +162,9 @@ class Noise(core.Type):
         super(Noise, self).configure()
         self.random_stream.configure()
 
+    import randomgen
+    rg = randomgen.RandomGenerator()
+
     def __str__(self):
         return simple_gen_astr(self, 'dt ntau')
 
@@ -229,7 +232,7 @@ class Noise(core.Type):
 
     def white(self, shape):
         "Generate white noise."
-        noise = numpy.sqrt(self.dt) * self.random_stream.normal(size=shape)
+        noise = numpy.sqrt(self.dt) * self.rg.normal(size=shape)
         return noise
 
 
