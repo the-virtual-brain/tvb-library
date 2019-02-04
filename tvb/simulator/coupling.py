@@ -82,19 +82,15 @@ following:
 
 """
 import numpy
-
-import tvb.basic.traits.core as core
-import tvb.basic.traits.types_basic as basic
-import tvb.datatypes.arrays as arrays
-
+from tvb.basic.traits.neotraits import HasTraits, NArray, Attr
 from tvb.simulator.common import get_logger
 LOG = get_logger(__name__)
 
 from .history import SparseHistory
-from .common import astr, map_astr, simple_gen_astr
+from .common import simple_gen_astr
 
 
-class Coupling(core.Type):
+class Coupling(HasTraits):
     r"""
     The base class for Coupling functions.
 
@@ -176,6 +172,7 @@ class SparseCoupling(Coupling):
         sum[:, nzr] = numpy.add.reduceat(weights_col * pre, lri, axis=1)
         return self.post(sum)
 
+
 class Linear(SparseCoupling):
     r"""
     Provides a linear coupling function of the following form
@@ -185,26 +182,27 @@ class Linear(SparseCoupling):
 
     """
 
-    a = arrays.FloatArray(
+    a = NArray(
         label=":math:`a`",
         default=numpy.array([0.00390625,]),
-        range=basic.Range(lo=0.0, hi=1.0, step=0.01),
+        # range=basic.Range(lo=0.0, hi=1.0, step=0.01),
         doc="Rescales the connection strength while maintaining the ratio "
-            "between different values.",
-        order=1)
+            "between different values.")
+        # order=1)
 
-    b = arrays.FloatArray(
+    b = NArray(
         label=":math:`b`",
-        default=numpy.array([0.0,]),
+        default=numpy.array([0.0]),
         doc="Shifts the base of the connection strength while maintaining "
-            "the absolute difference between different values.",
-        order=2)
+            "the absolute difference between different values.")
+        #order=2)
 
     def post(self, gx):
         return self.a * gx + self.b
 
     def __str__(self):
         return simple_gen_astr(self, 'a b')
+
 
 class Scaling(SparseCoupling):
     r"""
@@ -215,10 +213,10 @@ class Scaling(SparseCoupling):
 
     """
 
-    a = basic.Float(
+    a = NArray(
         label="Scaling factor",
-        default=0.00390625,
-        range=basic.Range(lo=0.0, hi=1.0, step=0.01),
+        default=numpy.array([0.00390625]),
+        # range=basic.Range(lo=0.0, hi=1.0, step=0.01),
         doc="Rescales the connection strength while maintaining "
             "the ratio between different values.")
 
@@ -241,33 +239,33 @@ class HyperbolicTangent(SparseCoupling):
 
     """
 
-    a = arrays.FloatArray(
+    a = NArray(
         label=":math:`a`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
-        doc="Minimum of the sigmoid function",
-        order=1)
+        # range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
+        doc="Minimum of the sigmoid function")
+        # order=1)
 
-    b = arrays.FloatArray(
+    b = NArray(
         label=":math:`b`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=-1.0, hi=1.0, step=10.0),
-        doc="Scaling factor for the variable",
-        order=2)
+        # range=basic.Range(lo=-1.0, hi=1.0, step=10.0),
+        doc="Scaling factor for the variable")
+        #order=2)
 
-    midpoint = arrays.FloatArray(
+    midpoint = NArray(
         label="midpoint",
         default=numpy.array([0.0,]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
-        doc="Midpoint of the linear portion of the sigmoid",
-        order=3)
+        # range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
+        doc="Midpoint of the linear portion of the sigmoid")
+        # order=3)
 
-    sigma = arrays.FloatArray(
+    sigma = NArray(
         label=r":math:`\sigma`",
         default=numpy.array([1.0,]),
-        range=basic.Range(lo=0.01, hi=1000.0, step=10.0),
-        doc="Standard deviation of the coupling",
-        order=4)
+        # range=basic.Range(lo=0.01, hi=1000.0, step=10.0),
+        doc="Standard deviation of the coupling")
+        # order=4)
 
     def pre(self, x_i, x_j):
         return self.a * (1 +  numpy.tanh((self.b * x_j - self.midpoint) / self.sigma))
@@ -290,40 +288,40 @@ class Sigmoidal(Coupling):
 
     """
 
-    cmin = arrays.FloatArray(
+    cmin = NArray(
         label=":math:`c_{min}`",
         default=numpy.array([-1.0,]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
-        doc="""Minimum of the sigmoid function""",
-        order=1)
+        # range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
+        doc="""Minimum of the sigmoid function""",)
+        # order=1)
 
-    cmax = arrays.FloatArray(
+    cmax = NArray(
         label=":math:`c_{max}`",
         default=numpy.array([1.0,]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
-        doc="""Maximum of the sigmoid function""",
-        order=2)
+        # range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
+        doc="""Maximum of the sigmoid function""",)
+        # order=2)
 
-    midpoint = arrays.FloatArray(
+    midpoint = NArray(
         label="midpoint",
         default=numpy.array([0.0,]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
-        doc="Midpoint of the linear portion of the sigmoid",
-        order=3)
+        # range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
+        doc="Midpoint of the linear portion of the sigmoid",)
+        # order=3)
 
-    a = arrays.FloatArray(
+    a = NArray(
         label=r":math:`a`",
         default=numpy.array([1.0,]),
-        range=basic.Range(lo=0.01, hi=1000.0, step=10.0),
-        doc="Scaling of sigmoidal",
-        order=4)
+        # range=basic.Range(lo=0.01, hi=1000.0, step=10.0),
+        doc="Scaling of sigmoidal",)
+        # order=4)
 
-    sigma = arrays.FloatArray(
+    sigma = NArray(
         label=r":math:`\sigma`",
         default=numpy.array([230.0,]),
-        range=basic.Range(lo=0.01, hi=1000.0, step=10.0),
-        doc="Standard deviation of the sigmoidal",
-        order=5)
+        # range=basic.Range(lo=0.01, hi=1000.0, step=10.0),
+        doc="Standard deviation of the sigmoidal",)
+        # order=5)
 
     def __str__(self):
         return simple_gen_astr(self, 'cmin cmax midpoint a sigma')
@@ -344,40 +342,40 @@ class SigmoidalJansenRit(Coupling):
 
     """
 
-    cmin = arrays.FloatArray(
+    cmin = NArray(
         label=":math:`c_{min}`",
         default=numpy.array([0.0,]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
-        doc="Minimum of the sigmoid function",
-        order=1)
+        # range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
+        doc="Minimum of the sigmoid function",)
+        # order=1)
 
-    cmax = arrays.FloatArray(
+    cmax = NArray(
         label=":math:`c_{max}`",
         default=numpy.array([2.0 * 0.0025,]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
-        doc="Maximum of the sigmoid function",
-        order=2)
+        # range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
+        doc="Maximum of the sigmoid function",)
+        # order=2)
 
-    midpoint = arrays.FloatArray(
+    midpoint = NArray(
         label="midpoint",
         default=numpy.array([6.0,]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
-        doc="Midpoint of the linear portion of the sigmoid",
-        order=3)
+        # range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
+        doc="Midpoint of the linear portion of the sigmoid",)
+        # order=3)
 
-    r  = arrays.FloatArray(
+    r  = NArray(
         label=r":math:`r`",
         default=numpy.array([1.0,]),
-        range=basic.Range(lo=0.01, hi=1000.0, step=10.0),
-        doc="the steepness of the sigmoidal transformation",
-        order=4)
+        # range=basic.Range(lo=0.01, hi=1000.0, step=10.0),
+        doc="the steepness of the sigmoidal transformation",)
+        # order=4)
 
-    a = arrays.FloatArray(
+    a = NArray(
         label=r":math:`a`",
         default=numpy.array([0.56,]),
-        range=basic.Range(lo=0.01, hi=1000.0, step=10.0),
-        doc="Scaling of the coupling term",
-        order=5)
+        # range=basic.Range(lo=0.01, hi=1000.0, step=10.0),
+        doc="Scaling of the coupling term",)
+        # order=5)
 
     def __str__(self):
         return simple_gen_astr(self, 'cmin cmax midpoint a r')
@@ -403,52 +401,54 @@ class PreSigmoidal(Coupling):
 
     """
 
-    H = arrays.FloatArray(
+    H = NArray(
         label="H",
         default=numpy.array([0.5,]),
-        range=basic.Range(lo=-100.0, hi=100.0, step=1.0),
-        doc="Global Factor.",
-        order=1)
+        # range=basic.Range(lo=-100.0, hi=100.0, step=1.0),
+        doc="Global Factor.",)
+        # order=1)
 
-    Q = arrays.FloatArray(
+    Q = NArray(
         label="Q",
         default=numpy.array([1.,]),
-        range=basic.Range(lo=-100.0, hi=100.0, step=1.0),
-        doc="Average.",
-        order=2)
+        # range=basic.Range(lo=-100.0, hi=100.0, step=1.0),
+        doc="Average.",)
+        # order=2)
 
-    G = arrays.FloatArray(
+    G = NArray(
         label="G",
         default=numpy.array([60.,]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=1.),
-        doc="Gain.",
-        order=3)
+        # range=basic.Range(lo=-1000.0, hi=1000.0, step=1.),
+        doc="Gain.",)
+        # order=3)
 
-    P = arrays.FloatArray(
+    P = NArray(
         label="P",
         default=numpy.array([1.,]),
-        range=basic.Range(lo=-100.0, hi=100.0, step=0.01),
-        doc="Excitation-Inhibition ratio.",
-        order=4)
+        # range=basic.Range(lo=-100.0, hi=100.0, step=0.01),
+        doc="Excitation-Inhibition ratio.",)
+        # order=4)
 
-    theta = arrays.FloatArray(
+    theta = NArray(
         label=":math:`\\theta`",
         default=numpy.array([0.5,]),
-        range=basic.Range(lo=-100.0, hi=100.0, step=0.01),
-        doc="Threshold.",
-        order=5)
+        # range=basic.Range(lo=-100.0, hi=100.0, step=0.01),
+        doc="Threshold.",)
+        # order=5)
 
-    dynamic = basic.Bool(
+    dynamic = Attr(
+        field_type=bool,
         label="Dynamic",
         default=True,
-        doc="Use dynamic threshold (otherwise static).",
-        order=6)
+        doc="Use dynamic threshold (otherwise static).",)
+        # order=6)
 
-    globalT = basic.Bool(
+    globalT = Attr(
+        field_type=bool,
         label=":math:`global_{\\theta}`",
         default=False,
-        doc="Use global threshold (otherwise local).",
-        order=7)
+        doc="Use global threshold (otherwise local).",)
+        # order=7)
 
     def __str__(self):
         return simple_gen_astr(self, 'H Q G P theta dynamic globalT')
@@ -489,12 +489,12 @@ class Difference(SparseCoupling):
 
     """
 
-    a = arrays.FloatArray(
+    a = NArray(
         label=":math:`a`",
         default=numpy.array([0.1,]),
-        range=basic.Range(lo=0.0, hi=10., step=0.1),
-        doc="Rescales the connection strength.",
-        order=1)
+        # range=basic.Range(lo=0.0, hi=10., step=0.1),
+        doc="Rescales the connection strength.",)
+        # order=1)
 
     def __str__(self):
         return simple_gen_astr(self, 'a')
@@ -516,12 +516,12 @@ class Kuramoto(SparseCoupling):
     """
    
 
-    a = arrays.FloatArray(
+    a = NArray(
         label=":math:`a`",
         default=numpy.array([1.0,]),
-        range=basic.Range(lo=0.0, hi=1.0, step=0.01),
-        doc="Rescales the connection strength.",
-        order=1)
+        # range=basic.Range(lo=0.0, hi=1.0, step=0.01),
+        doc="Rescales the connection strength.",)
+        # order=1)
 
     def __str__(self):
         return simple_gen_astr(self, 'a')
