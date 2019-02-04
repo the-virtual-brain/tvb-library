@@ -42,92 +42,100 @@ import numpy
 import scipy.stats
 from tvb.basic.logger.builder import get_logger
 from tvb.basic.readers import ZipReader, H5Reader, try_get_absolute_path
-from tvb.basic.traits import core, types_basic as basic
+from tvb.basic.traits.neotraits import Attr, NArray, List, HasTraits
 from tvb.basic.traits.types_mapped import MappedType
-from tvb.datatypes import arrays
 
 
 LOG = get_logger(__name__)
 
 
-class Connectivity(MappedType):
+class Connectivity(HasTraits):
 
     # data
-    region_labels = arrays.StringArray(
+    region_labels = NArray(
+        dtype=str,
         label="Region labels",
         doc="""Short strings, 'labels', for the regions represented by the connectivity matrix.""")
 
-    weights = arrays.FloatArray(
+    weights = NArray(
         label="Connection strengths",
-        stored_metadata=[key for key in MappedType.DEFAULT_WITH_ZERO_METADATA],
+        # stored_metadata=[key for key in MappedType.DEFAULT_WITH_ZERO_METADATA],
         doc="""Matrix of values representing the strength of connections between regions, arbitrary units.""")
 
-    undirected = basic.Integer(
-        default=0, required=False,
+    undirected = Attr(
+        field_type=bool,
+        default=False, required=False,
         doc="1, when the weights matrix is square and symmetric over the main diagonal, 0 when directed graph.")
 
-    tract_lengths = arrays.FloatArray(
+    tract_lengths = NArray(
         label="Tract lengths",
-        stored_metadata=[key for key in MappedType.DEFAULT_WITH_ZERO_METADATA],
+        # stored_metadata=[key for key in MappedType.DEFAULT_WITH_ZERO_METADATA],
         doc="""The length of myelinated fibre tracts between regions.
         If not provided Euclidean distance between region centres is used.""")
 
-    speed = arrays.FloatArray(
+    speed = NArray(
         label="Conduction speed",
-        default=numpy.array([3.0]), file_storage=core.FILE_STORAGE_NONE,
+        default=numpy.array([3.0]),  # file_storage=core.FILE_STORAGE_NONE,
         doc="""A single number or matrix of conduction speeds for the myelinated fibre tracts between regions.""")
 
-    centres = arrays.FloatArray(
+    centres = NArray(
         label="Region centres",
         doc="An array specifying the location of the centre of each region.")
 
-    cortical = arrays.BoolArray(
+    cortical = NArray(
+        dtype=bool,
         label="Cortical",
         required=False,
         doc="""A boolean vector specifying whether or not a region is part of the cortex.""")
 
-    hemispheres = arrays.BoolArray(
+    hemispheres = NArray(
+        dtype=bool,
         label="Hemispheres (True for Right and False for Left Hemisphere",
         required=False,
         doc="""A boolean vector specifying whether or not a region is part of the right hemisphere""")
 
-    orientations = arrays.FloatArray(
+    orientations = NArray(
         label="Average region orientation",
         required=False,
         doc="""Unit vectors of the average orientation of the regions represented in the connectivity matrix.
         NOTE: Unknown data should be zeros.""")
 
-    areas = arrays.FloatArray(
+    areas = NArray(
         label="Area of regions",
         required=False,
         doc="""Estimated area represented by the regions in the connectivity matrix.
         NOTE: Unknown data should be zeros.""")
 
-    idelays = arrays.IntegerArray(
+    idelays = NArray(
+        dtype=int,
         label="Conduction delay indices",
-        required=False, file_storage=core.FILE_STORAGE_NONE,
+        required=False,  # file_storage=core.FILE_STORAGE_NONE,
         doc="An array of time delays between regions in integration steps.")
 
-    delays = arrays.FloatArray(
+    delays = NArray(
         label="Conduction delay",
-        file_storage=core.FILE_STORAGE_NONE, required=False,
+        # file_storage=core.FILE_STORAGE_NONE,
+        required=False,
         doc="""Matrix of time delays between regions in physical units, setting conduction speed automatically
         combines with tract lengths to update this matrix, i.e. don't try and change it manually.""")
 
-    number_of_regions = basic.Integer(
+    number_of_regions = Attr(
+        field_type=long,
         label="Number of regions",
         doc="""The number of regions represented in this Connectivity """)
 
-    number_of_connections = basic.Integer(
+    number_of_connections = Attr(
+        field_type=long,
         label="Number of connections",
         doc="""The number of non-zero entries represented in this Connectivity """)
 
     # Original Connectivity, from which current connectivity was edited.
-    parent_connectivity = basic.String(required=False)
+    parent_connectivity = Attr(field_type=str, required=False)
 
     # In case of edited Connectivity, this are the nodes left in interest area,
     # the rest were part of a lesion, so they were removed.
-    saved_selection = basic.JSONType(required=False)
+    # saved_selection = basic.JSONType(required=False)
+    saved_selection = List(of=str)
 
     # framework
     @property
@@ -374,12 +382,12 @@ class Connectivity(MappedType):
         # NOTE: In numpy 1.8 there is a function called count_zeros
         self.number_of_connections = self.weights.nonzero()[0].shape[0]
 
-        self.trait["weights"].log_debug(owner=self.__class__.__name__)
-        self.trait["tract_lengths"].log_debug(owner=self.__class__.__name__)
-        self.trait["speed"].log_debug(owner=self.__class__.__name__)
-        self.trait["centres"].log_debug(owner=self.__class__.__name__)
-        self.trait["orientations"].log_debug(owner=self.__class__.__name__)
-        self.trait["areas"].log_debug(owner=self.__class__.__name__)
+        # self.trait["weights"].log_debug(owner=self.__class__.__name__)
+        # self.trait["tract_lengths"].log_debug(owner=self.__class__.__name__)
+        # self.trait["speed"].log_debug(owner=self.__class__.__name__)
+        # self.trait["centres"].log_debug(owner=self.__class__.__name__)
+        # self.trait["orientations"].log_debug(owner=self.__class__.__name__)
+        # self.trait["areas"].log_debug(owner=self.__class__.__name__)
 
         if self.tract_lengths.size == 0:
             self.compute_tract_lengths()
@@ -404,7 +412,7 @@ class Connectivity(MappedType):
         # NOTE: Because of the conduction_speed hack for UI this must be evaluated here, even if delays
         # already has a value, otherwise setting speed in the UI has no effect...
         self.delays = self.tract_lengths / self.speed
-        self.trait["delays"].log_debug(owner=self.__class__.__name__)
+        # self.trait["delays"].log_debug(owner=self.__class__.__name__)
 
         if (self.weights.transpose() == self.weights).all():
             self.undirected = 1
@@ -462,7 +470,7 @@ class Connectivity(MappedType):
         """
         # Express delays in integration steps
         self.idelays = numpy.rint(self.delays / dt).astype(numpy.int32)
-        self.trait["idelays"].log_debug(owner=self.__class__.__name__)
+        # self.trait["idelays"].log_debug(owner=self.__class__.__name__)
 
     def compute_tract_lengths(self):
         """
@@ -478,7 +486,7 @@ class Connectivity(MappedType):
             tract_lengths[region, :] = numpy.sqrt(numpy.sum(temp ** 2, axis=1))
 
         self.tract_lengths = tract_lengths
-        self.trait["tract_lengths"].log_debug(owner=self.__class__.__name__)
+        # self.trait["tract_lengths"].log_debug(owner=self.__class__.__name__)
 
     def compute_region_labels(self):
         """ """
