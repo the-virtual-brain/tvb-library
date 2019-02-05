@@ -44,20 +44,18 @@ will be consistent with Monitor periods corresponding to any of [4096, 2048, 102
 .. moduleauthor:: Noelia Montejo <Noelia@tvb.invalid>
 
 """
-
+import abc
 import functools
 import numpy
 import scipy.integrate
-from tvb.basic.traits import core, types_basic as basic
-from tvb.datatypes import arrays
 from . import noise
 from .common import get_logger, simple_gen_astr
-
+from tvb.basic.traits.neotraits import HasTraits, Attr, NArray
 
 LOG = get_logger(__name__)
 
 
-class Integrator(core.Type):
+class Integrator(HasTraits):
     """
     The Integrator class is a base class for the integration methods...
 
@@ -74,10 +72,11 @@ class Integrator(core.Type):
     """
     _base_classes = ['Integrator', 'IntegratorStochastic', 'RungeKutta4thOrderDeterministic']
 
-    dt = basic.Float(
+    dt = Attr(
+        field_type=float,
         label = "Integration-step size (ms)", 
         default =  0.01220703125, #0.015625,
-        #range = basic.Range(lo= 0.0048828125, hi=0.244140625, step= 0.1, base=2.)
+        #range = basic.Range(lo= 0.0048828125, hi=0.244140625, step= 0.1, base=2.)  mh: was commented
         required = True,
         doc = """The step size used by the integration routine in ms. This
         should be chosen to be small enough for the integration to be
@@ -88,17 +87,17 @@ class Integrator(core.Type):
         it is consitent with Monitors using sample periods corresponding to
         powers of 2 from 128 to 4096Hz.""")
 
-    clamped_state_variable_indices = arrays.IntegerArray(
-        label = "indices of the state variables to be clamped by the integrators to the values in the clamped_values array",
-        default = None,
-        order=-1)
+    clamped_state_variable_indices = NArray(
+        dtype=int,
+        label="indices of the state variables to be clamped by the integrators to the values in the clamped_values array")
+        # order=-1)
 
-    clamped_state_variable_values = arrays.FloatArray(
-        label = "The values of the state variables which are clamped ",
-        default = None,
-        order=-1)
+    clamped_state_variable_values = NArray(
+        label="The values of the state variables which are clamped ")
+        # order=-1)
 
 
+    @abc.abstractmethod
     def scheme(self, X, dfun, coupling, local_coupling, stimulus):
         """
         The scheme of integrator should take a state and provide the next
@@ -106,8 +105,6 @@ class Integrator(core.Type):
         :math:`X` and provide an appropriate :math:`X + dX` (dfun in the code).
 
         """
-        msg = "Integrator is a base class; please use a suitable subclass."
-        raise NotImplementedError(msg)
 
     def clamp_state(self, X):
         if self.clamped_state_variable_values is not None:
@@ -115,6 +112,7 @@ class Integrator(core.Type):
 
     def __str__(self):
         return simple_gen_astr(self, 'dt')
+
 
 class IntegratorStochastic(Integrator):
     r"""
@@ -142,9 +140,10 @@ class IntegratorStochastic(Integrator):
 
     """
 
-    noise = noise.Noise(
+    noise = Attr(
+        field_type=noise.Noise,
         label = "Integration Noise",
-        default = noise.Additive,
+        default=noise.Additive(),
         required = True,
         doc = """The stochastic integrator's noise source. It incorporates its
         own instance of Numpy's RandomState.""")
