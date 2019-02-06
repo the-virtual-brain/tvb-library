@@ -50,11 +50,12 @@ class LocalConnectivity(types_mapped.MappedType):
 
     matrix = types_mapped.SparseMatrix(order=-1)
 
-    equation = equations.FiniteSupportEquation(
-        label="Spatial",
-        required=False,
-        default=equations.Gaussian,
-        order=2)
+    equations = None   # fixme: neotraits co-op
+    # equation = equations.FiniteSupportEquation(
+    #     label="Spatial",
+    #     required=False,
+    #     default=equations.Gaussian,
+    #     order=2)
 
     cutoff = basic.Float(
         label="Cutoff distance (mm)",
