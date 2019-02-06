@@ -69,10 +69,8 @@ class LocalConnectivity(types_mapped.MappedType):
         LOG.info("Mapping geodesic distance through the LocalConnectivity.")
 
         #Start with data being geodesic_distance_matrix, then map it through equation
-        self.equation.pattern = self.matrix_gdist.data
-
         #Then replace original data with result...
-        self.matrix_gdist.data = self.equation.pattern
+        self.matrix_gdist.data = self.equation.evaluate(self.matrix_gdist.data)
 
         #Homogenise spatial discretisation effects across the surface
         nv = self.matrix_gdist.shape[0]
