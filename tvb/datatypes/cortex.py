@@ -34,9 +34,9 @@ import numpy
 import scipy.sparse
 from tvb.basic.traits import util
 from tvb.basic.readers import try_get_absolute_path, FileReader
-from tvb.basic.traits import core, types_basic as basic
 from tvb.basic.logger.builder import get_logger
-from . import arrays, local_connectivity, region_mapping, surfaces
+from . import local_connectivity, region_mapping, surfaces
+from tvb.basic.traits.neotraits import Attr, NArray, Range
 
 LOG = get_logger(__name__)
 
@@ -50,7 +50,8 @@ class Cortex(surfaces.CorticalSurface):
 
     _ui_name = "A cortex..."
 
-    local_connectivity = local_connectivity.LocalConnectivity(
+    local_connectivity = Attr(
+        field_type=local_connectivity.LocalConnectivity,
         label="Local Connectivity",
         required=False,
         doc="Define the interaction between neighboring network nodes. This is implicitly integrated in"
@@ -58,7 +59,8 @@ class Cortex(surfaces.CorticalSurface):
             " the first state variable of each population model (since these typically represent the mean-neural"
             " membrane voltage). This coupling is instantaneous (no time delays).")
 
-    region_mapping_data = region_mapping.RegionMapping(
+    region_mapping_data = Attr(
+        field_type=region_mapping.RegionMapping,
         label="region mapping",
         doc="""An index vector of length equal to the number_of_vertices + the
             number of non-cortical regions, with values that index into an
@@ -67,32 +69,32 @@ class Cortex(surfaces.CorticalSurface):
     region_areas = None
     region_orientation = None
 
-    coupling_strength = arrays.FloatArray(
+    coupling_strength = NArray(
         label="Local coupling strength",
-        range=basic.Range(lo=0.0, hi=20.0, step=1.0),
+        domain=Range(lo=0.0, hi=20.0, step=1.0),
         default=numpy.array([1.0]),
-        file_storage=core.FILE_STORAGE_NONE,
+        # file_storage=core.FILE_STORAGE_NONE,
         doc="""A factor that rescales local connectivity strengths.""")
 
-    eeg_projection = arrays.FloatArray(
-        label="EEG projection", order=-1,
+    eeg_projection = NArray(
+        label="EEG projection",
         # NOTE: This is redundant if the EEG monitor isn't used, but it makes life simpler.
         required=False,
         doc="""A 2-D array which projects the neural activity on the cortical
             surface to a set of EEG sensors.""")
     #  requires linked sensors.SensorsEEG
 
-    meg_projection = arrays.FloatArray(
+    meg_projection = NArray(
         label="MEG projection",
         # linked = ?sensors, skull, skin, etc?
         doc="""A 2-D array which projects the neural activity on the cortical
             surface to a set of MEG sensors.""",
-        required=False, order=-1, )
+        required=False, )
     #  requires linked SensorsMEG
 
-    internal_projection = arrays.FloatArray(
+    internal_projection = NArray(
         label="Internal projection",
-        required=False, order=-1,
+        required=False,
         doc="""A 2-D array which projects the neural activity on the
             cortical surface to a set of embeded sensors.""")
     #  requires linked SensorsInternal
@@ -105,12 +107,11 @@ class Cortex(surfaces.CorticalSurface):
         :param cortex_surface:  CorticalSurfaceData instance
         :param cortex_parameters: dictionary key:value, where key is attribute on CortexData
         """
-        for name in cortex_surface.trait:
+        for name in cortex_surface.trait:  ##### todo: !!!!!!!!!!!!!
             try:
                 setattr(self, name, getattr(cortex_surface, name))
             except Exception as exc:
-                self.logger.exception(exc)
-                self.logger.error("Could not set attribute '" + name + "' on Cortex")
+                LOG.exception("Could not set attribute '" + name + "' on Cortex")
         for key, value in cortex_parameters.iteritems():
             setattr(self, key, value)
         return self
@@ -141,7 +142,8 @@ class Cortex(surfaces.CorticalSurface):
         if self.local_connectivity is None:
             self.local_connectivity = local_connectivity.LocalConnectivity(cutoff=40.0, use_storage=False, surface=self)
 
-        if self.local_connectivity.matrix.size == 0:
+        # mhtodo: review nullability of NArrays
+        if self.local_connectivity.matrix is None or self.local_connectivity.matrix.size == 0:
             self.compute_local_connectivity()
 
         # Pad the local connectivity matrix with zeros when non-cortical regions
@@ -177,12 +179,12 @@ class Cortex(surfaces.CorticalSurface):
 
         self.local_connectivity.matrix_gdist = self.geodesic_distance_matrix.copy()
         self.local_connectivity.compute()  # Evaluate equation based distance
-        self.local_connectivity.trait["matrix"].log_debug(owner=self.__class__.__name__ + ".local_connectivity")
 
         #HACK FOR DEBUGGING CAUSE TRAITS REPORTS self.local_connectivity.trait["matrix"] AS BEING EMPTY...
         lcmat = self.local_connectivity.matrix
         sts = str(lcmat.__class__)
-        name = ".".join((self.__class__.__name__ + ".local_connectivity", self.local_connectivity.trait.name))
+        # mhtodo: the trait.name is the file name for mapped,
+        name = self.__class__.__name__ + ".local_connectivity"  # self.local_connectivity.trait.name))
         shape = str(lcmat.shape)
         sparse_format = str(lcmat.format)
         nnz = str(lcmat.nnz)
