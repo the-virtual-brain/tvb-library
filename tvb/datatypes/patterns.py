@@ -228,6 +228,6 @@ class StimuliSurface(SpatioTemporalPattern):
 class SpatialPatternVolume(SpatialPattern):
     """ A spatio-temporal pattern defined in a volume. """
 
-    volume = volumes.Volume(label="Volume")
+    volume = Attr(volumes.Volume, label="Volume")
 
     focal_points_volume = NArray(dtype=long, label="Focal points")
