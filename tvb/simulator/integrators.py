@@ -46,11 +46,10 @@ will be consistent with Monitor periods corresponding to any of [4096, 2048, 102
 """
 import abc
 import functools
-import numpy
 import scipy.integrate
 from . import noise
 from .common import get_logger, simple_gen_astr
-from tvb.basic.traits.neotraits import HasTraits, Attr, NArray
+from tvb.basic.neotraits.api import HasTraits, Attr, NArray
 
 LOG = get_logger(__name__)
 
