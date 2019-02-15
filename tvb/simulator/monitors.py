@@ -53,30 +53,27 @@ Conversion of power of 2 sample-rates(Hz) to Monitor periods(ms)
 .. moduleauthor:: Jan Fousek <izaak@mail.muni.cz>
 
 """
+import abc
 
 import numpy
 from tvb.datatypes.time_series import (TimeSeries, TimeSeriesRegion,
     TimeSeriesEEG, TimeSeriesMEG, TimeSeriesSEEG, TimeSeriesSurface)
-from tvb.simulator.common import get_logger, simple_gen_astr
+from tvb.simulator.common import get_logger
 import tvb.datatypes.sensors as sensors_module
-from tvb.datatypes.sensors import SensorsMEG, SensorsInternal, SensorsEEG, Sensors
-import tvb.datatypes.arrays as arrays
-from tvb.datatypes.cortex import Cortex
+from tvb.datatypes.sensors import SensorsEEG
 from tvb.datatypes.region_mapping import RegionMapping
-from tvb.datatypes.connectivity import Connectivity
 from tvb.datatypes.projections import (ProjectionMatrix,
     ProjectionSurfaceEEG, ProjectionSurfaceMEG, ProjectionSurfaceSEEG)
 import tvb.datatypes.equations as equations
 import tvb.basic.traits.util as util
-import tvb.basic.traits.types_basic as basic
-import tvb.basic.traits.core as core
 from tvb.simulator.common import iround, numpy_add_at
-
+from tvb.basic.traits.neotraits import HasTraits, Attr, NArray
 
 LOG = get_logger(__name__)
 
 
-class Monitor(core.Type):
+
+class Monitor(HasTraits):
     """
     Abstract base class for monitor implementations.
 
@@ -85,20 +82,21 @@ class Monitor(core.Type):
     # list of class names not shown in UI
     _base_classes = ['Monitor', 'Projection', 'ProgressLogger']
 
-    period = basic.Float(
-        label = "Sampling period (ms)", order=10,
-        default = 0.9765625, #ms. 0.9765625 => 1024Hz #ms, 0.5 => 2000Hz
-        doc = """Sampling period in milliseconds, must be an integral multiple
+    period = Attr(
+        float,
+        label="Sampling period (ms)", # order = 10
+        default=0.9765625, #ms. 0.9765625 => 1024Hz #ms, 0.5 => 2000Hz
+        doc="""Sampling period in milliseconds, must be an integral multiple
         of integration-step size. As a guide: 2048 Hz => 0.48828125 ms ;  
         1024 Hz => 0.9765625 ms ; 512 Hz => 1.953125 ms.""")
 
-    variables_of_interest = arrays.IntegerArray(
-        label = "Model variables to watch", order=11,
-        doc = ("Indices of model's variables of interest (VOI) that this monitor should record. "
-               "Note that the indices should start at zero, so that if a model offers VOIs V, W and "
-               "V+W, and W is selected, and this monitor should record W, then the correct index is 0.")
+    variables_of_interest = NArray(
+        dtype=int,
+        label="Model variables to watch",  # order=11,
+        doc=("Indices of model's variables of interest (VOI) that this monitor should record. "
+             "Note that the indices should start at zero, so that if a model offers VOIs V, W and "
+             "V+W, and W is selected, and this monitor should record W, then the correct index is 0."))
         #order = -1
-    )
 
     istep = None
     dt = None
@@ -137,15 +135,12 @@ class Monitor(core.Type):
 
         return self.sample(step, observed)
 
+    @abc.abstractmethod
     def sample(self, step, state):
         """
         This method provides monitor output, and should be overridden by subclasses.
 
         """
-
-        raise NotImplementedError(
-            "The Monitor base class does not provide any observation model and "
-            "should be subclasses with an implementation of the `sample` method.")
 
     def create_time_series(self, storage_path, connectivity=None, surface=None,
                            region_map=None, region_volume_map=None):
@@ -159,24 +154,18 @@ class Monitor(core.Type):
             return TimeSeriesSurface(storage_path=storage_path,
                                      surface=surface,
                                      sample_period=self.period,
-                                     title='Surface ' + self.__class__.__name__,
-                                     **self._transform_user_tags())
+                                     title='Surface ' + self.__class__.__name__)
         if connectivity is not None:
             return TimeSeriesRegion(storage_path=storage_path,
                                     connectivity=connectivity,
                                     region_mapping=region_map,
                                     region_mapping_volume=region_volume_map,
                                     sample_period=self.period,
-                                    title='Regions ' + self.__class__.__name__,
-                                    **self._transform_user_tags())
+                                    title='Regions ' + self.__class__.__name__)
 
         return TimeSeries(storage_path=storage_path,
                           sample_period=self.period,
-                          title=' ' + self.__class__.__name__,
-                          **self._transform_user_tags())
-
-    def _transform_user_tags(self):
-        return {}
+                          title=' ' + self.__class__.__name__)
 
 
 class Raw(Monitor):
@@ -191,13 +180,13 @@ class Raw(Monitor):
     """
     _ui_name = "Raw recording"
 
-    period = basic.Float(
-        label = "Sampling period is ignored for Raw Monitor",
-        order = -1)
+    period = Attr(float, default=0.0, label="Sampling period is ignored for Raw Monitor")
+    # order = -1
 
-    variables_of_interest = arrays.IntegerArray(
-        label = "Raw Monitor sees all!!! Resistance is futile...",
-        order = -1)
+    variables_of_interest = NArray(
+        dtype=int,
+        label="Raw Monitor sees all!!! Resistance is futile...")
+    # order = -1
 
     def config_for_sim(self, simulator):
         if self.period != simulator.integrator.dt:
@@ -242,20 +231,22 @@ class SpatialAverage(Monitor):
     """
     _ui_name = "Spatial average with temporal sub-sample"
 
-    spatial_mask = arrays.IntegerArray( #TODO: Check it's a vector of length Nodes (like region mapping for surface)
-        label = "An index mask of nodes into areas",
-        doc = """A vector of length==nodes that assigns an index to each node
+    spatial_mask = NArray(  #TODO: Check it's a vector of length Nodes (like region mapping for surface)
+        dtype=int,
+        label="An index mask of nodes into areas",
+        doc="""A vector of length==nodes that assigns an index to each node
             specifying the "region" to which it belongs. The default usage is
             for mapping a surface based simulation back to the regions used in 
             its `Long-range Connectivity.`""")
     
-    default_mask = basic.Enumerate(
-                              label = "Default Mask",
-                              options = ["cortical", "hemispheres"],
-                              default = ["hemispheres"],
-                              doc = r"""Fallback in case spatial mask is none and no surface provided 
-                              to use either connectivity hemispheres or cortical attributes.""",
-                              order = -1)
+    default_mask = Attr(
+        str,
+        choices=("cortical", "hemispheres"),
+        default="hemispheres",
+        label="Default Mask",
+        doc=("Fallback in case spatial mask is none and no surface provided" 
+             "to use either connectivity hemispheres or cortical attributes."))
+        # order = -1)
 
     def config_for_sim(self, simulator):
 
@@ -273,14 +264,14 @@ class SpatialAverage(Monitor):
                 if self.default_mask[0] == 'cortical':
                     if conn is not None and conn.cortical is not None and conn.cortical.size > 0:
                         ## Use as spatial-mask cortical/non cortical areas
-                        self.spatial_mask = [int(c) for c in conn.cortical]
+                        self.spatial_mask = numpy.array([int(c) for c in conn.cortical])
                     else:
                         msg = "Must fill Spatial Mask parameter for non-surface simulations when using SpatioTemporal monitor!"
                         raise Exception(msg)
                 if self.default_mask[0] == 'hemispheres':
                     if conn is not None and conn.hemispheres is not None and conn.hemispheres.size > 0:
                         ## Use as spatial-mask left/right hemisphere
-                        self.spatial_mask = [int(h) for h in conn.hemispheres]
+                        self.spatial_mask = numpy.array([int(h) for h in conn.hemispheres])
                     else:
                         msg = "Must fill Spatial Mask parameter for non-surface simulations when using SpatioTemporal monitor!"
                         raise Exception(msg)
@@ -321,8 +312,7 @@ class SpatialAverage(Monitor):
                                     region_mapping=region_map,
                                     region_mapping_volume=region_volume_map,
                                     title='Regions ' + self.__class__.__name__,
-                                    connectivity=connectivity,
-                                    **self._transform_user_tags())
+                                    connectivity=connectivity)
         else:
             # mask does not correspond to the number of regions
             # let the parent create a plain TimeSeries
@@ -384,13 +374,16 @@ class TemporalAverage(Monitor):
             return [time, avg_stock]
 
 
+# mhtodo: this is not a proper superclass but a mixin, it refers to fields that don't exist
+
 class Projection(Monitor):
     "Base class monitor providing lead field suppport."
     _ui_name = "Projection matrix"
 
-    region_mapping = RegionMapping(
+    region_mapping = Attr(
+        RegionMapping,
         required=False,
-        label="region mapping", order=3,
+        label="region mapping",  #order=3,
         doc="A region mapping specifies how vertices of a surface correspond to given regions in the"
             " connectivity. For iEEG/EEG/MEG monitors, this must be specified when performing a region"
             " simulation but is optional for a surface simulation.")
@@ -403,7 +396,7 @@ class Projection(Monitor):
     @classmethod
     def _projection_class(cls):
         if hasattr(cls, 'projection'):
-            return type(cls.projection)
+            return cls.projection.field_type
         else:
             return ProjectionMatrix
 
@@ -420,7 +413,7 @@ class Projection(Monitor):
         else:
             result = instance
 
-        result.sensors = type(cls.sensors).from_file(sensors_fname)
+        result.sensors = cls.sensors.field_type.from_file(sensors_fname)
         result.projection = cls._projection_class().from_file(projection_fname)
         result.region_mapping = RegionMapping.from_file(rm_f_name)
 
@@ -508,6 +501,11 @@ class Projection(Monitor):
 
         LOG.info('Projection configured gain shape %s', self.gain.shape)
 
+
+    def configure(self, *args, **kwargs):
+        self.sensors.configure()
+
+
     def sample(self, step, state):
         "Record state, returning sample at sampling frequency / period."
         self._state += self.gain.dot(state[self.voi].sum(axis=-1).T)
@@ -519,32 +517,33 @@ class Projection(Monitor):
 
     _gain = None
 
-    def _get_gain(self):
+    @property
+    def gain(self):
         if self._gain is None:
             self._gain = self.projection.projection_data
         return self._gain
 
-    def _set_gain(self, new_gain):
+    @gain.setter
+    def gain(self, new_gain):
         self._gain = new_gain
-
-    gain = property(_get_gain, _set_gain)
 
     _rmap = None
 
     def _reg_map_data(self, reg_map):
         return getattr(reg_map, 'array_data', reg_map)
 
-    def _get_rmap(self):
+    @property
+    def rmap(self):
         "Normalize obtaining reg map vector over various possibilities."
         if self._rmap is None:
             self._rmap = self._reg_map_data(self.region_mapping)
         return self._rmap
 
-    def _set_rmap(self, reg_map):
+    @rmap.setter
+    def rmap(self, reg_map):
         if self._rmap is not None:
             self._rmap = self._reg_map_data(self.region_mapping)
 
-    rmap = property(_get_rmap, _set_rmap)
 
 
 class EEG(Projection):
@@ -562,22 +561,27 @@ class EEG(Projection):
     """
     _ui_name = "EEG"
 
-    projection = ProjectionSurfaceEEG(
-        default=None, label='Projection matrix', order=2,
+    projection = Attr(
+        ProjectionSurfaceEEG,
+        default=None, label='Projection matrix',  #order=2,
         doc='Projection matrix to apply to sources.')
 
-    reference = basic.String(required=False, label="EEG Reference", order=5,
-                             doc='EEG Electrode to be used as reference, or "average" to '
-                                 'apply an average reference. If none is provided, the '
-                                 'produced time-series are the idealized or reference-free.')
+    reference = Attr(
+        str, required=False,
+        label="EEG Reference",  #order=5,
+        doc='EEG Electrode to be used as reference, or "average" to '
+            'apply an average reference. If none is provided, the '
+            'produced time-series are the idealized or reference-free.')
 
-    sensors = SensorsEEG(required=True, label="EEG Sensors", order=1,
-                         doc='Sensors to use for this EEG monitor')
+    sensors = Attr(SensorsEEG, required=True, label="EEG Sensors",  #order=1,
+                   doc='Sensors to use for this EEG monitor')
 
-    sigma = basic.Float(label="Conductivity (w/o projection)", default=1.0, order=4,
-                        doc='When a projection matrix is not used, this provides '
-                            'the value of conductivity in the formula for the single '
-                            'sphere approximation of the head (Sarvas 1987).')
+    sigma = Attr(float,
+                 default=1.0,  #order=4,
+                 label="Conductivity (w/o projection)",
+                 doc='When a projection matrix is not used, this provides '
+                     'the value of conductivity in the formula for the single '
+                     'sphere approximation of the head (Sarvas 1987).')
 
 
     @classmethod
@@ -627,24 +631,24 @@ class EEG(Projection):
         return TimeSeriesEEG(storage_path=storage_path,
                              sensors=self.sensors,
                              sample_period=self.period,
-                             title=' ' + self.__class__.__name__,
-                             **self._transform_user_tags())
+                             title=' ' + self.__class__.__name__)
 
 
 class MEG(Projection):
     "Forward solution monitor for magnetoencephalography (MEG)."
     _ui_name = "MEG"
 
-    projection = ProjectionSurfaceMEG(
-        default=None, label='Projection matrix', order=2,
+    projection = Attr(
+        ProjectionSurfaceMEG,
+        default=None, label='Projection matrix', # order=2,
         doc='Projection matrix to apply to sources.')
 
-    sensors = sensors_module.SensorsMEG(
+    sensors = Attr(
+        sensors_module.SensorsMEG,
         label = "MEG Sensors",
         default = None,
-        required = True, order=1,
-        doc = """The set of MEG sensors for which the forward solution will be
-        calculated.""")
+        required = True,  #order=1,
+        doc="The set of MEG sensors for which the forward solution will be calculated.")
 
 
     @classmethod
@@ -691,8 +695,7 @@ class MEG(Projection):
         return TimeSeriesMEG(storage_path=storage_path,
                              sensors=self.sensors,
                              sample_period=self.period,
-                             title=' ' + self.__class__.__name__,
-                             **self._transform_user_tags())
+                             title=' ' + self.__class__.__name__)
 
 
 class iEEG(Projection):
@@ -700,14 +703,16 @@ class iEEG(Projection):
 
     _ui_name = "Intracerebral / Stereo EEG"
 
-    projection = ProjectionSurfaceSEEG(
-        default=None, label='Projection matrix', order=2,
+    projection = Attr(
+        ProjectionSurfaceSEEG,
+        default=None, label='Projection matrix',  #order=2,
         doc='Projection matrix to apply to sources.')
 
-    sigma = basic.Float(label="conductivity", default=1.0, order=4)
+    sigma = Attr(float, label="conductivity", default=1.0)  #, order=4)
 
-    sensors = sensors_module.SensorsInternal(
-        label="Internal brain sensors", default=None, required=True, order=1,
+    sensors = Attr(
+        sensors_module.SensorsInternal,
+        label="Internal brain sensors", default=None, required=True,  #order=1,
         doc="The set of SEEG sensors for which the forward solution will be calculated.")
 
 
@@ -734,8 +739,7 @@ class iEEG(Projection):
         return TimeSeriesSEEG(storage_path=storage_path,
                               sensors=self.sensors,
                               sample_period=self.period,
-                              title=' ' + self.__class__.__name__,
-                              **self._transform_user_tags())
+                              title=' ' + self.__class__.__name__)
 
 
 class Bold(Monitor):
@@ -781,25 +785,28 @@ class Bold(Monitor):
     """
     _ui_name = "BOLD"
 
-    period = basic.Float(
-        label = "Sampling period (ms)",
-        default = 2000.0,
-        doc = """For the BOLD monitor, sampling period in milliseconds must be
+    period = Attr(
+        float,
+        label="Sampling period (ms)",
+        default=2000.0,
+        doc="""For the BOLD monitor, sampling period in milliseconds must be
         an integral multiple of 500. Typical measurment interval (repetition
         time TR) is between 1-3 s. If TR is 2s, then Bold period is 2000ms.""")
 
-    hrf_kernel = equations.HRFKernelEquation(
-        label = "Haemodynamic Response Function",
-        default = equations.FirstOrderVolterra,
-        required = True,
-        doc = """A tvb.datatypes.equation object which describe the haemodynamic
+    hrf_kernel = Attr(
+        equations.HRFKernelEquation,
+        label="Haemodynamic Response Function",
+        default=equations.FirstOrderVolterra(),
+        required=True,
+        doc="""A tvb.datatypes.equation object which describe the haemodynamic
         response function used to compute the BOLD signal.""")
 
-    hrf_length = basic.Float(
-        label = "Duration (ms)",
-        default = 20000.,
-        doc= """Duration of the hrf kernel""",
-        order=-1)
+    hrf_length = Attr(
+        float,
+        label="Duration (ms)",
+        default=20000.,
+        doc= """Duration of the hrf kernel""",)
+        #order=-1)
 
     _interim_period = None
     _interim_istep = None
@@ -824,8 +831,7 @@ class Bold(Monitor):
         self._stock_time  = numpy.arange(0.0, stock_time_max, stock_time_step) # [s]
         LOG.debug("Bold requires %d steps for HRF kernel convolution", self._stock_steps)
         #Compute the HRF kernel
-        self.hrf_kernel.pattern = self._stock_time
-        G = self.hrf_kernel.pattern
+        G = self.hrf_kernel.evaluate(self._stock_time)
         #Reverse it, need it into the past for matrix-multiply of stock
         G = G[::-1]
         self.hemodynamic_response_function = G[numpy.newaxis, :]

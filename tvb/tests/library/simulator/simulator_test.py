@@ -40,7 +40,7 @@ schemes (region and surface based simulations).
 
 # TODO: check the defaults of simulator.Simulator() (?)
 # TODO: continuation support or maybe test that particular feature elsewhere
-
+import pytest
 import numpy
 import itertools
 from tvb.tests.library.base_testcase import BaseTestCase
@@ -50,15 +50,15 @@ from tvb.datatypes.connectivity import Connectivity
 from tvb.datatypes.cortex import Cortex
 from tvb.datatypes.local_connectivity import LocalConnectivity
 from tvb.datatypes.region_mapping import RegionMapping
-from tvb.basic.traits.parameters_factory import get_traited_subclasses
 
 LOG = get_logger(__name__)
+# unused ones here to ensure that the classes in these modules get created and registered with traits
+import tvb.simulator.models.JCepileptor
+from tvb.simulator.integrators import (RungeKutta4thOrderDeterministic, HeunDeterministic,
+                                       IntegratorStochastic, HeunStochastic)
 
-AVAILABLE_MODELS = get_traited_subclasses(models.Model)
-AVAILABLE_METHODS = get_traited_subclasses(integrators.Integrator)
-MODEL_CLASSES = AVAILABLE_MODELS.values()
-METHOD_NAMES = AVAILABLE_METHODS.keys()
-METHOD_NAMES.append('RungeKutta4thOrderDeterministic')
+MODEL_CLASSES = models.Model.get_known_subclasses()
+METHOD_CLASSES = integrators.Integrator.get_known_subclasses()
 
 
 class Simulator(object):
@@ -78,9 +78,13 @@ class Simulator(object):
         gavg = monitors.GlobalAverage(period=2 ** -2)
         subsamp = monitors.SubSample(period=2 ** -2)
         tavg = monitors.TemporalAverage(period=2 ** -2)
-        eeg = monitors.EEG(load_default=True, period=2 ** -2)
-        eeg2 = monitors.EEG(load_default=True, period=2 ** -2, reference='Fp2')  # EEG with a reference electrode
-        meg = monitors.MEG(load_default=True, period=2 ** -2)
+        eeg = monitors.EEG.from_file()
+        eeg.period = 2 ** -2
+        eeg2 = monitors.EEG.from_file()
+        eeg2.period = 2 ** -2
+        eeg2.reference='Fp2'  # EEG with a reference electrode
+        meg = monitors.MEG.from_file()
+        meg.period=2 ** -2
 
         self.monitors = (raw, gavg, subsamp, tavg, eeg, eeg2, meg)
 
@@ -102,7 +106,7 @@ class Simulator(object):
         return results
 
     def configure(self, dt=2 ** -3, model=models.Generic2dOscillator, speed=4.0,
-                  coupling_strength=0.00042, method="HeunDeterministic",
+                  coupling_strength=0.00042, method=HeunDeterministic,
                   surface_sim=False,
                   default_connectivity=True):
         """
@@ -114,66 +118,74 @@ class Simulator(object):
         self.method = method
 
         if default_connectivity:
-            white_matter = Connectivity(load_default=True)
+            white_matter = Connectivity.from_file()
             region_mapping = RegionMapping.from_file(source_file="regionMapping_16k_76.txt")
         else:
             white_matter = Connectivity.from_file(source_file="connectivity_192.zip")
             region_mapping = RegionMapping.from_file(source_file="regionMapping_16k_192.txt")
 
-        white_matter_coupling = coupling.Linear(a=coupling_strength)
-        white_matter.speed = speed
+        white_matter_coupling = coupling.Linear(a=numpy.array([coupling_strength]))
+        white_matter.speed = numpy.array([speed])  # no longer allow scalars to numpy array promotion
 
         dynamics = model()
 
-        if method[-10:] == "Stochastic":
+        if issubclass(method, IntegratorStochastic):
             hisss = noise.Additive(nsig=numpy.array([2 ** -11]))
-            integrator = eval("integrators." + method + "(dt=dt, noise=hisss)")
+            integrator = method(dt=dt, noise=hisss)
         else:
-            integrator = eval("integrators." + method + "(dt=dt)")
+            integrator = method(dt=dt)
 
         if surface_sim:
             local_coupling_strength = numpy.array([2 ** -10])
-            default_cortex = Cortex(load_default=True, region_mapping_data=region_mapping)
+            default_cortex = Cortex.from_file()
+            default_cortex.region_mapping_data=region_mapping
             default_cortex.coupling_strength = local_coupling_strength
-            default_cortex.local_connectivity = LocalConnectivity(load_default=default_connectivity,
-                                                                  surface=default_cortex)
+            if default_connectivity:
+                default_cortex.local_connectivity = LocalConnectivity.from_file()
+            else:
+                default_cortex.local_connectivity = LocalConnectivity()
+            default_cortex.local_connectivity.surface = default_cortex
         else:
             default_cortex = None
 
         # Order of monitors determines order of returned values.
-        self.sim = simulator.Simulator(model=dynamics,
-                                       connectivity=white_matter,
-                                       coupling=white_matter_coupling,
-                                       integrator=integrator,
-                                       monitors=self.monitors,
-                                       surface=default_cortex)
+        self.sim = simulator.Simulator()
+        self.sim.surface = default_cortex
+        self.sim.model = dynamics
+        self.sim.integrator = integrator
+        self.sim.connectivity = white_matter
+        self.sim.coupling = white_matter_coupling
+        self.sim.monitors = self.monitors
         self.sim.configure()
 
 
 class TestSimulator(BaseTestCase):
-    def test_simulator_region(self):
+    @pytest.mark.parametrize('model_class,method_class', itertools.product(MODEL_CLASSES, METHOD_CLASSES))
+    def test_simulator_region(self, model_class, method_class):
 
         test_simulator = Simulator()
-        for model_class, method_name in itertools.product(MODEL_CLASSES, METHOD_NAMES):
-            test_simulator.configure(model=model_class,
-                                     method=method_name,
-                                     surface_sim=False)
-            result = test_simulator.run_simulation()
+        test_simulator.configure(model=model_class,
+                                 method=method_class,
+                                 surface_sim=False)
+        result = test_simulator.run_simulation()
 
-            self.assert_equal(len(test_simulator.monitors), len(result))
-            for ts in result:
-                assert ts is not None
-                assert len(ts) > 0
+        self.assert_equal(len(test_simulator.monitors), len(result))
+        for ts in result:
+            assert ts is not None
+            assert len(ts) > 0
 
-    def test_simulator_surface(self):
+
+    @pytest.mark.parametrize('default_connectivity', [True, False])
+    def test_simulator_surface(self, default_connectivity):
         """
         This test evaluates if surface simulations run as basic flow.
         """
         test_simulator = Simulator()
 
-        for default_connectivity in [True, False]:
-            test_simulator.configure(surface_sim=True, default_connectivity=default_connectivity)
-            result = test_simulator.run_simulation(simulation_length=2)
+        test_simulator.configure(surface_sim=True, default_connectivity=default_connectivity)
+        result = test_simulator.run_simulation(simulation_length=2)
 
-            assert len(test_simulator.monitors) == len(result)
-            LOG.debug("Surface simulation finished for defaultConnectivity= %s" % str(default_connectivity))
+        assert len(test_simulator.monitors) == len(result)
+        LOG.debug("Surface simulation finished for defaultConnectivity= %s" % str(default_connectivity))
+
+

@@ -3,9 +3,11 @@ A simple traits declarative api
 todo: rename this module
 todo: document the new system here and put a link to extensive docs
 """
+import inspect
 import typing
 import abc
 import logging
+from .neotraits_info import trait_object_str, auto_docstring, trait_object_repr_html
 
 # a logger for the whole traits system
 log = logging.getLogger('tvb.traits')
@@ -26,8 +28,9 @@ class Attr(object):
 
     def __init__(self, field_type=object, default=None, doc='', label='',
                  required=True, readonly=False, choices=None):
-        # type: (type, object, str, str, bool, bool, typing.Optional[tuple]) -> None
-        self.field_name = None  # to be set by metaclass
+        # type: (type, typing.Any, str, str, bool, bool, typing.Optional[tuple]) -> None
+        self.field_name = None  # type: str  # to be set by metaclass
+        self.owner = None  # type: type  # to be set by metaclass
         self.field_type = field_type
         self.default = default
         self.doc = doc
@@ -37,14 +40,17 @@ class Attr(object):
         self.choices = choices
 
 
-    def _err_msg_where(self, defined_in_type_name):
+    def _err_msg(self, msg):
         # type: (str) -> str
-        return 'attribute {}.{} = {} : '.format(
-            defined_in_type_name, self.field_name, self)
+        """
+        Adds to a error message information about the Attribute where it occured
+        """
+        return 'attribute {}.{} = {} : {}'.format(
+            self.owner.__name__, self.field_name, self, msg)
 
 
-    def _post_bind_validate(self, defined_in_type_name):
-        # type: (str) -> None
+    def _post_bind_validate(self):
+        # type: () -> None
         """
         Validates this instance of Attr.
         This is called just after field_name is set, by MetaType.
@@ -54,20 +60,19 @@ class Attr(object):
         if self.default is not None and not isinstance(self.default, self.field_type):
             msg = 'should have a default of type {} not {}'.format(
                 self.field_type, type(self.default))
-            raise TypeError(self._err_msg_where(defined_in_type_name) + msg)
+            raise TypeError(self._err_msg(msg))
 
         if self.choices is not None and self.default is not None:
             if self.default not in self.choices:
                 msg = 'the default {} must be one of the choices {}'.format(
                     self.default, self.choices)
-                raise TypeError(self._err_msg_where(defined_in_type_name) + msg)
+                raise TypeError(self._err_msg(msg))
 
         # heuristic check for mutability. might be costly. hasattr(__hash__) is fastest but less reliable
         try:
             hash(self.default)
         except TypeError:
-            log.warning(self._err_msg_where(defined_in_type_name)
-                        + 'field seems mutable and has a default value')
+            log.warning(self._err_msg('field seems mutable and has a default value'))
         # we do not check here if we have a value for a required field
         # it is too early for that, owner.__init__ has not run yet
 
@@ -82,12 +87,10 @@ class Attr(object):
         if value is None and not self.required:
             return
         if not isinstance(value, self.field_type):
-            msg_where = self._err_msg_where(type(instance).__name__)
-            raise TypeError(msg_where + "can't be set to an instance of {}".format(type(value)))
+            raise TypeError(self._err_msg("can't be set to an instance of {}".format(type(value))))
         if self.choices is not None:
             if value not in self.choices:
-                msg_where = self._err_msg_where(type(instance).__name__)
-                raise ValueError(msg_where + "value {} must be one of {}".format(value, self.choices))
+                raise ValueError(self._err_msg("value {} must be one of {}".format(value, self.choices)))
 
 
     def _assert_have_field_name(self):
@@ -97,7 +100,7 @@ class Attr(object):
 
 
     def __get__(self, instance, owner):
-        # type: (object, type) -> object
+        # type: (typing.Any, type) -> typing.Any
         self._assert_have_field_name()
         if instance is None:
             # called from class, not an instance
@@ -121,25 +124,18 @@ class Attr(object):
 
 
     def __delete__(self, instance):
-        msg_where = self._err_msg_where(type(instance).__name__)
+        msg_where = self._err_msg(type(instance).__name__)
         raise AttributeError(msg_where + "can't be deleted")
 
 
     def __str__(self):
-        return '{}(field_type={}, default={}, required={})'.format(
+        return '{}(field_type={}, default={!r}, required={})'.format(
             type(self).__name__, self.field_type, self.default, self.required)
 
-
-
-def _auto_docstring(namespace):
-    """ generate a docstring for the new class in which the Attrs are documented """
-    doc = ['declarative attr on class']
-
-    for k, v in namespace.iteritems():
-        if isinstance(v, Attr):
-            doc.append(str(v))
-
-    return namespace.get('__doc__', '') + '\n'.join(doc)
+    def __setattr__(self, key, value):
+        if getattr(self, 'owner', None) is not None:
+            raise AttributeError("can't change any field after the Attr has been bound to a class")
+        super(Attr, self).__setattr__(key, value)
 
 
 
@@ -156,11 +152,32 @@ class MetaType(abc.ABCMeta):
 
     # here to avoid some hasattr; is None etc checks. And to make pycharm happy
     # should be harmless and shadowed by _declarative_attrs on the returned classes
-    _own_declarative_attrs = ()  # name of all declarative fields on this class
+    _own_declarative_attrs = ()  # type: typing.Tuple[str] # name of all declarative fields on this class
+
+    # A record of all the classes we have created, todo: should this hold weakrefs? are classes ever deleted in tvb?
+    __classes = []  # type: typing.List[type]
+
+
+    def get_known_subclasses(cls, include_abstract=False):
+        # type: (bool) -> typing.Tuple[typing.Type[MetaType], ...]
+        """
+        Returns all subclasses that exist *now*.
+        New subclasses can be created after this call (after importing a new module or dynamically created ones)
+        Use with care. Use after most relevant modules have been imported.
+        """
+        ret = []
+
+        for c in cls.__classes:
+            if issubclass(c, cls):
+                if inspect.isabstract(c) and not include_abstract:
+                    continue
+                ret.append(c)
+        return tuple(ret)
 
 
     @property
     def declarative_attrs(cls):
+        # type: () -> typing.Tuple[str, ...]
         """
         Gathers all the declared attributes, including the ones declared in superclasses.
         This is a meta-property common to all classes with this metatype
@@ -176,28 +193,48 @@ class MetaType(abc.ABCMeta):
                         ret.append(attr_name)
         return tuple(ret)
 
+    # here only to have a similar invocation like declarative_attrs
+    # namely type(traited_instance).own_declarative_attrs
+    # consider the traited_instance._own_declarative_attrs discouraged
+    @property
+    def own_declarative_attrs(cls):
+        return cls._own_declarative_attrs
+
 
     def __new__(mcs, type_name, bases, namespace):
         """
         Gathers the names of all declarative fields.
         Tell each Attr of the name of the field it is bound to.
         """
-        # todo find a reliable way to refuse creating classes that are not subclasses of Base
+        # gather all declarative attributes defined in the class to be constructed.
+        # validate all declarations before constructing the new type
         attrs = []
 
         for k, v in namespace.iteritems():
             if isinstance(v, Attr):
                 attrs.append(k)
-                v.field_name = k
-                v._post_bind_validate(type_name)
 
+        # record the names of the declarative attrs in the _own_declarative_attrs field
         if '_own_declarative_attrs' in namespace:
             raise TypeError('class attribute _own_declarative_attrs is reserved in traited classes')
 
         namespace['_own_declarative_attrs'] = tuple(attrs)
-        namespace['__doc__'] = _auto_docstring(namespace)
+        # construct the class
+        cls = super(MetaType, mcs).__new__(mcs, type_name, bases, namespace)
 
-        return super(MetaType, mcs).__new__(mcs, type_name, bases, namespace)
+        # inform the Attr instances about the class their are bound to
+        for attr_name in attrs:
+            v = namespace[attr_name]
+            v.field_name = attr_name
+            v.owner = cls
+            v._post_bind_validate()
+
+        # update docstring. Note that this is only possible if cls was created by a metatype in python
+        setattr(cls, '__doc__', auto_docstring(cls))
+
+        # update the HasTraits class registry
+        mcs.__classes.append(cls)
+        return cls
 
 
     # note: Any methods defined here are metamethods, visible from all classes with this metatype
@@ -217,9 +254,9 @@ class MetaType(abc.ABCMeta):
             # these getattr's call the descriptors, should we bypass them?
             attr = getattr(cls, k)
             if attr.required and getattr(instance, k) is None:
-                raise ValueError('attribute {}.{} = {} is required. '
-                                 'Initialize it in __init__ or declare a default '
-                                 .format(cls.__name__, k, attr))
+                log.warning('attribute {}.{} = {} is required. '
+                            'Initialize it in __init__ or declare a default '
+                            .format(cls.__name__, k, attr))
 
 
     def __call__(cls, *args, **kwargs):
@@ -262,17 +299,18 @@ class HasTraits(object):
                                 .format(cls, repr(cls.declarative_attrs), k))
             setattr(self, k, v)
 
-    def __str__(self):
-        cls = type(self)
-        result = ['{} ('.format(self.__class__.__name__)]
-        for aname in cls.declarative_attrs:
-            attr_field = getattr(self, aname)
-            # str would be pretty. but recursive types will stack overflow then
-            # use serialization.to_str
-            attr_repr = repr(attr_field).splitlines()
-            attr_repr = attr_repr[:1] + ['  ' + s for s in attr_repr[1:]]
-            attr_repr = '\n'.join(attr_repr)
-            result.append('  {} = {},'.format(aname, attr_repr))
-        result.append(')')
-        return '\n'.join(result)
 
+    def __str__(self):
+        return trait_object_str(self)
+
+
+    def _repr_html_(self):
+        return trait_object_repr_html(self)
+
+
+    def configure(self, *args, **kwargs):
+        """
+        This is here only because a lot of code relies on configure calls.
+        This is the default do nothing base implementation
+        todo: deleteme
+        """
