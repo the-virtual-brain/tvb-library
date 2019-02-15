@@ -1,13 +1,8 @@
-"""
-A simple traits declarative api
-todo: rename this module
-todo: document the new system here and put a link to extensive docs
-"""
 import inspect
 import typing
 import abc
 import logging
-from .neotraits_info import trait_object_str, auto_docstring, trait_object_repr_html
+from .info import trait_object_str, auto_docstring, trait_object_repr_html
 
 # a logger for the whole traits system
 log = logging.getLogger('tvb.traits')
@@ -29,14 +24,23 @@ class Attr(object):
     def __init__(self, field_type=object, default=None, doc='', label='',
                  required=True, readonly=False, choices=None):
         # type: (type, typing.Any, str, str, bool, bool, typing.Optional[tuple]) -> None
+        """
+        :param field_type: the python type of this attribute
+        :param default: A shared default value. Behaves like class level attribute assignment. Take care with mutable defaults.
+        :param doc: Documentation for this field.
+        :param label: A short description.
+        :param required: required fields should not be None. Not strongly enforced.
+        :param readonly: If assignment should be prohibited.
+        :param choices: A tuple of the values that this field is allowed to take.
+        """
         self.field_name = None  # type: str  # to be set by metaclass
         self.owner = None  # type: type  # to be set by metaclass
         self.field_type = field_type
         self.default = default
         self.doc = doc
         self.label = label
-        self.required = required
-        self.readonly = readonly
+        self.required = bool(required)
+        self.readonly = bool(readonly)
         self.choices = choices
 
 
@@ -57,6 +61,10 @@ class Attr(object):
         We do checks here and not in init in order to give better error messages.
         Attr should be considered initialized only after this has run
         """
+        if not isinstance(self.field_type, type):
+            msg = 'field_type must be a type not {!r}. Did you mean to use it as the default?'.format(self.field_type)
+            raise TypeError(self._err_msg(msg))
+
         if self.default is not None and not isinstance(self.default, self.field_type):
             msg = 'should have a default of type {} not {}'.format(
                 self.field_type, type(self.default))
@@ -145,7 +153,6 @@ class MetaType(abc.ABCMeta):
     We inherit ABCMeta so that the users may use @abstractmethod without having to
     deal with 2 meta-classes.
     Even though we do this we don't support the dynamic registration of subtypes to these abc's
-    todo: Review if supporting abstract methods outweighs the complexity of python abc's.
     """
     # This is a python metaclass.
     # For an introduction see https://docs.python.org/2/reference/datamodel.html

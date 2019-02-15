@@ -41,7 +41,7 @@ methods that are associated with the sensor dataTypes.
 import numpy
 from tvb.basic.logger.builder import get_logger
 from tvb.basic.readers import FileReader, try_get_absolute_path
-from tvb.basic.traits.neotraits import HasTraits, Attr, NArray
+from tvb.basic.neotraits.api import HasTraits, Attr, NArray
 
 LOG = get_logger(__name__)
 
@@ -63,7 +63,7 @@ class Sensors(HasTraits):
 
     __mapper_args__ = {'polymorphic_on': 'sensors_type'}
 
-    labels = NArray(dtype=str, label="Sensor labels")
+    labels = NArray(dtype='S128', label="Sensor labels")
 
     locations = NArray(label="Sensor locations")
 
