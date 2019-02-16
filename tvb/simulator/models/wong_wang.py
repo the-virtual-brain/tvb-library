@@ -196,3 +196,258 @@ class ReducedWongWang(ModelNumbaDfun):
         deriv = _numba_dfun(x_, c_, self.a, self.b, self.d, self.gamma,
                         self.tau_s, self.w, self.J_N, self.I_o)
         return deriv.T[..., numpy.newaxis]
+
+
+class ReducedWongWang_EI(ModelNumbaDfun):
+    r"""
+       ReducedWongWang_EI is a dynamic mean field model that simulates local regional activity via 
+       interconnected populations of excitatory pyramidal (E) and inhibitory (I) neurons, with NMDA (excit-
+       atory) and GABA (inhibitory) synaptic receptors (Deco et al., 2014).
+       
+        Equations taken from [Deco_2014], page 7889:
+    
+        .. math::
+            I_E,i &= W_E * I_0 + w * J_NMDA * S_E,i + J_NMDA * \mathbf\Gamma(S_E,j, c_{ij})
+                    - J_i * S_I,i + I_ext \\
+            I_I,i &= W_I * I_0 + J_NMDA * S_E,i + \lambda * J_NMDA * \mathbf\Gamma(S_E,j, c_{ij}) 
+                    - S_I,i \\
+             
+            r_E,i &= (a_E * I_E,i - b_E) / (1 - exp(d_E *(a_E * I_E,i - b_E)))
+            r_I,i &= (a_I * I_I,i - b_I) / (1 - exp(d_I *(a_I * I_I,i - b_I)))
+             
+            \dot{S}_E,i &= - S_E,i / \tau_E + (1 - S_E,i) * \gamma * r_E,i
+            \dot{S}_I,i &= - S_I,i / \tau_I + r_I,i
+             
+        See:
+        .. [Deco et al., 2014] Deco,G; Ponce-Alvarez, A; Hagmann, P; Romani, GL ; Mantini, D;
+            and Corbetta, M. *How Local Excitation–Inhibition Ratio Impacts the Whole Brain Dynamics.*
+            J. Neurosci, 2014, 34(23):7886 –7898.
+            
+        Note: the ReducedWongWang model is a further reduction of the ReducedWongWang_EI.
+    
+        .. moduleauthor:: courtiol.julie@gmail.com
+    """
+
+    _ui_name = "Reduced Wong-Wang_EI"
+    ui_configurable_parameters = ['a_E', 'b_E', 'd_E', 'tau_E', 'tau_NMDA', 'W_E', 'w', 'J', 'I_ext',
+                                  'gamma', 'a_I', 'b_I', 'd_I', 'tau_I', 'tau_GABA', 'W_I', 'lbda',
+                                  'I_0', 'J_NMDA']
+
+    # parameters
+    # excitatory gating variables
+    a_E = arrays.FloatArray(
+        label=":math:`a_E`",
+        default=numpy.array([310., ]),
+        range=basic.Range(lo=0.0, hi=400.0, step=0.1),
+        doc="""Synaptic gating constant. [nC-1]""",
+        order=1)
+
+    b_E = arrays.FloatArray(
+        label=":math:`b_E`",
+        default=numpy.array([125., ]),
+        range=basic.Range(lo=0.0, hi=200.0, step=0.1),
+        doc="""Synaptic gating constant. [Hz]""",
+        order=2)
+        
+    d_E = arrays.FloatArray(
+        label=":math:`d_E`",
+        default=numpy.array([.16, ]),
+        range=basic.Range(lo=0.0, hi=1.0, step=0.01),
+        doc="""Synaptic gating constant. [s]""",
+        order=3)
+     
+    tau_E = arrays.FloatArray(
+        label=":math:`\tau_E`",
+        default=numpy.array([100., ]),
+        range=basic.Range(lo=50., hi=150., step=1.),
+        doc="""Decay times for excitatory population. [ms]""",
+        order=4)
+       
+    tau_NMDA = arrays.FloatArray(
+        label=":math:`\tau_NMDA`",
+        default=numpy.array([100., ]),
+        range=basic.Range(lo=50., hi=150., step=1.),
+        doc="""Decay times for NMDA synapses. [ms]""",
+        order=5)
+   
+    W_E = arrays.FloatArray(
+        label=":math:`W_E`",
+        default=numpy.array([1., ]),
+        range=basic.Range(lo=0.1, hi=10., step=0.1),
+        doc="""Scaling factor of external input I_0 for the excitatory population.""",
+        order=6)
+
+    w = arrays.FloatArray(
+        label=r":math:`w`",
+        default=numpy.array([1.4, ]),
+        range=basic.Range(lo=0.0, hi=2.0, step=0.1),
+        doc="""Local excitatory recurrence.""",
+        order=7)
+        
+    J = arrays.FloatArray(
+        label=r":math:`J`",
+        default=numpy.array([1., ]),
+        range=basic.Range(lo=0.0, hi=2.0, step=0.1),
+        doc="""Local feedback inhibitory synaptic coupling. [nA]
+            By default ; in FIC case it is adjusted independently.""",
+        order=8)
+        
+    I_ext = arrays.FloatArray(
+        label=r":math:`I_ext`",
+        default=numpy.array([0., ]),
+        range=basic.Range(lo=0.0, hi=1.0, step=0.01),
+        doc="""External stimulation: I_ext=0 under resting-state condition,
+            I_ext=0.02 in task condition.""",
+        order=9)
+        
+    gamma = arrays.FloatArray(
+        label=r":math:`\gamma`",
+        default=numpy.array([0.000641, ]),
+        range=basic.Range(lo=0.0, hi=1.0, step=0.000001),
+        doc="""Kinetic parameter. [ms]""",
+        order=10)
+
+    # inhibitory gating variables
+    a_I = arrays.FloatArray(
+        label=":math:`a_I`",
+        default=numpy.array([615., ]),
+        range=basic.Range(lo=0.0, hi=700.0, step=0.1),
+        doc="""Synaptic gating constant. [nC-1]""",
+        order=11)
+
+    b_I = arrays.FloatArray(
+        label=":math:`b_I`",
+        default=numpy.array([177., ]),
+        range=basic.Range(lo=0.0, hi=200.0, step=0.1),
+        doc="""Synaptic gating constant. [Hz]""",
+        order=12)
+
+    d_I = arrays.FloatArray(
+        label=":math:`d_I`",
+        default=numpy.array([.087, ]),
+        range=basic.Range(lo=0.0, hi=1.0, step=0.001),
+        doc="""Synaptic gating constant. [s]""",
+        order=13)
+
+    tau_I = arrays.FloatArray(
+        label=":math:`\tau_I`",
+        default=numpy.array([10., ]),
+        range=basic.Range(lo=1., hi=50., step=1.),
+        doc="""Decay times for inhibitory population. [ms]""",
+        order=14)
+
+    tau_GABA = arrays.FloatArray(
+        label=":math:`\tau_GABA`",
+        default=numpy.array([10., ]),
+        range=basic.Range(lo=1., hi=50., step=1.),
+        doc="""Decay times for GABA synapses. [ms]""",
+        order=15)
+
+    W_I = arrays.FloatArray(
+        label=":math:`W_I`",
+        default=numpy.array([.7, ]),
+        range=basic.Range(lo=0.1, hi=10., step=0.1),
+        doc="""Scaling factor of external input I_0 for the inhibitory population.""",
+        order=16)
+        
+    lbda = arrays.BoolArray(
+        label=r":math:`\lambda`",
+        default=numpy.array([0]),
+        doc="""When \lambda is True, then long-range feedworward inhibition (FFI)
+        is considered. The default value is False, i.e., no FFI.""",
+        order=17)
+        
+    # shared parameters
+    I_0 = arrays.FloatArray(
+        label=":math:`I_0`",
+        default=numpy.array([0.382, ]),
+        range=basic.Range(lo=0.001, hi=1., step=0.001),
+        doc="""Overall effective external input. [nA]""",
+        order=18)
+
+    J_NMDA = arrays.FloatArray(
+        label=":math:`J_NMDA`",
+        default=numpy.array([0.15, ]),
+        range=basic.Range(lo=0.01, hi=1., step=0.01),
+        doc="""Excitatory synaptic coupling. [nA]""",
+        order=19)
+
+    # initialization
+    state_variable_range = basic.Dict(
+        label="State variable ranges [lo, hi]",
+        default={"S_E": numpy.array([0.0, 1.0]),
+                 "S_I": numpy.array([0.0, 1.0])},
+        doc="Average excitatory (E) and inhibitory (I) synaptic gating variables.",
+        order=20)
+        
+    variables_of_interest = basic.Enumerate(
+        label="Variables watched by Monitors",
+        options=["S_E", "S_I"],
+        default=["S_E", "S_I"],
+        select_multiple=True,
+        doc="""Default state-variables to be monitored.""",
+        order=21)
+        
+    state_variables = ['S_E', 'S_I']
+    _nvar = 2                                    #number of state-variables
+    cvar = numpy.array([0], dtype=numpy.int32)   #coupling variables
+
+    def _numpy_dfun(self, state_variables, coupling, local_coupling=0.0,
+                array=numpy.array, where=numpy.where, concat=numpy.concatenate):
+        r"""
+            Computes the derivatives of the state-variables of Reduced_WongWang_EI
+            with respect to time.
+        """
+
+        y = state_variables
+        ydot = numpy.empty_like(state_variables)
+
+        # long-range (global) coupling
+        lrc = coupling[0]
+        
+        # short-range (local) coupling
+        #src = local_coupling * y[0]
+
+        # local dynamics equations
+        # excitatory population
+        I_E = self.W_E * self.I_0 + self.w * self.J_NMDA * y[0] + lrc * self.J_NMDA - self.J * y[1] + self.I_ext
+        r_E = (self.a_E * I_E - self.b_E) / (1 - numpy.exp(- self.d_E * (self.a_E * I_E - self.b_E)))
+        ydot[0] = - y[0] / self.tau_E + (1 - y[0]) * self.gamma * r_E
+
+        # inhibitory population
+        I_I = self.W_I * self.I_0 + self.J_NMDA * y[0] - y[1] + lrc * self.lbda * self.J_NMDA
+        r_I = (self.a_I * I_I - self.b_I) / (1 - numpy.exp(- self.d_I * (self.a_I * I_I - self.b_I)))
+        ydot[1] = - y[1] / self.tau_I + r_I
+
+        return ydot
+
+    def dfun(self, x, c, local_coupling=0.0):
+
+        x_ = x.reshape(x.shape[:-1]).T
+        c_ = c.reshape(c.shape[:-1]).T
+        #src = local_coupling * x[0, :, 0]
+        deriv = _numba_dfun_rwwEI(x_, c_,
+                                  self.a_E, self.b_E, self.d_E, self.tau_E, self.tau_NMDA, self.W_E, self.w,
+                                  self.J, self.I_ext, self.gamma,
+                                  self.a_I, self.b_I, self.d_I, self.tau_I, self.tau_GABA, self.W_I, self.lbda,self.I_0, self.J_NMDA)
+        return deriv.T[..., numpy.newaxis]
+
+@guvectorize([(float64[:],) * 22], '(n),(m)' + ',()' *  19 + '->(n)', nopython=True)
+def _numba_dfun_rwwEI(y, coupl,
+                      a_E, b_E, d_E, tau_E, tau_NMDA, W_E, w, J, I_ext, gamma,
+                      a_I, b_I, d_I, tau_I, tau_GABA, W_I, lbda, I_0, J_NMDA,
+                      ydot):
+    "Gufunc for ReducedWongWang_EI model equations."
+
+    #long-range coupling
+    lrc = coupl[0]
+
+    # excitatory population
+    I_E = W_E[0] * I_0[0] + w[0] * J_NMDA[0] * y[0] + lrc * J_NMDA[0] - J[0] * y[1] + I_ext[0]
+    r_E = (a_E[0] * I_E - b_E[0]) / (1 - numpy.exp(- d_E[0] * (a_E[0] * I_E - b_E[0])))
+    ydot[0] = - y[0] / tau_E[0] + (1 - y[0]) * gamma[0] * r_E
+
+    # inhibitory population
+    I_I = W_I[0] * I_0[0] + J_NMDA[0] * y[0] - y[1] + lrc * lbda[0] * J_NMDA[0]
+    r_I = (a_I[0] * I_I - b_I[0]) / (1 - numpy.exp(- d_I[0] * (a_I[0] * I_I - b_I[0])))
+    ydot[1] = - y[1] / tau_I[0] + r_I
