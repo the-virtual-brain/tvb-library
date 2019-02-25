@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
-from tvb.basic.neotraits.api import HasTraits, Attr, NArray, Const, List
+from tvb.basic.neotraits._core import TraitProperty
+from tvb.basic.neotraits.api import HasTraits, Attr, NArray, Const, List, traitproperty
 
 
 def test_simple_declaration():
@@ -113,8 +114,9 @@ def test_declarative_attrs():
     class Inherit(B, A):
         c = Attr(str)
 
-    assert Inherit.declarative_attrs == ('c', 'b', 'a')
+    assert set(Inherit.declarative_attrs) == {'c', 'b', 'a'}
     assert Inherit._own_declarative_attrs == ('c',)
+    assert Inherit.own_declarative_attrs == ('c', )
 
     t = Inherit(a="ana", c="are", b=2)
 
@@ -146,6 +148,7 @@ def test_late_attr_binding_fail():
         f = Attr(str)
 
     F.newdynamic = Attr(str)
+    del F.f
 
 
 def test_mro_fail():
@@ -256,4 +259,31 @@ def test_reusing_attribute_instances_fail():
     with pytest.raises(AttributeError):
         class A(HasTraits):
             a, b = [Attr(int)] * 2
+
+
+def test_declarative_property():
+    class A(HasTraits):
+        x = NArray(
+            label='th x',
+            doc='the mighty x'
+        )
+
+        def tw(self):
+            return self.x * 2
+
+        @traitproperty(NArray(label='3 * x', doc='use the docstring, it is nicer'))
+        def x3(self):
+            """
+            this will be added to the doc of the NArray
+            Encouraged place for doc
+            """
+            return self.x * 3
+
+        x2 = TraitProperty(tw, NArray(label='x * 2'))
+
+    a = A()
+    a.x = np.arange(12)
+    assert set(A.declarative_props) == {'x3', 'x2'}
+    assert (a.x2 == a.x * 2).all()
+    assert (a.x3 == a.x * 3).all()
 
