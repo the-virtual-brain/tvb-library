@@ -214,6 +214,7 @@ class WongWang(models.Model):
         doc="""default state variables to be monitored""",
         order=10)
 
+    state_variables = ['S1', 'S2']
 
     def __init__(self, **kwargs):
         """
