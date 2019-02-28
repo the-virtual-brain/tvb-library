@@ -42,7 +42,7 @@ import numpy
 import scipy.stats
 from tvb.basic.logger.builder import get_logger
 from tvb.basic.readers import ZipReader, H5Reader, try_get_absolute_path
-from tvb.basic.neotraits.api import Attr, NArray, List, HasTraits
+from tvb.basic.neotraits.api import Attr, NArray, List, HasTraits, Int
 from tvb.basic.traits.types_mapped import MappedType
 
 
@@ -119,12 +119,12 @@ class Connectivity(HasTraits):
         doc="""Matrix of time delays between regions in physical units, setting conduction speed automatically
         combines with tract lengths to update this matrix, i.e. don't try and change it manually.""")
 
-    number_of_regions = Attr(
+    number_of_regions = Int(
         field_type=long,
         label="Number of regions",
         doc="""The number of regions represented in this Connectivity """)
 
-    number_of_connections = Attr(
+    number_of_connections = Int(
         field_type=long,
         label="Number of connections",
         doc="""The number of non-zero entries represented in this Connectivity """)
@@ -418,7 +418,7 @@ class Connectivity(HasTraits):
         # self.trait["delays"].log_debug(owner=self.__class__.__name__)
 
         if (self.weights.transpose() == self.weights).all():
-            self.undirected = 1
+            self.undirected = True
 
     def _find_summary_info(self):
         """
