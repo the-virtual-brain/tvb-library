@@ -264,7 +264,7 @@ class WongWang(models.Model):
         c_0 = coupling[0]
 
         x1 = self.J11 * s1 - self.J12 * s2 + self.I_o + self.I_1
-        x2 = self.J21 * s2 - self.J22 * s1 + self.I_o + self.I_2
+        x2 = self.J22 * s2 - self.J21 * s1 + self.I_o + self.I_2
 
         H1 = (self.a * x1 - self.b) / (1 - numpy.exp(-self.d * (self.a * x1 - \
                                                                 self.b)))
