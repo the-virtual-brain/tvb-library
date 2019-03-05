@@ -140,7 +140,7 @@ class Cortex(surfaces.CorticalSurface):
             self.compute_region_areas()
 
         if self.local_connectivity is None:
-            self.local_connectivity = local_connectivity.LocalConnectivity(cutoff=40.0, use_storage=False, surface=self)
+            self.local_connectivity = local_connectivity.LocalConnectivity(cutoff=40.0, surface=self)
 
         # mhtodo: review nullability of NArrays
         if self.local_connectivity.matrix is None or self.local_connectivity.matrix.size == 0:
