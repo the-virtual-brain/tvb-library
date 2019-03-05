@@ -106,17 +106,18 @@ class FourierSpectrum(HasTraits):
             if self.normalised_average_power.size == 0:
                 self.compute_normalised_average_power()
 
-    def _find_summary_info(self):
+    def summary_info(self):
         """
         Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Spectral type": self.__class__.__name__,
-                   "Source": self.source.title,
-                   "Segment length": self.segment_length,
-                   "Windowing function": self.windowing_function,
-                   "Frequency step": self.freq_step,
-                   "Maximum frequency": self.max_freq}
-        return summary
+        return {
+            "Spectral type": self.__class__.__name__,
+            "Source": self.source.title,
+            "Segment length": self.segment_length,
+            "Windowing function": self.windowing_function,
+            "Frequency step": self.freq_step,
+            "Maximum frequency": self.max_freq
+        }
 
     @property
     def freq_step(self):
@@ -231,20 +232,21 @@ class WaveletCoefficients(HasTraits):
             if self.power.size == 0:
                 self.compute_power()
 
-    def _find_summary_info(self):
+    def summary_info(self):
         """
         Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Spectral type": self.__class__.__name__,
-                   "Source": self.source.title,
-                   "Wavelet type": self.mother,
-                   "Normalisation": self.normalisation,
-                   "Q-ratio": self.q_ratio,
-                   "Sample period": self.sample_period,
-                   "Number of scales": self.frequencies.shape[0],
-                   "Minimum frequency": self.frequencies[0],
-                   "Maximum frequency": self.frequencies[-1]}
-        return summary
+        return {
+            "Spectral type": self.__class__.__name__,
+            "Source": self.source.title,
+            "Wavelet type": self.mother,
+            "Normalisation": self.normalisation,
+            "Q-ratio": self.q_ratio,
+            "Sample period": self.sample_period,
+            "Number of scales": self.frequencies.shape[0],
+            "Minimum frequency": self.frequencies[0],
+            "Maximum frequency": self.frequencies[-1]
+        }
 
     @property
     def frequency(self):
@@ -297,17 +299,18 @@ class CoherenceSpectrum(HasTraits):
         # Do not call super, because that accesses data not-chunked
         self.configure_chunk_safe()
 
-    def _find_summary_info(self):
+    def summary_info(self):
         """
         Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Spectral type": self.__class__.__name__,
-                   "Source": self.source.title,
-                   "Number of frequencies": self.frequency.shape[0],
-                   "Minimum frequency": self.frequency[0],
-                   "Maximum frequency": self.frequency[-1],
-                   "FFT length (time-points)": self.nfft}
-        return summary
+        return {
+            "Spectral type": self.__class__.__name__,
+            "Source": self.source.title,
+            "Number of frequencies": self.frequency.shape[0],
+            "Minimum frequency": self.frequency[0],
+            "Maximum frequency": self.frequency[-1],
+            "FFT length (time-points)": self.nfft
+        }
 
 
 
@@ -371,19 +374,19 @@ class ComplexCoherenceSpectrum(HasTraits):
         # Do not call super, because that accesses data not-chunked
         self.configure_chunk_safe()
 
-    def _find_summary_info(self):
+    def summary_info(self):
         """
         Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Spectral type": self.__class__.__name__,
-                   "Source": self.source.title,
-                   "Frequency step": self.freq_step,
-                   "Maximum frequency": self.max_freq,
-                   "Epoch length": self.epoch_length,
-                   "Segment length": self.segment_length,
-                   "Windowing function": self.windowing_function
-                   }
-        return summary
+        return {
+            "Spectral type": self.__class__.__name__,
+            "Source": self.source.title,
+            "Frequency step": self.freq_step,
+            "Maximum frequency": self.max_freq,
+            "Epoch length": self.epoch_length,
+            "Segment length": self.segment_length,
+            "Windowing function": self.windowing_function
+        }
 
     @property
     def freq_step(self):

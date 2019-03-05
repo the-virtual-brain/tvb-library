@@ -39,7 +39,7 @@ framework methods that are associated with the Temporal Correlation datatypes.
 
 import tvb.datatypes.time_series as time_series
 from tvb.basic.logger.builder import get_logger
-from tvb.basic.neotraits.api import HasTraits, Attr, NArray, List
+from tvb.basic.neotraits.api import HasTraits, Attr, NArray, List, narray_summary_info
 
 LOG = get_logger(__name__)
 
@@ -72,13 +72,14 @@ class CrossCorrelation(HasTraits):
         for i in range(self.nr_dimensions):
             setattr(self, 'length_%dd' % (i + 1), int(self.read_data_shape()[i]))
 
-    def _find_summary_info(self):
+    def summary_info(self):
         """
         Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Temporal correlation type": self.__class__.__name__,
-                   "Source": self.source.title,
-                   "Dimensions": self.labels_ordering}
-
-        summary.update(self.get_info_about_array('array_data'))
+        summary = {
+            "Temporal correlation type": self.__class__.__name__,
+            "Source": self.source.title,
+            "Dimensions": self.labels_ordering
+        }
+        summary.update(narray_summary_info(self.array_data))
         return summary

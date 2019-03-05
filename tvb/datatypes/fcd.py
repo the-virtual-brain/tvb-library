@@ -39,11 +39,11 @@ Adapter that uses the traits module to generate interfaces for ... Analyzer.
 from tvb.basic.logger.builder import get_logger
 
 import tvb.datatypes.time_series as time_series
-from tvb.basic.neotraits.api import HasTraits, Attr, NArray, List, Float
-
-
+from tvb.basic.neotraits.api import HasTraits, Attr, NArray, List, Float, narray_summary_info
 
 LOG = get_logger(__name__)
+
+
 
 class Fcd(HasTraits):
 
@@ -86,14 +86,15 @@ class Fcd(HasTraits):
             setattr(self, 'length_%dd' % (i + 1), int(self.read_data_shape()[i]))
 
 
-    def _find_summary_info(self):
+    def summary_info(self):
         """
         Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"FCD type": self.__class__.__name__,
-                   "Source": self.source.title,
-                   "Dimensions": self.labels_ordering}
-
-        summary.update(self.get_info_about_array('array_data'))
+        summary = {
+            "FCD type": self.__class__.__name__,
+            "Source": self.source.title,
+            "Dimensions": self.labels_ordering
+        }
+        summary.update(narray_summary_info(self.array_data))
         return summary
 
