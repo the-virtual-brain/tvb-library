@@ -90,21 +90,21 @@ class FourierSpectrum(HasTraits):
     def configure(self):
         """After populating few fields, compute the rest of the fields"""
         # Do not call super, because that accesses data not-chunked
-        self.nr_dimensions = len(self.read_data_shape())
-        for i in range(self.nr_dimensions):
-            setattr(self, 'length_%dd' % (i + 1), int(self.read_data_shape()[i]))
+        self.nr_dimensions = self.array_data.ndim
+        # for i in range(self.nr_dimensions):
+        #     setattr(self, 'length_%dd' % (i + 1), int(self.read_data_shape()[i]))
 
-        if self.trait.use_storage is False and sum(self.get_data_shape('array_data')) != 0:
-            if self.amplitude.size == 0:
-                self.compute_amplitude()
-            if self.phase.size == 0:
-                self.compute_phase()
-            if self.power.size == 0:
-                self.compute_power()
-            if self.average_power.size == 0:
-                self.compute_average_power()
-            if self.normalised_average_power.size == 0:
-                self.compute_normalised_average_power()
+        # if self.trait.use_storage is False and sum(self.get_data_shape('array_data')) != 0:
+        #     if self.amplitude.size == 0:
+        #         self.compute_amplitude()
+        #     if self.phase.size == 0:
+        #         self.compute_phase()
+        #     if self.power.size == 0:
+        #         self.compute_power()
+        #     if self.average_power.size == 0:
+        #         self.compute_average_power()
+        #     if self.normalised_average_power.size == 0:
+        #         self.compute_normalised_average_power()
 
     def _find_summary_info(self):
         """
@@ -149,28 +149,28 @@ class FourierSpectrum(HasTraits):
     def compute_amplitude(self):
         """ Amplitude of the complex Fourier spectrum."""
         self.amplitude = numpy.abs(self.array_data)
-        self.trait["amplitude"].log_debug(owner=self.__class__.__name__)
+        # self.trait["amplitude"].log_debug(owner=self.__class__.__name__)
 
     def compute_phase(self):
         """ Phase of the Fourier spectrum."""
         self.phase = numpy.angle(self.array_data)
-        self.trait["phase"].log_debug(owner=self.__class__.__name__)
+        # self.trait["phase"].log_debug(owner=self.__class__.__name__)
 
     def compute_power(self):
         """ Power of the complex Fourier spectrum."""
         self.power = numpy.abs(self.array_data) ** 2
-        self.trait["power"].log_debug(owner=self.__class__.__name__)
+        # self.trait["power"].log_debug(owner=self.__class__.__name__)
 
     def compute_average_power(self):
         """ Average-power of the complex Fourier spectrum."""
         self.average_power = numpy.mean(numpy.abs(self.array_data) ** 2, axis=-1)
-        self.trait["average_power"].log_debug(owner=self.__class__.__name__)
+        # self.trait["average_power"].log_debug(owner=self.__class__.__name__)
 
     def compute_normalised_average_power(self):
         """ Normalised-average-power of the complex Fourier spectrum."""
         self.normalised_average_power = (self.average_power /
                                          numpy.sum(self.average_power, axis=0))
-        self.trait["normalised_average_power"].log_debug(owner=self.__class__.__name__)
+        # self.trait["normalised_average_power"].log_debug(owner=self.__class__.__name__)
 
 
 
@@ -219,17 +219,17 @@ class WaveletCoefficients(HasTraits):
     def configure(self):
         """After populating few fields, compute the rest of the fields"""
         # Do not call super, because that accesses data not-chunked
-        self.nr_dimensions = len(self.read_data_shape())
-        for i in range(self.nr_dimensions):
-            setattr(self, 'length_%dd' % (i + 1), int(self.read_data_shape()[i]))
+        self.nr_dimensions = self.array_data.ndim
+        # for i in range(self.nr_dimensions):
+        #     setattr(self, 'length_%dd' % (i + 1), int(self.read_data_shape()[i]))
 
-        if self.trait.use_storage is False and sum(self.get_data_shape('array_data')) != 0:
-            if self.amplitude.size == 0:
-                self.compute_amplitude()
-            if self.phase.size == 0:
-                self.compute_phase()
-            if self.power.size == 0:
-                self.compute_power()
+        # if self.trait.use_storage is False and sum(self.get_data_shape('array_data')) != 0:
+        #     if self.amplitude.size == 0:
+        #         self.compute_amplitude()
+        #     if self.phase.size == 0:
+        #         self.compute_phase()
+        #     if self.power.size == 0:
+        #         self.compute_power()
 
     def _find_summary_info(self):
         """
@@ -295,7 +295,9 @@ class CoherenceSpectrum(HasTraits):
     def configure(self):
         """After populating few fields, compute the rest of the fields"""
         # Do not call super, because that accesses data not-chunked
-        self.configure_chunk_safe()
+        self.nr_dimensions = self.array_data.ndim
+        # for i in range(min(self.nr_dimensions, 4)):
+        #     setattr(self, 'length_%dd' % (i + 1), int(data_shape[i]))
 
     def _find_summary_info(self):
         """
@@ -369,7 +371,9 @@ class ComplexCoherenceSpectrum(HasTraits):
     def configure(self):
         """After populating few fields, compute the rest of the fields"""
         # Do not call super, because that accesses data not-chunked
-        self.configure_chunk_safe()
+        self.nr_dimensions = self.array_data.ndim
+        # for i in range(min(self.nr_dimensions, 4)):
+        #     setattr(self, 'length_%dd' % (i + 1), int(data_shape[i]))
 
     def _find_summary_info(self):
         """
