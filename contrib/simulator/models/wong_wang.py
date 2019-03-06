@@ -221,7 +221,7 @@ class WongWang(models.Model):
 
         """
 
-        super(TwoDWongWang, self).__init__(**kwargs)
+        super(WongWang, self).__init__(**kwargs)
 
         self._nvar = 2
         self.cvar = numpy.array([0], dtype=numpy.int32)
@@ -234,8 +234,7 @@ class WongWang(models.Model):
 
     def configure(self):
         """  """
-        super(TwoDWongWang, self).configure()
-        #self.I_mot_l, self.I_mot_r = 0, 0
+        super(WongWang, self).configure()
         self.update_derived_parameters()
 
 
@@ -287,8 +286,8 @@ if __name__ == "__main__":
     
     #Initialise Models in their default state:
     WW = WongWang()
-    #WW.c = 0
-    #WW.configure()
+    WW.c = 11
+    WW.configure()
         
     LOG.info("Model initialised in its default state without error...")
     
@@ -298,7 +297,7 @@ if __name__ == "__main__":
     from tvb.simulator.plot.phase_plane_interactive import PhasePlaneInteractive
     import tvb.simulator.integrators
         
-    INTEGRATOR = tvb.simulator.integrators.HeunDeterministic(dt=2**-5)
+    INTEGRATOR = tvb.simulator.integrators.HeunDeterministic(dt=0.1)
     ppi_fig = PhasePlaneInteractive(model=WW, integrator=INTEGRATOR)
     ppi_fig.show()
 
