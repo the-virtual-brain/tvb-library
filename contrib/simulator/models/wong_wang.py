@@ -118,15 +118,15 @@ class WongWang(models.Model):
 
     tau_s = arrays.FloatArray(
         label=r":math:`\tau_S`",
-        default=numpy.array([60./1000, ]),
+        default=numpy.array([60., ]),
         range=basic.Range(lo=50.0, hi=150.0),
-        doc="""[s] Kinetic parameter. NMDA decay time constant.""")
+        doc="""[ms] Kinetic parameter. NMDA decay time constant.""")
 
     tau_noise = arrays.FloatArray(
         label=r":math:`\tau_{noise}`",
-        default=numpy.array([2./1000, ]),
+        default=numpy.array([2., ]),
         range=basic.Range(lo=1.0, hi=10.0),
-        doc="""[s] Noise decay time constant.""",
+        doc="""[ms] Noise decay time constant.""",
         order=-1)
 
     Jll = arrays.FloatArray(
@@ -153,10 +153,16 @@ class WongWang(models.Model):
         range=basic.Range(lo=0.0, hi=1.0),
         doc="""Synaptic coupling""")
 
+    J_N = arrays.FloatArray(
+        label=":math:`J_{N}`",
+        default=numpy.array([0.1137, ]),
+        range=basic.Range(lo=0.0, hi=1.0),
+        doc="""External synaptic coupling""")
+
     J_ext = arrays.FloatArray(
         label=":math:`J_{ext}`",
         default=numpy.array([1.1e-3, ]),
-        range=basic.Range(lo=0.0, hi=1.0),
+        range=basic.Range(lo=0.0, hi=0.01),
         doc="""[nA/Hz] Synaptic coupling""")
 
     I_o = arrays.FloatArray(
@@ -164,6 +170,13 @@ class WongWang(models.Model):
         default=numpy.array([0.3297, ]),
         range=basic.Range(lo=0.0, hi=1.0),
         doc="""Effective external input""")
+
+    sigma_noise = arrays.FloatArray(
+        label=r":math:`\sigma_{noise}`",
+        default=numpy.array([0.009, ]),
+        range=basic.Range(lo=0.0, hi=1.0),
+        doc="""Noise amplitude. Take this value into account for stochatic
+        integration schemes.""")
 
     mu_o = arrays.FloatArray(
         label=r":math:`\mu_{0}`",
@@ -208,7 +221,7 @@ class WongWang(models.Model):
 
         """
 
-        super(WongWang, self).__init__(**kwargs)
+        super(TwoDWongWang, self).__init__(**kwargs)
 
         self._nvar = 2
         self.cvar = numpy.array([0], dtype=numpy.int32)
@@ -221,7 +234,7 @@ class WongWang(models.Model):
 
     def configure(self):
         """  """
-        super(WongWang, self).configure()
+        super(TwoDWongWang, self).configure()
         #self.I_mot_l, self.I_mot_r = 0, 0
         self.update_derived_parameters()
 
@@ -235,19 +248,19 @@ class WongWang(models.Model):
         sl = state_variables[0, :]
         sr = state_variables[1, :]
 
-        c_0 = coupling[0]
+        c_0 = coupling[0, :]
 
-        I_l = self.Jll * sl - self.Jlr*sr + self.I_mot_l + self.I_o
-        I_r = self.Jrr * sr - self.Jrl*sl + self.I_mot_r + self.I_o
+        #import pdb; pdb.set_trace()
+        I_l = self.Jll * sl - self.Jlr*sr + self.I_mot_l + self.I_o + self.J_N * c_0
+        I_r = self.Jrr * sr - self.Jrl*sl + self.I_mot_r + self.I_o + self.J_N * c_0
 
         
         r = lambda I_i: (self.a*I_i - self.b)*1./(1 - numpy.exp(-self.d*(self.a*I_i - self.b)))
 
-        ds1 = -sl*1./ self.tau_s + (1 - sl) * self.gamma * r(I_l)
-        ds2 = -sr*1./ self.tau_s + (1 - sr) * self.gamma * r(I_r)
+        ds1 = -sl*1./ self.tau_s + (1 - sl) * self.gamma * r(I_l) * 0.001 # to ms
+        ds2 = -sr*1./ self.tau_s + (1 - sr) * self.gamma * r(I_r) * 0.001 # to ms
 
         derivative = numpy.array([ds1, ds2])
-
         return derivative
 
 
@@ -255,9 +268,12 @@ class WongWang(models.Model):
         """
         Derived parameters
         """
-
+        # Additional parameter g_stim introduced that controls I_mot strength
         self.I_mot_l = self.J_ext * self.mu_o * (1 + self.f * self.c *1. / 100)
         self.I_mot_r = self.J_ext * self.mu_o * (1 - self.f * self.c *1. / 100)
+        if len(self.I_mot_l) > 1:
+            self.I_mot_l = numpy.expand_dims(self.I_mot_l, -1)
+            self.I_mot_r = numpy.expand_dims(self.I_mot_r, -1)
 
 
 
