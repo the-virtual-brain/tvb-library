@@ -241,20 +241,20 @@ class WongWang(models.Model):
 
     def dfun(self, state_variables, coupling, local_coupling=0.0):
         r"""
-        These dynamic equations, taken from [WW_2007].
-
+        The notation of those dynamic equations follows [WW_2007].
+        Derivatives of s are multiplied by 0.001 constant to match ms time scale.
         """
         # add global coupling?
         sl = state_variables[0, :]
         sr = state_variables[1, :]
 
         c_0 = coupling[0, :]
+        lc_0_l = local_coupling * sl
+        lc_0_r = local_coupling * sr
 
-        #import pdb; pdb.set_trace()
-        I_l = self.Jll * sl - self.Jlr*sr + self.I_mot_l + self.I_o + self.J_N * c_0
-        I_r = self.Jrr * sr - self.Jrl*sl + self.I_mot_r + self.I_o + self.J_N * c_0
+        I_l = self.Jll * sl - self.Jlr*sr + self.I_mot_l + self.I_o + self.J_N * c_0 + self.J_N * lc_0_l
+        I_r = self.Jrr * sr - self.Jrl*sl + self.I_mot_r + self.I_o + self.J_N * c_0 + self.J_N * lc_0_r
 
-        
         r = lambda I_i: (self.a*I_i - self.b)*1./(1 - numpy.exp(-self.d*(self.a*I_i - self.b)))
 
         ds1 = -sl*1./ self.tau_s + (1 - sl) * self.gamma * r(I_l) * 0.001 # to ms
