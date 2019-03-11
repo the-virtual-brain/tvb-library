@@ -40,7 +40,7 @@ methods that are associated with the Array datatypes.
 import numpy
 from tvb.basic.traits import types_basic as basic
 from tvb.basic.traits.types_mapped import MappedType, Array
-from tvb.basic.traits.exceptions import ValidationException
+from tvb.basic.exceptions import ValidationException
 
 
 class BaseArray(Array):
