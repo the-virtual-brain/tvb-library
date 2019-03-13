@@ -83,8 +83,6 @@ class FourierSpectrum(HasTraits):
     _freq_step = None
     _max_freq = None
 
-    __generate_table__ = True
-
     def configure(self):
         """ compute dependent fields like amplitude """
         self.compute_amplitude()
@@ -194,8 +192,6 @@ class WaveletCoefficients(HasTraits):
     _frequency = None
     _time = None
 
-    __generate_table__ = True
-
 
     def summary_info(self):
         """
@@ -257,8 +253,6 @@ class CoherenceSpectrum(HasTraits):
 
     frequency = NArray(label="Frequency")
 
-    __generate_table__ = True
-
 
     def summary_info(self):
         """
@@ -317,8 +311,6 @@ class ComplexCoherenceSpectrum(HasTraits):
         label="Windowing function",
         doc="""The windowing function applied to each time segment prior to
                 application of the FFT.""")
-
-    __generate_table__ = True
 
     _frequency = None
     _freq_step = None

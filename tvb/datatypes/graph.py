@@ -56,8 +56,6 @@ class Covariance(HasTraits):
         label="Source time-series",
         doc="Links to the time-series on which NodeCovariance is applied.")
 
-    __generate_table__ = True
-
     def summary_info(self):
         summary = {
             "Graph type": self.__class__.__name__,
@@ -87,8 +85,6 @@ class CorrelationCoefficients(HasTraits):
         default=("Node", "Node", "State Variable", "Mode"),
         doc="""List of strings representing names of each data dimension""")
 
-    __generate_table__ = True
-
     def summary_info(self):
         summary = {
             "Graph type": self.__class__.__name__,
@@ -116,4 +112,3 @@ class ConnectivityMeasure(HasTraits):
         summary.update(narray_summary_info(self.array_data))
         return summary
 
-    __generate_table__ = True
