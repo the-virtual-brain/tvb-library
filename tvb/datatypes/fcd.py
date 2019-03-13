@@ -76,7 +76,6 @@ class Fcd(HasTraits):
         default=("Time", "Time", "State Variable", "Mode"),
         doc="""List of strings representing names of each data dimension""")
 
-    __generate_table__ = True
 
     def summary_info(self):
         """
