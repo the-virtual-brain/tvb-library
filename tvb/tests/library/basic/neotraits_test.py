@@ -189,6 +189,23 @@ def test_mutable_defaults():
     assert aok.mut2 is A.mut2.default
 
 
+def test_mutable_unassigned_defaults():
+    class B(HasTraits):
+        mut_shared = Attr(list, default=[3, 4])
+        mut_better = Attr(list, default=lambda: [3, 4])
+
+    bok = B()
+    bok2 = B()
+    bok.mut_better.append(42)
+    assert bok.mut_better == [3, 4, 42]
+    assert bok2.mut_better == [3, 4]
+
+    bok.mut_shared.append(42)
+    assert bok.mut_shared == [3, 4, 42]
+    assert bok2.mut_shared == [3, 4, 42]
+
+
+
 def test_late_attr_binding_fail():
     class F(HasTraits):
         f = Attr(str)
@@ -433,6 +450,27 @@ def test_declarative_property():
     assert a.expensive_once_calls == 2
     assert a.expensive_once.shape == (12, 12)
 
+
+def test_bool_failure():
+    class A(HasTraits):
+        does_it_sink = Attr(bool)
+
+    a = A()
+
+    with pytest.raises(TraitTypeError) as e:
+        a.does_it_sink = (numpy.zeros(4) == 0).all()
+
+    # bool is not numpy.bool_ !!
+    # should we introduce a Bool Attr like we had to do for the Int ??
+
+    # I'd blame numpy if the following assertion would have failed:
+    # WHY python? Why must bool be a int, this is not C and even there ...
+    assert True + True == 2
+    # for more fun philosophy:
+    # truth without truth is falsity
+    assert True - True == False
+    # Half a truth is a falsity
+    assert True // 2 == False
 
 
 def test_int_attribute():
