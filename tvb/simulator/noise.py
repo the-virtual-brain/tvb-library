@@ -38,6 +38,7 @@ Specific noises inherit from the abstract class Noise
 .. moduleauthor:: Noelia Montejo <Noelia@tvb.invalid>
 
 """
+import abc
 
 import numpy
 from tvb.datatypes import equations
@@ -78,7 +79,6 @@ class Noise(HasTraits):
     .. automethod:: Noise.coloured
 
     """
-    _base_classes = ['Noise', 'MultiplicativeSimple']
 
     #NOTE: nsig is not declared here because we use this class directly as the
     #      inital conditions noise source, and in that use the job of nsig is
@@ -195,6 +195,10 @@ class Noise(HasTraits):
         "Generate white noise."
         noise = numpy.sqrt(self.dt) * self.random_stream.normal(size=shape)
         return noise
+
+    @abc.abstractmethod
+    def gfun(self, state_variables):
+        pass
 
 
 class Additive(Noise):
