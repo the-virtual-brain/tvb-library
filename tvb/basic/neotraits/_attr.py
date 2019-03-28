@@ -276,6 +276,20 @@ class List(Attr):
 
 
 class _Number(Attr):
+    def __init__(
+            self, field_type=int, default=0, doc='', label='',
+            required=True, final=False, choices=None, domain=None
+    ):
+        super(_Number, self).__init__(
+            field_type=field_type,
+            default=default,
+            doc=doc,
+            label=label,
+            required=required,
+            final=final,
+            choices=choices,
+        )
+        self.domain = domain
 
     def __validate(self, value):
         """ value should be safely cast to field type and choices must be enforced """
@@ -294,6 +308,10 @@ class _Number(Attr):
         if self.default is not None:
             self.__validate(self.default)
 
+        if self.domain is not None and self.default is not None:
+            if self.default not in self.domain:
+                msg = 'default value out of the declared: {}'.format(self.default)
+                log.warning('{} \n   attribute  {}'.format(msg, self))
 
     def _validate_set(self, instance, value):
         if value is None:
@@ -315,19 +333,6 @@ class Int(_Number):
     This allows all integer types, including numpy ones that can be safely cast to the declared type
     according to numpy rules
     """
-
-    def __init__(
-        self, field_type=int, default=0, doc='', label='', required=True, final=False, choices=None
-    ):
-        super(_Number, self).__init__(
-            field_type=field_type,
-            default=default,
-            doc=doc,
-            label=label,
-            required=required,
-            final=final,
-            choices=choices,
-        )
 
     def _post_bind_validate(self):
         if not issubclass(self.field_type, (int, long, numpy.integer)):
@@ -352,9 +357,10 @@ class Float(_Number):
     """
 
     def __init__(
-        self, field_type=float, default=0, doc='', label='', required=True, final=False, choices=None
+        self, field_type=float, default=0.0, doc='', label='',
+        required=True, final=False, choices=None, domain=None
     ):
-        super(_Number, self).__init__(
+        super(Float, self).__init__(
             field_type=field_type,
             default=default,
             doc=doc,
@@ -362,6 +368,7 @@ class Float(_Number):
             required=required,
             final=final,
             choices=choices,
+            domain=domain
         )
 
     def _post_bind_validate(self):
