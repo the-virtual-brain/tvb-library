@@ -39,19 +39,15 @@ methods that are associated with the surfaces data.
 .. moduleauthor:: Marmaduke Woodman <mmwoodman@gmail.com>
 
 """
-
+import scipy.sparse
 import warnings
 import json
 import numpy
-#TODO: Old traits "Dict" and "SparseMatrix" import
-import tvb.basic.traits.types_basic as basic
-from tvb.basic.traits import util, exceptions
+from tvb.basic import exceptions
 from tvb.basic.logger.builder import get_logger
-from tvb.basic.traits.types_mapped import SparseMatrix
-from tvb.basic.traits.core import FILE_STORAGE_NONE
 from tvb.basic.profile import TvbProfile
 from tvb.basic.readers import ZipReader, try_get_absolute_path
-from tvb.basic.traits.neotraits import HasTraits, Attr, NArray
+from tvb.basic.neotraits.api import HasTraits, Attr, NArray, Final, Int, Float, narray_describe
 
 try:
     import gdist
@@ -144,96 +140,66 @@ class Surface(HasTraits):
     """A base class for other surfaces."""
 
     vertices = NArray(
-        dtype=float,
         label="Vertex positions",
-        doc="""An array specifying coordinates for the surface vertices."""
-    )
+        doc="""An array specifying coordinates for the surface vertices.""")
 
     triangles = NArray(
-        dtype=float,
+        dtype=int,
         label="Triangles",
-        doc="""Array of indices into the vertices, specifying the triangles which define the surface."""
-    )
+        doc="""Array of indices into the vertices, specifying the triangles which define the surface.""")
 
     vertex_normals = NArray(
-        dtype=float,
         label="Vertex normal vectors",
-        doc="""An array of unit normal vectors for the surfaces vertices."""
-    )
+        doc="""An array of unit normal vectors for the surfaces vertices.""")
 
     triangle_normals = NArray(
-        dtype=float,
         label="Triangle normal vectors",
-        doc="""An array of unit normal vectors for the surfaces triangles."""
-    )
+        doc="""An array of unit normal vectors for the surfaces triangles.""")
 
-    geodesic_distance_matrix = SparseMatrix(
+    geodesic_distance_matrix = Attr(
+        field_type=scipy.sparse.csc_matrix,
         label="Geodesic distance matrix",
-        order=-1,
         required=False,
-        file_storage=FILE_STORAGE_NONE,
+        # file_storage=FILE_STORAGE_NONE,
         doc="""A sparse matrix of truncated geodesic distances""")  # 'CS'
 
-    number_of_vertices = Attr(
-        int,
+    number_of_vertices = Int(
+        field_type=long,
         label="Number of vertices",
-        doc="""The number of vertices making up this surface."""
-    )
+        doc="""The number of vertices making up this surface.""")
 
-    number_of_triangles = Attr(
-        int,
+    number_of_triangles = Int(
+        field_type=long,
         label="Number of triangles",
-        doc="""The number of triangles making up this surface."""
-    )
+        doc="""The number of triangles making up this surface.""")
 
-    edge_mean_length = Attr(
-        float
-    )
+    edge_mean_length = Float()
 
-    edge_min_length = Attr(
-        float
-    )
+    edge_min_length = Float()
 
-    edge_max_length = Attr(
-        float
-    )
+    edge_max_length = Float()
 
     ##--------------------- FRAMEWORK ATTRIBUTES -----------------------------##
 
     hemisphere_mask = NArray(
         dtype=bool,
         label="An array specifying if a vertex belongs to the right hemisphere",
-        required=False
-    )
+        # file_storage=FILE_STORAGE_NONE,
+        required=False)
 
-    zero_based_triangles = Attr(
-        bool
-    )
+    zero_based_triangles = Attr(field_type=bool)
 
-    split_triangles = Attr(
-        int,
-        required=False
-    )
+    split_triangles = NArray(dtype=int, required=False)
 
-    number_of_split_slices = Attr(
-        int
-    )
+    number_of_split_slices = Int()
 
-    split_slices = basic.Dict(order=-1)
+    split_slices = Attr(field_type=dict)
 
-    bi_hemispheric = Attr(
-        bool
-    )
+    bi_hemispheric = Attr(field_type=bool)
 
-    surface_type = Attr(
-        str
-    )
+    surface_type = Attr(field_type=str)
 
-    valid_for_simulations = Attr(
-        bool
-    )
-
-    __mapper_args__ = {'polymorphic_on': 'surface_type'}
+    valid_for_simulations = Attr(field_type=bool)
 
     @classmethod
     def from_file(cls, source_file="cortex_16384.zip", instance=None):
@@ -260,12 +226,12 @@ class Surface(HasTraits):
         self.number_of_vertices = self.vertices.shape[0]
         self.number_of_triangles = self.triangles.shape[0]
 
-        if self.triangle_normals.size == 0:
+        if self.triangle_normals is None or self.triangle_normals.size == 0:
             LOG.debug("Triangle normals not available. Start to compute them.")
             self.compute_triangle_normals()
             LOG.debug("End computing triangles normals")
 
-        if self.vertex_normals.size == 0:
+        if self.vertex_normals is None or self.vertex_normals.size == 0:
             LOG.debug("Vertex normals not available. Start to compute them.")
             self.compute_vertex_normals()
             LOG.debug("End computing vertex normals")
@@ -302,21 +268,22 @@ class Surface(HasTraits):
     _edge_length_max = None
     _edge_triangles = None
 
-    def _find_summary_info(self):
+    def summary_info(self):
         """
         Gather scientifically interesting summary information from an instance
         of this datatype.
         """
-        summary = {"Surface type": self.__class__.__name__,
-                   "Valid for simulations": self.valid_for_simulations,
-                   "Number of vertices": self.number_of_vertices,
-                   "Number of triangles": self.number_of_triangles,
-                   "Number of edges": self.number_of_edges,
-                   "Has two hemispheres": self.bi_hemispheric,
-                   "Edge lengths, mean (mm)": self.edge_length_mean,
-                   "Edge lengths, shortest (mm)": self.edge_length_min,
-                   "Edge lengths, longest (mm)": self.edge_length_max}
-        return summary
+        return {
+            "Surface type": self.__class__.__name__,
+            "Valid for simulations": self.valid_for_simulations,
+            "Number of vertices": self.number_of_vertices,
+            "Number of triangles": self.number_of_triangles,
+            "Number of edges": self.number_of_edges,
+            "Has two hemispheres": self.bi_hemispheric,
+            "Edge lengths, mean (mm)": self.edge_length_mean,
+            "Edge lengths, shortest (mm)": self.edge_length_min,
+            "Edge lengths, longest (mm)": self.edge_length_max
+        }
 
     def geodesic_distance(self, sources, max_dist=None, targets=None):
         """
@@ -404,8 +371,8 @@ class Surface(HasTraits):
         """
         .
         """
-        neighbours = [[] for _ in range(self.number_of_vertices)]
-        for k in range(self.number_of_triangles):
+        neighbours = [[] for _ in xrange(self.number_of_vertices)]
+        for k in xrange(self.number_of_triangles):
             neighbours[self.triangles[k, 0]].append(self.triangles[k, 1])
             neighbours[self.triangles[k, 0]].append(self.triangles[k, 2])
             neighbours[self.triangles[k, 1]].append(self.triangles[k, 0])
@@ -476,7 +443,8 @@ class Surface(HasTraits):
             # TODO: NaN generation would stop execution, however for normals this case could maybe be
             # handled in a better way.
             self.triangle_normals = tri_norm
-        util.log_debug_array(LOG, self.triangle_normals, "triangle_normals", owner=self.__class__.__name__)
+        LOG.debug("triangle_normals")
+        LOG.debug(narray_describe(self.triangle_normals))
 
     def compute_vertex_normals(self):
         """
@@ -505,7 +473,8 @@ class Surface(HasTraits):
                 bad_normal_count += 1
         if bad_normal_count:
             self.logger.warn(" %d vertices have bad normals" % bad_normal_count)
-        util.log_debug_array(LOG, vert_norms, "vertex_normals", owner=self.__class__.__name__)
+        LOG.debug("vertex_normals")
+        LOG.debug(narray_describe(self.vertex_normals))
         self.vertex_normals = vert_norms
 
     @property
@@ -523,7 +492,8 @@ class Surface(HasTraits):
         tri_norm = numpy.cross(tri_u, tri_v)
         triangle_areas = numpy.sqrt(numpy.sum(tri_norm ** 2, axis=1)) / 2.0
         triangle_areas = triangle_areas[:, numpy.newaxis]
-        util.log_debug_array(LOG, triangle_areas, "triangle_areas", owner=self.__class__.__name__)
+        LOG.debug("triangle_areas")
+        LOG.debug(narray_describe(triangle_areas))
 
         return triangle_areas
 
@@ -542,7 +512,8 @@ class Surface(HasTraits):
         """
         tri_verts = self.vertices[self.triangles, :]
         tri_centres = numpy.mean(tri_verts, axis=1)
-        util.log_debug_array(LOG, tri_centres, "tri_centres")
+        LOG.debug("tri_centres")
+        LOG.debug(narray_describe(tri_centres))
         return tri_centres
 
     @property
@@ -578,7 +549,9 @@ class Surface(HasTraits):
         a1 = _angle(edges[:, 0, :], - edges[:, 1, :])
         a2 = 2 * numpy.pi - a0 - a1
         angles = numpy.hstack([a0, a1, a2])
-        util.log_debug_array(LOG, angles, "triangle_angles", owner=self.__class__.__name__)
+        LOG.debug("triangle_angles")
+        LOG.debug(narray_describe(angles))
+
         return angles
 
     @property
@@ -786,8 +759,7 @@ class Surface(HasTraits):
         """
         focal_points = numpy.array(focal_points, dtype=numpy.int32)
         dist = self.geodesic_distance(focal_points)
-        equation.pattern = dist
-        return equation.pattern
+        return equation.evaluate(dist)
 
     # framework methods
     def load_from_metadata(self, meta_dictionary):
@@ -796,50 +768,6 @@ class Surface(HasTraits):
         self.edge_max_length = 0
         self.valid_for_simulations = True
         super(Surface, self).load_from_metadata(meta_dictionary)
-
-    def get_vertices_slice(self, slice_number=0):
-        """
-        Read vertices slice, to be used by WebGL visualizer.
-        """
-        slice_number = int(slice_number)
-        start_idx, end_idx = self._get_slice_vertex_boundaries(slice_number)
-        return self.get_data('vertices', slice(start_idx, end_idx, 1))
-
-    def get_vertex_normals_slice(self, slice_number=0):
-        """
-        Read vertex-normal slice, to be used by WebGL visualizer.
-        """
-        slice_number = int(slice_number)
-        start_idx, end_idx = self._get_slice_vertex_boundaries(slice_number)
-        return self.get_data('vertex_normals', slice(start_idx, end_idx, 1))
-
-    def get_triangles_slice(self, slice_number=0):
-        """
-        Read split-triangles slice, to be used by WebGL visualizer.
-        """
-        if self.number_of_split_slices == 1:
-            return self.triangles
-        slice_number = int(slice_number)
-        start_idx, end_idx = self._get_slice_triangle_boundaries(slice_number)
-        return self.get_data('split_triangles', slice(start_idx, end_idx, 1))
-
-    def get_lines_slice(self, slice_number=0):
-        """
-        Read the gl lines values for the current slice number.
-        """
-        return self._triangles_to_lines(self.get_triangles_slice(slice_number))
-
-    def get_slices_to_hemisphere_mask(self):
-        """
-        :return: a vector af length number_of_slices, with 1 when current chunk belongs to the Right hemisphere
-        """
-        if not self.bi_hemispheric or self.split_slices is None:
-            return None
-        result = [1] * self.number_of_split_slices
-        for key, value in self.split_slices.iteritems():
-            if value[KEY_HEMISPHERE] == HEMISPHERE_LEFT:
-                result[int(key)] = 0
-        return result
 
     @staticmethod
     def _triangles_to_lines(triangles):
@@ -953,32 +881,6 @@ class Surface(HasTraits):
             raise exceptions.ValidationException(msg)
         return ValidationResult()
 
-    def get_urls_for_rendering(self, include_region_map=False, region_mapping=None):
-        """
-        Compose URLs for the JS code to retrieve a surface from the UI for rendering.
-        """
-        url_vertices = []
-        url_triangles = []
-        url_normals = []
-        url_lines = []
-        url_region_map = []
-        for i in range(self.number_of_split_slices):
-            param = "slice_number=" + str(i)
-            url_vertices.append(paths2url(self, 'get_vertices_slice', parameter=param, flatten=True))
-            url_triangles.append(paths2url(self, 'get_triangles_slice', parameter=param, flatten=True))
-            url_lines.append(paths2url(self, 'get_lines_slice', parameter=param, flatten=True))
-            url_normals.append(paths2url(self, 'get_vertex_normals_slice', parameter=param, flatten=True))
-            if not include_region_map or region_mapping is None:
-                continue
-
-            start_idx, end_idx = self._get_slice_vertex_boundaries(i)
-            url_region_map.append(paths2url(region_mapping, "get_region_mapping_slice", flatten=True,
-                                            parameter="start_idx=" + str(start_idx) + " ;end_idx=" + str(end_idx)))
-
-        if include_region_map:
-            return url_vertices, url_normals, url_lines, url_triangles, url_region_map
-        return url_vertices, url_normals, url_lines, url_triangles
-
     def _get_slice_vertex_boundaries(self, slice_idx):
         if str(slice_idx) in self.split_slices:
             start_idx = max(0, self.split_slices[str(slice_idx)][KEY_VERTICES][KEY_START])
@@ -1025,67 +927,7 @@ class Surface(HasTraits):
 
     ####################################### Split for Picking
     #######################################
-    def get_pick_vertices_slice(self, slice_number=0):
-        """
-        Read vertices slice, to be used by WebGL visualizer with pick.
-        """
-        slice_number = int(slice_number)
-        slice_triangles = self.get_data('triangles', slice(slice_number * SPLIT_PICK_MAX_TRIANGLE,
-                                                           min(self.number_of_triangles,
-                                                               (slice_number + 1) * SPLIT_PICK_MAX_TRIANGLE)))
-        result_vertices = []
-        for triang in slice_triangles:
-            result_vertices.append(self.vertices[triang[0]])
-            result_vertices.append(self.vertices[triang[1]])
-            result_vertices.append(self.vertices[triang[2]])
-        return numpy.array(result_vertices)
 
-    def get_pick_vertex_normals_slice(self, slice_number=0):
-        """
-        Read vertex-normals slice, to be used by WebGL visualizer with pick.
-        """
-        slice_number = int(slice_number)
-        slice_triangles = self.get_data('triangles', slice(slice_number * SPLIT_PICK_MAX_TRIANGLE,
-                                                           min(self.number_of_triangles,
-                                                               (slice_number + 1) * SPLIT_PICK_MAX_TRIANGLE)))
-        result_normals = []
-        for triang in slice_triangles:
-            result_normals.append(self.vertex_normals[triang[0]])
-            result_normals.append(self.vertex_normals[triang[1]])
-            result_normals.append(self.vertex_normals[triang[2]])
-        return numpy.array(result_normals)
-
-    def get_pick_triangles_slice(self, slice_number=0):
-        """
-        Read triangles slice, to be used by WebGL visualizer with pick.
-        """
-        slice_number = int(slice_number)
-        no_of_triangles = (min(self.number_of_triangles, (slice_number + 1) * SPLIT_PICK_MAX_TRIANGLE)
-                           - slice_number * SPLIT_PICK_MAX_TRIANGLE)
-        triangles_array = numpy.arange(no_of_triangles * 3).reshape((no_of_triangles, 3))
-        return triangles_array
-
-    def get_urls_for_pick_rendering(self):
-        """
-        Compose URLS for the JS code to retrieve a surface for picking.
-        """
-        vertices = []
-        triangles = []
-        normals = []
-        number_of_split = self.number_of_triangles // SPLIT_PICK_MAX_TRIANGLE
-        if self.number_of_triangles % SPLIT_PICK_MAX_TRIANGLE > 0:
-            number_of_split += 1
-
-        for i in range(number_of_split):
-            param = "slice_number=" + str(i)
-            vertices.append(paths2url(self, 'get_pick_vertices_slice', parameter=param, flatten=True))
-            triangles.append(paths2url(self, 'get_pick_triangles_slice', parameter=param, flatten=True))
-            normals.append(paths2url(self, 'get_pick_vertex_normals_slice', parameter=param, flatten=True))
-
-        return vertices, normals, triangles
-
-    def get_url_for_region_boundaries(self, region_mapping):
-        return paths2url(self, 'generate_region_boundaries', datatype_kwargs={'region_mapping': region_mapping.gid})
 
     def center(self):
         """
@@ -1095,53 +937,6 @@ class Surface(HasTraits):
         return [float(numpy.mean(self.vertices[:, 0])),
                 float(numpy.mean(self.vertices[:, 1])),
                 float(numpy.mean(self.vertices[:, 2]))]
-
-    def generate_region_boundaries(self, region_mapping):
-        """
-        Return the full region boundaries, including: vertices, normals and lines indices.
-        """
-        boundary_vertices = []
-        boundary_lines = []
-        boundary_normals = []
-        array_data = region_mapping.array_data
-
-        for slice_idx in range(self.number_of_split_slices):
-            # Generate the boundaries sliced for the off case where we might overflow the buffer capacity
-            slice_triangles = self.get_triangles_slice(slice_idx)
-            slice_vertices = self.get_vertices_slice(slice_idx)
-            slice_normals = self.get_vertex_normals_slice(slice_idx)
-            first_index_in_slice = self.split_slices[str(slice_idx)][KEY_VERTICES][KEY_START]
-            # These will keep track of the vertices / triangles / normals for this slice that have
-            # been processed and were found as a part of the boundary
-            processed_vertices = []
-            processed_triangles = []
-            processed_normals = []
-            for triangle in slice_triangles:
-                triangle += first_index_in_slice
-                # Check if there are two points from a triangles that are in separate regions
-                # then send this to further processing that will generate the corresponding
-                # region separation lines depending on the 3rd point from the triangle
-                rt0, rt1, rt2 = array_data[triangle]
-                if rt0 - rt1:
-                    reg_idx1, reg_idx2, dangling_idx = 0, 1, 2
-                elif rt1 - rt2:
-                    reg_idx1, reg_idx2, dangling_idx = 1, 2, 0
-                elif rt2 - rt0:
-                    reg_idx1, reg_idx2, dangling_idx = 2, 0, 1
-                else:
-                    continue
-
-                lines_vert, lines_ind, lines_norm = self._process_triangle(triangle, reg_idx1, reg_idx2, dangling_idx,
-                                                                           first_index_in_slice, array_data,
-                                                                           slice_vertices, slice_normals)
-                ind_offset = len(processed_vertices) / 3
-                processed_vertices.extend(lines_vert)
-                processed_normals.extend(lines_norm)
-                processed_triangles.extend([ind + ind_offset for ind in lines_ind])
-            boundary_vertices.append(processed_vertices)
-            boundary_lines.append(processed_triangles)
-            boundary_normals.append(processed_normals)
-        return numpy.array([boundary_vertices, boundary_lines, boundary_normals])
 
     @staticmethod
     def _process_triangle(triangle, reg_idx1, reg_idx2, dangling_idx, indices_offset,
@@ -1220,35 +1015,20 @@ class Surface(HasTraits):
 
 class WhiteMatterSurface(Surface):
     """White matter - gray matter interface surface."""
-    __tablename__ = None
-    __mapper_args__ = {'polymorphic_identity': WHITE_MATTER}
     _ui_name = "A white matter - gray  surface"
-    surface_type = Attr(
-        str,
-        default=WHITE_MATTER
-    )
+    surface_type = Final(WHITE_MATTER)
 
 
 class CorticalSurface(Surface):
     """Cortical or pial surface."""
     _ui_name = "A cortical surface"
-    surface_type = Attr(
-        str,
-        default=CORTICAL
-    )
-    __tablename__ = None
-    __mapper_args__ = {'polymorphic_identity': CORTICAL}
+    surface_type = Final(CORTICAL)
 
 
 class SkinAir(Surface):
     """Skin - air interface surface."""
-    __tablename__ = None
-    __mapper_args__ = {'polymorphic_identity': OUTER_SKIN}
     _ui_name = "Skin"
-    surface_type = Attr(
-        str,
-        default=OUTER_SKIN
-    )
+    surface_type = Final(OUTER_SKIN)
 
     @classmethod
     def from_file(cls, source_file="outer_skin_4096.zip", instance=None):
@@ -1257,13 +1037,8 @@ class SkinAir(Surface):
 
 class BrainSkull(Surface):
     """Brain - inner skull interface surface."""
-    __tablename__ = None
-    __mapper_args__ = {'polymorphic_identity': INNER_SKULL}
     _ui_name = "Brain - inner skull interface surface."
-    surface_type = Attr(
-        str,
-        default=INNER_SKULL
-    )
+    surface_type = Final(INNER_SKULL)
 
     @classmethod
     def from_file(cls, source_file="inner_skull_4096.zip", instance=None):
@@ -1273,13 +1048,8 @@ class BrainSkull(Surface):
 
 class SkullSkin(Surface):
     """Outer-skull - scalp interface surface."""
-    __tablename__ = None
-    __mapper_args__ = {'polymorphic_identity': OUTER_SKULL}
     _ui_name = "Outer-skull - scalp interface surface"
-    surface_type = Attr(
-        str,
-        default=OUTER_SKULL
-    )
+    surface_type = Final(OUTER_SKULL)
 
     @classmethod
     def from_file(cls, source_file="outer_skull_4096.zip", instance=None):
@@ -1288,17 +1058,12 @@ class SkullSkin(Surface):
 
 class OpenSurface(Surface):
     """Base class for open surfaces."""
-    __tablename__ = None
 
 
 class EEGCap(OpenSurface):
     """EEG cap surface."""
-    __mapper_args__ = {'polymorphic_identity': EEG_CAP}
     _ui_name = "EEG Cap"
-    surface_type = Attr(
-        str,
-        default = EEG_CAP
-    )
+    surface_type = Final(EEG_CAP)
 
     @classmethod
     def from_file(cls, source_file="scalp_1082.zip", instance=None):
@@ -1307,12 +1072,8 @@ class EEGCap(OpenSurface):
 
 class FaceSurface(OpenSurface):
     """Face surface."""
-    __mapper_args__ = {'polymorphic_identity': FACE}
     _ui_name = "Face surface"
-    surface_type = Attr(
-        str,
-        default=FACE
-    )
+    surface_type = Final(FACE)
 
     @classmethod
     def from_file(cls, source_file="face_8614.zip", instance=None):

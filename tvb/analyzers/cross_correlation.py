@@ -39,8 +39,7 @@ temporal_correlations.CrossCorrelation dataype.
 import numpy
 import tvb.datatypes.time_series as time_series
 import tvb.datatypes.temporal_correlations as temporal_correlations
-import tvb.basic.traits.core as core
-import tvb.basic.traits.util as util
+from tvb.basic.neotraits.api import HasTraits, Attr, narray_describe
 from scipy.signal.signaltools import correlate
 from tvb.basic.logger.builder import get_logger
 
@@ -49,7 +48,7 @@ LOG = get_logger(__name__)
 
 
 
-class CrossCorrelate(core.Type):
+class CrossCorrelate(HasTraits):
     """
     Compute the node-pairwise cross-correlation of the given input 4D TimeSeries DataType.
     
@@ -59,7 +58,8 @@ class CrossCorrelate(core.Type):
     See: http://www.scipy.org/doc/api_docs/SciPy.signal.signaltools.html#correlate
     """
 
-    time_series = time_series.TimeSeries(
+    time_series = Attr(
+        field_type=time_series.TimeSeries,
         label="Time Series",
         required=True,
         doc="""The time-series for which the cross correlation sequences are calculated.""")
@@ -70,7 +70,7 @@ class CrossCorrelate(core.Type):
         Cross-correlate two one-dimensional arrays.
         """
         cls_attr_name = self.__class__.__name__ + ".time_series"
-        self.time_series.trait["data"].log_debug(owner=cls_attr_name)
+        # self.time_series.trait["data"].log_debug(owner=cls_attr_name)
         
         #(tpts, nodes, nodes, state-variables, modes)
         result_shape = self.result_shape(self.time_series.data.shape)
@@ -81,25 +81,25 @@ class CrossCorrelate(core.Type):
         #TODO: For region level, 4s, 2000Hz, this takes ~3hours...(which makes node_coherence seem positively speedy...)
         # Probably best to add a keyword for offsets, so we just compute +- some "small" range...
         # One inter-node correlation, across offsets, for each state-var & mode.
-        for mode in range(result_shape[4]):
-            for var in range(result_shape[3]):
+        for mode in xrange(result_shape[4]):
+            for var in xrange(result_shape[3]):
                 data = self.time_series.data[:, var, :, mode]
                 data = data - data.mean(axis=0)[numpy.newaxis, :]
                 #TODO: Work out a way around the 4 level loop:
-                for n1 in range(result_shape[1]):
-                    for n2 in range(result_shape[2]):
+                for n1 in xrange(result_shape[1]):
+                    for n2 in xrange(result_shape[2]):
                         result[:, n1, n2, var, mode] = correlate(data[:, n1], data[:, n2], mode="same")
-        
-        util.log_debug_array(LOG, result, "result")
-        
+
+        LOG.debug("result")
+        LOG.debug(narray_describe(result))
+
         offset = (self.time_series.sample_period *
                   numpy.arange(-numpy.floor(result_shape[0] / 2.0), numpy.ceil(result_shape[0] / 2.0)))
 
         cross_corr = temporal_correlations.CrossCorrelation(
             source=self.time_series,
             array_data=result,
-            time=offset,
-            use_storage=False)
+            time=offset)
         
         return cross_corr
     

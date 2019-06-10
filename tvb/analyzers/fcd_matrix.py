@@ -37,7 +37,7 @@ Adapter that uses the traits module to generate interfaces for ... Analyzer.
 """
 import numpy as np
 import tvb.datatypes.time_series as time_series
-from tvb.basic.traits import core, types_basic, util
+from tvb.basic.neotraits.api import HasTraits, Attr, Float, narray_describe
 from tvb.basic.logger.builder import get_logger
 from scipy.spatial.distance import pdist
 from sklearn.manifold import SpectralEmbedding
@@ -48,7 +48,7 @@ from numpy import linalg
 LOG = get_logger(__name__)
 
 
-class FcdCalculator(core.Type):
+class FcdCalculator(HasTraits):
     """
     The present class will do the following actions:
 
@@ -79,12 +79,13 @@ class FcdCalculator(core.Type):
 
     """
 
-    time_series = time_series.TimeSeriesRegion(
+    time_series = Attr(
+        field_type=time_series.TimeSeriesRegion,
         label="Time Series",
         required=True,
         doc="""The time-series for which the fcd matrices are calculated.""")
 
-    sw = types_basic.Float(
+    sw = Float(
         label="Sliding window length (ms)",
         default=120000,
         doc="""Length of the time window used to divided the time series.
@@ -93,7 +94,7 @@ class FcdCalculator(core.Type):
         calculate FC(ti) as Pearson correlation. The ij element of the FCD matrix is calculated as the Pearson
         Correlation between FC(ti) and FC(tj) arranged in a vector.""")
 
-    sp = types_basic.Float(
+    sp = Float(
         label="Spanning between two consecutive sliding window (ms)",
         default=2000,
         doc="""Spanning= (time windows length)-(overlapping between two consecutive time window). FCD matrix is
@@ -104,7 +105,8 @@ class FcdCalculator(core.Type):
 
     def evaluate(self):
         cls_attr_name = self.__class__.__name__ + ".time_series"
-        self.time_series.trait["data"].log_debug(owner=cls_attr_name)
+        LOG.debug("timeseries.data")
+        LOG.debug(narray_describe(self.time_series.data))
 
         # Pass sp and sw in the right time reference (means considering the sample period)
         sp = float(self.sp) / self.time_series.sample_period
@@ -115,10 +117,10 @@ class FcdCalculator(core.Type):
 
         fcd = np.zeros(result_shape)
         fc_stream = {}  # dict where the fc calculated over the sliding window will be stored
-        for mode in range(result_shape[3]):
-            for var in range(result_shape[2]):
+        for mode in xrange(result_shape[3]):
+            for var in xrange(result_shape[2]):
                 start = -sp  # in order to well initialize the first starting point of the FC stream
-                for nfcd in range(result_shape[0]):
+                for nfcd in xrange(result_shape[0]):
                     start += sp
                     current_slice = tuple([slice(int(start), int(start + sw) + 1), slice(var, var + 1),
                                            slice(input_shape[2]), slice(mode, mode + 1)])
@@ -127,7 +129,7 @@ class FcdCalculator(core.Type):
                     # the triangular part of the fc is organized as a vector, excluding the diagonal (always ones)
                     triangular = np.triu_indices(len(fc), 1)
                     fc_stream[nfcd] = fc[triangular]
-                for i in range(result_shape[0]):
+                for i in xrange(result_shape[0]):
                     j = i
                     while j < result_shape[0]:
                         fci = fc_stream[i]
@@ -136,17 +138,18 @@ class FcdCalculator(core.Type):
                         fcd[j, i, var, mode] = fcd[i, j, var, mode]
                         j += 1
 
-        util.log_debug_array(LOG, fcd, "FCD")
+        LOG.debug("FCD")
+        LOG.debug(narray_describe(fcd))
 
         num_eig = 3  # number of the eigenvector that will be extracted
 
         eigvect_dict = {}  # holds eigenvectors of the fcs calculated over the epochs, key1=mode, key2=var, key3=numb ep
         eigval_dict = {}  # holds eigenvalues of the fcs calculated over the epochs, key1=mode, key2=var, key3=numb ep
         fcd_segmented = None
-        for mode in range(result_shape[3]):
+        for mode in xrange(result_shape[3]):
             eigvect_dict[mode] = {}
             eigval_dict[mode] = {}
-            for var in range(result_shape[2]):
+            for var in xrange(result_shape[2]):
                 eigvect_dict[mode][var] = {}
                 eigval_dict[mode][var] = {}
                 fcd_matrix = fcd[:, :, var, mode]
@@ -163,7 +166,7 @@ class FcdCalculator(core.Type):
                     fcd_segmented[xir > xir_cutoff, :, var, mode] = 1.1
                     fcd_segmented[:, xir > xir_cutoff, var, mode] = 1.1
 
-                for ep in range(1, epochs_extremes.shape[0]):
+                for ep in xrange(1, epochs_extremes.shape[0]):
                     eigvect_dict[mode][var][ep] = []
                     eigval_dict[mode][var][ep] = []
                     current_slice = tuple([slice(int(epochs_extremes[ep][0]), int(epochs_extremes[ep][1]) + 1),
@@ -174,7 +177,7 @@ class FcdCalculator(core.Type):
                     eigval_matrix = np.real(eigval_matrix)
                     eigvect_matrix = np.real(eigvect_matrix)
                     eigval_matrix = eigval_matrix / np.sum(np.abs(eigval_matrix))  # normalize eigenvalues to [0 and 1)
-                    for en in range(num_eig):
+                    for en in xrange(num_eig):
                         index = np.argmax(eigval_matrix)
                         eigvect_dict[mode][var][ep].append(abs(eigvect_matrix[:, index]))
                         eigval_dict[mode][var][ep].append(eigval_matrix[index])
@@ -267,7 +270,7 @@ def epochs_interval(xir, xir_cutoff, sp, sw):
     # t(0)+s*sp; t(0)+f*sp+sw
     # Thus (we save the BOLD time in the epochs_extremes matrix)
     epochs_extremes = np.zeros((len(epochs_dict), 2), dtype=float)
-    for ep in range(len(epochs_dict)):
+    for ep in xrange(len(epochs_dict)):
         epochs_extremes[ep, 0] = epochs_dict[ep][0] * sp
         epochs_extremes[ep, 1] = epochs_dict[ep][1] * sp + sw
     return epochs_extremes

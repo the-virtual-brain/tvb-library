@@ -30,34 +30,28 @@
 This module defines the common imports and abstract base class for model definitions.
 
 """
-
+import abc
+import typing
 import numpy
-from scipy.integrate import trapz as scipy_integrate_trapz
-from scipy.stats import norm as scipy_stats_norm
 from tvb.simulator.common import get_logger
-import tvb.datatypes.arrays as arrays
-import tvb.basic.traits.core as core
-import tvb.basic.traits.types_basic as basic
-import tvb.simulator.noise as noise_module
-
+from tvb.basic.neotraits.api import HasTraits
 
 LOG = get_logger(__name__)
 
 
-class Model(core.Type):
+class Model(HasTraits):
     """
     Defines the abstract base class for neuronal models.
 
     """
 
-    _base_classes = ['Model', 'ReducedSetBase', 'ModelNumbaDfun']
     # NOTE: the parameters that are contained in the following list will be
     # editable from the ui in an visual manner
     ui_configurable_parameters = []
 
-    state_variables = []
-    variables_of_interest = []
-    _nvar = None
+    state_variables = ()  # type: typing.Tuple[str]
+    variables_of_interest = ()
+    _nvar = None   # todo make this a prop len(state_variables)
     number_of_modes = 1
     cvar = None
 
@@ -114,6 +108,7 @@ class Model(core.Type):
             ic[:, i] = rng.uniform(low=lo, high=hi, size=block)
         return ic
 
+    @abc.abstractmethod
     def dfun(self, state_variables, coupling, local_coupling=0.0):
         """
         Defines the dynamic equations. That is, the derivative of the
@@ -122,7 +117,7 @@ class Model(core.Type):
         and the current state of the "local" neighbourhood ``local_coupling``.
 
         """
-        pass
+
 
     # TODO refactor as a NodeSimulator class
     def stationary_trajectory(self,

@@ -38,12 +38,12 @@ Specific noises inherit from the abstract class Noise
 .. moduleauthor:: Noelia Montejo <Noelia@tvb.invalid>
 
 """
+import abc
 
 import numpy
 from tvb.datatypes import equations
 from .common import get_logger, simple_gen_astr
-#TODO: add Range for NArray/Replace old equation traits
-from tvb.basic.traits.neotraits import Attr, HasTraits, NArray
+from tvb.basic.neotraits.api import HasTraits, Attr, NArray, Range, Int, Float
 
 LOG = get_logger(__name__)
 
@@ -84,29 +84,37 @@ class Noise(HasTraits):
     #      inital conditions noise source, and in that use the job of nsig is
     #      filled by the state_variable_range attribute of the Model.
 
-    ntau = Attr(
-        float,
-        default=0.0,
-        # range=basic.Range(lo=0.0, hi=20.0, step=1.0),
+    ntau = Float(
         label=r":math:`\tau`",
-        doc="""The noise correlation time"""
+        required=True,
+        default=0.0,
+        # range=basic.Range(lo=0.0, hi=20.0, step=1.0), #mh todo  support domains for simple floats?
+        doc="""The noise correlation time""")
 
-    )
-
-    noise_seed = Attr(
-        float,
+    noise_seed = Int(
         default=42,
+        doc="A random seed used to initialise the random_stream if it is missing."
     )
 
-    def __init__(self):
-        self.random_stream = numpy.random.RandomState(self.noise_seed)
+    random_stream = Attr(
+        field_type=numpy.random.RandomState,
+        required=False,
+        label="Random Stream",
+        doc="An instance of numpy's RandomState associated with this"
+            "specific Noise object. Used when you need to resume a simulation from a state saved to disk"
+    )
 
-    dt = None
-    # For use if coloured
-    _E = None
-    _sqrt_1_E2 = None
-    _eta = None
-    _h = None
+    def __init__(self, **kwargs):
+        super(Noise, self).__init__(**kwargs)
+        if self.random_stream is None:
+            self.random_stream = numpy.random.RandomState(self.noise_seed)
+
+        self.dt = None
+        # For use if coloured
+        self._E = None
+        self._sqrt_1_E2 = None
+        self._eta = None
+        self._h = None
 
     def configure(self):
         """
@@ -115,7 +123,8 @@ class Noise(HasTraits):
 
         """
         super(Noise, self).configure()
-        self.random_stream.configure()
+        # XXX: reseeding here will destroy a maybe carefully set random_stream!
+        # self.random_stream.seed(self.noise_seed)
 
     def __str__(self):
         return simple_gen_astr(self, 'dt ntau')
@@ -187,6 +196,10 @@ class Noise(HasTraits):
         noise = numpy.sqrt(self.dt) * self.random_stream.normal(size=shape)
         return noise
 
+    @abc.abstractmethod
+    def gfun(self, state_variables):
+        pass
+
 
 class Additive(Noise):
     """
@@ -196,15 +209,15 @@ class Additive(Noise):
     """
 
     nsig = NArray(
-        dtype=float,
+        #  configurable_noise=True,  # TODO: deal with configurable_noise
         label=":math:`D`",
+        required=True,
         default=numpy.array([1.0]),
-        # range=basic.Range(lo=0.0, hi=10.0, step=0.1),
+        domain=Range(lo=0.0, hi=10.0, step=0.1),
         doc="""The noise dispersion, it is the standard deviation of the
-            distribution from which the Gaussian random variates are drawn. NOTE:
-            Sensible values are typically ~<< 1% of the dynamic range of a Model's
-            state variables."""
-    )
+        distribution from which the Gaussian random variates are drawn. NOTE:
+        Sensible values are typically ~<< 1% of the dynamic range of a Model's
+        state variables.""")
 
     def gfun(self, state_variables):
         r"""
@@ -235,17 +248,18 @@ class Multiplicative(Noise):
     """
 
     nsig = NArray(
-        dtype=float,
+        # configurable_noise=True,
         label=":math:`D`",
+        required=True,
         default=numpy.array([1.0, ]),
-        # range=basic.Range(lo=0.0, hi=10.0, step=0.1),
+        domain=Range(lo=0.0, hi=10.0, step=0.1),
         doc="""The noise dispersion, it is the standard deviation of the
-            distribution from which the Gaussian random variates are drawn. NOTE:
-            Sensible values are typically ~<< 1% of the dynamic range of a Model's
-            state variables."""
-    )
+        distribution from which the Gaussian random variates are drawn. NOTE:
+        Sensible values are typically ~<< 1% of the dynamic range of a Model's
+        state variables.""")
 
-    b = equations.TemporalApplicableEquation(
+    b = Attr(
+        field_type=equations.TemporalApplicableEquation,
         label=":math:`b`",
         default=equations.Linear(parameters={"a": 1.0, "b": 0.0}),
         doc="""A function evaluated on the state-variables, the result of which enters as the diffusion coefficient.""")
@@ -259,6 +273,5 @@ class Multiplicative(Noise):
         Equation 4.6, page 119.
 
         """
-        self.b.pattern = state_variables
-        g_x = numpy.sqrt(2.0 * self.nsig) * self.b.pattern
+        g_x = numpy.sqrt(2.0 * self.nsig) * self.b.evaluate(state_variables)
         return g_x

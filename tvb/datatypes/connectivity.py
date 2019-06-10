@@ -42,10 +42,8 @@ import numpy
 import scipy.stats
 from tvb.basic.logger.builder import get_logger
 from tvb.basic.readers import ZipReader, H5Reader, try_get_absolute_path
-#TODO: eliminate basic import: JSONType left
-from tvb.basic.traits import types_basic as basic
-from tvb.basic.traits.types_mapped import MappedType
-from tvb.basic.traits.neotraits import Attr, HasTraits, NArray, List
+from tvb.basic.neotraits.api import Attr, NArray, List, HasTraits, Int, narray_summary_info
+
 
 LOG = get_logger(__name__)
 
@@ -54,110 +52,89 @@ class Connectivity(HasTraits):
 
     # data
     region_labels = NArray(
-        dtype=str,
+        dtype='S128',
         label="Region labels",
-        doc="""Short strings, 'labels', for the regions represented by the connectivity matrix."""
-    )
+        doc="""Short strings, 'labels', for the regions represented by the connectivity matrix.""")
 
     weights = NArray(
-        dtype=float,
         label="Connection strengths",
-        doc="""Matrix of values representing the strength of connections between regions, arbitrary units."""
-    )
+        # stored_metadata=[key for key in MappedType.DEFAULT_WITH_ZERO_METADATA],
+        doc="""Matrix of values representing the strength of connections between regions, arbitrary units.""")
 
     undirected = Attr(
-        int,
-        default=0,
-        required=False,
-        doc="1, when the weights matrix is square and symmetric over the main diagonal, 0 when directed graph."
-    )
+        field_type=bool,
+        default=False, required=False,
+        doc="1, when the weights matrix is square and symmetric over the main diagonal, 0 when directed graph.")
 
     tract_lengths = NArray(
-        dtype=float,
         label="Tract lengths",
+        # stored_metadata=[key for key in MappedType.DEFAULT_WITH_ZERO_METADATA],
         doc="""The length of myelinated fibre tracts between regions.
-            If not provided Euclidean distance between region centres is used."""
-    )
+        If not provided Euclidean distance between region centres is used.""")
 
     speed = NArray(
-        dtype=float,
         label="Conduction speed",
-        default=numpy.array([3.0]),
-        doc="""A single number or matrix of conduction speeds for the myelinated fibre tracts between regions."""
-    )
+        default=numpy.array([3.0]),  # file_storage=core.FILE_STORAGE_NONE,
+        doc="""A single number or matrix of conduction speeds for the myelinated fibre tracts between regions.""")
 
     centres = NArray(
-        dtype=float,
         label="Region centres",
-        doc="An array specifying the location of the centre of each region."
-    )
+        doc="An array specifying the location of the centre of each region.")
 
     cortical = NArray(
         dtype=bool,
         label="Cortical",
         required=False,
-        doc="""A boolean vector specifying whether or not a region is part of the cortex."""
-    )
+        doc="""A boolean vector specifying whether or not a region is part of the cortex.""")
 
     hemispheres = NArray(
         dtype=bool,
         label="Hemispheres (True for Right and False for Left Hemisphere",
         required=False,
-        doc="""A boolean vector specifying whether or not a region is part of the right hemisphere"""
-    )
+        doc="""A boolean vector specifying whether or not a region is part of the right hemisphere""")
 
     orientations = NArray(
-        dtype=float,
         label="Average region orientation",
         required=False,
         doc="""Unit vectors of the average orientation of the regions represented in the connectivity matrix.
-            NOTE: Unknown data should be zeros."""
-    )
+        NOTE: Unknown data should be zeros.""")
 
     areas = NArray(
-        dtype=float,
         label="Area of regions",
         required=False,
         doc="""Estimated area represented by the regions in the connectivity matrix.
-            NOTE: Unknown data should be zeros."""
-    )
+        NOTE: Unknown data should be zeros.""")
 
     idelays = NArray(
         dtype=int,
         label="Conduction delay indices",
-        required=False,
-        doc="An array of time delays between regions in integration steps."
-    )
+        required=False,  # file_storage=core.FILE_STORAGE_NONE,
+        doc="An array of time delays between regions in integration steps.")
 
     delays = NArray(
-        dtype=float,
         label="Conduction delay",
+        # file_storage=core.FILE_STORAGE_NONE,
         required=False,
         doc="""Matrix of time delays between regions in physical units, setting conduction speed automatically
-            combines with tract lengths to update this matrix, i.e. don't try and change it manually."""
-    )
+        combines with tract lengths to update this matrix, i.e. don't try and change it manually.""")
 
-    number_of_regions = Attr(
-        int,
+    number_of_regions = Int(
+        field_type=long,
         label="Number of regions",
-        doc="""The number of regions represented in this Connectivity """
-    )
+        doc="""The number of regions represented in this Connectivity """)
 
-    number_of_connections = Attr(
-        int,
+    number_of_connections = Int(
+        field_type=long,
         label="Number of connections",
-        doc="""The number of non-zero entries represented in this Connectivity """
-    )
+        doc="""The number of non-zero entries represented in this Connectivity """)
 
     # Original Connectivity, from which current connectivity was edited.
-    parent_connectivity = Attr(
-        str,
-        required=False
-    )
+    parent_connectivity = Attr(field_type=str, required=False)
 
     # In case of edited Connectivity, this are the nodes left in interest area,
     # the rest were part of a lesion, so they were removed.
-    saved_selection = basic.JSONType(required=False)
+    # saved_selection = basic.JSONType(required=False)
+    saved_selection = List(of=basestring)
 
     # framework
     @property
@@ -199,7 +176,7 @@ class Connectivity(HasTraits):
         final_conn.subject = self.subject
         return final_conn
 
-    def cut_connectivity(self, new_weights, interest_areas, storage_path, new_tracts=None):
+    def cut_connectivity(self, new_weights, interest_areas, new_tracts=None):
         """
         Generate new Connectivity object based on current one, by removing nodes (e.g. simulate lesion).
         Only the selected nodes will get used in the result. The order of the indices in interest_areas matters.
@@ -216,7 +193,6 @@ class Connectivity(HasTraits):
 
         final_conn = self.__class__()
         final_conn.parent_connectivity = None
-        final_conn.storage_path = storage_path
         final_conn.weights = new_weights
         final_conn.centres = self.centres[interest_areas, :]
         final_conn.region_labels = self.region_labels[interest_areas]
@@ -229,8 +205,9 @@ class Connectivity(HasTraits):
         if self.areas is not None and len(self.areas):
             final_conn.areas = self.areas[interest_areas]
         final_conn.tract_lengths = new_tracts
-        final_conn.saved_selection = None
-        final_conn.subject = self.subject
+        final_conn.saved_selection = []
+        #TODO: do this on index
+        # final_conn.subject = self.subject
         return final_conn
 
     def _reorder_arrays(self, new_weights, interest_areas, new_tracts=None):
@@ -256,13 +233,13 @@ class Connectivity(HasTraits):
         new_weights, interest_areas, new_tracts = self._reorder_arrays(new_weights, interest_areas, new_tracts)
         return self.branch_connectivity(new_weights, interest_areas, storage_path, new_tracts)
 
-    def cut_new_connectivity_from_ordered_arrays(self, new_weights, interest_areas, storage_path, new_tracts=None):
+    def cut_new_connectivity_from_ordered_arrays(self, new_weights, interest_areas, new_tracts=None):
         """
         Similar to :meth:`cut_connectivity` but using hemisphere ordered parameters.
         Used by the connectivity viewer to save a smaller connectivity.
         """
         new_weights, interest_areas, new_tracts = self._reorder_arrays(new_weights, interest_areas, new_tracts)
-        return self.cut_connectivity(new_weights, interest_areas, storage_path, new_tracts)
+        return self.cut_connectivity(new_weights, interest_areas, new_tracts)
 
     @property
     def saved_selection_labels(self):
@@ -278,13 +255,6 @@ class Connectivity(HasTraits):
             return result[:-1]
         else:
             return ''
-
-    @staticmethod
-    def accepted_filters():
-        filters = MappedType.accepted_filters()
-        filters.update({'datatype_class._number_of_regions': {'type': 'int', 'display': 'No of Regions',
-                                                              'operations': ['==', '<', '>']}})
-        return filters
 
     def is_right_hemisphere(self, idx):
         """
@@ -370,7 +340,7 @@ class Connectivity(HasTraits):
     def get_default_selection(self):
         # should this be sub-selection or all always?
         sel = self.saved_selection
-        if sel is not None:
+        if sel is not None and len(sel) > 0:
             return sel
         else:
             return range(len(self.region_labels))
@@ -398,23 +368,25 @@ class Connectivity(HasTraits):
         Invoke the compute methods for computable attributes that haven't been
         set during initialization.
         """
-        super(Connectivity, self).configure()
 
         self.number_of_regions = self.weights.shape[0]
         # NOTE: In numpy 1.8 there is a function called count_zeros
         self.number_of_connections = self.weights.nonzero()[0].shape[0]
 
-        self.trait["weights"].log_debug(owner=self.__class__.__name__)
-        self.trait["tract_lengths"].log_debug(owner=self.__class__.__name__)
-        self.trait["speed"].log_debug(owner=self.__class__.__name__)
-        self.trait["centres"].log_debug(owner=self.__class__.__name__)
-        self.trait["orientations"].log_debug(owner=self.__class__.__name__)
-        self.trait["areas"].log_debug(owner=self.__class__.__name__)
+        # self.trait["weights"].log_debug(owner=self.__class__.__name__)
+        # self.trait["tract_lengths"].log_debug(owner=self.__class__.__name__)
+        # self.trait["speed"].log_debug(owner=self.__class__.__name__)
+        # self.trait["centres"].log_debug(owner=self.__class__.__name__)
+        # self.trait["orientations"].log_debug(owner=self.__class__.__name__)
+        # self.trait["areas"].log_debug(owner=self.__class__.__name__)
 
-        if self.tract_lengths.size == 0:
+        # todo: review these 2 following is None checks
+        # the neotraits do not default declarative numpy arrays to 0 dimensional empty ones
+        # we let a missing array be represented by None
+
+        if self.tract_lengths is None or self.tract_lengths.size == 0:
             self.compute_tract_lengths()
-
-        if self.region_labels.size == 0:
+        if self.region_labels is None or self.region_labels.size == 0:
             self.compute_region_labels()
 
         if self.hemispheres is None or self.hemispheres.size == 0:
@@ -434,48 +406,38 @@ class Connectivity(HasTraits):
         # NOTE: Because of the conduction_speed hack for UI this must be evaluated here, even if delays
         # already has a value, otherwise setting speed in the UI has no effect...
         self.delays = self.tract_lengths / self.speed
-        self.trait["delays"].log_debug(owner=self.__class__.__name__)
+        # self.trait["delays"].log_debug(owner=self.__class__.__name__)
 
         if (self.weights.transpose() == self.weights).all():
-            self.undirected = 1
+            self.undirected = True
 
-    def _find_summary_info(self):
-        """
-        Gather scientifically interesting summary information from an instance
-        of this dataType.
-        """
-        summary = {"Number of regions": self.number_of_regions,
-                   "Number of connections": self.number_of_connections,
-                   "Undirected": self.undirected}
+        self.validate()
 
-        summary.update(self.get_info_about_array('areas',
-                                                 [self.METADATA_ARRAY_MAX,
-                                                  self.METADATA_ARRAY_MIN,
-                                                  self.METADATA_ARRAY_MEAN]))
 
-        summary.update(self.get_info_about_array('weights',
-                                                 [self.METADATA_ARRAY_MAX,
-                                                  self.METADATA_ARRAY_MEAN,
-                                                  self.METADATA_ARRAY_VAR,
-                                                  self.METADATA_ARRAY_MIN_NON_ZERO,
-                                                  self.METADATA_ARRAY_MEAN_NON_ZERO,
-                                                  self.METADATA_ARRAY_VAR_NON_ZERO]))
-
-        summary.update(self.get_info_about_array('tract_lengths',
-                                                 [self.METADATA_ARRAY_MAX,
-                                                  self.METADATA_ARRAY_MEAN,
-                                                  self.METADATA_ARRAY_VAR,
-                                                  self.METADATA_ARRAY_MIN_NON_ZERO,
-                                                  self.METADATA_ARRAY_MEAN_NON_ZERO,
-                                                  self.METADATA_ARRAY_VAR_NON_ZERO]))
-
-        summary.update(self.get_info_about_array('tract_lengths',
-                                                 [self.METADATA_ARRAY_MAX_NON_ZERO,
-                                                  self.METADATA_ARRAY_MIN_NON_ZERO,
-                                                  self.METADATA_ARRAY_MEAN_NON_ZERO,
-                                                  self.METADATA_ARRAY_VAR_NON_ZERO],
-                                                 mask_array_name='weights', key_suffix=" (connections)"))
-
+    def summary_info(self):
+        summary = {
+            "Number of regions": self.number_of_regions,
+            "Number of connections": self.number_of_connections,
+            "Undirected": self.undirected,
+        }
+        summary.update(narray_summary_info(self.areas, ar_name='areas'))
+        summary.update(narray_summary_info(self.weights, ar_name='weights'))
+        summary.update(narray_summary_info(
+            self.weights[self.weights.nonzero()],
+            ar_name='weights-non-zero',
+            omit_shape=True))
+        summary.update(narray_summary_info(
+            self.tract_lengths,
+            ar_name='tract_lengths',
+            omit_shape=True))
+        summary.update(narray_summary_info(
+            self.tract_lengths[self.tract_lengths.nonzero()],
+            ar_name='tract_lengths-non-zero',
+            omit_shape=True))
+        summary.update(narray_summary_info(
+            self.tract_lengths[self.weights.nonzero()],
+            ar_name='tract_lengths (connections)',
+            omit_shape=True))
         return summary
 
     def set_idelays(self, dt):
@@ -492,7 +454,7 @@ class Connectivity(HasTraits):
         """
         # Express delays in integration steps
         self.idelays = numpy.rint(self.delays / dt).astype(numpy.int32)
-        self.trait["idelays"].log_debug(owner=self.__class__.__name__)
+        # self.trait["idelays"].log_debug(owner=self.__class__.__name__)
 
     def compute_tract_lengths(self):
         """
@@ -508,7 +470,7 @@ class Connectivity(HasTraits):
             tract_lengths[region, :] = numpy.sqrt(numpy.sum(temp ** 2, axis=1))
 
         self.tract_lengths = tract_lengths
-        self.trait["tract_lengths"].log_debug(owner=self.__class__.__name__)
+        # self.trait["tract_lengths"].log_debug(owner=self.__class__.__name__)
 
     def compute_region_labels(self):
         """ """
@@ -913,10 +875,9 @@ class Connectivity(HasTraits):
         LOG.info("Create labels: %s" % str(mode))
 
         if mode in ("numeric", "num"):
-            self.region_labels = [n for n in range(self.number_of_regions)]
-            self.region_labels = numpy.array(self.region_labels).astype(str)
+            region_labels = [n for n in range(self.number_of_regions)]
+            self.region_labels = numpy.array(region_labels).astype(str)
         elif mode in ("alphabetic", "alpha"):
-            import string
             if self.number_of_regions < 26:
                 self.region_labels = numpy.array(list(map(chr, range(65, 65 + self.number_of_regions)))).astype(str)
             else:
