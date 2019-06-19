@@ -37,21 +37,21 @@ A collection of plotting functions used by simulator/demos
 
 import numpy
 import scipy as sp
-import networkx as nx
+# import networkx as nx
 from tvb.basic.logger.builder import get_logger
 
 LOG = get_logger(__name__)
 
 
-##----------------------------------------------------------------------------##
-##-                  matplotlib based plotting functions                     -##
-##---------------------------------------------------------------------------cd-##
+## ----------------------------------------------------------------------------##
+## -                  matplotlib based plotting functions                     -##
+## ---------------------------------------------------------------------------cd-##
 
-import matplotlib as mpl
+# import matplotlib as mpl
 import matplotlib.pyplot as pyplot
 import matplotlib.colors
 import matplotlib.ticker as ticker
-import matplotlib.colors as colors
+# import matplotlib.colors as colors
 
 
 try:
@@ -85,7 +85,7 @@ def hinton_diagram(connectivity_weights, num, maxWeight=None):
     if not maxWeight:
         maxWeight = 2 ** numpy.ceil(numpy.log(numpy.max(numpy.abs(connectivity_weights))) / numpy.log(2))
 
-    #pyplot.fill(numpy.array([0,width,width,0]),numpy.array([0,0,height+0.5,height+0.5]),'gray')
+    # pyplot.fill(numpy.array([0,width,width,0]),numpy.array([0,0,height+0.5,height+0.5]),'gray')
     pyplot.axis('equal')
     weights_axes = weights_figure.gca()
 
@@ -190,7 +190,7 @@ def plot_local_connectivity(cortex, cutoff=None):
               '-']   # : solid line    -- black
 
 
-    #If necessary, add a default LocalConnectivity to ``local_connectivity``.
+    # If necessary, add a default LocalConnectivity to ``local_connectivity``.
     if cortex.local_connectivity is None:
         LOG.info("local_connectivity is None, adding default LocalConnectivity")
         cortex.local_connectivity = cortex.trait["local_connectivity"]
@@ -198,7 +198,7 @@ def plot_local_connectivity(cortex, cutoff=None):
     if cutoff:
         cortex.local_connectivity.cutoff = cutoff
 
-    #We need a cutoff distance to work from...
+    # We need a cutoff distance to work from...
     if cortex.local_connectivity.cutoff is None:
         LOG.error("You need to provide a cutoff...")
         return
@@ -211,35 +211,35 @@ def plot_local_connectivity(cortex, cutoff=None):
 
     # ideally all these lines should overlap
 
-    #What we want
+    # What we want
     hi_res = 1024
     step = 2.0 * cutoff_2 / (hi_res - 1)
     hi_x = numpy.arange(-cutoff_2, cutoff_2 + step, step)
     pyplot.plot(hi_x, cortex.local_connectivity.equation.evaluate(numpy.abs(hi_x)), 'k',
                 linestyle=dashes[-1], linewidth=3)
 
-    #What we'll mostly get
+    # What we'll mostly get
     avg_res = 2 * int(cutoff / cortex.edge_length_mean)
     step = cutoff_2 / (avg_res - 1)
     avg_x = numpy.arange(-cutoff, cutoff + step, step)
     pyplot.plot(avg_x, cortex.local_connectivity.equation.evaluate(numpy.abs(avg_x)), 'b',
                 linestyle=dashes[0], linewidth=3)
 
-    #It can be this bad
+    # It can be this bad
     worst_res = 2 * int(cutoff / cortex.edge_length_max)
     step = cutoff_2 / (worst_res - 1)
     worst_x = numpy.arange(-cutoff, cutoff + step, step)
     pyplot.plot(worst_x, cortex.local_connectivity.equation.evaluate(numpy.abs(worst_x)), 'r',
                 linestyle=dashes[1], linewidth=3)
 
-    #This is as good as it gets...
+    # This is as good as it gets...
     best_res = 2 * int(cutoff / cortex.edge_length_min)
     step = cutoff_2 / (best_res - 1)
     best_x = numpy.arange(-cutoff, cutoff + step, step)
     pyplot.plot(best_x, cortex.local_connectivity.equation.evaluate(numpy.abs(best_x)), 'g',
                 linestyle=dashes[2], linewidth=3)
 
-    #Plot the cutoff
+    # Plot the cutoff
     ymin, ymax = pyplot.ylim()
     pyplot.plot([-cutoff, -cutoff], [ymin, ymax], "k--")
     pyplot.plot([cutoff, cutoff], [ymin, ymax], "k--")
@@ -250,10 +250,10 @@ def plot_local_connectivity(cortex, cutoff=None):
     pyplot.legend(("Theoretical", "Typical", "Worst", "Best", "Cutoff"))
 
     # set the linewidth of the first legend object
-    #leg.legendHandles[0].set_linewidth(6.0)
-    #leg.legendHandles[1].set_linewidth(6.0)
-    #leg.legendHandles[2].set_linewidth(6.0)
-    #leg.legendHandles[3].set_linewidth(6.0)
+    # leg.legendHandles[0].set_linewidth(6.0)
+    # leg.legendHandles[1].set_linewidth(6.0)
+    # leg.legendHandles[2].set_linewidth(6.0)
+    # leg.legendHandles[3].set_linewidth(6.0)
 
 
 
@@ -265,7 +265,7 @@ def plot_pattern(pattern_object):
     pyplot.subplot(221)
     pyplot.plot(pattern_object.spatial_pattern, "k*")
     pyplot.title("Space")
-    #pyplot.plot(pattern_object.space, pattern_object.spatial_pattern, "k*")
+    # pyplot.plot(pattern_object.space, pattern_object.spatial_pattern, "k*")
     pyplot.subplot(223)
     pyplot.plot(pattern_object.time.T, pattern_object.temporal_pattern.T)
     pyplot.title("Time")
@@ -275,9 +275,7 @@ def plot_pattern(pattern_object):
     pyplot.title("Stimulus")
     pyplot.xlabel("Time")
     pyplot.ylabel("Space")
-    #pyplot.show()
-
-
+    # pyplot.show()
 
 def show_me_the_colours():
     """
@@ -301,7 +299,7 @@ def plot_matrix(mat, fig_name='plot_this_matrix', connectivity=None, binary_matr
     """
     An embellished matshow display
     """
-    #NOTE: I could add more stuff in plot_connectivity, but I rather have
+    # NOTE: I could add more stuff in plot_connectivity, but I rather have
     # a dummy function for displaying a pretty matrix with the 
     # value of each element.
 
@@ -369,7 +367,7 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
                         cmap=pyplot.cm.RdBu_r, colourbar=True,
                         color_anchor=None, node_labels=None, x_tick_rot=0, 
                         title=None):
-    r"""Creates a lower-triangle of a square matrix. Very often found to display correlations or coherence.
+    """Creates a lower-triangle of a square matrix. Very often found to display correlations or coherence.
 
     Parameters
     ----------
@@ -432,11 +430,11 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
 
     mat_copy = mat.copy()
 
-    #Null the upper triangle, including the main diagonal.
+    # Null the upper triangle, including the main diagonal.
     idx_null           = numpy.triu_indices(mat_copy.shape[0])
     mat_copy[idx_null] = numpy.nan
 
-    #Min max values
+    # Min max values
     max_val = numpy.nanmax(mat_copy)
     min_val = numpy.nanmin(mat_copy)
 
@@ -451,14 +449,14 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
         color_min = color_anchor[0]
         color_max = color_anchor[1]
 
-    #The call to imshow produces the matrix plot:
+    # The call to imshow produces the matrix plot:
     im = ax_im.imshow(mat_copy, origin='upper', interpolation='nearest',
                       vmin=color_min, vmax=color_max, cmap=cmap)
 
-    #Formatting:
+    # Formatting:
     ax = ax_im
     ax.grid(True)
-    #Label each of the cells with the row and the column:
+    # Label each of the cells with the row and the column:
     if node_labels is not None:
         for i in range(0, mat_copy.shape[0]):
             if i < (mat_copy.shape[0] - 1):
@@ -476,7 +474,7 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
         ax.set_ybound([-0.5, N - 0.5])
         ax.set_xbound([-0.5, N - 1.5])
 
-    #Make the tick-marks invisible:
+    # Make the tick-marks invisible:
     for line in ax.xaxis.get_ticklines():
         line.set_markeredgewidth(0)
 
@@ -489,16 +487,16 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
         ax.set_title(title)
 
     if colourbar:
-        #Set the ticks - if 0 is in the interval of values, set that, as well
-        #as the min, max values:
+        # Set the ticks - if 0 is in the interval of values, set that, as well
+        # as the min, max values:
         if min_val < 0:
             ticks = [color_min, min_val, 0, max_val, color_max]
-        #set the min, mid and  max values:
+        # set the min, mid and  max values:
         else:
             ticks = [color_min, min_val, (color_max- color_min)/2., max_val, color_max]
 
 
-        #colourbar:
+        # colourbar:
         if IMPORTED_MPL_TOOLKITS:
             cb = fig.colorbar(im, cax=ax_cb, orientation='horizontal',
                               cmap=cmap,
@@ -574,7 +572,7 @@ def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),
         A gridded 2D kernel density estimate of the input points. 
     """
    
-    #---- Setup --------------------------------------------------------------
+    # ------------------------------- Setup ------------------------------------------
     x, y = numpy.asarray(x), numpy.asarray(y)
     x, y = numpy.squeeze(x), numpy.squeeze(y)
     
@@ -603,7 +601,7 @@ def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),
     dx = (xmax - xmin) / (nx - 1)
     dy = (ymax - ymin) / (ny - 1)
 
-    #---- Preliminary Calculations -------------------------------------------
+    # ---- Preliminary Calculations -------------------------------------------
 
     # First convert x & y over to pixel coordinates
     # (Avoiding np.digitize due to excessive memory usage!)
@@ -668,7 +666,7 @@ def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),
     
     if norm : 
         norm_factor *= n * dx * dy
-    #---- Produce pdf                        --------------------------------
+    #  --------------------- Produce pdf--------------------------------
 
     if pdf:
         norm_factor, _ = sp.integrate.nquad(grid, [[xmin, xmax], [ymin, ymax]])
@@ -681,6 +679,5 @@ def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),
 if __name__ == '__main__':
     # Do some stuff that tests or makes use of this module... 
     pass
-
 
 ##- EoF -##

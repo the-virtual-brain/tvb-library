@@ -43,19 +43,19 @@ import an usage for MAYAVI based plots should look like::
 """
 
 import numpy
-import scipy as sp
+# import scipy as sp
+# scipy is imported but not used.
 import networkx as nx
 from tvb.basic.logger.builder import get_logger
 
 LOG = get_logger(__name__)
 
-#import pdb; pdb.set_trace()
-##----------------------------------------------------------------------------##
-##-                   mayavi based plotting functions                        -##
-##----------------------------------------------------------------------------##
+# import pdb; pdb.set_trace()
+# #----------------------------------------------------------------------------##
+# #-                   mayavi based plotting functions                        -##
+# #----------------------------------------------------------------------------##
 try:
     from mayavi import mlab
-
     IMPORTED_MAYAVI = True
 except ImportError:
     LOG.warning("Mayavi is needed for this demo but due to sizing and packaging constraints we are not distributing it. "
@@ -63,7 +63,7 @@ except ImportError:
               "dependencies as described here: (advanced users only)"
               "http://docs.thevirtualbrain.com/manuals/ContributorsManual/ContributorsManual.html#the-unaided-setup")
     IMPORTED_MAYAVI = False
-    #raise
+    # raise the warning
 
 if IMPORTED_MAYAVI:
     @mlab.animate(delay=41, ui=True)
@@ -72,7 +72,7 @@ if IMPORTED_MAYAVI:
         
         """
         fig = mlab.figure(figure="surface_timeseries", fgcolor=(0.5, 0.5, 0.5))
-        #Plot an initial surface and colourbar #TODO: Change to use plot_surface function, see below.
+        # Plot an initial surface and colourbar #TODO: Change to use plot_surface function, see below.
         surf_mesh = mlab.triangular_mesh(surface.vertices[:, 0],
                                          surface.vertices[:, 1],
                                          surface.vertices[:, 2],
@@ -82,16 +82,16 @@ if IMPORTED_MAYAVI:
                                          figure=fig)
         mlab.colorbar(object=surf_mesh, orientation="vertical")
 
-        #Handle for the surface object and figure
+        # Handle for the surface object and figure
         surf = surf_mesh.mlab_source
 
-        #Time #TODO: Make actual time rather than points, where/if possible.
+        # Time #TODO: Make actual time rather than points, where/if possible.
         tpts = data.shape[0]
         time_step = mlab.text(0.85, 0.125, ("0 of %s" % str(tpts)),
                               width=0.0625, color=(1, 1, 1), figure=fig,
                               name="counter")
 
-        #Movie
+        # Movie
         k = 0
         while 1:
             if abs(k) >= tpts:
@@ -101,11 +101,11 @@ if IMPORTED_MAYAVI:
             k += step
             yield
         mlab.show()
-        #--------------------------------------------------------------------------#
+        # --------------------------------------------------------------------------#
 
 
-    #TODO: Make, posssibly with a wrapper function, to work directly with 
-    #      SurfacePattern object... Inner function name plot_surface
+    # TODO: Make, posssibly with a wrapper function, to work directly with
+    # SurfacePattern object... Inner function name plot_surface
 
     def plot_surface(surface, fig=None, name=None, op=1.0, rep='surface'):
         """
@@ -175,10 +175,10 @@ if IMPORTED_MAYAVI:
                                          scalars=cortex_boundaries.cortex.region_mapping[:number_of_vertices//2],
                                          figure=fig)
         surf_mesh.module_manager.scalar_lut_manager.lut.number_of_colors = number_of_regions
-        #surf_mesh.module_manager.scalar_lut_manager.lut.table = lut
+        # surf_mesh.module_manager.scalar_lut_manager.lut.table = lut
 
-        #TODO: can't get region labels to associate with colorbar...
-        #mlab.colorbar(object=surf_mesh, orientation="vertical")
+        # TODO: can't get region labels to associate with colorbar...
+        # mlab.colorbar(object=surf_mesh, orientation="vertical")
         x = cortex_boundaries.boundary[:, 0]
         y = cortex_boundaries.boundary[:, 1]
         z = cortex_boundaries.boundary[:, 2]
@@ -199,7 +199,7 @@ if IMPORTED_MAYAVI:
             representation to wireframe; colour 'gray'.
           - enable contours of scalar_surf  
         """
-        #surf_mesh = plot_surface(surface, name="surface pattern")
+        # surf_mesh = plot_surface(surface, name="surface pattern")
         fig = mlab.figure(figure="surface pattern", fgcolor=(0.5, 0.5, 0.5))
         surf_mesh = mlab.triangular_mesh(surface.vertices[:, 0],
                                          surface.vertices[:, 1],
@@ -260,7 +260,7 @@ if IMPORTED_MAYAVI:
         # Get the subgraph of nodes in nbunch
         if remove_nodes:
             G.remove_nodes_from([n for n in G if n not in set(nbunch)])
-            #G.remove_nodes_from([node for node,degree in G.degree().items() if degree < 2])
+            # G.remove_nodes_from([node for node,degree in G.degree().items() if degree < 2])
 
         if remove_edges:
             G.remove_edges_from([e for e in G.edges() if e not in ebunch])
@@ -269,7 +269,7 @@ if IMPORTED_MAYAVI:
         # scalar colors
         if node_data is not None:
             scalars = node_data
-            #mlab.colorbar(orientation="vertical")
+            # mlab.colorbar(orientation="vertical")
         else:
             scalars = numpy.array(G.nodes())*20
 
@@ -277,7 +277,7 @@ if IMPORTED_MAYAVI:
                             connectivity.centres[:,1], 
                             connectivity.centres[:,2],
                             scalars,
-                            #mask_points=1,
+                            # mask_points=1,
                             scale_factor = node_size,
                             scale_mode = 'none',
                             colormap = balls_colormap,
@@ -310,10 +310,9 @@ if IMPORTED_MAYAVI:
             tube = mlab.pipeline.tube(pts, tube_radius = edge_size)
             mlab.pipeline.surface(tube, color=edge_color, representation='wireframe', opacity=0.3)
 
-        #mlab.show()
-
-            # stop the scene
-            #mlab.show(stop=True)
+        # mlab.show()
+        #  stop the scene
+        # mlab.show(stop=True)
 
 
     def connectivity_3d(connectivity, order=None, edge_cutoff=None):
@@ -347,8 +346,8 @@ if IMPORTED_MAYAVI:
             edge_cutoff = minW
 
         # colourmap to emphasise large numbers
-        #MAP = numpy.loadtxt('../plot/colourmaps/BlackToBlue')
-        #mapstep = 1. / MAP.shape[0]
+        # MAP = numpy.loadtxt('../plot/colourmaps/BlackToBlue')
+        # mapstep = 1. / MAP.shape[0]
 
         # Loop over connectivity matrix, colouring and one cube per matrix element
         K = []
@@ -359,7 +358,7 @@ if IMPORTED_MAYAVI:
             for m in range(N):
                 if connectivity.weights[k, m] != 0:
                     if k != m:
-                        #not self connection (diagonal)
+                        # not self connection (diagonal)
                         if connectivity.weights[k, m] > edge_cutoff:
                             K.append(k + 2.)
                             D.append(connectivity.delays[k, m] + stepD)
@@ -369,11 +368,10 @@ if IMPORTED_MAYAVI:
         mlab.show(stop=True)
 
 
-        #--------------------------------------------------------------------------#
+        # --------------------------------------------------------------------------#
 
 if __name__ == '__main__':
     # Do some stuff that tests or makes use of this module... 
     pass
-
 
 ##- EoF -##

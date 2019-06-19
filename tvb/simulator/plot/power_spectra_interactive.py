@@ -54,10 +54,10 @@ Usage
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 
 """
-#TODO: There are fence-posts...
-#TODO: add a save button, for current powerspectra view (data more than fig)
-#TODO: channel/region selection, with surface time-series vertex slection 
-#      grouped by region 
+# TODO: There are fence-posts...
+# TODO: add a save button, for current powerspectra view (data more than fig)
+# TODO: channel/region selection, with surface time-series vertex slection
+# grouped by region
 
 import numpy
 import pylab
@@ -110,19 +110,21 @@ class PowerSpectraInteractive(HasTraits):
 
 
     def __init__(self, **kwargs):
+
+        super(PowerSpectraInteractive, self).__init__()
         """
         Initialise based on provided keywords or their traited defaults. Also,
         initialise the place-holder attributes that aren't filled until the
         show() method is called.
 
         """
-        #figure
+        # figure
         self.ifft_fig = None
 
-        #time-series
+        # time-series
         self.fft_ax = None
 
-        #Current state
+        # Current state
         self.xscale = "linear"
         self.yscale = "log"
         self.mode = 0
@@ -133,7 +135,7 @@ class PowerSpectraInteractive(HasTraits):
         self.window_length = 0.25
         self.window_function = "None"
 
-        #Selectors
+        # Selectors
         self.xscale_selector = None
         self.yscale_selector = None
         self.mode_selector = None
@@ -143,24 +145,20 @@ class PowerSpectraInteractive(HasTraits):
         self.normalise_power_selector = None
         self.window_length_selector = None
         self.window_function_selector = None
-
-        #
         possible_freq_steps = [2**x for x in range(-2, 7)] #Hz
-        #possible_freq_steps.append(1.0 / self.time_series_length) #Hz
+        # possible_freq_steps.append(1.0 / self.time_series_length) #Hz
         self.possible_window_lengths = 1.0 / numpy.array(possible_freq_steps) #s
         self.freq_step = 1.0 / self.window_length
         self.frequency = None
         self.spectra = None
         self.spectra_norm = None
-
-        #Sliders
-        #self.window_length_slider = None
-
+        # Sliders
+        # self.window_length_slider = None
 
     def configure(self):
-        """ Seperate configure cause ttraits be busted... """
+        """Saperate configure cause ttraits be busted... """
         LOG.debug("time_series shape: %s" % str(self.time_series.data.shape))
-        #TODO: if isinstance(self.time_series, TimeSeriesSurface) and self.first_n == -1: #LOG.error, return.
+        # TODO: if isinstance(self.time_series, TimeSeriesSurface) and self.first_n == -1: #LOG.error, return.
         self.data = self.time_series.data[:, :, :self.first_n, :]
         self.period = self.time_series.sample_period
         self.max_freq = 0.5 / self.period
@@ -171,16 +169,15 @@ class PowerSpectraInteractive(HasTraits):
         self.time = numpy.arange(self.tpts) * self.period
         self.labels = ["channel_%0.3d" % k for k in range(self.nsrs)]
 
-
     def show(self):
         """ Generate the interactive power-spectra figure. """
-        #Make sure everything is configured
+        # Make sure everything is configured
         self.configure()
 
-        #Make the figure:
+        # Make the figure:
         self.create_figure()
 
-        #Selectors
+        # Selectors
         self.add_xscale_selector()
         self.add_yscale_selector()
         self.add_mode_selector()
@@ -188,22 +185,19 @@ class PowerSpectraInteractive(HasTraits):
         self.add_normalise_power_selector()
         self.add_window_length_selector()
         self.add_window_function_selector()
-
-        #Sliders
-        #self.add_window_length_slider() #Want discrete values
-        #self.add_scaling_slider()
-
-        #...
+        # Sliders
+        # self.add_window_length_slider() #Want discrete values
+        # self.add_scaling_slider()
         self.calc_fft()
 
-        #Plot timeseries
+        # Plot timeseries
         self.plot_spectra()
-
         pylab.show()
 
     ##------------------------------------------------------------------------##
     ##------------------ Functions for building the figure -------------------##
     ##------------------------------------------------------------------------##
+
     def create_figure(self):
         """ Create the figure and time-series axes. """
         time_series_type = self.time_series.__class__.__name__
@@ -268,7 +262,7 @@ class PowerSpectraInteractive(HasTraits):
         displayed.
         """
         noc = self.data.shape[1] # number of choices
-        #State variable for the x axis
+        # State variable for the x axis
         pos_shp = [0.02, 0.22, 0.05, 0.12+0.008*noc]
         rax = self.ifft_fig.add_axes(pos_shp, axisbg=AXCOLOUR, 
                                      title="state variable")
@@ -282,7 +276,7 @@ class PowerSpectraInteractive(HasTraits):
         Generate radio selector buttons to set the window length is seconds.
         """
         noc = self.possible_window_lengths.shape[0] # number of choices
-        #State variable for the x axis
+        # State variable for the x axis
         pos_shp = [0.88, 0.07, 0.1, 0.12+0.02*noc]
         rax = self.ifft_fig.add_axes(pos_shp, axisbg=AXCOLOUR, 
                                      title="Segment length")
@@ -295,16 +289,15 @@ class PowerSpectraInteractive(HasTraits):
         """
         Generate radio selector buttons to set the windowing function.
         """
-        #TODO: add support for kaiser, requiers specification of beta.
+        # TODO: add support for kaiser, requiers specification of beta.
         wf_tup = ("None", "hamming", "bartlett", "blackman", "hanning") 
         noc = len(wf_tup) # number of choices
-        #State variable for the x axis
+        # State variable for the x axis
         pos_shp = [0.88, 0.77, 0.085, 0.12+0.01*noc]
         rax = self.ifft_fig.add_axes(pos_shp, axisbg=AXCOLOUR, 
                                     title="Windowing function")
         self.window_function_selector = widgets.RadioButtons(rax, wf_tup, active=0)
         self.window_function_selector.on_clicked(self.update_window_function)
-
 
     def add_normalise_power_selector(self):
         """
@@ -321,11 +314,12 @@ class PowerSpectraInteractive(HasTraits):
     ##------------------------------------------------------------------------##
     ##------------------ Functions for updating the state --------------------##
     ##------------------------------------------------------------------------##
+
     def calc_fft(self):
         """
         Calculate FFT using current state of the window_length, window_function,
         """
-        #Segment time-series, overlapping if necessary
+        # Segment time-series, overlapping if necessary
         nseg = int(numpy.ceil(self.time_series_length / self.window_length))
         if nseg != 1:
             seg_tpts = self.window_length / self.period
@@ -338,17 +332,17 @@ class PowerSpectraInteractive(HasTraits):
             time_series = self.data[:, :, :, :, numpy.newaxis]
             seg_tpts = time_series.shape[0]
 
-        #Base-line correct segmented time-series
+        # Base-line correct segmented time-series
         time_series = time_series - time_series.mean(axis=0)[numpy.newaxis, :]
 
-        #Apply windowing function
+        # Apply windowing function
         if self.window_function != "None":
             window_function = eval("".join(("numpy.", self.window_function)))
             window_mask = numpy.reshape(window_function(seg_tpts), 
                                         (seg_tpts, 1, 1, 1, 1))
             time_series = time_series * window_mask
 
-        #Calculate the FFT
+        # Calculate the FFT
         result =  numpy.fft.fft(time_series, axis=0)
         nfreq = len(result)/2
 
@@ -361,13 +355,14 @@ class PowerSpectraInteractive(HasTraits):
         self.spectra_norm = (self.spectra / numpy.sum(self.spectra, axis=0))
         LOG.debug("spectra_norm shape: %s" % str(self.spectra_norm.shape))
 
-        #import pdb; pdb.set_trace()
-#        self.spectra_std = numpy.std(numpy.abs(result[:nfreq]), axis=4)
-#        self.spectra_sem = self.spectra_std / time_series.shape[4]
+        # import pdb; pdb.set_trace()
+        # self.spectra_std = numpy.std(numpy.abs(result[:nfreq]), axis=4)
+        # self.spectra_sem = self.spectra_std / time_series.shape[4]
 
     ##------------------------------------------------------------------------##
     ##------------------ Functions for updating the figure -------------------##
     ##------------------------------------------------------------------------##
+
     def update_xscale(self, xscale):
         """ 
         Update the FFT axes' xscale to either log or linear based on radio
@@ -412,9 +407,10 @@ class PowerSpectraInteractive(HasTraits):
         """
         Update timeseries window length based on the selected value.
         """
-        #TODO: need this casting but not sure why, don't need int() with mode...
-        self.window_length = numpy.float64(length) 
-        #import pdb; pdb.set_trace()
+        # TODO: need this casting but not sure why, don't need int() with mode...
+        self.window_length = numpy.float64(length)
+
+        # import pdb; pdb.set_trace()
         self.freq_step = 1.0 / self.window_length
         self.update_spectra()
 
@@ -432,19 +428,21 @@ class PowerSpectraInteractive(HasTraits):
         self.calc_fft()
         self.plot_spectra()
 
+        # Unused function
+        '''
+        def plot_std(self):
+                """ Plot """
+                std = (self.spectra[:, self.variable, :, self.mode] +
+                       self.spectra_std[:, self.variable, :, self.mode])
+                self.fft_ax.plot(self.frequency, std, "--")
 
-#    def plot_std(self):
-#        """ Plot """
-#        std = (self.spectra[:, self.variable, :, self.mode] +
-#               self.spectra_std[:, self.variable, :, self.mode])
-#        self.fft_ax.plot(self.frequency, std, "--")
-#    
-#    
-#    def plot_sem(self):
-#        """  """
-#        sem = (self.spectra[:, self.variable, :, self.mode] +
-#               self.spectra_sem[:, self.variable, :, self.mode])
-#        self.fft_ax.plot(self.frequency, sem, ":")
+
+            def plot_sem(self):
+                """  """
+                sem = (self.spectra[:, self.variable, :, self.mode] +
+                       self.spectra_sem[:, self.variable, :, self.mode])
+                self.fft_ax.plot(self.frequency, sem, ":")
+        '''
 
 
     def plot_spectra(self):
@@ -463,8 +461,8 @@ class PowerSpectraInteractive(HasTraits):
         if hasattr(self.fft_ax, 'autoscale'):
             self.fft_ax.autoscale(enable=True, axis='both', tight=True)
 
-        #import pdb; pdb.set_trace()
-        #Plot the power spectra
+        # import pdb; pdb.set_trace()
+        # Plot the power spectra
         if self.normalise_power == "yes":
             self.fft_ax.plot(self.frequency, 
                              self.spectra_norm[:, self.variable, :, self.mode])
@@ -472,12 +470,12 @@ class PowerSpectraInteractive(HasTraits):
             self.fft_ax.plot(self.frequency, 
                              self.spectra[:, self.variable, :, self.mode])
 
-#        #TODO: Need to ensure colour matching... and allow region selection.
-#        #If requested, add standard deviation
+#        # TODO: Need to ensure colour matching... and allow region selection.
+#        # If requested, add standard deviation
 #        if self.show_std:
 #            self.plot_std(self)
 #            
-#        #If requested, add standard error in mean
+#        # If requested, add standard error in mean
 #        if self.show_sem:
 #            self.plot_sem(self)
 
@@ -500,4 +498,3 @@ if __name__ == "__main__":
 
     psi = PowerSpectraInteractive(time_series=tsr)
     psi.show()
-

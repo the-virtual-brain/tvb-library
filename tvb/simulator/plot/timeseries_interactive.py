@@ -153,7 +153,6 @@ class TimeSeriesInteractive(HasTraits):
         self.start_button = None
         self.end_button = None
 
-
     def configure(self):
         """ Seperate configure cause ttraits be busted... """
         #TODO: if isinstance(self.time_series, TimeSeriesSurface) and self.first_n == -1: #LOG.error, return.
@@ -168,7 +167,7 @@ class TimeSeriesInteractive(HasTraits):
         self.time_series_length = self.end_time - self.start_time
         self.peak_to_peak = (numpy.max(self.data) - numpy.min(self.data))
         
-        #Use actual labels if they exist.
+        # Use actual labels if they exist.
         if (isinstance(self.time_series, time_series_datatypes.TimeSeriesRegion) and 
             (not self.time_series.connectivity is None)):
             self.labels = self.time_series.connectivity.region_labels
@@ -178,7 +177,7 @@ class TimeSeriesInteractive(HasTraits):
         else:
             self.labels = ["channel_%0.2d"%k for k in range(self.nsrs)] 
 
-        #Current state
+        # Current state
         self.window_length = self.tpts * self.period
         self.view_step = max(int(self.tpts / TIME_RESOLUTION), 1)
         self.time_view = range(0, self.tpts, self.view_step)
@@ -192,18 +191,18 @@ class TimeSeriesInteractive(HasTraits):
             LOG.warning("Intended for region and sensors, not surfaces.")
         LOG.info(msg % time_series_type)
 
-        #Make the figure:
+        # Make the figure:
         self.create_figure()
 
-        #Selectors
-        #self.add_mode_selector()
+        # Selectors
+        # self.add_mode_selector()
 
-        #Sliders
+        # Sliders
         self.add_window_length_slider()
         self.add_scaling_slider()
-        #self.add_time_slider()
+        # self.add_time_slider()
 
-        #time-view buttons
+        # time-view buttons
         self.add_step_back_button()
         self.add_step_forward_button()
         self.add_big_step_back_button()
@@ -211,7 +210,7 @@ class TimeSeriesInteractive(HasTraits):
         self.add_start_button()
         self.add_end_button()
 
-        #Plot timeseries
+        # Plot timeseries
         self.plot_time_series()
 
         pylab.show()
@@ -222,10 +221,10 @@ class TimeSeriesInteractive(HasTraits):
     ##------------------------------------------------------------------------##
     def create_figure(self):
         """ Create the figure and time-series axes. """
-        #time_series_type = self.time_series.__class__.__name__
+        # time_series_type = self.time_series.__class__.__name__
         try:
             figure_window_title = "Interactive time series: " #+ time_series_type
-#            pylab.close(figure_window_title)
+            # pylab.close(figure_window_title)
             self.its_fig = pylab.figure(num = figure_window_title,
                                         figsize = (14, 8),
                                         facecolor = BACKGROUNDCOLOUR, 
@@ -271,9 +270,9 @@ class TimeSeriesInteractive(HasTraits):
 #        """
 #        pos_shp = [0.2, 0.02, 0.7, 0.025]
 #        slax = self.its_fig.add_axes(pos_shp, axisbg=AXCOLOUR)
-#        
+#
 #        self.current_time_slider = widgets.Slider(slax, "Time", self.start_time,
-#                                          self.end_time, 
+#                                          self.end_time,
 #                                          valinit = self.current_time)
 #        self.current_time.on_changed(self.update_time)
 

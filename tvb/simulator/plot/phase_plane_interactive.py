@@ -59,7 +59,7 @@ Example spcifying a Model and stochastic sample trajectories::
 #TODO: Add more LOG statements.
 #TODO: Add connectivity term to parameters...
 #TODO: Memory grows with usage, may be just a lazy garbage collector but, should
-#      check for leaks or look into "forcing" cleanup...
+# check for leaks or look into "forcing" cleanup...
 
 import numpy
 # import matplotlib; matplotlib.use('TkAgg')
@@ -82,7 +82,7 @@ AXCOLOUR = "steelblue"
 BUTTONCOLOUR = "steelblue"
 HOVERCOLOUR = "darkred"
 
-#Set the resolution of the phase-plane and sample trajectories.
+# Set the resolution of the phase-plane and sample trajectories.
 NUMBEROFGRIDPOINTS = 42
 TRAJ_STEPS = 4096
 
@@ -829,15 +829,10 @@ if __name__ == "__main__":
     try:
         Model = getattr(models_module, sys.argv[1])
     except Exception:
-        print("""
-usage: python -m tvb.simulator.plot.phase_plane_interactive name_of_model
+        print("""usage: python -m tvb.simulator.plot.phase_plane_interactive name_of_model
+        where name_of_model is one of %s """ % (
+            '\n'.join(map('{0[0]:>25} - {0[1]}'.format, _list_of_models()))))
 
-where name_of_model is one of
-
-%s
-        """ % (
-            '\n'.join(map('{0[0]:>25} - {0[1]}'.format, _list_of_models()))
-        ))
         sys.exit(1)
 
     ppi_fig = PhasePlaneInteractive(model=Model())
