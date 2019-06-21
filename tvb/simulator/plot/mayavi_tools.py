@@ -43,8 +43,7 @@ import an usage for MAYAVI based plots should look like::
 """
 
 import numpy
-# import scipy as sp
-# scipy is imported but not used.
+import scipy as sp
 import networkx as nx
 from tvb.basic.logger.builder import get_logger
 
@@ -73,13 +72,7 @@ if IMPORTED_MAYAVI:
         """
         fig = mlab.figure(figure="surface_timeseries", fgcolor=(0.5, 0.5, 0.5))
         # Plot an initial surface and colourbar #TODO: Change to use plot_surface function, see below.
-        surf_mesh = mlab.triangular_mesh(surface.vertices[:, 0],
-                                         surface.vertices[:, 1],
-                                         surface.vertices[:, 2],
-                                         surface.triangles,
-                                         scalars=data[0, :],
-                                         vmin=data.min(), vmax=data.max(),
-                                         figure=fig)
+        surf_mesh = plot_surface(surface)
         mlab.colorbar(object=surf_mesh, orientation="vertical")
 
         # Handle for the surface object and figure
@@ -106,9 +99,15 @@ if IMPORTED_MAYAVI:
 
     # TODO: Make, posssibly with a wrapper function, to work directly with
     # SurfacePattern object... Inner function name plot_surface
+    def surface_p(plot_surface):
+        func_wrapper = surface_pattern(plot_surface())
 
+        return func_wrapper
+
+    @surface_p
     def plot_surface(surface, fig=None, name=None, op=1.0, rep='surface'):
         """
+        Plots a figure surface
         """
         if fig is None:
             fig = mlab.figure(figure=name, fgcolor=(0.5, 0.5, 0.5))
@@ -127,6 +126,7 @@ if IMPORTED_MAYAVI:
 
     def surface_orientation(surface, normals="triangles", name=None):
         """
+        Plots a surface orientation centres, normals.
         """
         fig = mlab.figure(figure=name, fgcolor=(0.5, 0.5, 0.5))
         surf_mesh = mlab.triangular_mesh(surface.vertices[:, 0],
@@ -157,6 +157,7 @@ if IMPORTED_MAYAVI:
 
     def surface_parcellation(cortex_boundaries, colouring, mapping_colours, colour_rgb, interaction=False):
         """
+        Plots a surface cortex boundry, mapping colours
         """
         number_of_vertices = cortex_boundaries.cortex.vertices.shape[0]
         number_of_triangles = cortex_boundaries.cortex.triangles.shape[0]
@@ -184,6 +185,7 @@ if IMPORTED_MAYAVI:
         z = cortex_boundaries.boundary[:, 2]
         bpts = mlab.points3d(x, y, z, color=(0.25, 0.25, 0.25), scale_factor=1)
         mlab.show(stop=interaction)
+        mlab.colorbar(object=surf_mesh, orientation="vertical")
         return surf_mesh, bpts
 
 

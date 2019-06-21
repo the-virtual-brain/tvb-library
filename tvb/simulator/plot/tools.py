@@ -43,9 +43,9 @@ from tvb.basic.logger.builder import get_logger
 LOG = get_logger(__name__)
 
 
-## ----------------------------------------------------------------------------##
-## -                  matplotlib based plotting functions                     -##
-## ---------------------------------------------------------------------------cd-##
+# ---------------------------------------------------------------------------
+# -                  matplotlib based plotting functions
+# --------------------------------------------------------------------------
 
 # import matplotlib as mpl
 import matplotlib.pyplot as pyplot

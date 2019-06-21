@@ -159,6 +159,9 @@ class PowerSpectraInteractive(HasTraits):
         """Saperate configure cause ttraits be busted... """
         LOG.debug("time_series shape: %s" % str(self.time_series.data.shape))
         # TODO: if isinstance(self.time_series, TimeSeriesSurface) and self.first_n == -1: #LOG.error, return.
+        if isinstance(self.time_series) and self.first_n == -1:
+            # Log.error
+            return
         self.data = self.time_series.data[:, :, :self.first_n, :]
         self.period = self.time_series.sample_period
         self.max_freq = 0.5 / self.period
@@ -290,7 +293,7 @@ class PowerSpectraInteractive(HasTraits):
         Generate radio selector buttons to set the windowing function.
         """
         # TODO: add support for kaiser, requiers specification of beta.
-        wf_tup = ("None", "hamming", "bartlett", "blackman", "hanning") 
+        wf_tup = ("None", "hamming", "bartlett", "blackman", "hanning", "kaiser")
         noc = len(wf_tup) # number of choices
         # State variable for the x axis
         pos_shp = [0.88, 0.77, 0.085, 0.12+0.01*noc]

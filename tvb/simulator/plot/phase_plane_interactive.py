@@ -56,9 +56,9 @@ Example spcifying a Model and stochastic sample trajectories::
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 
 """
-#TODO: Add more LOG statements.
-#TODO: Add connectivity term to parameters...
-#TODO: Memory grows with usage, may be just a lazy garbage collector but, should
+# TODO: Add more LOG statements.
+# TODO: Add connectivity term to parameters...
+# TODO: Memory grows with usage, may be just a lazy garbage collector but, should
 # check for leaks or look into "forcing" cleanup...
 
 import numpy
@@ -139,10 +139,10 @@ class PhasePlaneInteractive(HasTraits):
         super(PhasePlaneInteractive, self).__init__(**kwargs)
         LOG.debug(str(kwargs))
 
-        #figure
+        # figure
         self.ipp_fig = None
 
-        #phase-plane
+        # phase-plane
         self.pp_ax = None
         self.X = None
         self.Y = None
@@ -153,25 +153,25 @@ class PhasePlaneInteractive(HasTraits):
         self.nullcline_y = None
         self.pp_quivers = None
 
-        #Current state
+        # Current state
         self.svx = None
         self.svy = None
         self.default_sv = None
         self.no_coupling = None
         self.mode = None
 
-        #Selectors
+        # Selectors
         self.state_variable_x = None
         self.state_variable_y = None
         self.mode_selector = None
 
-        #Sliders
+        # Sliders
         self.param_sliders = None
         self.axes_range_sliders = None
         self.sv_sliders = None
         self.noise_slider = None
 
-        #Reset buttons
+        # Reset buttons
         self.reset_param_button = None
         self.reset_sv_button = None
         self.reset_axes_button = None
@@ -185,23 +185,23 @@ class PhasePlaneInteractive(HasTraits):
         msg = "Generating an interactive phase-plane plot for %s"
         LOG.info(msg % model_name)
 
-        #Make sure the model is fully configured...
+        # Make sure the model is fully configured...
         self.model.configure()
 
-        #Setup the inital(current) state
+        # Setup the inital(current) state
         self.svx = self.model.state_variables[0] #x-axis: 1st state variable
         self.svy = self.model.state_variables[1] #y-axis: 2nd state variable
         self.mode = 0
         self.set_state_vector()
 
-        #Make the figure:
+        # Make the figure:
         self.create_figure()
 
-        #Selectors
+        # Selectors
         self.add_state_variable_selector()
         self.add_mode_selector()
 
-        #Sliders
+        # Sliders
         self.add_axes_range_sliders()
         self.add_state_variable_sliders()
         self.add_param_sliders()
@@ -219,29 +219,29 @@ class PhasePlaneInteractive(HasTraits):
             self.add_reset_noise_button()
             self.add_reset_seed_button()
 
-        #Reset buttons
+        # Reset buttons
         self.add_reset_param_button()
         self.add_reset_sv_button()
         self.add_reset_axes_button()
 
-        #Calculate the phase plane
+        # Calculate the phase plane
         self.set_mesh_grid()
         self.calc_phase_plane()
 
-        #Plot phase plane
+        # Plot phase plane
         self.plot_phase_plane()
 
         # add mouse handler for trajectory clicking
         self.ipp_fig.canvas.mpl_connect('button_press_event',
                                         self.click_trajectory)
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
 
         pylab.show()
 
 
-    ##------------------------------------------------------------------------##
-    ##----------------- Functions for building the figure --------------------##
-    ##------------------------------------------------------------------------##
+    # ------------------------------------------------------------------------  #
+    # ----------------- Functions for building the figure -------------------- #
+    # ------------------------------------------------------------------------ #
     def create_figure(self):
         """ Create the figure and phase-plane axes. """
         #Figure and main phase-plane axes
@@ -282,7 +282,7 @@ class PhasePlaneInteractive(HasTraits):
         svx_ind = self.model.state_variables.index(self.svx)
         svy_ind = self.model.state_variables.index(self.svy)
 
-        #State variable for the x axis
+        # State variable for the x axis
         pos_shp = [0.07, 0.05, 0.065, 0.12+0.006*self.model.nvar]
         rax = self.ipp_fig.add_axes(pos_shp, axisbg=AXCOLOUR, title="x-axis")
         self.state_variable_x = widgets.RadioButtons(rax,
@@ -290,7 +290,7 @@ class PhasePlaneInteractive(HasTraits):
                                              active=svx_ind)
         self.state_variable_x.on_clicked(self.update_svx)
 
-        #State variable for the y axis
+        # State variable for the y axis
         pos_shp = [0.14, 0.05, 0.065, 0.12+0.006*self.model.nvar]
         rax = self.ipp_fig.add_axes(pos_shp, axisbg=AXCOLOUR, title="y-axis")
         self.state_variable_y = widgets.RadioButtons(rax,
@@ -597,8 +597,8 @@ class PhasePlaneInteractive(HasTraits):
         NOTE: Haven't figured out how to update independantly, so just update
             everything.
         """
-        #TODO: Grab caller and use val directly, ie independent parameter update.
-        #import pdb; pdb.set_trace()
+        # TODO: Grab caller and use val directly, ie independent parameter update.
+        # import pdb; pdb.set_trace()
         for param in self.param_sliders:
             setattr(self.model, param, numpy.array([self.param_sliders[param].val]))
 
@@ -620,7 +620,7 @@ class PhasePlaneInteractive(HasTraits):
             everything.
 
         """
-        #TODO: Grab caller and use val directly, ie independent range update.
+        # TODO: Grab caller and use val directly, ie independent range update.
         self.axes_range_sliders["sl_x_min"].ax.set_axis_bgcolor(AXCOLOUR)
         self.axes_range_sliders["sl_x_max"].ax.set_axis_bgcolor(AXCOLOUR)
         self.axes_range_sliders["sl_y_min"].ax.set_axis_bgcolor(AXCOLOUR)

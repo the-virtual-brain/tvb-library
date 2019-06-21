@@ -166,7 +166,12 @@ class TimeSeriesInteractive(HasTraits):
         self.end_time = self.time[-1]
         self.time_series_length = self.end_time - self.start_time
         self.peak_to_peak = (numpy.max(self.data) - numpy.min(self.data))
-        
+
+        # configure time_series if -1
+        if isinstance(self.time_series) and self.first_n == -1:
+            # Log error
+            return
+
         # Use actual labels if they exist.
         if (isinstance(self.time_series, time_series_datatypes.TimeSeriesRegion) and 
             (not self.time_series.connectivity is None)):
