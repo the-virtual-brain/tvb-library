@@ -39,6 +39,12 @@ import numpy
 import scipy as sp
 # import networkx as nx
 from tvb.basic.logger.builder import get_logger
+from tvb.simulator.lab import connectivity
+import scipy.stats
+from sklearn.decomposition import FastICA
+import time
+import utils
+from tvb.simulator.lab import *
 
 LOG = get_logger(__name__)
 
@@ -47,12 +53,12 @@ LOG = get_logger(__name__)
 # -                  matplotlib based plotting functions
 # --------------------------------------------------------------------------
 
-# import matplotlib as mpl
+# import matplotlib *
 import matplotlib.pyplot as pyplot
 import matplotlib.colors
 import matplotlib.ticker as ticker
 # import matplotlib.colors as colors
-
+import matplotlib.pyplot as plt
 
 try:
     from mpl_toolkits.axes_grid import make_axes_locatable
@@ -518,6 +524,89 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
 
     return fig
 
+def plot_with_weights(weights):
+    """
+    Connectivity normalization
+    With significant variability between methods of obtaining structural connectivity,
+    it is often useful to normalize, in one sense or another, the connectivity when
+    comparing, for example, across subjects, or standardizing parameter ranges.
+
+    :param weights: mode e.g region default none
+    :output: 2d plot
+    """
+    conn = connectivity.Connectivity(load_default=True)
+    conn.configure()
+    conn.weights = weights
+    plot_connectivity(conn, num="tract_mode", plot_tracts=False)
+
+def run_sim(conn, cs, D, cv=3.0, dt=0.5, simlen=1e3):
+    """
+    basic region level simulation, with the generic oscillator set in an excitable regime,
+    linear coupling with low strength, a stochastic integrator with low noise and a
+    temporal average monitor at 200 Hz.
+    """
+    sim = simulator.Simulator(
+        model=models.Generic2dOscillator(a=0.0),
+        connectivity=conn,
+        coupling=coupling.Linear(a=cs),
+        integrator=integrators.HeunStochastic(dt=dt, noise=noise.Additive(nsig=array([D]))),
+        monitors=monitors.TemporalAverage(period=5.0) # 200 Hz
+    )
+    sim.configure()
+    (t, y), = sim.run(simulation_length=simlen)
+    return t, y[:, 0, :, 0]
+
+def plot_roi_corr_map(reg_name, conn):
+    """
+    Seed-region correlation maps
+
+    A common visualization of FC specific to a given is to pull out its
+    row of the FC matrix and plot a colormap on the anatomy. We can do this
+    will the simulated functional connectivity to identify which regions are
+    highly coordinated with the seed region.
+
+    :param reg_name: Reg/plot name
+    :param conn: connectivity e.g conn = connectivity.Connectivity(load_default=True)
+    :return: Output: 3d plot of the various angles of human brain
+    """
+    tic = time.time()
+    t, y = run_sim(conn, 6e-2, 5e-4, simlen=10 * 60e3)
+    'simulation required %0.3f seconds.' % (time.time() - tic,)
+    cs = []
+    for i in range(int(t[-1] / 1e3)):
+        cs.append(corrcoef(y[(t > (i * 1e3)) * (t < (1e3 * (i + 1)))].T))
+    cs = array(cs)
+    cs.shape
+    roi = find(conn.ordered_labels==reg_name)[0]
+    cs_m = cs[2:].mean(axis=0)
+    rm = utils.cortex.region_mapping
+    utils.multiview(cs_m[roi][rm], shaded=False, suptitle=reg_name, figsize=(10, 5))
+
+def plot_brain_network_model():
+    """
+
+    """
+    BOLD = numpy.array(bold_data)
+    TAVG = numpy.array(tavg_data)
+    tavg_time = numpy.array(tavg_time)
+    t_interval = numpy.arange(100)
+
+    # Plot raw time series
+    figure(1)
+    plot(tavg_time[t_interval], TAVG[t_interval, 0, :, 0], 'k', alpha=0.05)
+    plot(tavg_time[t_interval], TAVG[t_interval, 0, :, 0].mean(axis=1), 'k', linewidth=3)
+    title("Temporal average -- State variable V")
+
+    figure(2)
+    plot(tavg_time[t_interval], TAVG[t_interval, 1, :, 0], 'b', alpha=0.05)
+    plot(tavg_time[t_interval], TAVG[t_interval, 1, :, 0].mean(axis=1), 'b', linewidth=3)
+    title("Temporal average -- State variable W")
+
+    figure(3)
+    plot(tavg_time[t_interval], TAVG[t_interval, 2, :, 0], 'r', alpha=0.05)
+    plot(tavg_time[t_interval], TAVG[t_interval, 2, :, 0].mean(axis=1), 'r', linewidth=3)
+    title("Temporal average -- State variable Z")
+    xlabel('time [ms]', fontsize=24)
 
 def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500), 
              extents=None, nocorrelation=False, weights=None, norm = True, pdf=False, **kwargs):
