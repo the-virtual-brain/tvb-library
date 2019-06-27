@@ -45,6 +45,9 @@ from sklearn.decomposition import FastICA
 import time
 import utils
 from tvb.simulator.lab import *
+import numpy
+import tvb.datatypes.projections as projections
+from scipy import io
 
 LOG = get_logger(__name__)
 
@@ -261,7 +264,81 @@ def plot_local_connectivity(cortex, cutoff=None):
     # leg.legendHandles[2].set_linewidth(6.0)
     # leg.legendHandles[3].set_linewidth(6.0)
 
+def temp_avg_timeseries(TAVG, EEG, sim, out, tt):
+    """
+    Temporal Averaged time-series
+    :param TAVG: numpy array
+    :param EEG: numpy array
+    :param sim: Simulator` instance
+    :param out: run function to perform the simulation
+    :param tt: numpy array
+    :return: output: 2D time Series
+    """
 
+    # Set up a Connectivity and its attributes.
+    conn = connectivity.Connectivity(load_default=True)
+    conn_coupling = coupling.Linear(a=0.042)
+
+    # Set up a model.
+    mod = models.Generic2dOscillator(a=-0.5, b=-15.0, c=0.0, d=0.02)
+
+    # Choose an integration scheme (noise or not?).
+    hiss = noise.Additive(nsig=numpy.array([0.015]))
+    heunint = integrators.HeunStochastic(dt=2 ** -6, noise=hiss)
+
+    # Build a Stimulus
+    conn.configure()
+    nodes = [35, 36]
+    stim_weights = numpy.zeros((conn.number_of_regions, 1))
+    stim_weights[nodes] = numpy.array([3.5, 0.0])[:, numpy.newaxis]
+    eqn_t = equations.PulseTrain()
+    eqn_t.parameters["onset"] = 500.0  # ms
+    eqn_t.parameters["tau"] = 5.0  # ms
+    eqn_t.parameters["T"] = 500.  # 0.002kHz repetition frequency
+
+    stimulus = patterns.StimuliRegion(temporal=eqn_t,
+                                      connectivity=conn,
+                                      weight=stim_weights)
+
+    # Record the ouput as:
+    # * Temporal Averaged time-series. By default only the first state
+    #       variable is recorded for the `Generic2dOscillator` model.
+    # * EEG
+    pr = projections.ProjectionSurfaceEEG(load_default=True)
+    ss = sensors.SensorsEEG.from_file(source_file="eeg_brainstorm_65.txt")
+    rm = region_mapping.RegionMapping(load_default=True)
+
+    rec = (monitors.TemporalAverage(period=1e3 / 2048.),
+           monitors.EEG(projection=pr, sensors=ss, region_mapping=rm, period=1e3 / 2048.))
+
+    figure()
+    subplot(211)
+    plot(tt, TAVG[:, 0, nodes, 0])
+    title("Temporal Averaged time-series")
+
+    subplot(212)
+    plot(tt, EEG[:, 0, 60, 0], 'k')
+    title("EEG")
+
+    tight_layout()
+
+def stim_temp_avg_timeseries(STAVG, SEEG, stt):
+    """
+    Stim - Temporal Averaged time-series
+    :param STAVG:
+    :param SEEG:
+    :param stt:
+    :return:
+    """
+    figure()
+
+    subplot(211)
+    plot(stt, STAVG[:, 0, nodes, 0])
+    title("Stim - Temporal Averaged time-series")
+
+    subplot(212)
+    plot(stt, SEEG[:, 0, 60, 0], 'k')
+    title("Stim - EEG")
 
 def plot_pattern(pattern_object):
     """
