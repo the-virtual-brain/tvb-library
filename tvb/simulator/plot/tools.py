@@ -340,6 +340,86 @@ def stim_temp_avg_timeseries(STAVG, SEEG, stt):
     plot(stt, SEEG[:, 0, 60, 0], 'k')
     title("Stim - EEG")
 
+def surf_simulate(TAVG, SAVG, EEG):
+
+    """
+    This extends the basic region simulation, covered in the region simulation
+    :param TAVG: Make the lists numpy.arrays for easier use.
+    :param SAVG: Make the lists numpy.arrays for easier use.
+    :param EEG: Make the lists numpy.arrays for easier use.
+    :return: Output 2d plot
+    """
+    # Initialise a Model, Coupling, and Connectivity.
+    oscillator = models.Generic2dOscillator()
+    white_matter = connectivity.Connectivity(load_default=True)
+    white_matter.speed = numpy.array([4.0])
+
+    white_matter_coupling = coupling.Linear(a=0.014)
+
+    # Initialise an Integrator
+    heunint = integrators.HeunDeterministic(dt=2 ** -4)
+    # Initialise a surface
+    default_cortex = cortex.Cortex(load_default=True)
+    default_cortex.coupling_strength = numpy.array([2 ** -10])
+
+    # Initialise some Monitors with period in physical time
+    mon_tavg = monitors.TemporalAverage(period=2 ** -2)
+    mon_savg = monitors.SpatialAverage(period=2 ** -2)
+    # load the default region mapping
+    rm = region_mapping.RegionMapping(load_default=True)
+    mon_eeg = monitors.EEG(load_default=True, region_mapping=rm)
+    # Bundle them
+    what_to_watch = (mon_tavg, mon_savg, mon_eeg)
+
+    # Initialise Simulator -- Model, Connectivity, Integrator, Monitors, and surface.
+    sim = simulator.Simulator(model=oscillator, connectivity=white_matter,
+                              coupling=white_matter_coupling,
+                              integrator=heunint, monitors=what_to_watch,
+                              surface=default_cortex)
+
+    sim.configure()
+
+    # Perform the simulation
+    tavg_data = []
+    tavg_time = []
+    savg_data = []
+    savg_time = []
+    eeg_data = []
+    eeg_time = []
+    for tavg, savg, eeg in sim(simulation_length=2 ** 2):
+        if not tavg is None:
+            tavg_time.append(tavg[0])
+            tavg_data.append(tavg[1])
+
+        if not savg is None:
+            savg_time.append(savg[0])
+            savg_data.append(savg[1])
+
+        if not eeg is None:
+            eeg_time.append(eeg[0])
+            eeg_data.append(eeg[1])
+
+    # Make the lists numpy.arrays for easier use.
+    TAVG = numpy.array(tavg_data)
+    SAVG = numpy.array(savg_data)
+    EEG = numpy.array(eeg_data)
+
+    # Plot region averaged time series
+    figure(1)
+    plot(savg_time, SAVG[:, 0, :, 0])
+    title("Region average")
+
+    # Plot EEG time series
+    figure(2)
+
+    plot(eeg_time, EEG[:, 0, :, 0])
+    title("EEG")
+
+    # Show them
+    show()
+
+
+
 def plot_pattern(pattern_object):
     """
     pyplot in 2D the given X, over T.
@@ -684,8 +764,121 @@ def plot_brain_network_model():
     plot(tavg_time[t_interval], TAVG[t_interval, 2, :, 0].mean(axis=1), 'r', linewidth=3)
     title("Temporal average -- State variable Z")
     xlabel('time [ms]', fontsize=24)
+def sim_sum_eeg():
+    """
+    Cortical surface with subcortical regions,
+    sEEG, EEG & MEG, using a stochastic integration.
+    """
+    figure()
 
-def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500), 
+    for i, mon in enumerate((eeg, meg, seeg)):
+        subplot(3, 1, i + 1)
+        time, data = mon
+        plot(time, data[:, 0, :, 0], 'k', alpha=0.1)
+        ylabel(['EEG', 'MEG', 'sEEG'][i])
+
+    tight_layout()
+
+def reg_red_wong_wang():
+    """
+    perform a simulation with the reduced Wong-Wang model,
+    using the default connectivity.
+    :return:
+    """
+    figure('Position', [500 500 1000 400])
+    subplot(121, imagesc(np2m(conn.weights)), colorbar, title('Weights'))
+    subplot(122, imagesc(np2m(conn.tract_lengths)), colorbar)
+    title('Tract Lengths (mm)')
+
+def matlab_two_ep_sim():
+    """
+    erform a simulation with two Epileptors.
+    :return:
+    """"""
+    figure()
+
+    subplot(311)
+    plot(time, squeeze(signal(1, :, 1, :)), 'k')
+    ylabel('x2(t - x1(t)')
+    set(gca, 'XTickLabel', {})
+
+    title('Two Epileptors')
+
+    # plot high-pass filtered LFP
+    subplot(312)
+    [b, a] = buffer(3, 2/2000*5.0, 'high')
+    hpf = filter(b, a, squeeze(signal(1,:, 1,:)
+    plot(time, hpf(:, 1), 'k')
+    plot(time, hpf(:, 2), 'k')
+    set(gca, 'XTickLabel', {})
+    ylabel('HPF LFP')
+
+    subplot(313)
+    plot(time, squeeze(signal(1,:, 2,:)), 'k')
+    ylabel('Z(t)')
+    xlabel('Time (ms)')
+
+def region_simulate():
+    """
+    presents the basic anatomy of a region simulation using
+    The Virtual Brain's (TVB's) scripting interface.
+    :return:
+    """
+    # Model
+    oscilator = models.Generic2dOscillator()
+    # Connectivity
+    white_matter = connectivity.Connectivity(load_default=True)
+    white_matter.speed = numpy.array([4.0])
+    # Coupling
+    white_matter_coupling = coupling.Linear(a=0.0154)
+    # Integrator
+    heunint = integrators.HeunDeterministic(dt=2 ** -6)
+    # monitors
+    # Initialise some Monitors with period in physical time
+    mon_raw = monitors.Raw()
+    mon_tavg = monitors.TemporalAverage(period=2 ** -2)
+    # Bundle them
+    what_to_watch = (mon_raw, mon_tavg)
+    # simulator
+    # Initialise a Simulator -- Model, Connectivity, Integrator, and Monitors.
+    sim = simulator.Simulator(model=oscilator, connectivity=white_matter,
+                              coupling=white_matter_coupling,
+                              integrator=heunint, monitors=what_to_watch)
+
+    sim.configure()
+    # Perform the simulation
+    raw_data = []
+    raw_time = []
+    tavg_data = []
+    tavg_time = []
+
+    for raw, tavg in sim(simulation_length=2 ** 10):
+        if not raw is None:
+            raw_time.append(raw[0])
+            raw_data.append(raw[1])
+
+        if not tavg is None:
+            tavg_time.append(tavg[0])
+            tavg_data.append(tavg[1])
+    # Make the lists numpy.arrays for easier use.
+    RAW = numpy.array(raw_data)
+    TAVG = numpy.array(tavg_data)
+
+    # Plot raw time series
+    figure(1)
+    plot(raw_time, RAW[:, 0, :, 0])
+    title("Raw -- State variable 0")
+
+    # Plot temporally averaged time series
+    figure(2)
+    plot(tavg_time, TAVG[:, 0, :, 0])
+    title("Temporal average")
+
+    # Show them
+    show()
+
+
+def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),
              extents=None, nocorrelation=False, weights=None, norm = True, pdf=False, **kwargs):
     """
     A faster gaussian kernel density estimate (KDE).  Intended for
