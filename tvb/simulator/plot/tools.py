@@ -36,18 +36,11 @@ A collection of plotting functions used by simulator/demos
 """
 
 import numpy
-import scipy as sp
-# import networkx as nx
 from tvb.basic.logger.builder import get_logger
-from tvb.simulator.lab import connectivity
-import scipy.stats
-from sklearn.decomposition import FastICA
 import time
 import utils
-from tvb.simulator.lab import *
 import numpy
 import tvb.datatypes.projections as projections
-from scipy import io
 
 LOG = get_logger(__name__)
 
@@ -115,6 +108,22 @@ def plot_connectivity(connectivity, num="weights", order_by=None, plot_hinton=Fa
     """
     A 2D plot for visualizing the Connectivity.weights matrix
     """
+
+    def plot_with_weights(weights):
+        """
+        Connectivity normalization
+        With significant variability between methods of obtaining structural connectivity,
+        it is often useful to normalize, in one sense or another, the connectivity when
+        comparing, for example, across subjects, or standardizing parameter ranges.
+
+        :param weights: mode e.g region default none
+        :output: 2d plot
+        """
+        conn = connectivity.Connectivity(load_default=True)
+        conn.configure()
+        conn.weights = weights
+        plot_connectivity(conn, num="tract_mode", plot_tracts=False)
+
     labels = connectivity.region_labels
     plot_title = connectivity.__class__.__name__
 
@@ -264,161 +273,22 @@ def plot_local_connectivity(cortex, cutoff=None):
     # leg.legendHandles[2].set_linewidth(6.0)
     # leg.legendHandles[3].set_linewidth(6.0)
 
-def temp_avg_timeseries(TAVG, EEG, sim, out, tt):
+def temp_avg_timeseries(TAVG, EEG, nodes, tt):
     """
     Temporal Averaged time-series
     :param TAVG: numpy array
     :param EEG: numpy array
-    :param sim: Simulator` instance
-    :param out: run function to perform the simulation
     :param tt: numpy array
     :return: output: 2D time Series
     """
-
-    # Set up a Connectivity and its attributes.
-    conn = connectivity.Connectivity(load_default=True)
-    conn_coupling = coupling.Linear(a=0.042)
-
-    # Set up a model.
-    mod = models.Generic2dOscillator(a=-0.5, b=-15.0, c=0.0, d=0.02)
-
-    # Choose an integration scheme (noise or not?).
-    hiss = noise.Additive(nsig=numpy.array([0.015]))
-    heunint = integrators.HeunStochastic(dt=2 ** -6, noise=hiss)
-
-    # Build a Stimulus
-    conn.configure()
-    nodes = [35, 36]
-    stim_weights = numpy.zeros((conn.number_of_regions, 1))
-    stim_weights[nodes] = numpy.array([3.5, 0.0])[:, numpy.newaxis]
-    eqn_t = equations.PulseTrain()
-    eqn_t.parameters["onset"] = 500.0  # ms
-    eqn_t.parameters["tau"] = 5.0  # ms
-    eqn_t.parameters["T"] = 500.  # 0.002kHz repetition frequency
-
-    stimulus = patterns.StimuliRegion(temporal=eqn_t,
-                                      connectivity=conn,
-                                      weight=stim_weights)
-
-    # Record the ouput as:
-    # * Temporal Averaged time-series. By default only the first state
-    #       variable is recorded for the `Generic2dOscillator` model.
-    # * EEG
-    pr = projections.ProjectionSurfaceEEG(load_default=True)
-    ss = sensors.SensorsEEG.from_file(source_file="eeg_brainstorm_65.txt")
-    rm = region_mapping.RegionMapping(load_default=True)
-
-    rec = (monitors.TemporalAverage(period=1e3 / 2048.),
-           monitors.EEG(projection=pr, sensors=ss, region_mapping=rm, period=1e3 / 2048.))
-
-    figure()
-    subplot(211)
-    plot(tt, TAVG[:, 0, nodes, 0])
-    title("Temporal Averaged time-series")
-
-    subplot(212)
-    plot(tt, EEG[:, 0, 60, 0], 'k')
-    title("EEG")
-
-    tight_layout()
-
-def stim_temp_avg_timeseries(STAVG, SEEG, stt):
-    """
-    Stim - Temporal Averaged time-series
-    :param STAVG:
-    :param SEEG:
-    :param stt:
-    :return:
-    """
-    figure()
-
-    subplot(211)
-    plot(stt, STAVG[:, 0, nodes, 0])
-    title("Stim - Temporal Averaged time-series")
-
-    subplot(212)
-    plot(stt, SEEG[:, 0, 60, 0], 'k')
-    title("Stim - EEG")
-
-def surf_simulate(TAVG, SAVG, EEG):
-
-    """
-    This extends the basic region simulation, covered in the region simulation
-    :param TAVG: Make the lists numpy.arrays for easier use.
-    :param SAVG: Make the lists numpy.arrays for easier use.
-    :param EEG: Make the lists numpy.arrays for easier use.
-    :return: Output 2d plot
-    """
-    # Initialise a Model, Coupling, and Connectivity.
-    oscillator = models.Generic2dOscillator()
-    white_matter = connectivity.Connectivity(load_default=True)
-    white_matter.speed = numpy.array([4.0])
-
-    white_matter_coupling = coupling.Linear(a=0.014)
-
-    # Initialise an Integrator
-    heunint = integrators.HeunDeterministic(dt=2 ** -4)
-    # Initialise a surface
-    default_cortex = cortex.Cortex(load_default=True)
-    default_cortex.coupling_strength = numpy.array([2 ** -10])
-
-    # Initialise some Monitors with period in physical time
-    mon_tavg = monitors.TemporalAverage(period=2 ** -2)
-    mon_savg = monitors.SpatialAverage(period=2 ** -2)
-    # load the default region mapping
-    rm = region_mapping.RegionMapping(load_default=True)
-    mon_eeg = monitors.EEG(load_default=True, region_mapping=rm)
-    # Bundle them
-    what_to_watch = (mon_tavg, mon_savg, mon_eeg)
-
-    # Initialise Simulator -- Model, Connectivity, Integrator, Monitors, and surface.
-    sim = simulator.Simulator(model=oscillator, connectivity=white_matter,
-                              coupling=white_matter_coupling,
-                              integrator=heunint, monitors=what_to_watch,
-                              surface=default_cortex)
-
-    sim.configure()
-
-    # Perform the simulation
-    tavg_data = []
-    tavg_time = []
-    savg_data = []
-    savg_time = []
-    eeg_data = []
-    eeg_time = []
-    for tavg, savg, eeg in sim(simulation_length=2 ** 2):
-        if not tavg is None:
-            tavg_time.append(tavg[0])
-            tavg_data.append(tavg[1])
-
-        if not savg is None:
-            savg_time.append(savg[0])
-            savg_data.append(savg[1])
-
-        if not eeg is None:
-            eeg_time.append(eeg[0])
-            eeg_data.append(eeg[1])
-
-    # Make the lists numpy.arrays for easier use.
-    TAVG = numpy.array(tavg_data)
-    SAVG = numpy.array(savg_data)
-    EEG = numpy.array(eeg_data)
-
-    # Plot region averaged time series
-    figure(1)
-    plot(savg_time, SAVG[:, 0, :, 0])
-    title("Region average")
-
-    # Plot EEG time series
-    figure(2)
-
-    plot(eeg_time, EEG[:, 0, :, 0])
-    title("EEG")
-
-    # Show them
-    show()
-
-
+    pyplot.figure()
+    pyplot.subplot(211)
+    pyplot.plot(tt, TAVG[:, 0, nodes, 0])
+    pyplot.title("Temporal Averaged time-series")
+    pyplot.subplot(212)
+    pyplot.plot(tt, EEG[:, 0, 60, 0], 'k')
+    pyplot.title("EEG")
+    pyplot.tight_layout()
 
 def plot_pattern(pattern_object):
     """
@@ -681,38 +551,6 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
 
     return fig
 
-def plot_with_weights(weights):
-    """
-    Connectivity normalization
-    With significant variability between methods of obtaining structural connectivity,
-    it is often useful to normalize, in one sense or another, the connectivity when
-    comparing, for example, across subjects, or standardizing parameter ranges.
-
-    :param weights: mode e.g region default none
-    :output: 2d plot
-    """
-    conn = connectivity.Connectivity(load_default=True)
-    conn.configure()
-    conn.weights = weights
-    plot_connectivity(conn, num="tract_mode", plot_tracts=False)
-
-def run_sim(conn, cs, D, cv=3.0, dt=0.5, simlen=1e3):
-    """
-    basic region level simulation, with the generic oscillator set in an excitable regime,
-    linear coupling with low strength, a stochastic integrator with low noise and a
-    temporal average monitor at 200 Hz.
-    """
-    sim = simulator.Simulator(
-        model=models.Generic2dOscillator(a=0.0),
-        connectivity=conn,
-        coupling=coupling.Linear(a=cs),
-        integrator=integrators.HeunStochastic(dt=dt, noise=noise.Additive(nsig=array([D]))),
-        monitors=monitors.TemporalAverage(period=5.0) # 200 Hz
-    )
-    sim.configure()
-    (t, y), = sim.run(simulation_length=simlen)
-    return t, y[:, 0, :, 0]
-
 def plot_roi_corr_map(reg_name, conn):
     """
     Seed-region correlation maps
@@ -726,156 +564,117 @@ def plot_roi_corr_map(reg_name, conn):
     :param conn: connectivity e.g conn = connectivity.Connectivity(load_default=True)
     :return: Output: 3d plot of the various angles of human brain
     """
-    tic = time.time()
-    t, y = run_sim(conn, 6e-2, 5e-4, simlen=10 * 60e3)
-    'simulation required %0.3f seconds.' % (time.time() - tic,)
     cs = []
     for i in range(int(t[-1] / 1e3)):
         cs.append(corrcoef(y[(t > (i * 1e3)) * (t < (1e3 * (i + 1)))].T))
-    cs = array(cs)
+    cs = numpy.array(cs)
     cs.shape
-    roi = find(conn.ordered_labels==reg_name)[0]
+    roi = numpy.find(conn.ordered_labels==reg_name)[0]
     cs_m = cs[2:].mean(axis=0)
     rm = utils.cortex.region_mapping
     utils.multiview(cs_m[roi][rm], shaded=False, suptitle=reg_name, figsize=(10, 5))
 
-def plot_brain_network_model():
+def plot_brain_network_model(bold_data, tavg_data, ):
     """
 
     """
-    BOLD = numpy.array(bold_data)
     TAVG = numpy.array(tavg_data)
     tavg_time = numpy.array(tavg_time)
     t_interval = numpy.arange(100)
 
     # Plot raw time series
-    figure(1)
-    plot(tavg_time[t_interval], TAVG[t_interval, 0, :, 0], 'k', alpha=0.05)
-    plot(tavg_time[t_interval], TAVG[t_interval, 0, :, 0].mean(axis=1), 'k', linewidth=3)
-    title("Temporal average -- State variable V")
+    pyplot.figure(1)
+    pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 0, :, 0], 'k', alpha=0.05)
+    pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 0, :, 0].mean(axis=1), 'k', linewidth=3)
+    pyplot.title("Temporal average -- State variable V")
 
-    figure(2)
-    plot(tavg_time[t_interval], TAVG[t_interval, 1, :, 0], 'b', alpha=0.05)
-    plot(tavg_time[t_interval], TAVG[t_interval, 1, :, 0].mean(axis=1), 'b', linewidth=3)
-    title("Temporal average -- State variable W")
+    pyplot.figure(2)
+    pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 1, :, 0], 'b', alpha=0.05)
+    pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 1, :, 0].mean(axis=1), 'b', linewidth=3)
+    pyplot.title("Temporal average -- State variable W")
 
-    figure(3)
-    plot(tavg_time[t_interval], TAVG[t_interval, 2, :, 0], 'r', alpha=0.05)
-    plot(tavg_time[t_interval], TAVG[t_interval, 2, :, 0].mean(axis=1), 'r', linewidth=3)
-    title("Temporal average -- State variable Z")
-    xlabel('time [ms]', fontsize=24)
-def sim_sum_eeg():
+    pyplot.figure(3)
+    pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 2, :, 0], 'r', alpha=0.05)
+    pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 2, :, 0].mean(axis=1), 'r', linewidth=3)
+    pyplot.title("Temporal average -- State variable Z")
+    pyplot.xlabel('time [ms]', fontsize=24)
+
+def sim_sum_eeg(eeg, meg, seeg):
     """
     Cortical surface with subcortical regions,
     sEEG, EEG & MEG, using a stochastic integration.
     """
-    figure()
+    pyplot.figure()
 
     for i, mon in enumerate((eeg, meg, seeg)):
-        subplot(3, 1, i + 1)
+        pyplot.subplot(3, 1, i + 1)
         time, data = mon
-        plot(time, data[:, 0, :, 0], 'k', alpha=0.1)
-        ylabel(['EEG', 'MEG', 'sEEG'][i])
+        pyplot.plot(time, data[:, 0, :, 0], 'k', alpha=0.1)
+        pyplot.ylabel(['EEG', 'MEG', 'sEEG'][i])
 
-    tight_layout()
+    pyplot.tight_layout()
 
-def reg_red_wong_wang():
+def reg_red_wong_wang(colorbar, conn, imagesc, np2m):
     """
     perform a simulation with the reduced Wong-Wang model,
     using the default connectivity.
     :return:
     """
-    figure('Position', [500 500 1000 400])
-    subplot(121, imagesc(np2m(conn.weights)), colorbar, title('Weights'))
-    subplot(122, imagesc(np2m(conn.tract_lengths)), colorbar)
-    title('Tract Lengths (mm)')
+    pyplot.figure('Position', [500 500 1000 400])
+    pyplot.subplot(121, imagesc(np2m(conn.weights)), colorbar, pyplot.title('Weights'))
+    pyplot.subplot(122, imagesc(np2m(conn.tract_lengths)), colorbar)
+    pyplot.title('Tract Lengths (mm)')
 
-def matlab_two_ep_sim():
+def matlab_two_ep_sim(gca, squeeze, signal):
     """
     erform a simulation with two Epileptors.
     :return:
-    """"""
-    figure()
+    """
+    pyplot.figure()
 
-    subplot(311)
-    plot(time, squeeze(signal(1, :, 1, :)), 'k')
-    ylabel('x2(t - x1(t)')
-    set(gca, 'XTickLabel', {})
+    pyplot.subplot(311)
+    pyplot.plot(time, squeeze(signal(1, :, 1, :)), 'k')
+    pyplot.ylabel('x2(t - x1(t)')
+    pyplot.set(gca, 'XTickLabel', {})
 
-    title('Two Epileptors')
+    pyplot.title('Two Epileptors')
 
     # plot high-pass filtered LFP
-    subplot(312)
+    pyplot.subplot(312)
     [b, a] = buffer(3, 2/2000*5.0, 'high')
     hpf = filter(b, a, squeeze(signal(1,:, 1,:)
-    plot(time, hpf(:, 1), 'k')
-    plot(time, hpf(:, 2), 'k')
-    set(gca, 'XTickLabel', {})
-    ylabel('HPF LFP')
+    pyplot.plot(time, hpf(:,1),'k')
+    pyplot.plot(time, hpf(:, 2), 'k')
+    pyplot.set(gca, 'XTickLabel', {})
+    pyplot.ylabel('HPF LFP')
 
-    subplot(313)
-    plot(time, squeeze(signal(1,:, 2,:)), 'k')
-    ylabel('Z(t)')
-    xlabel('Time (ms)')
+    pyplot.subplot(313)
+    pyplot.plot(time, squeeze(signal(1,:, 2,:)), 'k')
+    pyplot.ylabel('Z(t)')
+    pyplot.xlabel('Time (ms)')
 
-def region_simulate():
+def region_simulate(raw_data, tavg_data, raw_time, tavg_time):
     """
     presents the basic anatomy of a region simulation using
     The Virtual Brain's (TVB's) scripting interface.
     :return:
     """
-    # Model
-    oscilator = models.Generic2dOscillator()
-    # Connectivity
-    white_matter = connectivity.Connectivity(load_default=True)
-    white_matter.speed = numpy.array([4.0])
-    # Coupling
-    white_matter_coupling = coupling.Linear(a=0.0154)
-    # Integrator
-    heunint = integrators.HeunDeterministic(dt=2 ** -6)
-    # monitors
-    # Initialise some Monitors with period in physical time
-    mon_raw = monitors.Raw()
-    mon_tavg = monitors.TemporalAverage(period=2 ** -2)
-    # Bundle them
-    what_to_watch = (mon_raw, mon_tavg)
-    # simulator
-    # Initialise a Simulator -- Model, Connectivity, Integrator, and Monitors.
-    sim = simulator.Simulator(model=oscilator, connectivity=white_matter,
-                              coupling=white_matter_coupling,
-                              integrator=heunint, monitors=what_to_watch)
-
-    sim.configure()
-    # Perform the simulation
-    raw_data = []
-    raw_time = []
-    tavg_data = []
-    tavg_time = []
-
-    for raw, tavg in sim(simulation_length=2 ** 10):
-        if not raw is None:
-            raw_time.append(raw[0])
-            raw_data.append(raw[1])
-
-        if not tavg is None:
-            tavg_time.append(tavg[0])
-            tavg_data.append(tavg[1])
     # Make the lists numpy.arrays for easier use.
     RAW = numpy.array(raw_data)
     TAVG = numpy.array(tavg_data)
 
     # Plot raw time series
-    figure(1)
-    plot(raw_time, RAW[:, 0, :, 0])
-    title("Raw -- State variable 0")
+    pyplot.figure(1)
+    pyplot.plot(raw_time, RAW[:, 0, :, 0])
+    pyplot.title("Raw -- State variable 0")
 
     # Plot temporally averaged time series
-    figure(2)
-    plot(tavg_time, TAVG[:, 0, :, 0])
-    title("Temporal average")
+    pyplot.figure(2)
+    pyplot.plot(tavg_time, TAVG[:, 0, :, 0])
+    pyplot.title("Temporal average")
 
     # Show them
-    show()
+    pyplot.show()
 
 
 def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),

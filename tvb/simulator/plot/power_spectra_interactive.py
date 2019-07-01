@@ -431,23 +431,6 @@ class PowerSpectraInteractive(HasTraits):
         self.calc_fft()
         self.plot_spectra()
 
-        # Unused function
-        '''
-        def plot_std(self):
-                """ Plot """
-                std = (self.spectra[:, self.variable, :, self.mode] +
-                       self.spectra_std[:, self.variable, :, self.mode])
-                self.fft_ax.plot(self.frequency, std, "--")
-
-
-            def plot_sem(self):
-                """  """
-                sem = (self.spectra[:, self.variable, :, self.mode] +
-                       self.spectra_sem[:, self.variable, :, self.mode])
-                self.fft_ax.plot(self.frequency, sem, ":")
-        '''
-
-
     def plot_spectra(self):
         """ Plot the power spectra. """
         self.fft_ax.clear()

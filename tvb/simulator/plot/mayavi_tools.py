@@ -46,14 +46,6 @@ import numpy
 import scipy as sp
 import networkx as nx
 from tvb.basic.logger.builder import get_logger
-from tvb.simulator.lab import connectivity, plot_connectivity
-
-def plot_with_weights(weights):
-    conn = connectivity.Connectivity(load_default=True)
-    conn.configure()
-    conn.weights = weights
-    plot_connectivity(conn, num="tract_mode", plot_tracts=False)
-
 
 LOG = get_logger(__name__)
 
