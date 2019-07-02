@@ -82,9 +82,6 @@ class ReducedWongWangExcIOInhI(ModelNumbaDfun):
                   The Journal of Neuroscience 34(23), 7886 –7898, 2014.
 
 
-
-    .. automethod:: ReducedWongWangExcIOInhI.__init__
-
     Equations taken from [DPA_2013]_ , page 11242
 
     .. math::
