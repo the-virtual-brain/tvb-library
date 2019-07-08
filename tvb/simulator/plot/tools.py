@@ -35,7 +35,6 @@ A collection of plotting functions used by simulator/demos
 .. moduleauthor:: Paula Sanz Leon <paula.sanz-leon@univ-amu.fr>
 """
 
-import numpy
 from tvb.basic.logger.builder import get_logger
 import time
 import utils
@@ -49,12 +48,9 @@ LOG = get_logger(__name__)
 # -                  matplotlib based plotting functions
 # --------------------------------------------------------------------------
 
-# import matplotlib *
 import matplotlib.pyplot as pyplot
 import matplotlib.colors
 import matplotlib.ticker as ticker
-# import matplotlib.colors as colors
-import matplotlib.pyplot as plt
 
 try:
     from mpl_toolkits.axes_grid import make_axes_locatable
@@ -74,7 +70,115 @@ def _blob(x, y, area, colour):
     ycorners = numpy.array([y - hs, y - hs, y + hs, y + hs])
     pyplot.fill(xcorners, ycorners, colour, edgecolor=colour)
 
+def longer_time_series(ts_int, tsr):
 
+    """
+    Create And Launch A TimeSeriesInteractive
+    :param ts_int: import tvb.simulator.plot.timeseries_interactive as ts_int
+    :param tsr: ime_series.TimeSeriesRegion()
+    :return:
+    """
+
+    tsi = ts_int.TimeSeriesInteractive(time_series=tsr)
+    tsi.configure()
+    tsi.show()
+
+def phase_plane_tool(ppi, epileptor):
+
+    """
+    Open the phase plane tool with the epileptor model
+    :param ppi: from tvb.simulator.plot.phase_plane_interactive import PhasePlaneInteractive as ppi
+    :param epileptor: epileptor = models.Epileptor(
+    :return:
+    """
+    ppi_fig = ppi(model=epileptor)
+    ppi_fig.show()
+
+def epi_time_series(tavg, t):
+
+    """
+    Triggering a seizure by stimulation
+    :param tavg: (np.max(tavg,0) - np.min(tavg,0 ))
+    :param t: sim.run()
+    :return:
+    """
+
+    # Plot raw time series
+    pyplot.figure(figsize=(10, 10))
+    pyplot.plot(t[:], tavg[:, 0, :, 0] + numpy.r_[:76], 'r')
+    pyplot.title("Epileptors time series")
+
+    # Show them
+    pyplot.show()
+
+def display_source_sensor(conn, sens_eeg, skin, sens_meg):
+    """
+    Display ROIs & M/EEG sensor positions
+
+    :param conn:
+    :param sens_eeg:
+    :param skin:
+    :param sens_meg:
+    :return:
+    """
+    pyplot.figure()
+    ax = pyplot.subplot(111, projection='3d')
+
+    # ROI centers as black circles
+    x, y, z = conn.centres.T
+    ax.plot(x, y, z, 'ko')
+
+    # EEG sensors as blue x's
+    x, y, z = sens_eeg.sensors_to_surface(skin).T
+    ax.plot(x, y, z, 'bx')
+
+    # Plot boundary surface
+    x, y, z = skin.vertices.T
+    ax.plot_trisurf(x, y, z, triangles=skin.triangles, alpha=0.1, edgecolor='none')
+
+    # MEG sensors as red +'s
+    x, y, z = sens_meg.locations.T
+    ax.plot(x, y, z, 'r+')
+
+def compare_inte(raws, names, exp, t, r_):
+    """
+    Often it is difficult to know which is the best integration method
+    for your simulation. TVB offers a handful of methods, with recently
+    added variable order methods which allow one to safely choose higher
+    time steps, as long as they remain smaller than the smallest time delay.
+
+    :param raws:
+    :param names:
+    :param exp:
+    :param t:
+    :param r:
+    :return:
+    """
+    n_raw = len(raws)
+    pyplot.figure(figsize=(15, 15))
+    for i, (raw_i, name_i) in enumerate(zip(raws, names)):
+        for j, (raw_j, name_j) in enumerate(zip(raws, names)):
+            pyplot.subplot(n_raw, n_raw, i * n_raw + j + 1)
+            if raw_i.shape[0] != t.shape[0] or raw_i.shape[0] != raw_j.shape[0]:
+                continue
+            if i == j:
+                pyplot.plot(t, raw_i[:, 0, :, 0], 'k', alpha=0.1)
+            else:
+                pyplot.semilogy(t, (abs(raw_i - raw_j) / raw_i.ptp())[:, 0, :, 0], 'k', alpha=0.1)
+                pyplot.ylim(exp(r_[-30, 0]))
+
+            pyplot.grid(True)
+            if i == 0:
+                pyplot.title(name_j)
+            if j == 0:
+                pyplot.ylabel(name_i)
+
+        if i == 0:
+            euler_raw = raw
+        else:
+            raw = abs(raw - euler_raw) / euler_raw.ptp() * 100.0
+
+    pyplot.tight_layout()
 
 def hinton_diagram(connectivity_weights, num, maxWeight=None):
     """
@@ -366,19 +470,8 @@ def plot_matrix(mat, fig_name='plot_this_matrix', connectivity=None, binary_matr
     width  = mat.shape[0]
     height = mat.shape[1]
 
-    # for x in range(width):
-    #     for y in range(height):
-    #         ax.annotate(str(int(mat[x][y])),
-    #                     xy=(y, x),
-    #                     horizontalalignment='center',
-    #                     verticalalignment  = 'center',
-    #                     fontsize=10)
-
-
-
 def plot_3d_centres(xyz):
 
-        import matplotlib as mpl
         from mpl_toolkits.mplot3d import Axes3D
         import matplotlib.pyplot as plt
 
@@ -393,8 +486,6 @@ def plot_3d_centres(xyz):
         ax.set_xlabel('x [mm]')
         ax.set_ylabel('y [mm]')
         ax.set_zlabel('z [mm]')
-
-
 
 def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
                         cmap=pyplot.cm.RdBu_r, colourbar=True,
@@ -444,14 +535,9 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
         fig.set_figwidth(size[0])
         fig.set_figheight(size[1])
 
-    w = fig.get_figwidth()
-    h = fig.get_figheight()
-
     ax_im = fig.add_subplot(1, 1, 1)
 
     N   = mat.shape[0]
-    idx = numpy.arange(N) 
-
      
     if colourbar:
         if IMPORTED_MPL_TOOLKITS:
@@ -551,7 +637,7 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
 
     return fig
 
-def plot_roi_corr_map(reg_name, conn):
+def plot_roi_corr_map(reg_name, conn, t, y, corrcoef):
     """
     Seed-region correlation maps
 
@@ -574,7 +660,7 @@ def plot_roi_corr_map(reg_name, conn):
     rm = utils.cortex.region_mapping
     utils.multiview(cs_m[roi][rm], shaded=False, suptitle=reg_name, figsize=(10, 5))
 
-def plot_brain_network_model(bold_data, tavg_data, ):
+def plot_brain_network_model(tavg_time, tavg_data, ):
     """
 
     """
@@ -620,7 +706,7 @@ def reg_red_wong_wang(colorbar, conn, imagesc, np2m):
     using the default connectivity.
     :return:
     """
-    pyplot.figure('Position', [500 500 1000 400])
+    pyplot.figure('Position', [500, 500, 1000, 400])
     pyplot.subplot(121, imagesc(np2m(conn.weights)), colorbar, pyplot.title('Weights'))
     pyplot.subplot(122, imagesc(np2m(conn.tract_lengths)), colorbar)
     pyplot.title('Tract Lengths (mm)')
@@ -633,7 +719,7 @@ def matlab_two_ep_sim(gca, squeeze, signal):
     pyplot.figure()
 
     pyplot.subplot(311)
-    pyplot.plot(time, squeeze(signal(1, :, 1, :)), 'k')
+    pyplot.plot(time, squeeze(signal(1, ':', 1, ':')), 'k')
     pyplot.ylabel('x2(t - x1(t)')
     pyplot.set(gca, 'XTickLabel', {})
 
@@ -642,14 +728,14 @@ def matlab_two_ep_sim(gca, squeeze, signal):
     # plot high-pass filtered LFP
     pyplot.subplot(312)
     [b, a] = buffer(3, 2/2000*5.0, 'high')
-    hpf = filter(b, a, squeeze(signal(1,:, 1,:)
-    pyplot.plot(time, hpf(:,1),'k')
-    pyplot.plot(time, hpf(:, 2), 'k')
+    hpf = filter(b, a, squeeze(signal(1,':', 1,':')))
+    pyplot.plot(time, hpf(':',1),'k')
+    pyplot.plot(time, hpf(':', 2), 'k')
     pyplot.set(gca, 'XTickLabel', {})
     pyplot.ylabel('HPF LFP')
 
     pyplot.subplot(313)
-    pyplot.plot(time, squeeze(signal(1,:, 2,:)), 'k')
+    pyplot.plot(time, squeeze(signal(1,':', 2,':')), 'k')
     pyplot.ylabel('Z(t)')
     pyplot.xlabel('Time (ms)')
 
@@ -676,8 +762,7 @@ def region_simulate(raw_data, tavg_data, raw_time, tavg_time):
     # Show them
     pyplot.show()
 
-
-def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),
+def plot_fast_kde(x, sp, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),
              extents=None, nocorrelation=False, weights=None, norm = True, pdf=False, **kwargs):
     """
     A faster gaussian kernel density estimate (KDE).  Intended for
@@ -819,7 +904,6 @@ def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),
     # units as scipy.stats.kde.gaussian_kde's output.  
     norm_factor = 2 * numpy.pi * cov * scotts_factor**2
     norm_factor = numpy.linalg.det(norm_factor)
-    #norm_factor = n * dx * dy * np.sqrt(norm_factor)
     norm_factor = numpy.sqrt(norm_factor)
     
     if norm : 
