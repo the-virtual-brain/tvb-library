@@ -42,7 +42,6 @@ from tvb.basic.config.settings import VersionSettings
 
 
 class Environment(object):
-    IS_WORK_IN_PROGRESS = os.environ.get('TVB_WIP', False) == 'True'
 
     def is_framework_present(self):
         """
@@ -74,7 +73,7 @@ class Environment(object):
             return False
 
         try:
-            _proc = Popen(["svnversion", "."], stdout=PIPE)
+            _proc = Popen(["svnversion", "."], stdout=PIPE, stderr=PIPE)
             version = VersionSettings.parse_svn_version(_proc.communicate()[0])
             if version:
                 # usage from SVN

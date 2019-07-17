@@ -284,17 +284,17 @@ class PhasePlaneInteractive(HasTraits):
 
         #State variable for the x axis
         pos_shp = [0.07, 0.05, 0.065, 0.12+0.006*self.model.nvar]
-        rax = self.ipp_fig.add_axes(pos_shp, axisbg=AXCOLOUR, title="x-axis")
-        self.state_variable_x = widgets.RadioButtons(rax,
-                                             tuple(self.model.state_variables),
+        rax = self.ipp_fig.add_axes(pos_shp, facecolor=AXCOLOUR, title="x-axis")
+        self.state_variable_x = widgets.RadioButtons(rax, 
+                                             tuple(self.model.state_variables), 
                                              active=svx_ind)
         self.state_variable_x.on_clicked(self.update_svx)
 
         #State variable for the y axis
         pos_shp = [0.14, 0.05, 0.065, 0.12+0.006*self.model.nvar]
-        rax = self.ipp_fig.add_axes(pos_shp, axisbg=AXCOLOUR, title="y-axis")
-        self.state_variable_y = widgets.RadioButtons(rax,
-                                             tuple(self.model.state_variables),
+        rax = self.ipp_fig.add_axes(pos_shp, facecolor=AXCOLOUR, title="y-axis")
+        self.state_variable_y = widgets.RadioButtons(rax, 
+                                             tuple(self.model.state_variables), 
                                              active=svy_ind)
         self.state_variable_y.on_clicked(self.update_svy)
 
@@ -305,7 +305,7 @@ class PhasePlaneInteractive(HasTraits):
         should be displayed.
         """
         pos_shp = [0.02, 0.07, 0.04, 0.1+0.002*self.model.number_of_modes]
-        rax = self.ipp_fig.add_axes(pos_shp, axisbg=AXCOLOUR, title="Mode")
+        rax = self.ipp_fig.add_axes(pos_shp, facecolor=AXCOLOUR, title="Mode")
         mode_tuple = tuple(range(self.model.number_of_modes))
         self.mode_selector = widgets.RadioButtons(rax, mode_tuple, active=0)
         self.mode_selector.on_clicked(self.update_mode)
@@ -318,7 +318,7 @@ class PhasePlaneInteractive(HasTraits):
         self.axes_range_sliders = dict()
 
         default_range_x = (self.model.state_variable_range[self.svx][1] -
-                           self.model.state_variable_range[self.svx][0])
+                           self.model.state_variable_range[self.svx][0]) 
         default_range_y = (self.model.state_variable_range[self.svy][1] -
                            self.model.state_variable_range[self.svy][0])
         min_val_x = self.model.state_variable_range[self.svx][0] - 4.0 * default_range_x
@@ -327,24 +327,24 @@ class PhasePlaneInteractive(HasTraits):
         max_val_y = self.model.state_variable_range[self.svy][1] + 4.0 * default_range_y
 
         sax = self.ipp_fig.add_axes([0.04, 0.835, 0.125, 0.025],
-                                    axisbg=AXCOLOUR)
+                                    facecolor=AXCOLOUR)
         sl_x_min = widgets.Slider(sax, "xlo", min_val_x, max_val_x,
                           valinit=self.model.state_variable_range[self.svx][0])
         sl_x_min.on_changed(self.update_range)
 
-        sax = self.ipp_fig.add_axes([0.04, 0.8, 0.125, 0.025], axisbg=AXCOLOUR)
-        sl_x_max = widgets.Slider(sax, "xhi", min_val_x, max_val_x,
+        sax = self.ipp_fig.add_axes([0.04, 0.8, 0.125, 0.025], facecolor=AXCOLOUR)
+        sl_x_max = widgets.Slider(sax, "xhi", min_val_x, max_val_x, 
                           valinit=self.model.state_variable_range[self.svx][1])
         sl_x_max.on_changed(self.update_range)
 
-        sax = self.ipp_fig.add_axes([0.04, 0.765, 0.125, 0.025],
-                                    axisbg=AXCOLOUR)
-        sl_y_min = widgets.Slider(sax, "ylo", min_val_y, max_val_y,
+        sax = self.ipp_fig.add_axes([0.04, 0.765, 0.125, 0.025], 
+                                    facecolor=AXCOLOUR)
+        sl_y_min = widgets.Slider(sax, "ylo", min_val_y, max_val_y, 
                           valinit=self.model.state_variable_range[self.svy][0])
         sl_y_min.on_changed(self.update_range)
 
-        sax =self.ipp_fig.add_axes([0.04, 0.73, 0.125, 0.025], axisbg=AXCOLOUR)
-        sl_y_max = widgets.Slider(sax, "yhi", min_val_y, max_val_y,
+        sax =self.ipp_fig.add_axes([0.04, 0.73, 0.125, 0.025], facecolor=AXCOLOUR)
+        sl_y_max = widgets.Slider(sax, "yhi", min_val_y, max_val_y, 
                           valinit=self.model.state_variable_range[self.svy][1])
         sl_y_max.on_changed(self.update_range)
 
@@ -365,7 +365,7 @@ class PhasePlaneInteractive(HasTraits):
         for sv in range(self.model.nvar):
             offset += 0.035
             pos_shp = [0.04, 0.6 - offset, 0.125, 0.025]
-            sax = self.ipp_fig.add_axes(pos_shp, axisbg=AXCOLOUR)
+            sax = self.ipp_fig.add_axes(pos_shp, facecolor=AXCOLOUR)
             sv_str = self.model.state_variables[sv]
             self.sv_sliders[sv_str] = widgets.Slider(sax, sv_str,
                                              msv_range[sv_str][0],
@@ -407,7 +407,7 @@ class PhasePlaneInteractive(HasTraits):
         be set.
         """
         pos_shp = [0.825, 0.1, 0.125, 0.025]
-        sax = self.ipp_fig.add_axes(pos_shp, axisbg=AXCOLOUR)
+        sax = self.ipp_fig.add_axes(pos_shp, facecolor=AXCOLOUR)
 
         self.noise_slider = widgets.Slider(sax, "Log Noise", -9.0, 1.0,
                                    valinit = self.integrator.noise.nsig)

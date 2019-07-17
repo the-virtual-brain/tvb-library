@@ -47,7 +47,7 @@ class VersionSettings(object):
     """
 
     # Current release number
-    BASE_VERSION = "1.5.6"
+    BASE_VERSION = "1.5.9"
 
     # Current DB version. Increment this and create a new xxx_update_db.py migrate script
     DB_STRUCTURE_VERSION = 17
@@ -88,7 +88,7 @@ class VersionSettings(object):
             return os.environ[svn_variable]
 
         try:
-            _proc = Popen(["svnversion", "."], stdout=PIPE)
+            _proc = Popen(["svnversion", "."], stdout=PIPE, stderr=PIPE)
             return self.parse_svn_version(_proc.communicate()[0])
         except Exception:
             pass

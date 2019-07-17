@@ -173,7 +173,7 @@ class TimeSeriesInteractive(HasTraits):
             (not self.time_series.connectivity is None)):
             self.labels = self.time_series.connectivity.region_labels
         elif (isinstance(self.time_series, (time_series_datatypes.TimeSeriesEEG,
-            time_series_datatypes.TimeSeriesMEG) and (not self.time_series.sensors is None))):
+            time_series_datatypes.TimeSeriesMEG)) and (not self.time_series.sensors is None)):
             self.labels = self.time_series.sensors.labels
         else:
             self.labels = ["channel_%0.2d"%k for k in range(self.nsrs)] 
@@ -242,7 +242,7 @@ class TimeSeriesInteractive(HasTraits):
         self.ts_ax = self.its_fig.add_axes([0.1, 0.1, 0.85, 0.85])
 
         self.whereami_ax = self.its_fig.add_axes([0.1, 0.95, 0.85, 0.025],
-                                                 axisbg=BACKGROUNDCOLOUR)
+                                                 facecolor=BACKGROUNDCOLOUR)
         self.whereami_ax.set_axis_off()
         if hasattr(self.whereami_ax, 'autoscale'):
             self.whereami_ax.autoscale(enable=True, axis='both', tight=True)
@@ -259,7 +259,7 @@ class TimeSeriesInteractive(HasTraits):
 #        should be displayed.
 #        """
 #        pos_shp = [0.02, 0.07, 0.04, 0.1+0.002*self.data.shape[3]]]
-#        mode_ax = self.its_fig.add_axes(pos_shp, axisbg=AXCOLOUR, title="Mode")
+#        mode_ax = self.its_fig.add_axes(pos_shp, facecolor=AXCOLOUR, title="Mode")
 #        mode_tuple = tuple(range(self.model.number_of_modes))
 #        self.mode_selector = widgets.RadioButtons(mode_ax, mode_tuple, active=0)
 #        self.mode_selector.on_clicked(self.update_mode)
@@ -270,7 +270,7 @@ class TimeSeriesInteractive(HasTraits):
 #        Add a slider to allow the time-series window length to be adjusted.
 #        """
 #        pos_shp = [0.2, 0.02, 0.7, 0.025]
-#        slax = self.its_fig.add_axes(pos_shp, axisbg=AXCOLOUR)
+#        slax = self.its_fig.add_axes(pos_shp, facecolor=AXCOLOUR)
 #        
 #        self.current_time_slider = widgets.Slider(slax, "Time", self.start_time,
 #                                          self.end_time, 
@@ -283,7 +283,7 @@ class TimeSeriesInteractive(HasTraits):
         Add a slider to allow the time-series window length to be adjusted.
         """
         pos_shp = [0.15, 0.02, 0.175, 0.035]
-        slax = self.its_fig.add_axes(pos_shp, axisbg=AXCOLOUR)
+        slax = self.its_fig.add_axes(pos_shp, facecolor=AXCOLOUR)
 
         self.window_length_slider = widgets.Slider(slax, "Window length", 
                                                    TIME_RESOLUTION*self.period, 
@@ -296,7 +296,7 @@ class TimeSeriesInteractive(HasTraits):
     def add_scaling_slider(self):
         """ Add a slider to allow scaling of the offset of time-series. """
         pos_shp = [0.75, 0.02, 0.175, 0.035]
-        sax = self.its_fig.add_axes(pos_shp, axisbg=AXCOLOUR)
+        sax = self.its_fig.add_axes(pos_shp, facecolor=AXCOLOUR)
 
         self.scaling_slider = widgets.Slider(sax, "Spacing", 0.0, 1.25, 
                                              valinit = self.scaling,
