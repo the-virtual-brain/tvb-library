@@ -395,7 +395,7 @@ class Projection(Monitor):
     obsnoise = Attr(
         noise.Noise,
         label="Observation Noise",
-        default=noise.Additive,
+        default=noise.Additive(),
         required=False,
         doc="""The monitor's noise source. It incorporates its
         own instance of Numpy's RandomState.""")
