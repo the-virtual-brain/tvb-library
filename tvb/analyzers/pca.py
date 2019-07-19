@@ -102,8 +102,8 @@ class PCA(HasTraits):
         fractions = numpy.zeros(fractions_shape)
         
         #One inter-node temporal covariance matrix for each state-var & mode.
-        for mode in xrange(ts_shape[3]):
-            for var in xrange(ts_shape[1]):
+        for mode in range(ts_shape[3]):
+            for var in range(ts_shape[1]):
                 data = self.time_series.data[:, var, :, mode]
                 data_pca = mlab.PCA(data)
                 fractions[:, var, mode ] = data_pca.fracs
@@ -137,8 +137,8 @@ class PCA(HasTraits):
         """
         Returns the storage size in Bytes of the results of the PCA analysis.
         """
-        result_size = numpy.sum(map(numpy.prod,
-                                    self.result_shape(input_shape))) * 8.0 #Bytes
+        result_size = numpy.sum(list(map(numpy.prod,
+                                    self.result_shape(input_shape)))) * 8.0 #Bytes
         return result_size
     
     

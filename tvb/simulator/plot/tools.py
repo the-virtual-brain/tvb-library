@@ -598,7 +598,7 @@ def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),
         xmin, xmax = x.min(), x.max()
         ymin, ymax = y.min(), y.max()
     else:
-        xmin, xmax, ymin, ymax = map(float, extents)
+        xmin, xmax, ymin, ymax = list(map(float, extents))
         
     dx = (xmax - xmin) / (nx - 1)
     dy = (ymax - ymin) / (ny - 1)

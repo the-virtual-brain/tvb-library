@@ -77,7 +77,7 @@ class FourierSpectrum(HasTraits):
 
     average_power = NArray(label="Average Power")
 
-    normalised_average_power = NArray(label="Normalised Power")
+    normalised_average_power = NArray(label="Normalised Power", required=False)
 
     _frequency = None
     _freq_step = None

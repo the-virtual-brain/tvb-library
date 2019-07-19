@@ -4,11 +4,15 @@ The basic Attribute Property and their automatic discovery by the Metaclass.
 """
 import abc
 import inspect
-import typing
 import logging
 
 from tvb.basic.neotraits.ex import TraitTypeError, TraitAttributeError
 from tvb.basic.neotraits.info import auto_docstring
+
+import sys
+
+if sys.version_info[0] == 3:
+    import typing
 
 # a logger for the whole traits system
 log = logging.getLogger('tvb.traits')
@@ -120,7 +124,7 @@ class MetaType(abc.ABCMeta):
         """
         ret = {}
 
-        for k, c in cls.__classes.iteritems():
+        for k, c in cls.__classes.items():
             if issubclass(c, cls):
                 if inspect.isabstract(c) and not include_abstract:
                     continue
@@ -175,7 +179,7 @@ class MetaType(abc.ABCMeta):
         attrs = []
         props = []
 
-        for k, v in namespace.iteritems():
+        for k, v in namespace.items():
             if isinstance(v, _Attr):
                 attrs.append(k)
             elif isinstance(v, _Property):

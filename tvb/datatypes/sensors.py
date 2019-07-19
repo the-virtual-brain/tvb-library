@@ -61,7 +61,7 @@ class Sensors(HasTraits):
 
     sensors_type = Attr(str, required=False)
 
-    labels = NArray(dtype='S128', label="Sensor labels")
+    labels = NArray(dtype='U128', label="Sensor labels")
 
     locations = NArray(label="Sensor locations")
 
@@ -69,7 +69,7 @@ class Sensors(HasTraits):
 
     orientations = NArray(required=False)
 
-    number_of_sensors = Int(field_type=long, label="Number of sensors",
+    number_of_sensors = Int(field_type=int, label="Number of sensors",
                              doc="""The number of sensors described by these Sensors.""")
 
     # introduced to accommodate real sensors sets which have sensors
@@ -89,7 +89,8 @@ class Sensors(HasTraits):
         source_full_path = try_get_absolute_path("tvb_data.sensors", source_file)
         reader = FileReader(source_full_path)
 
-        result.labels = reader.read_array(dtype="string", use_cols=(0,))
+        result.labels = reader.read_array(dtype=numpy.str, use_cols=(0,))
+
         result.locations = reader.read_array(use_cols=(1, 2, 3))
 
         return result
@@ -101,7 +102,7 @@ class Sensors(HasTraits):
         set during initialization.
         """
         super(Sensors, self).configure()
-        self.number_of_sensors = self.labels.shape[0]
+        self.number_of_sensors = int(self.labels.shape[0])
 
 
     def summary_info(self):

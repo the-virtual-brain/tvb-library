@@ -1,17 +1,19 @@
 """
 This private module implements concrete declarative attributes
 """
-import typing
 import types
 import collections
 import numpy
 import logging
 from ._declarative_base import _Attr
 from .ex import TraitValueError, TraitTypeError, TraitAttributeError
+import sys
 
-if typing.TYPE_CHECKING:
-    from ._core import HasTraits
-    from tvb.basic.neotraits._declarative_base import MetaType
+if sys.version_info[0] == 3:
+    import typing
+    if typing.TYPE_CHECKING:
+        from ._core import HasTraits
+        from tvb.basic.neotraits._declarative_base import MetaType
 
 # a logger for the whole traits system
 log = logging.getLogger('tvb.traits')
@@ -279,7 +281,7 @@ class _Number(Attr):
 
     def __validate(self, value):
         """ value should be safely cast to field type and choices must be enforced """
-        if not isinstance(value, (int, long, float, complex, numpy.number)):
+        if not isinstance(value, (int, float, complex, numpy.number)):
             # we have to check that the value is numeric before the can_cast check
             # as can_cast works with dtype strings as well
             # can_cast('i8', 'i32')
@@ -330,7 +332,7 @@ class Int(_Number):
         )
 
     def _post_bind_validate(self):
-        if not issubclass(self.field_type, (int, long, numpy.integer)):
+        if not issubclass(self.field_type, (int, numpy.integer)):
             msg = 'field_type must be a python int or a numpy.integer not {!r}.'.format(self.field_type)
             raise TraitTypeError(msg, attr=self)
         # super call after the field_type check above

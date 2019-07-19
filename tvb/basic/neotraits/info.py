@@ -5,7 +5,10 @@ Some of these functions are here so that they won't clutter the core trait imple
 """
 
 import numpy
-import typing
+import sys
+
+if sys.version_info[0] == 3:
+    import typing
 
 
 def auto_docstring(cls):
@@ -82,7 +85,7 @@ def narray_summary_info(ar, ar_name='', omit_shape=False):
         ret['[min, median, max]'] = '[{:g}, {:g}, {:g}]'.format(ar.min(), numpy.median(ar), ar.max())
 
     if ar_name:
-        return {ar_name + ' ' + k: v for k, v in ret.iteritems()}
+        return {ar_name + ' ' + k: v for k, v in ret.items()}
     else:
         return ret
 

@@ -4,6 +4,7 @@ import uuid
 import numpy
 import numpy as np
 import pytest
+import sys
 
 from tvb.basic.neotraits._core import TraitProperty
 from tvb.basic.neotraits.api import (
@@ -254,7 +255,7 @@ def test_narr_enforcing():
 
     class Boo(HasTraits):
         x = NArray(shape=(Dim.any, Dim.any), default=np.eye(2))
-        y = NArray(dtype=np.dtype(int), default=np.arange(12), domain=xrange(5))
+        y = NArray(dtype=np.dtype(int), default=np.arange(12), domain=list(range(5)))
 
     # only the defaults are checked for domain compliance
     boo = Boo(y=np.arange(10))
@@ -405,7 +406,7 @@ def test_list_default_must_respect_choices():
 
 def test_str_ndarrays():
     class A(HasTraits):
-        s = NArray(dtype='S5')
+        s = NArray(dtype='U5')
 
     a = A(s=np.array(['ana', 'a', 'adus', 'mere']))
     # but users will expect python list[str] like behaviour and then this happens
@@ -525,7 +526,7 @@ def test_int_attribute():
     assert ainst.b == 0
 
     # type is out of bounds but value is within the bounds. So this is ok
-    ainst.b = long(42)
+    ainst.b = int(42)
     # values are not only checked for compatibility but converted to the declared type
     assert type(ainst.b) == np.int8
     ainst.b = np.int(4)
@@ -594,7 +595,7 @@ def test_float_attribute():
     ainst = A()
     # int's are ok
     ainst.a = 1
-    ainst.a = 2**61
+    ainst.a = int(2**31-1)
     # larger floats as well if they actually fit
     ainst.c = np.float64(4)
     # they are converted to the declared types
@@ -750,15 +751,27 @@ def test_summary_info():
     ainst.ref = zinst
     summary = ainst.summary_info()
 
-    assert summary == {
-        'Type': 'A',
-        'title': 'the red rose',
-        'a': "'ana'",
-        'b dtype': 'int32',
-        'b shape': '(3L,)',
-        'b [min, median, max]': '[0, 1, 2]',
-        'ref': 'Z zuzu',
-    }
+    if sys.version_info[0] < 3:
+        assert summary == {
+            'Type': 'A',
+            'title': 'the red rose',
+            'a': "'ana'",
+            'b dtype': 'int32',
+            'b shape': '(3L,)',
+            'b [min, median, max]': '[0, 1, 2]',
+            'ref': 'Z zuzu',
+        }
+    else:
+        assert summary == {
+            'Type': 'A',
+            'title': 'the red rose',
+            'a': "'ana'",
+            'b dtype': 'int32',
+            'b shape': '(3,)',
+            'b [min, median, max]': '[0, 1, 2]',
+            'ref': 'Z zuzu',
+        }
+
 
 
 def test_hastraits_str_does_not_crash():

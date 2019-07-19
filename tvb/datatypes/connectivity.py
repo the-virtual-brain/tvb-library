@@ -52,7 +52,7 @@ class Connectivity(HasTraits):
 
     # data
     region_labels = NArray(
-        dtype='S128',
+        dtype='U128',
         label="Region labels",
         doc="""Short strings, 'labels', for the regions represented by the connectivity matrix.""")
 
@@ -119,12 +119,12 @@ class Connectivity(HasTraits):
         combines with tract lengths to update this matrix, i.e. don't try and change it manually.""")
 
     number_of_regions = Int(
-        field_type=long,
+        field_type=int,
         label="Number of regions",
         doc="""The number of regions represented in this Connectivity """)
 
     number_of_connections = Int(
-        field_type=long,
+        field_type=int,
         label="Number of connections",
         doc="""The number of non-zero entries represented in this Connectivity """)
 
@@ -134,7 +134,7 @@ class Connectivity(HasTraits):
     # In case of edited Connectivity, this are the nodes left in interest area,
     # the rest were part of a lesion, so they were removed.
     # saved_selection = basic.JSONType(required=False)
-    saved_selection = List(of=basestring)
+    saved_selection = List(of=str)
 
     # framework
     @property
@@ -343,7 +343,7 @@ class Connectivity(HasTraits):
         if sel is not None and len(sel) > 0:
             return sel
         else:
-            return range(len(self.region_labels))
+            return list(range(len(self.region_labels)))
 
     def get_measure_points_selection_gid(self):
         """
@@ -369,9 +369,9 @@ class Connectivity(HasTraits):
         set during initialization.
         """
 
-        self.number_of_regions = self.weights.shape[0]
+        self.number_of_regions = int(self.weights.shape[0])
         # NOTE: In numpy 1.8 there is a function called count_zeros
-        self.number_of_connections = self.weights.nonzero()[0].shape[0]
+        self.number_of_connections = int(self.weights.nonzero()[0].shape[0])
 
         # self.trait["weights"].log_debug(owner=self.__class__.__name__)
         # self.trait["tract_lengths"].log_debug(owner=self.__class__.__name__)
@@ -388,7 +388,6 @@ class Connectivity(HasTraits):
             self.compute_tract_lengths()
         if self.region_labels is None or self.region_labels.size == 0:
             self.compute_region_labels()
-
         if self.hemispheres is None or self.hemispheres.size == 0:
             self.try_compute_hemispheres()
 
@@ -615,7 +614,7 @@ class Connectivity(HasTraits):
 
         elif mode == 'shuffle':
 
-            for i in reversed(range(1, D.shape[0])):
+            for i in reversed(list(range(1, D.shape[0]))):
                 j = int(numpy.random.rand() * (i + 1))
                 D[:, i], D[:, j] = D[:, j].copy(), D[:, i].copy()
                 D[i, :], D[j, :] = D[j, :].copy(), D[i, :].copy()
@@ -879,7 +878,7 @@ class Connectivity(HasTraits):
             self.region_labels = numpy.array(region_labels).astype(str)
         elif mode in ("alphabetic", "alpha"):
             if self.number_of_regions < 26:
-                self.region_labels = numpy.array(list(map(chr, range(65, 65 + self.number_of_regions)))).astype(str)
+                self.region_labels = numpy.array(list(map(chr, list(range(65, 65 + self.number_of_regions))))).astype(str)
             else:
                 LOG.info("I'm too lazy to create several strategies to label regions. \\")
                 LOG.info("Please choose mode 'numeric' or set your own labels\\")

@@ -44,6 +44,7 @@ import sys
 from tvb.basic.config.environment import Environment
 from tvb.basic.config.profile_settings import BaseSettingsProfile
 from tvb.basic.config.utils import LibraryModulesFinder
+import importlib
 
 
 def cleanup_metapath():
@@ -92,8 +93,12 @@ class TvbProfile():
         ### most of the comments in the simulator are having pieces outside of ascii coverage
         if not cls.env.is_distribution() and sys.getdefaultencoding().lower() != 'utf-8':
             old_out = sys.stdout
-            reload(sys)
-            sys.setdefaultencoding('utf-8')
+            if sys.version_info[0] < 3:
+                reload(sys)
+                sys.setdefaultencoding("utf-8")
+            else:
+                importlib.reload(sys)
+                sys.setdefaultencoding('utf-8')
             sys.stdout = old_out
 
         if selected_profile is not None:

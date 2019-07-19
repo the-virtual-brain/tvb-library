@@ -50,7 +50,7 @@ class LocalConnectivity(HasTraits):
 
     surface = Attr(field_type=surfaces.CorticalSurface, label="Surface")
 
-    matrix = Attr(field_type=scipy.sparse.spmatrix)
+    matrix = Attr(field_type=scipy.sparse.spmatrix, required=False)
 
     equation = Attr(
         field_type=equations.FiniteSupportEquation,

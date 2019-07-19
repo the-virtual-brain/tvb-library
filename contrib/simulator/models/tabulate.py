@@ -83,7 +83,7 @@ class TabulateInterp(object):
             for i in range(n):
                 self.f[i] = f(x[i])
         self.f = array(self.f)
-        self.df = (self.f[range(1, n)]-self.f[range(n - 1)])*float(self.invdx)
+        self.df = (self.f[list(range(1, n))]-self.f[list(range(n - 1))])*float(self.invdx)
 
     def save(self, fname):
         numpy.savez(fname, f=self.f, df=self.df, min_max=array((self.xmin,

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 #
-#  TheVirtualBrain-Scientific Package. This package holds all simulators, and 
+#  TheVirtualBrain-Scientific Package. This package holds all simulators, and
 # analysers necessary to run brain-simulations. You can use it stand alone or
 # in conjunction with TheVirtualBrain-Framework Package. See content of the
 # documentation-folder for more details. See also http://www.thevirtualbrain.org
@@ -30,7 +30,7 @@
 
 """
 
-The Array datatypes. This brings together the scientific and framework 
+The Array datatypes. This brings together the scientific and framework
 methods that are associated with the Array datatypes.
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
@@ -38,6 +38,7 @@ methods that are associated with the Array datatypes.
 """
 
 import numpy
+import tvb.basic.traits.core as core
 from tvb.basic.traits import types_basic as basic
 from tvb.basic.traits.types_mapped import MappedType, Array
 from tvb.basic.exceptions import ValidationException
@@ -98,7 +99,6 @@ class StringArray(BaseArray):
         summary = {"Array type": self.__class__.__name__,
                    "Shape": self.shape}
         return summary
-
 
 class MappedArray(MappedType):
     "An array stored in the database."
