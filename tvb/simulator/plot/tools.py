@@ -39,7 +39,7 @@ from tvb.basic.logger.builder import get_logger
 import time
 import utils
 import numpy
-import tvb.datatypes.projections as projections
+import numpy as np
 
 LOG = get_logger(__name__)
 
@@ -762,22 +762,37 @@ def region_simulate(raw_data, tavg_data, raw_time, tavg_time):
     # Show them
     pyplot.show()
 
-import matplotlib.pyplot as plt
-import numpy as np
+def centres_cubic(self, number_of_regions=4, max_radius=42., flat=False):
+    """
+    The nodes are positioined in a 3D grid inside the cube centred at the origin and
+    with edges parallel to the axes, with an edge length of 2*max_radius.
+
+    """
+
+    # To cartesian coordinates
+    x = numpy.linspace(-max_radius, max_radius, number_of_regions)
+    y = numpy.linspace(-max_radius, max_radius, number_of_regions)
+
+    if flat:
+        z = numpy.zeros(number_of_regions)
+    else:
+        z = numpy.linspace(-max_radius, max_radius, number_of_regions)
+
+    self.centres = numpy.array([x, y, z]).T
 
 def three_d_dviewer():
     """Viewing 3D Volumetric Data With Matplotlib"""
     def remove_keymap_conflicts(new_keys_set):
-        for prop in plt.rcParams:
+        for prop in pyplot.rcParams:
             if prop.startswith('keymap.'):
-                keys = plt.rcParams[prop]
+                keys = pyplot.rcParams[prop]
                 remove_list = set(keys) & new_keys_set
                 for key in remove_list:
                     keys.remove(key)
 
     def multi_slice_viewer(volume):
         remove_keymap_conflicts({'j', 'k'})
-        fig, ax = plt.subplots()
+        fig, ax = pyplot.subplots()
         ax.volume = volume
         ax.index = volume.shape[0] // 2
         ax.imshow(volume[ax.index])
@@ -826,11 +841,11 @@ def cube():
     colors[cube2] = 'green'
 
     # and plot everything
-    fig = plt.figure()
+    fig = pyplot.figure()
     ax = fig.gca(projection='3d')
     ax.voxels(voxels, facecolors=colors, edgecolor='k')
 
-    plt.show()
+    pyplot.show()
 
 def plot_fast_kde(x, sp, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),
              extents=None, nocorrelation=False, weights=None, norm = True, pdf=False, **kwargs):
