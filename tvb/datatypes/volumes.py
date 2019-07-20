@@ -59,3 +59,6 @@ class Volume(HasTraits):
             "Units": self.voxel_unit
         }
 
+'''
+Demonstrates plotting 3D volumetric objects with ``ax.voxels``
+'''
