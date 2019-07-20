@@ -80,6 +80,3 @@ class DatatypeMeasure(MappedType):
                 value = value + entry + ' : ' + str(self.metrics[entry]) + '\n'
             name = value
         return name
-    
-    
-    

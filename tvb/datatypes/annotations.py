@@ -116,37 +116,32 @@ class AnnotationTerm(object):
 
 
 
-class AnnotationArray(Array):
+class AnnotationArray(Array, default, level, doc):
     """
     Holds a flatten form for the annotations for a full connectivity.
     Each region in the connectivity can have None, or a tree of AnnotationTerms
     To be stored in a compound DS in H5.
     """
-
+    
     dtype = ANNOTATION_DTYPE
 
     stored_metadata = [MappedType.METADATA_ARRAY_SHAPE]
-
+    label = ''
 
 
 class ConnectivityAnnotations(MappedType):
     """
     Ontology annotations for a Connectivity.
     """
-
     connectivity = connectivity.Connectivity
-
-    region_annotations = AnnotationArray(
-        default=numpy.array([], dtype=ANNOTATION_DTYPE),
-        label="Region Annotations",
-        doc="""Flat tree of annotations for every connectivity region.""")
-
+    np_array = numpy.array([], dtype=ANNOTATION_DTYPE),
+    region_annotations = AnnotationArray(default=np_array,
+        label="Region Annotations", doc="Flat tree of annotations for every connectivity region.")
 
     def set_annotations(self, annotation_terms):
         annotations = [ann.to_tuple() for ann in annotation_terms]
         annotations = numpy.array(annotations, dtype=ANNOTATION_DTYPE)
         self.region_annotations = annotations
-
 
     def _find_summary_info(self):
         """
@@ -155,7 +150,6 @@ class ConnectivityAnnotations(MappedType):
         summary = {"Connectivity": self.connectivity.display_name}
         summary.update(self.get_info_about_array('region_annotations', [self.METADATA_ARRAY_SHAPE]))
         return summary
-
 
     def get_activation_patterns(self):
         """
@@ -183,7 +177,6 @@ class ConnectivityAnnotations(MappedType):
 
         return map_by_brco_id
 
-
     def get_activation_pattern_labels(self):
         """
         :return: map {brco_id: list of TVB regions LABELS in which the same BRCO term is being subclass}
@@ -199,7 +192,6 @@ class ConnectivityAnnotations(MappedType):
                 map_with_labels[ann_id].append(conn_label)
 
         return map_with_labels
-
 
     def tree_json(self):
         """
