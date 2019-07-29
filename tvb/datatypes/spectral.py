@@ -209,6 +209,7 @@ class WaveletCoefficients(HasTraits):
             "Maximum frequency": self.frequencies[-1]
         }
 
+
     @property
     def frequency(self):
         """ Frequencies represented by the wavelet spectrogram."""
@@ -267,7 +268,6 @@ class CoherenceSpectrum(HasTraits):
         }
 
 
-
 class ComplexCoherenceSpectrum(HasTraits):
     """
     Result of a NodeComplexCoherence Analysis.
@@ -316,11 +316,6 @@ class ComplexCoherenceSpectrum(HasTraits):
     _freq_step = None
     _max_freq = None
     spectrum_types = ["Imaginary", "Real", "Absolute"]
-
-    def configure(self):
-        """After populating few fields, compute the rest of the fields"""
-        # Do not call super, because that accesses data not-chunked
-        self.configure_chunk_safe()
 
     def summary_info(self):
         """
