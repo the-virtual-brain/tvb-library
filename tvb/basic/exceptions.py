@@ -32,17 +32,14 @@
 """
 
 
-
 class TVBException(Exception):
     """
     Base class for all TVB exceptions.
     """
 
-
     def __init__(self, message, parent_exception=None):
         Exception.__init__(self, message, parent_exception)
         self.message = str(message)
-
 
     def __str__(self):
         return self.message
@@ -54,14 +51,12 @@ class ValidationException(TVBException):
     validation before storing it into DB.
     """
 
-
-
+# TODO These 2 should be removed after complete translation of tvb-framework to neotraits
 class MissingEntityException(TVBException):
     """
     Exception class used for cases when trying to load an entity
     from database by id or GID and none found.
     """
-
 
 
 class StorageException(TVBException):

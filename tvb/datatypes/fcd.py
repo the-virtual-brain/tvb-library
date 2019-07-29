@@ -44,10 +44,8 @@ from tvb.basic.neotraits.api import HasTraits, Attr, NArray, List, Float, narray
 LOG = get_logger(__name__)
 
 
-
 class Fcd(HasTraits):
-
-    array_data = NArray() #file_storage=core.FILE_STORAGE_DEFAULT
+    array_data = NArray()
 
     source = Attr(
         field_type=time_series.TimeSeries,
@@ -76,7 +74,6 @@ class Fcd(HasTraits):
         default=("Time", "Time", "State Variable", "Mode"),
         doc="""List of strings representing names of each data dimension""")
 
-
     def summary_info(self):
         """
         Gather scientifically interesting summary information from an instance of this datatype.
@@ -88,4 +85,3 @@ class Fcd(HasTraits):
         }
         summary.update(narray_summary_info(self.array_data))
         return summary
-

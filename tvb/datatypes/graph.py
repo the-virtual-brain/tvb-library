@@ -72,7 +72,7 @@ class CorrelationCoefficients(HasTraits):
     PEARSON_MIN = -1
     PEARSON_MAX = 1
 
-    array_data = NArray() # file_storage=core.FILE_STORAGE_DEFAULT
+    array_data = NArray()
 
     source = Attr(
         field_type=time_series.TimeSeries,
