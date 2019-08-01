@@ -43,6 +43,10 @@ import numpy as np
 
 LOG = get_logger(__name__)
 
+# plotly import matplotlib altenetive and more friendly
+
+import plotly.offline
+import plotly.tools as tls
 
 # ---------------------------------------------------------------------------
 # -                  matplotlib based plotting functions
@@ -65,10 +69,13 @@ def _blob(x, y, area, colour):
     the given coordinates.
     From : http://www.scipy.org/Cookbook/Matplotlib/HintonDiagrams
     """
+    fig = pyplot.figure()
     hs = numpy.sqrt(area) / 2
     xcorners = numpy.array([x - hs, x + hs, x + hs, x - hs])
     ycorners = numpy.array([y - hs, y - hs, y + hs, y + hs])
     pyplot.fill(xcorners, ycorners, colour, edgecolor=colour)
+    # Plot on browser temp-plot.html file
+    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
 
 def longer_time_series(ts_int, tsr):
 
@@ -104,12 +111,14 @@ def epi_time_series(tavg, t):
     """
 
     # Plot raw time series
-    pyplot.figure(figsize=(10, 10))
+    fig = pyplot.figure(figsize=(10, 10))
     pyplot.plot(t[:], tavg[:, 0, :, 0] + numpy.r_[:76], 'r')
     pyplot.title("Epileptors time series")
 
     # Show them
     pyplot.show()
+    # Plot on browser temp-plot.html file
+    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
 
 def display_source_sensor(conn, sens_eeg, skin, sens_meg):
     """
@@ -121,7 +130,7 @@ def display_source_sensor(conn, sens_eeg, skin, sens_meg):
     :param sens_meg:
     :return:
     """
-    pyplot.figure()
+    fig = pyplot.figure()
     ax = pyplot.subplot(111, projection='3d')
 
     # ROI centers as black circles
@@ -139,6 +148,9 @@ def display_source_sensor(conn, sens_eeg, skin, sens_meg):
     # MEG sensors as red +'s
     x, y, z = sens_meg.locations.T
     ax.plot(x, y, z, 'r+')
+    # Plot on browser temp-plot.html file
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.plot(plotly_fig)
 
 def compare_inte(raws, names, exp, t, r_):
     """
@@ -155,7 +167,7 @@ def compare_inte(raws, names, exp, t, r_):
     :return:
     """
     n_raw = len(raws)
-    pyplot.figure(figsize=(15, 15))
+    fig = pyplot.figure(figsize=(15, 15))
     for i, (raw_i, name_i) in enumerate(zip(raws, names)):
         for j, (raw_j, name_j) in enumerate(zip(raws, names)):
             pyplot.subplot(n_raw, n_raw, i * n_raw + j + 1)
@@ -179,6 +191,8 @@ def compare_inte(raws, names, exp, t, r_):
             raw = abs(raw - euler_raw) / euler_raw.ptp() * 100.0
 
     pyplot.tight_layout()
+    # Plot on browser temp-plot.html file
+    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
 
 def hinton_diagram(connectivity_weights, num, maxWeight=None):
     """
@@ -205,8 +219,8 @@ def hinton_diagram(connectivity_weights, num, maxWeight=None):
             elif w < 0:
                 _blob(_x - 1., height - _y + 0.0, min(1, -w / maxWeight), 'black')
     return weights_axes
-
-
+    # Plot on browser temp-plot.html file
+    plotly.offline.plot_mpl(weights_figure, filename='temp-plot.html')
 
 def plot_connectivity(connectivity, num="weights", order_by=None, plot_hinton=False, plot_tracts=True):
     """
@@ -252,7 +266,7 @@ def plot_connectivity(connectivity, num="weights", order_by=None, plot_hinton=Fa
         weights_axes = weights_figure.gca()
         wimg = weights_axes.matshow(connectivity.weights[order_rows, order_columns])
         weights_figure.colorbar(wimg)
-
+        plotly.offline.plot_mpl(weights_figure, filename='temp-plot.html')
     weights_axes.set_title(plot_title)
 
     if plot_tracts:
@@ -277,8 +291,6 @@ def plot_connectivity(connectivity, num="weights", order_by=None, plot_hinton=Fa
 
         tracts_axes.set_xticks(numpy.arange(connectivity.number_of_regions))
         tracts_axes.set_xticklabels(list(labels[order]), fontsize=8, rotation=90)
-
-
 
 def plot_local_connectivity(cortex, cutoff=None):
     """
@@ -328,7 +340,7 @@ def plot_local_connectivity(cortex, cutoff=None):
     cutoff = cortex.local_connectivity.cutoff
     cutoff_2 = 2.0 * cortex.local_connectivity.cutoff
 
-    pyplot.figure(num="Local Connectivity Cases")
+    fig = pyplot.figure(num="Local Connectivity Cases")
     pyplot.title("Local Connectivity Cases")
 
     # ideally all these lines should overlap
@@ -370,12 +382,8 @@ def plot_local_connectivity(cortex, cutoff=None):
     pyplot.xlabel("Distance from focal point")
     pyplot.ylabel("Strength")
     pyplot.legend(("Theoretical", "Typical", "Worst", "Best", "Cutoff"))
-
-    # set the linewidth of the first legend object
-    # leg.legendHandles[0].set_linewidth(6.0)
-    # leg.legendHandles[1].set_linewidth(6.0)
-    # leg.legendHandles[2].set_linewidth(6.0)
-    # leg.legendHandles[3].set_linewidth(6.0)
+    # Plot inside plotly on browser
+    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
 
 def temp_avg_timeseries(TAVG, EEG, nodes, tt):
     """
@@ -385,7 +393,7 @@ def temp_avg_timeseries(TAVG, EEG, nodes, tt):
     :param tt: numpy array
     :return: output: 2D time Series
     """
-    pyplot.figure()
+    fig = pyplot.figure()
     pyplot.subplot(211)
     pyplot.plot(tt, TAVG[:, 0, nodes, 0])
     pyplot.title("Temporal Averaged time-series")
@@ -393,12 +401,13 @@ def temp_avg_timeseries(TAVG, EEG, nodes, tt):
     pyplot.plot(tt, EEG[:, 0, 60, 0], 'k')
     pyplot.title("EEG")
     pyplot.tight_layout()
+    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
 
 def plot_pattern(pattern_object):
     """
     pyplot in 2D the given X, over T.
     """
-    pyplot.figure(42)
+    fig = pyplot.figure(42)
     pyplot.subplot(221)
     pyplot.plot(pattern_object.spatial_pattern, "k*")
     pyplot.title("Space")
@@ -412,7 +421,8 @@ def plot_pattern(pattern_object):
     pyplot.title("Stimulus")
     pyplot.xlabel("Time")
     pyplot.ylabel("Space")
-    # pyplot.show()
+    # plot on plotly
+    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
 
 def show_me_the_colours():
     """
@@ -429,8 +439,7 @@ def show_me_the_colours():
         ax.set_xticklabels([])
         ax.set_axis_bgcolor(colours[k])
         ax.text(0.05, 0.5, colours[k])
-
-
+        plotly.offline.plot_mpl(colours_fig, filename='temp-plot.html')
 
 def plot_matrix(mat, fig_name='plot_this_matrix', connectivity=None, binary_matrix=False):
     """
@@ -469,6 +478,7 @@ def plot_matrix(mat, fig_name='plot_this_matrix', connectivity=None, binary_matr
     
     width  = mat.shape[0]
     height = mat.shape[1]
+    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
 
 def plot_3d_centres(xyz):
 
@@ -486,6 +496,7 @@ def plot_3d_centres(xyz):
         ax.set_xlabel('x [mm]')
         ax.set_ylabel('y [mm]')
         ax.set_zlabel('z [mm]')
+        plotly.offline.plot_mpl(fig, filename='temp-plot.html')
 
 def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
                         cmap=pyplot.cm.RdBu_r, colourbar=True,
@@ -636,6 +647,7 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
     fig.sca(ax)
 
     return fig
+    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
 
 def plot_roi_corr_map(reg_name, conn, t, y, corrcoef):
     """
@@ -669,7 +681,7 @@ def plot_brain_network_model(tavg_time, tavg_data, ):
     t_interval = numpy.arange(100)
 
     # Plot raw time series
-    pyplot.figure(1)
+    fig = pyplot.figure(1)
     pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 0, :, 0], 'k', alpha=0.05)
     pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 0, :, 0].mean(axis=1), 'k', linewidth=3)
     pyplot.title("Temporal average -- State variable V")
@@ -684,13 +696,14 @@ def plot_brain_network_model(tavg_time, tavg_data, ):
     pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 2, :, 0].mean(axis=1), 'r', linewidth=3)
     pyplot.title("Temporal average -- State variable Z")
     pyplot.xlabel('time [ms]', fontsize=24)
+    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
 
 def sim_sum_eeg(eeg, meg, seeg):
     """
     Cortical surface with subcortical regions,
     sEEG, EEG & MEG, using a stochastic integration.
     """
-    pyplot.figure()
+    fig = pyplot.figure()
 
     for i, mon in enumerate((eeg, meg, seeg)):
         pyplot.subplot(3, 1, i + 1)
@@ -699,6 +712,7 @@ def sim_sum_eeg(eeg, meg, seeg):
         pyplot.ylabel(['EEG', 'MEG', 'sEEG'][i])
 
     pyplot.tight_layout()
+    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
 
 def reg_red_wong_wang(colorbar, conn, imagesc, np2m):
     """
@@ -706,17 +720,18 @@ def reg_red_wong_wang(colorbar, conn, imagesc, np2m):
     using the default connectivity.
     :return:
     """
-    pyplot.figure('Position', [500, 500, 1000, 400])
+    fig = pyplot.figure('Position', [500, 500, 1000, 400])
     pyplot.subplot(121, imagesc(np2m(conn.weights)), colorbar, pyplot.title('Weights'))
     pyplot.subplot(122, imagesc(np2m(conn.tract_lengths)), colorbar)
     pyplot.title('Tract Lengths (mm)')
+    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
 
 def matlab_two_ep_sim(gca, squeeze, signal):
     """
     erform a simulation with two Epileptors.
     :return:
     """
-    pyplot.figure()
+    fig = pyplot.figure()
 
     pyplot.subplot(311)
     pyplot.plot(time, squeeze(signal(1, ':', 1, ':')), 'k')
@@ -738,6 +753,7 @@ def matlab_two_ep_sim(gca, squeeze, signal):
     pyplot.plot(time, squeeze(signal(1,':', 2,':')), 'k')
     pyplot.ylabel('Z(t)')
     pyplot.xlabel('Time (ms)')
+    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
 
 def region_simulate(raw_data, tavg_data, raw_time, tavg_time):
     """
@@ -750,7 +766,7 @@ def region_simulate(raw_data, tavg_data, raw_time, tavg_time):
     TAVG = numpy.array(tavg_data)
 
     # Plot raw time series
-    pyplot.figure(1)
+    fig = pyplot.figure(1)
     pyplot.plot(raw_time, RAW[:, 0, :, 0])
     pyplot.title("Raw -- State variable 0")
 
@@ -761,6 +777,7 @@ def region_simulate(raw_data, tavg_data, raw_time, tavg_time):
 
     # Show them
     pyplot.show()
+    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
 
 def centres_cubic(self, number_of_regions=4, max_radius=42., flat=False):
     """
@@ -816,36 +833,6 @@ def three_d_dviewer():
         volume = ax.volume
         ax.index = (ax.index + 1) % volume.shape[0]
         ax.images[0].set_array(volume[ax.index])
-
-def cube():
-
-    """Demonstrates plotting 3D volumetric objects"""
-    # This import registers the 3D projection, but is otherwise unused.
-    from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
-
-    # prepare some coordinates
-    x, y, z = np.indices((8, 8, 8))
-
-    # draw cuboids in the top left and bottom right corners, and a link between them
-    cube1 = (x < 3) & (y < 3) & (z < 3)
-    cube2 = (x >= 5) & (y >= 5) & (z >= 5)
-    link = abs(x - y) + abs(y - z) + abs(z - x) <= 2
-
-    # combine the objects into a single boolean array
-    voxels = cube1 | cube2 | link
-
-    # set the colors of each object
-    colors = np.empty(voxels.shape, dtype=object)
-    colors[link] = 'red'
-    colors[cube1] = 'blue'
-    colors[cube2] = 'green'
-
-    # and plot everything
-    fig = pyplot.figure()
-    ax = fig.gca(projection='3d')
-    ax.voxels(voxels, facecolors=colors, edgecolor='k')
-
-    pyplot.show()
 
 def plot_fast_kde(x, sp, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),
              extents=None, nocorrelation=False, weights=None, norm = True, pdf=False, **kwargs):
