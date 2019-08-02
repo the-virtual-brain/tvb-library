@@ -35,24 +35,28 @@ A collection of plotting functions used by simulator/demos
 .. moduleauthor:: Paula Sanz Leon <paula.sanz-leon@univ-amu.fr>
 """
 
-import numpy
-import scipy as sp
-import networkx as nx
 from tvb.basic.logger.builder import get_logger
+import time
+import utils
+import numpy
+import numpy as np
 
 LOG = get_logger(__name__)
 
+# plotly import matplotlib altenetive and more friendly
 
-##----------------------------------------------------------------------------##
-##-                  matplotlib based plotting functions                     -##
-##---------------------------------------------------------------------------cd-##
+import plotly.offline
+import plotly.tools as tls
 
-import matplotlib as mpl
+# ---------------------------------------------------------------------------
+# -                  matplotlib based plotting functions
+# --------------------------------------------------------------------------
+
 import matplotlib.pyplot as pyplot
 import matplotlib.colors
 import matplotlib.ticker as ticker
-import matplotlib.colors as colors
-
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import colors
 
 try:
     from mpl_toolkits.axes_grid import make_axes_locatable
@@ -67,12 +71,130 @@ def _blob(x, y, area, colour):
     the given coordinates.
     From : http://www.scipy.org/Cookbook/Matplotlib/HintonDiagrams
     """
+    fig = pyplot.figure()
     hs = numpy.sqrt(area) / 2
     xcorners = numpy.array([x - hs, x + hs, x + hs, x - hs])
     ycorners = numpy.array([y - hs, y - hs, y + hs, y + hs])
     pyplot.fill(xcorners, ycorners, colour, edgecolor=colour)
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
+def longer_time_series(ts_int, tsr):
 
+    """
+    Create And Launch A TimeSeriesInteractive
+    :param ts_int: import tvb.simulator.plot.timeseries_interactive as ts_int
+    :param tsr: ime_series.TimeSeriesRegion()
+    :return:
+    """
+
+    tsi = ts_int.TimeSeriesInteractive(time_series=tsr)
+    tsi.configure()
+    tsi.show()
+
+def phase_plane_tool(ppi, epileptor):
+
+    """
+    Open the phase plane tool with the epileptor model
+    :param ppi: from tvb.simulator.plot.phase_plane_interactive import PhasePlaneInteractive as ppi
+    :param epileptor: epileptor = models.Epileptor(
+    :return:
+    """
+    ppi_fig = ppi(model=epileptor)
+    ppi_fig.show()
+
+def epi_time_series(tavg, t):
+
+    """
+    Triggering a seizure by stimulation
+    :param tavg: (np.max(tavg,0) - np.min(tavg,0 ))
+    :param t: sim.run()
+    :return:
+    """
+
+    # Plot raw time series
+    fig = pyplot.figure(figsize=(10, 10))
+    pyplot.plot(t[:], tavg[:, 0, :, 0] + numpy.r_[:76], 'r')
+    pyplot.title("Epileptors time series")
+
+    # Show them
+    pyplot.show()
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
+
+def display_source_sensor(conn, sens_eeg, skin, sens_meg):
+    """
+    Display ROIs & M/EEG sensor positions
+
+    :param conn:
+    :param sens_eeg:
+    :param skin:
+    :param sens_meg:
+    :return:
+    """
+    fig = pyplot.figure()
+    ax = pyplot.subplot(111, projection='3d')
+
+    # ROI centers as black circles
+    x, y, z = conn.centres.T
+    ax.plot(x, y, z, 'ko')
+
+    # EEG sensors as blue x's
+    x, y, z = sens_eeg.sensors_to_surface(skin).T
+    ax.plot(x, y, z, 'bx')
+
+    # Plot boundary surface
+    x, y, z = skin.vertices.T
+    ax.plot_trisurf(x, y, z, triangles=skin.triangles, alpha=0.1, edgecolor='none')
+
+    # MEG sensors as red +'s
+    x, y, z = sens_meg.locations.T
+    ax.plot(x, y, z, 'r+')
+    # Plot using plotly
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
+
+def compare_inte(raws, names, exp, t, r_):
+    """
+    Often it is difficult to know which is the best integration method
+    for your simulation. TVB offers a handful of methods, with recently
+    added variable order methods which allow one to safely choose higher
+    time steps, as long as they remain smaller than the smallest time delay.
+
+    :param raws:
+    :param names:
+    :param exp:
+    :param t:
+    :param r:
+    :return:
+    """
+    n_raw = len(raws)
+    fig = pyplot.figure(figsize=(15, 15))
+    for i, (raw_i, name_i) in enumerate(zip(raws, names)):
+        for j, (raw_j, name_j) in enumerate(zip(raws, names)):
+            pyplot.subplot(n_raw, n_raw, i * n_raw + j + 1)
+            if raw_i.shape[0] != t.shape[0] or raw_i.shape[0] != raw_j.shape[0]:
+                continue
+            if i == j:
+                pyplot.plot(t, raw_i[:, 0, :, 0], 'k', alpha=0.1)
+            else:
+                pyplot.semilogy(t, (abs(raw_i - raw_j) / raw_i.ptp())[:, 0, :, 0], 'k', alpha=0.1)
+                pyplot.ylim(exp(r_[-30, 0]))
+
+            pyplot.grid(True)
+            if i == 0:
+                pyplot.title(name_j)
+            if j == 0:
+                pyplot.ylabel(name_i)
+
+        if i == 0:
+            euler_raw = raw
+        else:
+            raw = abs(raw - euler_raw) / euler_raw.ptp() * 100.0
+
+    pyplot.tight_layout()
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
 def hinton_diagram(connectivity_weights, num, maxWeight=None):
     """
@@ -85,7 +207,7 @@ def hinton_diagram(connectivity_weights, num, maxWeight=None):
     if not maxWeight:
         maxWeight = 2 ** numpy.ceil(numpy.log(numpy.max(numpy.abs(connectivity_weights))) / numpy.log(2))
 
-    #pyplot.fill(numpy.array([0,width,width,0]),numpy.array([0,0,height+0.5,height+0.5]),'gray')
+    # pyplot.fill(numpy.array([0,width,width,0]),numpy.array([0,0,height+0.5,height+0.5]),'gray')
     pyplot.axis('equal')
     weights_axes = weights_figure.gca()
 
@@ -100,12 +222,29 @@ def hinton_diagram(connectivity_weights, num, maxWeight=None):
                 _blob(_x - 1., height - _y + 0.0, min(1, -w / maxWeight), 'black')
     return weights_axes
 
-
+    plotly_fig = tls.mpl_to_plotly(weights_figure)
+    plotly.offline.iplot(plotly_fig)
 
 def plot_connectivity(connectivity, num="weights", order_by=None, plot_hinton=False, plot_tracts=True):
     """
     A 2D plot for visualizing the Connectivity.weights matrix
     """
+
+    def plot_with_weights(weights):
+        """
+        Connectivity normalization
+        With significant variability between methods of obtaining structural connectivity,
+        it is often useful to normalize, in one sense or another, the connectivity when
+        comparing, for example, across subjects, or standardizing parameter ranges.
+
+        :param weights: mode e.g region default none
+        :output: 2d plot
+        """
+        conn = connectivity.Connectivity(load_default=True)
+        conn.configure()
+        conn.weights = weights
+        plot_connectivity(conn, num="tract_mode", plot_tracts=False)
+
     labels = connectivity.region_labels
     plot_title = connectivity.__class__.__name__
 
@@ -130,7 +269,8 @@ def plot_connectivity(connectivity, num="weights", order_by=None, plot_hinton=Fa
         weights_axes = weights_figure.gca()
         wimg = weights_axes.matshow(connectivity.weights[order_rows, order_columns])
         weights_figure.colorbar(wimg)
-
+        plotly_fig = tls.mpl_to_plotly(weights_figure)
+        plotly.offline.iplot(plotly_fig)
     weights_axes.set_title(plot_title)
 
     if plot_tracts:
@@ -155,8 +295,6 @@ def plot_connectivity(connectivity, num="weights", order_by=None, plot_hinton=Fa
 
         tracts_axes.set_xticks(numpy.arange(connectivity.number_of_regions))
         tracts_axes.set_xticklabels(list(labels[order]), fontsize=8, rotation=90)
-
-
 
 def plot_local_connectivity(cortex, cutoff=None):
     """
@@ -190,7 +328,7 @@ def plot_local_connectivity(cortex, cutoff=None):
               '-']   # : solid line    -- black
 
 
-    #If necessary, add a default LocalConnectivity to ``local_connectivity``.
+    # If necessary, add a default LocalConnectivity to ``local_connectivity``.
     if cortex.local_connectivity is None:
         LOG.info("local_connectivity is None, adding default LocalConnectivity")
         cortex.local_connectivity = cortex.trait["local_connectivity"]
@@ -198,7 +336,7 @@ def plot_local_connectivity(cortex, cutoff=None):
     if cutoff:
         cortex.local_connectivity.cutoff = cutoff
 
-    #We need a cutoff distance to work from...
+    # We need a cutoff distance to work from...
     if cortex.local_connectivity.cutoff is None:
         LOG.error("You need to provide a cutoff...")
         return
@@ -206,44 +344,40 @@ def plot_local_connectivity(cortex, cutoff=None):
     cutoff = cortex.local_connectivity.cutoff
     cutoff_2 = 2.0 * cortex.local_connectivity.cutoff
 
-    pyplot.figure(num="Local Connectivity Cases")
+    fig = pyplot.figure(num="Local Connectivity Cases")
     pyplot.title("Local Connectivity Cases")
 
     # ideally all these lines should overlap
 
-    #What we want
+    # What we want
     hi_res = 1024
     step = 2.0 * cutoff_2 / (hi_res - 1)
     hi_x = numpy.arange(-cutoff_2, cutoff_2 + step, step)
-    cortex.local_connectivity.equation.pattern = numpy.abs(hi_x)
-    pyplot.plot(hi_x, cortex.local_connectivity.equation.pattern, 'k',
+    pyplot.plot(hi_x, cortex.local_connectivity.equation.evaluate(numpy.abs(hi_x)), 'k',
                 linestyle=dashes[-1], linewidth=3)
 
-    #What we'll mostly get
+    # What we'll mostly get
     avg_res = 2 * int(cutoff / cortex.edge_length_mean)
     step = cutoff_2 / (avg_res - 1)
     avg_x = numpy.arange(-cutoff, cutoff + step, step)
-    cortex.local_connectivity.equation.pattern = numpy.abs(avg_x)
-    pyplot.plot(avg_x, cortex.local_connectivity.equation.pattern, 'b',
+    pyplot.plot(avg_x, cortex.local_connectivity.equation.evaluate(numpy.abs(avg_x)), 'b',
                 linestyle=dashes[0], linewidth=3)
 
-    #It can be this bad
+    # It can be this bad
     worst_res = 2 * int(cutoff / cortex.edge_length_max)
     step = cutoff_2 / (worst_res - 1)
     worst_x = numpy.arange(-cutoff, cutoff + step, step)
-    cortex.local_connectivity.equation.pattern = numpy.abs(worst_x)
-    pyplot.plot(worst_x, cortex.local_connectivity.equation.pattern, 'r',
+    pyplot.plot(worst_x, cortex.local_connectivity.equation.evaluate(numpy.abs(worst_x)), 'r',
                 linestyle=dashes[1], linewidth=3)
 
-    #This is as good as it gets...
+    # This is as good as it gets...
     best_res = 2 * int(cutoff / cortex.edge_length_min)
     step = cutoff_2 / (best_res - 1)
     best_x = numpy.arange(-cutoff, cutoff + step, step)
-    cortex.local_connectivity.equation.pattern = numpy.abs(best_x)
-    pyplot.plot(best_x, cortex.local_connectivity.equation.pattern, 'g',
+    pyplot.plot(best_x, cortex.local_connectivity.equation.evaluate(numpy.abs(best_x)), 'g',
                 linestyle=dashes[2], linewidth=3)
 
-    #Plot the cutoff
+    # Plot the cutoff
     ymin, ymax = pyplot.ylim()
     pyplot.plot([-cutoff, -cutoff], [ymin, ymax], "k--")
     pyplot.plot([cutoff, cutoff], [ymin, ymax], "k--")
@@ -252,24 +386,37 @@ def plot_local_connectivity(cortex, cutoff=None):
     pyplot.xlabel("Distance from focal point")
     pyplot.ylabel("Strength")
     pyplot.legend(("Theoretical", "Typical", "Worst", "Best", "Cutoff"))
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
-    # set the linewidth of the first legend object
-    #leg.legendHandles[0].set_linewidth(6.0)
-    #leg.legendHandles[1].set_linewidth(6.0)
-    #leg.legendHandles[2].set_linewidth(6.0)
-    #leg.legendHandles[3].set_linewidth(6.0)
-
-
+def temp_avg_timeseries(TAVG, EEG, nodes, tt):
+    """
+    Temporal Averaged time-series
+    :param TAVG: numpy array
+    :param EEG: numpy array
+    :param tt: numpy array
+    :return: output: 2D time Series
+    """
+    fig = pyplot.figure()
+    pyplot.subplot(211)
+    pyplot.plot(tt, TAVG[:, 0, nodes, 0])
+    pyplot.title("Temporal Averaged time-series")
+    pyplot.subplot(212)
+    pyplot.plot(tt, EEG[:, 0, 60, 0], 'k')
+    pyplot.title("EEG")
+    pyplot.tight_layout()
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
 def plot_pattern(pattern_object):
     """
     pyplot in 2D the given X, over T.
     """
-    pyplot.figure(42)
+    fig = pyplot.figure(42)
     pyplot.subplot(221)
     pyplot.plot(pattern_object.spatial_pattern, "k*")
     pyplot.title("Space")
-    #pyplot.plot(pattern_object.space, pattern_object.spatial_pattern, "k*")
+    # pyplot.plot(pattern_object.space, pattern_object.spatial_pattern, "k*")
     pyplot.subplot(223)
     pyplot.plot(pattern_object.time.T, pattern_object.temporal_pattern.T)
     pyplot.title("Time")
@@ -279,9 +426,9 @@ def plot_pattern(pattern_object):
     pyplot.title("Stimulus")
     pyplot.xlabel("Time")
     pyplot.ylabel("Space")
-    #pyplot.show()
-
-
+    # plot on plotly
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
 def show_me_the_colours():
     """
@@ -298,18 +445,16 @@ def show_me_the_colours():
         ax.set_xticklabels([])
         ax.set_axis_bgcolor(colours[k])
         ax.text(0.05, 0.5, colours[k])
-
-
+        plotly_fig = tls.mpl_to_plotly(colours_fig)
+        plotly.offline.iplot(plotly_fig)
 
 def plot_matrix(mat, fig_name='plot_this_matrix', connectivity=None, binary_matrix=False):
     """
     An embellished matshow display
     """
-    #NOTE: I could add more stuff in plot_connectivity, but I rather have
+    # NOTE: I could add more stuff in plot_connectivity, but I rather have
     # a dummy function for displaying a pretty matrix with the 
     # value of each element.
-
-    from matplotlib import colors
 
     fig, ax = pyplot.subplots(num=fig_name, figsize=(12,10))
 
@@ -338,42 +483,29 @@ def plot_matrix(mat, fig_name='plot_this_matrix', connectivity=None, binary_matr
     
     width  = mat.shape[0]
     height = mat.shape[1]
-
-    # for x in range(width):
-    #     for y in range(height):
-    #         ax.annotate(str(int(mat[x][y])),
-    #                     xy=(y, x),
-    #                     horizontalalignment='center',
-    #                     verticalalignment  = 'center',
-    #                     fontsize=10)
-
-
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
 def plot_3d_centres(xyz):
-
-        import matplotlib as mpl
-        from mpl_toolkits.mplot3d import Axes3D
-        import matplotlib.pyplot as plt
-
-
-        fig = plt.figure(1)
-        fig.clf()
-        ax = Axes3D(fig)
-        ax.plot(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', alpha=0.6)
-        ax.set_xlim([min(xyz[:, 0]), max(xyz[:, 0])])
-        ax.set_ylim([min(xyz[:, 1]), max(xyz[:, 1])])
-        ax.set_zlim([min(xyz[:, 2]), max(xyz[:, 2])])
-        ax.set_xlabel('x [mm]')
-        ax.set_ylabel('y [mm]')
-        ax.set_zlabel('z [mm]')
-
-
+    """Plot 3D"""
+    fig = pyplot.figure(1)
+    fig.clf()
+    ax = Axes3D(fig)
+    ax.plot(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', alpha=0.6)
+    ax.set_xlim([min(xyz[:, 0]), max(xyz[:, 0])])
+    ax.set_ylim([min(xyz[:, 1]), max(xyz[:, 1])])
+    ax.set_zlim([min(xyz[:, 2]), max(xyz[:, 2])])
+    ax.set_xlabel('x [mm]')
+    ax.set_ylabel('y [mm]')
+    ax.set_zlabel('z [mm]')
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
 def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
                         cmap=pyplot.cm.RdBu_r, colourbar=True,
                         color_anchor=None, node_labels=None, x_tick_rot=0, 
                         title=None):
-    r"""Creates a lower-triangle of a square matrix. Very often found to display correlations or coherence.
+    """Creates a lower-triangle of a square matrix. Very often found to display correlations or coherence.
 
     Parameters
     ----------
@@ -417,14 +549,9 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
         fig.set_figwidth(size[0])
         fig.set_figheight(size[1])
 
-    w = fig.get_figwidth()
-    h = fig.get_figheight()
-
     ax_im = fig.add_subplot(1, 1, 1)
 
-    N   = mat.shape[0]
-    idx = numpy.arange(N) 
-
+    N = mat.shape[0]
      
     if colourbar:
         if IMPORTED_MPL_TOOLKITS:
@@ -436,11 +563,11 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
 
     mat_copy = mat.copy()
 
-    #Null the upper triangle, including the main diagonal.
+    # Null the upper triangle, including the main diagonal.
     idx_null           = numpy.triu_indices(mat_copy.shape[0])
     mat_copy[idx_null] = numpy.nan
 
-    #Min max values
+    # Min max values
     max_val = numpy.nanmax(mat_copy)
     min_val = numpy.nanmin(mat_copy)
 
@@ -455,14 +582,14 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
         color_min = color_anchor[0]
         color_max = color_anchor[1]
 
-    #The call to imshow produces the matrix plot:
+    # The call to imshow produces the matrix plot:
     im = ax_im.imshow(mat_copy, origin='upper', interpolation='nearest',
                       vmin=color_min, vmax=color_max, cmap=cmap)
 
-    #Formatting:
+    # Formatting:
     ax = ax_im
     ax.grid(True)
-    #Label each of the cells with the row and the column:
+    # Label each of the cells with the row and the column:
     if node_labels is not None:
         for i in range(0, mat_copy.shape[0]):
             if i < (mat_copy.shape[0] - 1):
@@ -480,7 +607,7 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
         ax.set_ybound([-0.5, N - 0.5])
         ax.set_xbound([-0.5, N - 1.5])
 
-    #Make the tick-marks invisible:
+    # Make the tick-marks invisible:
     for line in ax.xaxis.get_ticklines():
         line.set_markeredgewidth(0)
 
@@ -493,16 +620,16 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
         ax.set_title(title)
 
     if colourbar:
-        #Set the ticks - if 0 is in the interval of values, set that, as well
-        #as the min, max values:
+        # Set the ticks - if 0 is in the interval of values, set that, as well
+        # as the min, max values:
         if min_val < 0:
             ticks = [color_min, min_val, 0, max_val, color_max]
-        #set the min, mid and  max values:
+        # set the min, mid and  max values:
         else:
             ticks = [color_min, min_val, (color_max- color_min)/2., max_val, color_max]
 
 
-        #colourbar:
+        # colourbar:
         if IMPORTED_MPL_TOOLKITS:
             cb = fig.colorbar(im, cax=ax_cb, orientation='horizontal',
                               cmap=cmap,
@@ -521,11 +648,206 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
                               format='%.2f')
 
     fig.sca(ax)
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
     return fig
 
+def plot_roi_corr_map(reg_name, conn, t, y, corrcoef):
+    """
+    Seed-region correlation maps
 
-def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500), 
+    A common visualization of FC specific to a given is to pull out its
+    row of the FC matrix and plot a colormap on the anatomy. We can do this
+    will the simulated functional connectivity to identify which regions are
+    highly coordinated with the seed region.
+
+    :param reg_name: Reg/plot name
+    :param conn: connectivity e.g conn = connectivity.Connectivity(load_default=True)
+    :return: Output: 3d plot of the various angles of human brain
+    """
+    cs = []
+    for i in range(int(t[-1] / 1e3)):
+        cs.append(corrcoef(y[(t > (i * 1e3)) * (t < (1e3 * (i + 1)))].T))
+    cs = numpy.array(cs)
+    cs.shape
+    roi = numpy.find(conn.ordered_labels==reg_name)[0]
+    cs_m = cs[2:].mean(axis=0)
+    rm = utils.cortex.region_mapping
+    utils.multiview(cs_m[roi][rm], shaded=False, suptitle=reg_name, figsize=(10, 5))
+
+def plot_brain_network_model(tavg_time, tavg_data, ):
+    """
+
+    """
+    TAVG = numpy.array(tavg_data)
+    tavg_time = numpy.array(tavg_time)
+    t_interval = numpy.arange(100)
+
+    # Plot raw time series
+    fig1 = pyplot.figure(1)
+    pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 0, :, 0], 'k', alpha=0.05)
+    pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 0, :, 0].mean(axis=1), 'k', linewidth=3)
+    pyplot.title("Temporal average -- State variable V")
+    plotly_fig = tls.mpl_to_plotly(fig1)
+    plotly.offline.iplot(plotly_fig)
+
+    fig2 = pyplot.figure(2)
+    pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 1, :, 0], 'b', alpha=0.05)
+    pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 1, :, 0].mean(axis=1), 'b', linewidth=3)
+    pyplot.title("Temporal average -- State variable W")
+    plotly_fig = tls.mpl_to_plotly(fig2)
+    plotly.offline.iplot(plotly_fig)
+
+    fig3 = pyplot.figure(3)
+    pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 2, :, 0], 'r', alpha=0.05)
+    pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 2, :, 0].mean(axis=1), 'r', linewidth=3)
+    pyplot.title("Temporal average -- State variable Z")
+    pyplot.xlabel('time [ms]', fontsize=24)
+    plotly_fig = tls.mpl_to_plotly(fig3)
+    plotly.offline.iplot(plotly_fig)
+
+def sim_sum_eeg(eeg, meg, seeg):
+    """
+    Cortical surface with subcortical regions,
+    sEEG, EEG & MEG, using a stochastic integration.
+    """
+    fig = pyplot.figure()
+
+    for i, mon in enumerate((eeg, meg, seeg)):
+        pyplot.subplot(3, 1, i + 1)
+        time, data = mon
+        pyplot.plot(time, data[:, 0, :, 0], 'k', alpha=0.1)
+        pyplot.ylabel(['EEG', 'MEG', 'sEEG'][i])
+
+    pyplot.tight_layout()
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
+
+def reg_red_wong_wang(colorbar, conn, imagesc, np2m):
+    """
+    perform a simulation with the reduced Wong-Wang model,
+    using the default connectivity.
+    :return:
+    """
+    fig = pyplot.figure('Position', [500, 500, 1000, 400])
+    pyplot.subplot(121, imagesc(np2m(conn.weights)), colorbar, pyplot.title('Weights'))
+    pyplot.subplot(122, imagesc(np2m(conn.tract_lengths)), colorbar)
+    pyplot.title('Tract Lengths (mm)')
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
+
+def matlab_two_ep_sim(gca, squeeze, signal):
+    """
+    erform a simulation with two Epileptors.
+    :return:
+    """
+    fig = pyplot.figure()
+
+    pyplot.subplot(311)
+    pyplot.plot(time, squeeze(signal(1, ':', 1, ':')), 'k')
+    pyplot.ylabel('x2(t - x1(t)')
+    pyplot.set(gca, 'XTickLabel', {})
+
+    pyplot.title('Two Epileptors')
+
+    # plot high-pass filtered LFP
+    pyplot.subplot(312)
+    [b, a] = buffer(3, 2/2000*5.0, 'high')
+    hpf = filter(b, a, squeeze(signal(1,':', 1,':')))
+    pyplot.plot(time, hpf(':',1),'k')
+    pyplot.plot(time, hpf(':', 2), 'k')
+    pyplot.set(gca, 'XTickLabel', {})
+    pyplot.ylabel('HPF LFP')
+
+    pyplot.subplot(313)
+    pyplot.plot(time, squeeze(signal(1,':', 2,':')), 'k')
+    pyplot.ylabel('Z(t)')
+    pyplot.xlabel('Time (ms)')
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
+
+def region_simulate(raw_data, tavg_data, raw_time, tavg_time):
+    """
+    presents the basic anatomy of a region simulation using
+    The Virtual Brain's (TVB's) scripting interface.
+    :return:
+    """
+    # Make the lists numpy.arrays for easier use.
+    RAW = numpy.array(raw_data)
+    TAVG = numpy.array(tavg_data)
+
+    # Plot raw time series
+    fig = pyplot.figure(1)
+    pyplot.plot(raw_time, RAW[:, 0, :, 0])
+    pyplot.title("Raw -- State variable 0")
+
+    # Plot temporally averaged time series
+    pyplot.figure(2)
+    pyplot.plot(tavg_time, TAVG[:, 0, :, 0])
+    pyplot.title("Temporal average")
+
+    # Show them
+    pyplot.show()
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
+
+def centres_cubic(self, number_of_regions=4, max_radius=42., flat=False):
+    """
+    The nodes are positioined in a 3D grid inside the cube centred at the origin and
+    with edges parallel to the axes, with an edge length of 2*max_radius.
+
+    """
+
+    # To cartesian coordinates
+    x = numpy.linspace(-max_radius, max_radius, number_of_regions)
+    y = numpy.linspace(-max_radius, max_radius, number_of_regions)
+
+    if flat:
+        z = numpy.zeros(number_of_regions)
+    else:
+        z = numpy.linspace(-max_radius, max_radius, number_of_regions)
+
+    self.centres = numpy.array([x, y, z]).T
+
+def three_d_dviewer():
+    """Viewing 3D Volumetric Data With Matplotlib"""
+    def remove_keymap_conflicts(new_keys_set):
+        for prop in pyplot.rcParams:
+            if prop.startswith('keymap.'):
+                keys = pyplot.rcParams[prop]
+                remove_list = set(keys) & new_keys_set
+                for key in remove_list:
+                    keys.remove(key)
+
+    def multi_slice_viewer(volume):
+        remove_keymap_conflicts({'j', 'k'})
+        fig, ax = pyplot.subplots()
+        ax.volume = volume
+        ax.index = volume.shape[0] // 2
+        ax.imshow(volume[ax.index])
+        fig.canvas.mpl_connect('key_press_event', process_key)
+
+    def process_key(event):
+        fig = event.canvas.figure
+        ax = fig.axes[0]
+        if event.key == 'j':
+            previous_slice(ax)
+        elif event.key == 'k':
+            next_slice(ax)
+        fig.canvas.draw()
+
+    def previous_slice(ax):
+        volume = ax.volume
+        ax.index = (ax.index - 1) % volume.shape[0]  # wrap around using %
+        ax.images[0].set_array(volume[ax.index])
+
+    def next_slice(ax):
+        volume = ax.volume
+        ax.index = (ax.index + 1) % volume.shape[0]
+        ax.images[0].set_array(volume[ax.index])
+
+def plot_fast_kde(x, sp, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),
              extents=None, nocorrelation=False, weights=None, norm = True, pdf=False, **kwargs):
     """
     A faster gaussian kernel density estimate (KDE).  Intended for
@@ -578,7 +900,7 @@ def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),
         A gridded 2D kernel density estimate of the input points. 
     """
    
-    #---- Setup --------------------------------------------------------------
+    # ------------------------------- Setup ------------------------------------------
     x, y = numpy.asarray(x), numpy.asarray(y)
     x, y = numpy.squeeze(x), numpy.squeeze(y)
     
@@ -607,7 +929,7 @@ def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),
     dx = (xmax - xmin) / (nx - 1)
     dy = (ymax - ymin) / (ny - 1)
 
-    #---- Preliminary Calculations -------------------------------------------
+    # ---- Preliminary Calculations -------------------------------------------
 
     # First convert x & y over to pixel coordinates
     # (Avoiding np.digitize due to excessive memory usage!)
@@ -667,12 +989,11 @@ def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),
     # units as scipy.stats.kde.gaussian_kde's output.  
     norm_factor = 2 * numpy.pi * cov * scotts_factor**2
     norm_factor = numpy.linalg.det(norm_factor)
-    #norm_factor = n * dx * dy * np.sqrt(norm_factor)
     norm_factor = numpy.sqrt(norm_factor)
     
     if norm : 
         norm_factor *= n * dx * dy
-    #---- Produce pdf                        --------------------------------
+    #  --------------------- Produce pdf--------------------------------
 
     if pdf:
         norm_factor, _ = sp.integrate.nquad(grid, [[xmin, xmax], [ymin, ymax]])
@@ -685,6 +1006,5 @@ def plot_fast_kde(x, y, kern_nx = None, kern_ny = None, gridsize=(500, 500),
 if __name__ == '__main__':
     # Do some stuff that tests or makes use of this module... 
     pass
-
 
 ##- EoF -##
