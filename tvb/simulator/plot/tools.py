@@ -55,6 +55,8 @@ import plotly.tools as tls
 import matplotlib.pyplot as pyplot
 import matplotlib.colors
 import matplotlib.ticker as ticker
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import colors
 
 try:
     from mpl_toolkits.axes_grid import make_axes_locatable
@@ -74,8 +76,8 @@ def _blob(x, y, area, colour):
     xcorners = numpy.array([x - hs, x + hs, x + hs, x - hs])
     ycorners = numpy.array([y - hs, y - hs, y + hs, y + hs])
     pyplot.fill(xcorners, ycorners, colour, edgecolor=colour)
-    # Plot on browser temp-plot.html file
-    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
 def longer_time_series(ts_int, tsr):
 
@@ -117,8 +119,8 @@ def epi_time_series(tavg, t):
 
     # Show them
     pyplot.show()
-    # Plot on browser temp-plot.html file
-    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
 def display_source_sensor(conn, sens_eeg, skin, sens_meg):
     """
@@ -148,9 +150,9 @@ def display_source_sensor(conn, sens_eeg, skin, sens_meg):
     # MEG sensors as red +'s
     x, y, z = sens_meg.locations.T
     ax.plot(x, y, z, 'r+')
-    # Plot on browser temp-plot.html file
+    # Plot using plotly
     plotly_fig = tls.mpl_to_plotly(fig)
-    plotly.offline.plot(plotly_fig)
+    plotly.offline.iplot(plotly_fig)
 
 def compare_inte(raws, names, exp, t, r_):
     """
@@ -191,8 +193,8 @@ def compare_inte(raws, names, exp, t, r_):
             raw = abs(raw - euler_raw) / euler_raw.ptp() * 100.0
 
     pyplot.tight_layout()
-    # Plot on browser temp-plot.html file
-    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
 def hinton_diagram(connectivity_weights, num, maxWeight=None):
     """
@@ -219,8 +221,9 @@ def hinton_diagram(connectivity_weights, num, maxWeight=None):
             elif w < 0:
                 _blob(_x - 1., height - _y + 0.0, min(1, -w / maxWeight), 'black')
     return weights_axes
-    # Plot on browser temp-plot.html file
-    plotly.offline.plot_mpl(weights_figure, filename='temp-plot.html')
+
+    plotly_fig = tls.mpl_to_plotly(weights_figure)
+    plotly.offline.iplot(plotly_fig)
 
 def plot_connectivity(connectivity, num="weights", order_by=None, plot_hinton=False, plot_tracts=True):
     """
@@ -266,7 +269,8 @@ def plot_connectivity(connectivity, num="weights", order_by=None, plot_hinton=Fa
         weights_axes = weights_figure.gca()
         wimg = weights_axes.matshow(connectivity.weights[order_rows, order_columns])
         weights_figure.colorbar(wimg)
-        plotly.offline.plot_mpl(weights_figure, filename='temp-plot.html')
+        plotly_fig = tls.mpl_to_plotly(weights_figure)
+        plotly.offline.iplot(plotly_fig)
     weights_axes.set_title(plot_title)
 
     if plot_tracts:
@@ -382,8 +386,8 @@ def plot_local_connectivity(cortex, cutoff=None):
     pyplot.xlabel("Distance from focal point")
     pyplot.ylabel("Strength")
     pyplot.legend(("Theoretical", "Typical", "Worst", "Best", "Cutoff"))
-    # Plot inside plotly on browser
-    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
 def temp_avg_timeseries(TAVG, EEG, nodes, tt):
     """
@@ -401,7 +405,8 @@ def temp_avg_timeseries(TAVG, EEG, nodes, tt):
     pyplot.plot(tt, EEG[:, 0, 60, 0], 'k')
     pyplot.title("EEG")
     pyplot.tight_layout()
-    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
 def plot_pattern(pattern_object):
     """
@@ -422,7 +427,8 @@ def plot_pattern(pattern_object):
     pyplot.xlabel("Time")
     pyplot.ylabel("Space")
     # plot on plotly
-    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
 def show_me_the_colours():
     """
@@ -439,7 +445,8 @@ def show_me_the_colours():
         ax.set_xticklabels([])
         ax.set_axis_bgcolor(colours[k])
         ax.text(0.05, 0.5, colours[k])
-        plotly.offline.plot_mpl(colours_fig, filename='temp-plot.html')
+        plotly_fig = tls.mpl_to_plotly(colours_fig)
+        plotly.offline.iplot(plotly_fig)
 
 def plot_matrix(mat, fig_name='plot_this_matrix', connectivity=None, binary_matrix=False):
     """
@@ -448,8 +455,6 @@ def plot_matrix(mat, fig_name='plot_this_matrix', connectivity=None, binary_matr
     # NOTE: I could add more stuff in plot_connectivity, but I rather have
     # a dummy function for displaying a pretty matrix with the 
     # value of each element.
-
-    from matplotlib import colors
 
     fig, ax = pyplot.subplots(num=fig_name, figsize=(12,10))
 
@@ -478,25 +483,23 @@ def plot_matrix(mat, fig_name='plot_this_matrix', connectivity=None, binary_matr
     
     width  = mat.shape[0]
     height = mat.shape[1]
-    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
 def plot_3d_centres(xyz):
-
-        from mpl_toolkits.mplot3d import Axes3D
-        import matplotlib.pyplot as plt
-
-
-        fig = plt.figure(1)
-        fig.clf()
-        ax = Axes3D(fig)
-        ax.plot(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', alpha=0.6)
-        ax.set_xlim([min(xyz[:, 0]), max(xyz[:, 0])])
-        ax.set_ylim([min(xyz[:, 1]), max(xyz[:, 1])])
-        ax.set_zlim([min(xyz[:, 2]), max(xyz[:, 2])])
-        ax.set_xlabel('x [mm]')
-        ax.set_ylabel('y [mm]')
-        ax.set_zlabel('z [mm]')
-        plotly.offline.plot_mpl(fig, filename='temp-plot.html')
+    """Plot 3D"""
+    fig = pyplot.figure(1)
+    fig.clf()
+    ax = Axes3D(fig)
+    ax.plot(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', alpha=0.6)
+    ax.set_xlim([min(xyz[:, 0]), max(xyz[:, 0])])
+    ax.set_ylim([min(xyz[:, 1]), max(xyz[:, 1])])
+    ax.set_zlim([min(xyz[:, 2]), max(xyz[:, 2])])
+    ax.set_xlabel('x [mm]')
+    ax.set_ylabel('y [mm]')
+    ax.set_zlabel('z [mm]')
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
 def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
                         cmap=pyplot.cm.RdBu_r, colourbar=True,
@@ -548,7 +551,7 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
 
     ax_im = fig.add_subplot(1, 1, 1)
 
-    N   = mat.shape[0]
+    N = mat.shape[0]
      
     if colourbar:
         if IMPORTED_MPL_TOOLKITS:
@@ -645,9 +648,10 @@ def plot_tri_matrix(mat, figure=None, num='plot_part_of_this_matrix', size=None,
                               format='%.2f')
 
     fig.sca(ax)
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
     return fig
-    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
 
 def plot_roi_corr_map(reg_name, conn, t, y, corrcoef):
     """
@@ -681,22 +685,27 @@ def plot_brain_network_model(tavg_time, tavg_data, ):
     t_interval = numpy.arange(100)
 
     # Plot raw time series
-    fig = pyplot.figure(1)
+    fig1 = pyplot.figure(1)
     pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 0, :, 0], 'k', alpha=0.05)
     pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 0, :, 0].mean(axis=1), 'k', linewidth=3)
     pyplot.title("Temporal average -- State variable V")
+    plotly_fig = tls.mpl_to_plotly(fig1)
+    plotly.offline.iplot(plotly_fig)
 
-    pyplot.figure(2)
+    fig2 = pyplot.figure(2)
     pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 1, :, 0], 'b', alpha=0.05)
     pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 1, :, 0].mean(axis=1), 'b', linewidth=3)
     pyplot.title("Temporal average -- State variable W")
+    plotly_fig = tls.mpl_to_plotly(fig2)
+    plotly.offline.iplot(plotly_fig)
 
-    pyplot.figure(3)
+    fig3 = pyplot.figure(3)
     pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 2, :, 0], 'r', alpha=0.05)
     pyplot.plot(tavg_time[t_interval], TAVG[t_interval, 2, :, 0].mean(axis=1), 'r', linewidth=3)
     pyplot.title("Temporal average -- State variable Z")
     pyplot.xlabel('time [ms]', fontsize=24)
-    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
+    plotly_fig = tls.mpl_to_plotly(fig3)
+    plotly.offline.iplot(plotly_fig)
 
 def sim_sum_eeg(eeg, meg, seeg):
     """
@@ -712,7 +721,8 @@ def sim_sum_eeg(eeg, meg, seeg):
         pyplot.ylabel(['EEG', 'MEG', 'sEEG'][i])
 
     pyplot.tight_layout()
-    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
 def reg_red_wong_wang(colorbar, conn, imagesc, np2m):
     """
@@ -724,7 +734,8 @@ def reg_red_wong_wang(colorbar, conn, imagesc, np2m):
     pyplot.subplot(121, imagesc(np2m(conn.weights)), colorbar, pyplot.title('Weights'))
     pyplot.subplot(122, imagesc(np2m(conn.tract_lengths)), colorbar)
     pyplot.title('Tract Lengths (mm)')
-    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
 def matlab_two_ep_sim(gca, squeeze, signal):
     """
@@ -753,7 +764,8 @@ def matlab_two_ep_sim(gca, squeeze, signal):
     pyplot.plot(time, squeeze(signal(1,':', 2,':')), 'k')
     pyplot.ylabel('Z(t)')
     pyplot.xlabel('Time (ms)')
-    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
 def region_simulate(raw_data, tavg_data, raw_time, tavg_time):
     """
@@ -777,7 +789,8 @@ def region_simulate(raw_data, tavg_data, raw_time, tavg_time):
 
     # Show them
     pyplot.show()
-    plotly.offline.plot_mpl(fig, filename='temp-plot.html')
+    plotly_fig = tls.mpl_to_plotly(fig)
+    plotly.offline.iplot(plotly_fig)
 
 def centres_cubic(self, number_of_regions=4, max_radius=42., flat=False):
     """
