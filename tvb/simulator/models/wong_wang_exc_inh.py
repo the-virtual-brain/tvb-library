@@ -72,7 +72,7 @@ def _numba_dfun(S, c, ae, be, de, ge, te, wp, we, jn, ai, bi, di, gi, ti, wi, ji
     dx[1] = - (S_i / ti[0]) + h * gi[0]
 
 
-class ReducedWongWangExcIOInhI(ModelNumbaDfun):
+class ReducedWongWangExcInh(ModelNumbaDfun):
     r"""
     .. [WW_2006] Kong-Fatt Wong and Xiao-Jing Wang,  *A Recurrent Network
                 Mechanism of Time Integration in Perceptual Decisions*.
@@ -96,10 +96,6 @@ class ReducedWongWangExcIOInhI(ModelNumbaDfun):
                  \dot{S}_{ik} &= -\dfrac{S_{ik}}{\tau_i} + \gamma_iH(x_{ik}) \,
 
     """
-    _ui_name = "Reduced Wong-Wang with Excitatory and Inhibitory Coupled Populations"
-    ui_configurable_parameters = ['a_e', 'b_e', 'd_e', 'gamma_e', 'tau_e', 'W_e', 'w_p', 'J_N',
-                                  'a_i', 'b_i', 'd_i', 'gamma_i', 'tau_i', 'W_i', 'J_i',
-                                  'I_o', 'G', 'lamda']
 
     # Define traited attributes for this model, these represent possible kwargs.
 
@@ -232,7 +228,7 @@ class ReducedWongWangExcIOInhI(ModelNumbaDfun):
 
     def configure(self):
         """  """
-        super(ReducedWongWangExcIOInhI, self).configure()
+        super(ReducedWongWangExcInh, self).configure()
         self.update_derived_parameters()
 
     def _numpy_dfun(self, state_variables, coupling, local_coupling=0.0):

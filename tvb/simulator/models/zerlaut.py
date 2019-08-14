@@ -7,7 +7,7 @@ from tvb.basic.neotraits.api import NArray, Range, Final, List
 from tvb.simulator.models.base import Model
 
 
-class Zerlaut_adaptation_first_order(Model):
+class ZerlautFirstOrder(Model):
     r"""
     **References**:
     .. [ZD_2018]  Zerlaut, Y., Chemla, S., Chavane, F. et al. *Modeling mesoscopic cortical dynamics using a mean-field
@@ -80,9 +80,7 @@ class Zerlaut_adaptation_first_order(Model):
 
     The models (:math:`E`, :math:`I`) phase-plane, including a representation of
     the vector field as well as its nullclines, using default parameters, can be
-    seen below:
-
-    .. automethod:: Zerlaut_adaptation_first_order.__init__
+    seen below.
 
     The general formulation for the \textit{\textbf{Zerlaut_adaptation_first_order}} model as a
     dynamical unit at a node $k$ in a BNM with $l$ nodes reads:
@@ -94,11 +92,6 @@ class Zerlaut_adaptation_first_order(Model):
             F_\lambda = Erfc(V^{eff}_{thre}-\mu_V/\sqrt(2)\sigma_V)
 
     """
-    _ui_name = "Zerlaut adaptation first order"
-    ui_configurable_parameters = ['g_L', 'E_L_e', 'E_L_i', 'C_m', 'b', 'tau_w',
-                                  'E_e', 'E_i', 'Q_e', 'Q_i', 'tau_e', 'tau_i',
-                                  'N_tot', 'p_connect', 'g', 'T',
-                                  'external_input']
 
     # Define traited attributes for this model, these represent possible kwargs.
     g_L = NArray(
@@ -395,7 +388,7 @@ class Zerlaut_adaptation_first_order(Model):
         return sp_spec.erfc((Vthre-muV) / (numpy.sqrt(2)*sigmaV)) / (2*Tv)
 
 
-class Zerlaut_adaptation_second_order(Zerlaut_adaptation_first_order):
+class ZerlautSecondOrder(ZerlautFirstOrder):
     r"""
     **References**:
     .. [ZD_2018]  Zerlaut, Y., Chemla, S., Chavane, F. et al. *Modeling mesoscopic cortical dynamics using a mean-field
@@ -412,9 +405,7 @@ class Zerlaut_adaptation_second_order(Zerlaut_adaptation_first_order):
 
     The models (:math:`E`, :math:`I`) phase-plane, including a representation of
     the vector field as well as its nullclines, using default parameters, can be
-    seen below:
-
-    .. automethod:: Zerlaut_adaptation_second_order.__init__
+    seen below.
 
     The general formulation for the \textit{\textbf{Zerlaut_adaptation_second_order}} model as a
     dynamical unit at a node $k$ in a BNM with $l$ nodes reads:
@@ -445,8 +436,6 @@ class Zerlaut_adaptation_second_order(Zerlaut_adaptation_first_order):
         \end{split}
         \right.
     """
-
-    _ui_name = "Zerlaut adaptation second order"
 
     #  Used for phase-plane axis ranges and to bound random initial() conditions.
     state_variable_range = Final(
