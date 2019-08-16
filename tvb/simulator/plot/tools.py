@@ -39,13 +39,12 @@ from tvb.basic.logger.builder import get_logger
 import time
 import utils
 import numpy
-import numpy as np
 
 LOG = get_logger(__name__)
 
 # plotly import matplotlib altenetive and more friendly
 
-import plotly.offline
+import plotly
 import plotly.tools as tls
 
 # ---------------------------------------------------------------------------
