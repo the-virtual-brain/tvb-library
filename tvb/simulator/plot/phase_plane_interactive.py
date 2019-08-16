@@ -317,6 +317,12 @@ class PhasePlaneInteractive(core.Type):
         self.mode_selector = widgets.RadioButtons(rax, 'EulerDeterminstic', active=0)
         self.mode_selector = widgets.RadioButtons(rax, 'EulerStocharastic', active=0)
         LOG.info("Integrator Radio Button Selected.")
+        pos_shp = [0.02, 0.07, 0.04, 0.1+0.002*self.model.number_of_modes]
+        rax = self.ipp_fig.add_axes(pos_shp, facecolor=AXCOLOUR, title="Mode")
+        mode_tuple = tuple(range(self.model.number_of_modes))
+        self.mode_selector = widgets.RadioButtons(rax, mode_tuple, active=0)
+        self.mode_selector.on_clicked(self.update_mode)
+
 
     def add_axes_range_sliders(self):
         """
