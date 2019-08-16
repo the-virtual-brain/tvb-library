@@ -289,7 +289,7 @@ class PhasePlaneInteractive(core.Type):
 
         # State variable for the x axis
         pos_shp = [0.07, 0.05, 0.065, 0.12+0.006*self.model.nvar]
-        rax = self.ipp_fig.add_axes(pos_shp, facecolor=AXCOLOUR, title="X-axis")
+        rax = self.ipp_fig.add_axes(pos_shp, facecolor=AXCOLOUR, title="x-axis")
         self.state_variable_x = widgets.RadioButtons(rax, 
                                              tuple(self.model.state_variables), 
                                              active=svx_ind)
@@ -298,7 +298,7 @@ class PhasePlaneInteractive(core.Type):
 
         #State variable for the y axis
         pos_shp = [0.14, 0.05, 0.065, 0.12+0.006*self.model.nvar]
-        rax = self.ipp_fig.add_axes(pos_shp, facecolor=AXCOLOUR, title="Y-axis")
+        rax = self.ipp_fig.add_axes(pos_shp, facecolor=AXCOLOUR, title="y-axis")
         self.state_variable_y = widgets.RadioButtons(rax, 
                                              tuple(self.model.state_variables), 
                                              active=svy_ind)
