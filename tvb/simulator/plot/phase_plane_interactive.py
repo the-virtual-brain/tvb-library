@@ -310,13 +310,12 @@ class PhasePlaneInteractive(core.Type):
         Add a radio button to the figure for selecting which integrator
         should be displayed.
         """
-        pos_shp = [0.02, 0.07, 0.04, 0.1+0.002*self.model.number_of_modes]
-        rax = self.ipp_fig.add_axes(pos_shp, facecolor=AXCOLOUR, title="Integrators")
+        pos = ''
+        rax = self.ipp_fig.add_axes(pos, facecolor=AXCOLOUR, title="Integrators")
         self.mode_selector = widgets.RadioButtons(rax, 'HeunDeterminstic', active=1)
         self.mode_selector = widgets.RadioButtons(rax, 'HeunStocharastic', active=0)
         self.mode_selector = widgets.RadioButtons(rax, 'EulerDeterminstic', active=0)
         self.mode_selector = widgets.RadioButtons(rax, 'EulerStocharastic', active=0)
-        self.mode_selector.on_clicked(self.update_mode)
         LOG.info("Integrator Radio Button Selected.")
 
     def add_axes_range_sliders(self):
