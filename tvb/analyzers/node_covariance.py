@@ -86,8 +86,7 @@ class NodeCovariance(HasTraits):
         LOG.debug(narray_describe(result))
 
         covariance = graph.Covariance(source=self.time_series,
-                                      array_data=result,
-                                      use_storage=False)
+                                      array_data=result)
         return covariance
     
     
