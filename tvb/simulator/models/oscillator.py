@@ -36,7 +36,6 @@ import numexpr
 from numba import guvectorize, float64
 
 
-
 class Generic2dOscillator(ModelNumbaDfun):
     r"""
     The Generic2dOscillator model is a generic dynamic system with two state
@@ -50,8 +49,8 @@ class Generic2dOscillator(ModelNumbaDfun):
     Equations:
 
     .. math::
-                \dot{V} &= d \, \tau (-f V^3 + e V^2 + g V + \alpha W + \gamma I), \\
-                \dot{W} &= \dfrac{d}{\tau}\,\,(c V^2 + b V - \beta W + a),
+                \dot{V} &= d \, \tau (-f V^3 + e V^2 + g V + \alpha W + \gamma I) \\
+                \dot{W} &= \dfrac{d}{\tau}\,\,(c V^2 + b V - \beta W + a)
 
     See:
 
@@ -232,7 +231,7 @@ class Generic2dOscillator(ModelNumbaDfun):
     _ui_name = "Generic 2d Oscillator"
     ui_configurable_parameters = ['tau', 'a', 'b', 'c', 'I', 'd', 'e', 'f', 'g', 'alpha', 'beta', 'gamma']
 
-    #Define traited attributes for this model, these represent possible kwargs.
+    # Define traited attributes for this model, these represent possible kwargs.
     tau = arrays.FloatArray(
         label=r":math:`\tau`",
         default=numpy.array([1.0]),
@@ -325,7 +324,7 @@ class Generic2dOscillator(ModelNumbaDfun):
                It scales both I and the long range coupling term.""",
         order=13)
 
-    #Informational attribute, used for phase-plane and initial()
+    # Informational attribute, used for phase-plane and initial()
     state_variable_range = basic.Dict(
         label="State Variable ranges [lo, hi]",
         default={"V": numpy.array([-2.0, 4.0]),
@@ -370,8 +369,8 @@ class Generic2dOscillator(ModelNumbaDfun):
         The equations of the generic 2D population model read
 
         .. math::
-                \dot{V} &= d \, \tau (-f V^3 + e V^2 + g V + \alpha W + \gamma I), \\
-                \dot{W} &= \dfrac{d}{\tau}\,\,(c V^2 + b V - \beta W + a),
+                \dot{V} &= d \, \tau (-f V^3 + e V^2 + g V + \alpha W + \gamma I) \\
+                \dot{W} &= \dfrac{d}{\tau}\,\,(c V^2 + b V - \beta W + a)
 
         where external currents :math:`I` provide the entry point for local,
         long-range connectivity and stimulation.
@@ -381,7 +380,7 @@ class Generic2dOscillator(ModelNumbaDfun):
         V = state_variables[0, :]
         W = state_variables[1, :]
 
-        #[State_variables, nodes]
+        # [State_variables, nodes]
         c_0 = coupling[0, :]
 
         tau = self.tau
@@ -406,7 +405,6 @@ class Generic2dOscillator(ModelNumbaDfun):
         ev('d * tau * (alpha * W - f * V**3 + e * V**2 + g * V + gamma * I + gamma *c_0 + lc_0)', out=derivative[0])
         ev('d * (a + b * V + c * V**2 - beta * W) / tau', out=derivative[1])
 
-
         return derivative
 
     def dfun(self, vw, c, local_coupling=0.0):
@@ -418,13 +416,14 @@ class Generic2dOscillator(ModelNumbaDfun):
         return deriv.T[..., numpy.newaxis]
 
 
-@guvectorize([(float64[:],) * 16], '(n),(m)' + ',()'*13 + '->(n)', nopython=True)
+@guvectorize([(float64[:],) * 16], '(n),(m)' + ',()' * 13 + '->(n)', nopython=True)
 def _numba_dfun_g2d(vw, c_0, tau, I, a, b, c, d, e, f, g, beta, alpha, gamma, lc_0, dx):
     "Gufunc for reduced Wong-Wang model equations."
     V = vw[0]
     V2 = V * V
     W = vw[1]
-    dx[0] = d[0] * tau[0] * (alpha[0] * W - f[0] * V2*V + e[0] * V2 + g[0] * V + gamma[0] * I[0] + gamma[0] * c_0[0] + lc_0[0])
+    dx[0] = d[0] * tau[0] * (
+                alpha[0] * W - f[0] * V2 * V + e[0] * V2 + g[0] * V + gamma[0] * I[0] + gamma[0] * c_0[0] + lc_0[0])
     dx[1] = d[0] * (a[0] + b[0] * V + c[0] * V2 - beta[0] * W) / tau[0]
 
 
@@ -460,7 +459,7 @@ class Kuramoto(Model):
     _ui_name = "Kuramoto Oscillator"
     ui_configurable_parameters = ['omega']
 
-    #Define traited attributes for this model, these represent possible kwargs.
+    # Define traited attributes for this model, these represent possible kwargs.
     omega = arrays.FloatArray(
         label=r":math:`\omega`",
         default=numpy.array([1.0]),
@@ -469,11 +468,11 @@ class Kuramoto(Model):
             Kuramoto oscillator in [rad/ms]""",
         order=1)
 
-    #Informational attribute, used for phase-plane and initial()
+    # Informational attribute, used for phase-plane and initial()
     state_variable_range = basic.Dict(
         label="State Variable ranges [lo, hi]",
         default={"theta": numpy.array([0.0, numpy.pi * 2.0]),
-        },
+                 },
         doc="""The values for each state-variable should be set to encompass
             the expected dynamic range of that state-variable for the current
             parameters, it is used as a mechanism for bounding random initial
@@ -505,20 +504,19 @@ class Kuramoto(Model):
             \dot{\theta}_{k} = \omega_{k} + \mathbf{\Gamma}(\theta_k, \theta_j, u_{kj}) + \sin(W_{\zeta}\theta)
 
         where :math:`I` is the input via local and long range connectivity,
-        passing first through the Kuramoto coupling function,
-        :py:class:tvb.simulator.coupling.Kuramoto.
+        passing first through the Kuramoto coupling function.
 
         """
 
         theta = state_variables[0, :]
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
 
-        #A) Distribution of phases according to the local connectivity kernel
+        # A) Distribution of phases according to the local connectivity kernel
         local_range_coupling = numpy.sin(local_coupling * theta)
 
         # NOTE: To evaluate.
-        #B) Strength of the interactions
-        #local_range_coupling = local_coupling * numpy.sin(theta)
+        # B) Strength of the interactions
+        # local_range_coupling = local_coupling * numpy.sin(theta)
 
         I = coupling[0, :] + local_range_coupling
 
@@ -535,32 +533,32 @@ class Kuramoto(Model):
 class supHopf(ModelNumbaDfun):
     r"""
     The supHopf model describes the normal form of a supercritical Hopf bifurcation in Cartesian coordinates.
-    This normal form has a supercritical bifurcation at a=0 with a the bifurcation parameter in the model. So 
-    for a < 0, the local dynamics has a stable fixed point and the system corresponds to a damped oscillatory 
-    state, whereas for a > 0, the local dynamics enters in a stable limit cycle and the system switches to an 
+    This normal form has a supercritical bifurcation at a=0 with a the bifurcation parameter in the model. So
+    for a < 0, the local dynamics has a stable fixed point and the system corresponds to a damped oscillatory
+    state, whereas for a > 0, the local dynamics enters in a stable limit cycle and the system switches to an
     oscillatory state.
-    
+
     See for examples:
-    
+
     .. [Kuznetsov_2013] Kuznetsov, Y.A. *Elements of applied bifurcation theory.* Springer Sci & Business
         Media, 2013, vol. 112.
-    
+
     .. [Deco_2017a] Deco, G., Kringelbach, M.L., Jirsa, V.K., Ritter, P. *The dynamics of resting fluctuations
        in the brain: metastability and its dynamical cortical core* Sci Reports, 2017, 7: 3095.
-    
+
     The equations of the supHopf equations read as follows:
-    
+
     .. math::
-        \dot{x}_{i} &= (a_{i} - x_{i}^{2} - y_{i}^{2})x_{i} - omega{i}y_{i} \\
-        \dot{y}_{i} &= (a_{i} - x_{i}^{2} - y_{i}^{2})y_{i} + omega{i}x_{i}
-    
+        \dot{x}_{i} &= (a_{i} - x_{i}^{2} - y_{i}^{2})x_{i} - \omega{i}y_{i} \\
+        \dot{y}_{i} &= (a_{i} - x_{i}^{2} - y_{i}^{2})y_{i} + \omega{i}x_{i}
+
     where a is the local bifurcation parameter and omega the angular frequency.
     """
 
     _ui_name = "supHopf"
     ui_configurable_parameters = ['a', 'omega']
 
-    #supHopf's parameters.
+    # supHopf's parameters.
     a = arrays.FloatArray(
         label=r":math:`a`",
         default=numpy.array([-0.5]),
@@ -596,20 +594,26 @@ class supHopf(ModelNumbaDfun):
         order=4)
 
     state_variables = ["x", "y"]
-    
-    _nvar = 2                                           # number of state-variables
-    cvar = numpy.array([0, 1], dtype=numpy.int32)       # coupling variables
 
-    def _numpy_dfun(self, state_variables, coupling, local_coupling=0.0, 
+    _nvar = 2  # number of state-variables
+    cvar = numpy.array([0, 1], dtype=numpy.int32)  # coupling variables
+
+    def _numpy_dfun(self, state_variables, coupling, local_coupling=0.0,
                     array=numpy.array, where=numpy.where, concat=numpy.concatenate):
         r"""
-        Computes the derivatives of the state-variables of supHopf
-        with respect to time.
+
+        The equations of the supHopf equations read as follows:
+
+        .. math::
+            \dot{x}_{i} &= (a_{i} - x_{i}^{2} - y_{i}^{2})x_{i} - \omega{i}y_{i} \\
+            \dot{y}_{i} &= (a_{i} - x_{i}^{2} - y_{i}^{2})y_{i} + \omega{i}x_{i}
+
+        where a is the local bifurcation parameter and omega the angular frequency.
         """
 
         y = state_variables
         ydot = numpy.empty_like(state_variables)
-        
+
         # long-range coupling
         c_0 = coupling[0]
         c_1 = coupling[1]
@@ -617,9 +621,9 @@ class supHopf(ModelNumbaDfun):
         # short-range (local) coupling
         lc_0 = local_coupling * y[0]
 
-        #supHopf's equations in Cartesian coordinates:
-        ydot[0] = (self.a - y[0]**2 - y[1]**2) * y[0] - self.omega * y[1] + c_0 + lc_0
-        ydot[1] = (self.a - y[0]**2 - y[1]**2) * y[1] + self.omega * y[0] + c_1
+        # supHopf's equations in Cartesian coordinates:
+        ydot[0] = (self.a - y[0] ** 2 - y[1] ** 2) * y[0] - self.omega * y[1] + c_0 + lc_0
+        ydot[1] = (self.a - y[0] ** 2 - y[1] ** 2) * y[1] + self.omega * y[0] + c_1
 
         return ydot
 
@@ -628,17 +632,18 @@ class supHopf(ModelNumbaDfun):
         c_ = c.reshape(c.shape[:-1]).T
         lc_0 = local_coupling * x[0, :, 0]
         deriv = _numba_dfun_supHopf(x_, c_, self.a, self.omega, lc_0)
-        
+
         return deriv.T[..., numpy.newaxis]
+
 
 @guvectorize([(float64[:],) * 6], '(n),(m)' + ',()' * 3 + '->(n)', nopython=True)
 def _numba_dfun_supHopf(y, c, a, omega, lc_0, ydot):
     "Gufunc for supHopf model equations."
 
-    #long-range coupling
+    # long-range coupling
     c_0 = c[0]
     c_1 = c[1]
 
-    #supHopf equations
-    ydot[0] = (a[0] - y[0]**2 - y[1]**2) * y[0] - omega[0] * y[1] + c_0 + lc_0[0]
-    ydot[1] = (a[0] - y[0]**2 - y[1]**2) * y[1] + omega[0] * y[0] + c_1
+    # supHopf equations
+    ydot[0] = (a[0] - y[0] ** 2 - y[1] ** 2) * y[0] - omega[0] * y[1] + c_0 + lc_0[0]
+    ydot[1] = (a[0] - y[0] ** 2 - y[1] ** 2) * y[1] + omega[0] * y[0] + c_1

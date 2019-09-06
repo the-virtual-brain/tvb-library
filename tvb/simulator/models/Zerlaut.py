@@ -83,14 +83,14 @@ class Zerlaut_adaptation_first_order(Model):
 
     .. automethod:: Zerlaut_adaptation_first_order.__init__
 
-    The general formulation for the \textit{\textbf{Zerlaut_adaptation_first_order}} model as a
+    The general formulation for the Zerlaut_adaptation_first_order model as a
     dynamical unit at a node $k$ in a BNM with $l$ nodes reads:
 
     .. math::
             T\dot{E}_k &= F_e-E_k  \\
             T\dot{I}_k &= F_i-I_k  \\
-            dot{W}_k &= W_k/tau_w-b*E_k  \\
-            F_\lambda = Erfc(V^{eff}_{thre}-\mu_V/\sqrt(2)\sigma_V)
+            dot{W}_k &= \dfrac{W_k}{tau_w}-b*E_k  \\
+            F_\lambda &= Erfc(V^{eff}_{thre}-\dfrac{\mu_V}{\sqrt(2)\sigma_V)}
 
     """
     _ui_name = "Zerlaut adaptation first order"
@@ -272,8 +272,10 @@ class Zerlaut_adaptation_first_order(Model):
     def dfun(self, state_variables, coupling, local_coupling=0.00):
         r"""
         .. math::
-            T \dot{\nu_\mu} &= -F_\mu(\nu_e,\nu_i) + \nu_\mu ,\all\mu\in\{e,i\}\\
-            dot{W}_k &= W_k/tau_w-b*E_k  \\
+            T\dot{E}_k &= F_e-E_k  \\
+            T\dot{I}_k &= F_i-I_k  \\
+            dot{W}_k &= \dfrac{W_k}{tau_w}-b*E_k  \\
+            F_\lambda &= Erfc(V^{eff}_{thre}-\dfrac{\mu_V}{\sqrt(2)\sigma_V)}
 
         """
         E = state_variables[0, :]
@@ -434,35 +436,36 @@ class Zerlaut_adaptation_second_order(Zerlaut_adaptation_first_order):
 
     .. automethod:: Zerlaut_adaptation_second_order.__init__
 
-    The general formulation for the \textit{\textbf{Zerlaut_adaptation_second_order}} model as a
+    The general formulation for the Zerlaut_adaptation_second_order model as a
     dynamical unit at a node $k$ in a BNM with $l$ nodes reads:
 
     .. math::
-        \forall \mu,\lambda,\eta \in \{e,i\}^3\, ,
-        \left\{
-        \begin{split}
-        T \, \frac{\partial \nu_\mu}{\partial t} = & (\mathcal{F}_\mu - \nu_\mu )
-        + \frac{1}{2} \, c_{\lambda \eta} \,
-        \frac{\partial^2 \mathcal{F}_\mu}{\partial \nu_\lambda \partial \nu_\eta} \\
-        T \, \frac{\partial c_{\lambda \eta} }{\partial t}  =  & A_{\lambda \eta} +
-        (\mathcal{F}_\lambda - \nu_\lambda ) \, (\mathcal{F}_\eta - \nu_\eta ) + \\
-        & c_{\lambda \mu} \frac{\partial \mathcal{F}_\mu}{\partial \nu_\lambda} +
-        c_{\mu \eta} \frac{\partial \mathcal{F}_\mu}{\partial \nu_\eta}
-        - 2  c_{\lambda \eta}
-        \end{split}
-        \right.
-        dot{W}_k &= W_k/tau_w-b*E_k  \\
+            \forall \mu,\lambda,\eta \in \{e,i\}^3\, ,
+            \left\{
+            \begin{split}
+            T \, \frac{\partial \nu_\mu}{\partial t} = & (\mathcal{F}_\mu - \nu_\mu )
+            + \frac{1}{2} \, c_{\lambda \eta} \,
+            \frac{\partial^2 \mathcal{F}_\mu}{\partial \nu_\lambda \partial \nu_\eta} \\
+            T \, \frac{\partial c_{\lambda \eta} }{\partial t}  =  & A_{\lambda \eta} +
+            (\mathcal{F}_\lambda - \nu_\lambda ) \, (\mathcal{F}_\eta - \nu_\eta ) + \\
+            & c_{\lambda \mu} \frac{\partial \mathcal{F}_\mu}{\partial \nu_\lambda} +
+            c_{\mu \eta} \frac{\partial \mathcal{F}_\mu}{\partial \nu_\eta}
+            - 2  c_{\lambda \eta}
+            \end{split}
+            \right.
+            dot{W}_k &= \frac{W_k}{tau_w}-b*E_k  \\
 
-        with:
-        A_{\lambda \eta} =
-        \left\{
-        \begin{split}
-        \frac{\mathcal{F}_\lambda \, (1/T - \mathcal{F}_\lambda)}{N_\lambda}
-        \qquad & \textrm{if  } \lambda=\eta \\
-        0 \qquad & \textrm{otherwise}
-        \end{split}
-        \right.
-    """
+            with:
+            A_{\lambda \eta} =
+            \left\{
+            \begin{split}
+            \frac{\mathcal{F}_\lambda \, (\dfrac{1}{T} - \mathcal{F}_\lambda)}{N_\lambda}
+            \qquad & \textrm{if  } \lambda=\eta \\
+            0 \qquad & \textrm{otherwise}
+            \end{split}
+            \right.
+
+        """
 
     _ui_name = "Zerlaut adaptation second order"
 
@@ -484,7 +487,7 @@ class Zerlaut_adaptation_second_order(Zerlaut_adaptation_first_order):
         E: firing rate of excitatory population in KHz\n
         I: firing rate of inhibitory population in KHz\n
         C_ee: the variance of the excitatory population activity \n
-        C_ei: the covariance between the excitatory and inhibitory population activities (always symetric) \n
+        C_ei: the covariance between the excitatory and inhibitory population activities (always symmetric) \n
         C_ie: the variance of the inhibitory population activity \n
         W: level of adaptation
         """,
@@ -521,13 +524,13 @@ class Zerlaut_adaptation_second_order(Zerlaut_adaptation_first_order):
             - 2  c_{\lambda \eta}
             \end{split}
             \right.
-            dot{W}_k &= W_k/tau_w-b*E_k  \\
+            dot{W}_k &= \frac{W_k}{tau_w}-b*E_k  \\
 
             with:
             A_{\lambda \eta} =
             \left\{
             \begin{split}
-            \frac{\mathcal{F}_\lambda \, (1/T - \mathcal{F}_\lambda)}{N_\lambda}
+            \frac{\mathcal{F}_\lambda \, (\dfrac{1}{T} - \mathcal{F}_\lambda)}{N_\lambda}
             \qquad & \textrm{if  } \lambda=\eta \\
             0 \qquad & \textrm{otherwise}
             \end{split}

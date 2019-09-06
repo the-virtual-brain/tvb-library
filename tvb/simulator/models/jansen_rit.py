@@ -70,7 +70,21 @@ class JansenRit(ModelNumbaDfun):
         \dot{y_2} &= y_5 \\
         \dot{y_5} &= B b (\alpha_4 J\, S[\alpha_3 J \,y_0]) - 2 b\, y_5
                     - b^2\,y_2 \\
-        S[v] &= \frac{2\, \nu_{max}}{1 + \exp^{r(v_0 - v)}}
+        S[v] &= \frac{2\, \nu_{max}}{1 + \exp{r(v_0 - v)}}
+
+    :math:`p(t)` can be any arbitrary function, including white noise or
+    random numbers taken from a uniform distribution, representing a pulse
+    density with an amplitude varying between 120 and 320
+
+    For Evoked Potentials, a transient component of the input,
+    representing the impulse density attribuable to a brief visual input is
+    applied. Time should be in seconds.
+
+    .. math::
+        p(t) = q\,(\frac{t}{w})^n \, \exp{-\frac{t}{w}} \\
+        q = 0.5 \\
+        n = 7 \\
+        w = 0.005 [s]
 
     """
 
@@ -243,29 +257,14 @@ class JansenRit(ModelNumbaDfun):
 
         .. math::
             \dot{y_0} &= y_3 \\
-            \dot{y_3} &= A a\,S[y_1 - y_2] - 2a\,y_3 - 2a^2\, y_0 \\
+            \dot{y_3} &= A a\,S[y_1 - y_2] - 2a\,y_3 - a^2\, y_0 \\
             \dot{y_1} &= y_4\\
-            \dot{y_4} &= A a \,[p(t) + \alpha_2 J S[\alpha_1 J\,y_0]+ c_0]
-                        -2a\,y - a^2\,y_1 \\
+            \dot{y_4} &= A a \,[p(t) + \alpha_2 J + S[\alpha_1 J\,y_0]+ c_0]
+                    -2a\,y - a^2\,y_1 \\
             \dot{y_2} &= y_5 \\
             \dot{y_5} &= B b (\alpha_4 J\, S[\alpha_3 J \,y_0]) - 2 b\, y_5
-                        - b^2\,y_2 \\
-            S[v] &= \frac{2\, \nu_{max}}{1 + \exp^{r(v_0 - v)}}
-
-
-        :math:`p(t)` can be any arbitrary function, including white noise or
-        random numbers taken from a uniform distribution, representing a pulse
-        density with an amplitude varying between 120 and 320
-
-        For Evoked Potentials, a transient component of the input,
-        representing the impulse density attribuable to a brief visual input is
-        applied. Time should be in seconds.
-
-        .. math::
-            p(t) = q\,(\frac{t}{w})^n \, \exp{-\frac{t}{w}} \\
-            q = 0.5 \\
-            n = 7 \\
-            w = 0.005 [s]
+                    - b^2\,y_2 \\
+            S[v] &= \frac{2\, \nu_{max}}{1 + \exp{r(v_0 - v)}}
 
         """
         y0, y1, y2, y3, y4, y5 = state_variables
@@ -327,8 +326,8 @@ def _numba_dfun_jr(y, c,
 
 class ZetterbergJansen(Model):
     """
-    Zetterberg et al derived a model inspired by the Wilson-Cowan equations. It served as a basis for the later,
-    better known Jansen-Rit model.
+    Zetterberg et al derived a model inspired by the Wilson-Cowan equations.
+    It served as a basis for the later, better known Jansen-Rit model.
 
     .. [ZL_1978] Zetterberg LH, Kristiansson L and Mossberg K. Performance of a Model for a Local Neuron Population.
         Biological Cybernetics 31, 15-26, 1978.

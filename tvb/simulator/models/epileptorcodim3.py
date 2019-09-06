@@ -117,6 +117,7 @@ class EpileptorCodim3(ModelNumbaDfun):
     b = arrays.FloatArray(
         label="b",
         default=numpy.array([1.0]),
+        range=basic.Range(lo=-20.0, hi=15.0, step=0.01),
         doc="Unfolding type of the degenerate Takens-Bogdanov bifurcation, default is a focus type",
         order=7)
 
@@ -144,12 +145,14 @@ class EpileptorCodim3(ModelNumbaDfun):
     Ks = arrays.FloatArray(
         label="Ks",
         default=numpy.array([0.0]),
+        range=basic.Range(lo=-0.1, hi=0.5),
         doc="Slow permittivity coupling strength, the default is no coupling",
         order=11)
 
     N = arrays.IntegerArray(
         label="N",
         default=numpy.array([1]),
+        range=basic.Range(lo=-0.1, hi=0.5),
         doc="The branch of the resting state, default is 1",
         order=12)
 
@@ -201,26 +204,26 @@ class EpileptorCodim3(ModelNumbaDfun):
 
             .. math::
                 \dot{x} &= -y \\
-                \dot{y} &= x^3 - \mu_2 x - \mu_1 - y(\nu + b x + x^2) \\
-                \dot{z} &= -c(\sqrt{(x-x_s}^2+y^2} - d^*)
+                \dot{y} &= x^3 - \mu_2x - \mu_1 - y(\nu + bx + x^2) \\
+                \dot{z} &= -c(\sqrt{(x-x_s)^2+y^2} - d^*)
 
-        If the bool modification is True, then the equation for zdot will
+        If the bool modification is True, then the equation for :math:`\dot{z}` will
         been modified to ensure stability for negative dstar
 
             .. math::
-                    \dot{z} = -c(\sqrt{(x-x_s}^2+y^2} - d^* + 0.1(z-0.5)^7)
+                \dot{z} &= -c(\sqrt{(x-x_s)^2+y^2} - d^* + 0.1(z-0.5)^7)
 
         Where :math:`\mu_1, \mu_2` and :math:`\nu` lie on a great arc of a
         sphere of radius R parametrised by the unit vectors E and F.
 
             .. math::
-                \begin{pmatrix}\mu_2 & -\mu_1 & \nu \end{pmatrix} = R(E \cos z + F \sin z)
+                \begin{pmatrix}\mu_2 & -\mu_1 - \nu \end{pmatrix} = R(E \cos z + F \sin z)
 
         And where :math:`x_s` is the x-coordinate of the resting state
         (stable equilibrium). This is computed by finding the solution of
 
             .. math::
-                x_s^3 - mu_2*x_s - mu_1 = 0
+                x_s^3 - mu_2x_s - mu_1 = 0
 
         And taking the branch which corresponds to the resting state.
         If :math:`x_s` is complex, we take the real part.
@@ -294,7 +297,6 @@ class EpileptorCodim3(ModelNumbaDfun):
         self.F = self.F / numpy.linalg.norm(self.F)
 
     def dfun(self, state_variables, coupling, local_coupling=0.0):
-        """"The dfun using numba for speed"""
         state_variables_ = state_variables.reshape(state_variables.shape[:-1]).T
         coupling_ = coupling.reshape(coupling.shape[:-1]).T
         derivative = _numba_dfun(state_variables_, coupling_, self.E[0], self.E[1], self.E[2], self.F[0], self.F[1],
@@ -459,6 +461,7 @@ class EpileptorCodim3SlowMod(ModelNumbaDfun):
     b = arrays.FloatArray(
         label="b",
         default=numpy.array([1.0]),
+        range=basic.Range(lo=-20.0, hi=15.0, step=0.01),
         doc="Unfolding type of the degenerate Takens-Bogdanov bifurcation, default is a focus type",
         order=13)
 
@@ -506,6 +509,7 @@ class EpileptorCodim3SlowMod(ModelNumbaDfun):
     N = arrays.IntegerArray(
         label="N",
         default=numpy.array([1]),
+        range=basic.Range(lo=-0.1, hi=0.5),
         doc="The branch of the resting state, default is 1",
         order=20)
 
@@ -562,16 +566,16 @@ class EpileptorCodim3SlowMod(ModelNumbaDfun):
 
             .. math::
                 \dot{x} &= -y \\
-                \dot{y} &= x^3 - \mu_2 x - \mu_1 - y(\nu + b x + x^2) \\
-                \dot{z} &= -c(\sqrt{(x-x_s}^2+y^2} - d^*)\\
-                \dot(uA) &= cA\\
-                \dot(uB) &= cB\\
+                \dot{y} &= x^3 - \mu_2 x - \mu_1 - y(\nu + bx + x^2) \\
+                \dot{z} &= -c(\sqrt{(x-x_s)^2+y^2} - d^*) \\
+                \dot(uA) &= cA \\
+                \dot(uB) &= cB,
 
-        If the bool modification is True, then the equation for zdot will
+        If the bool modification is True, then the equation for :math:`\dot{z}` will
         been modified to ensure stability for negative dstar
 
             .. math::
-                    \dot{z} = -c(\sqrt{(x-x_s}^2+y^2} - d^* + 0.1(z-0.5)^7)
+                \dot{z} = -c(\sqrt{(x-x_s)^2+y^2} - d^* + 0.1(z-0.5)^7)
 
         Where :math:`\mu_1, \mu_2` and :math:`\nu` lie on a great arc of a
         sphere of radius R parametrised by the unit vectors E and F.
@@ -582,8 +586,8 @@ class EpileptorCodim3SlowMod(ModelNumbaDfun):
         Where the unit vectors E and F are given by:
 
             .. math::
-                E &= A/\|A\| \\
-                F &= ((A \times B) \times A)/\|(A \times B) \times A\|
+                E &= \dfrac{A}{\|A\|} \\
+                F &= \dfrac{((A \times B) \times A)}{\|(A \times B) \times A\|}
 
         The vectors A and B transition across a great arc of the same sphere
         of radius R parametrised by G, H and L, M respectively.
@@ -695,7 +699,7 @@ class EpileptorCodim3SlowMod(ModelNumbaDfun):
         self.M = self.M / numpy.linalg.norm(self.M)
 
     def dfun(self, state_variables, coupling, local_coupling=0.0):
-        """"The dfun using numba for speed"""
+
         state_variables_ = state_variables.reshape(state_variables.shape[:-1]).T
         coupling_ = coupling.reshape(coupling.shape[:-1]).T
         derivative = _numba_dfun_slowmod(state_variables_, coupling_, self.G[0], self.G[1], self.G[2], self.H[0],

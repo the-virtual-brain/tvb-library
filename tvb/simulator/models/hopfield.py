@@ -78,11 +78,11 @@ class Hopfield(Model):
 
     dfun equation
         .. math::
-                \dot{x_{i}} &= 1 / \tau_{x} (-x_{i} + c_0)
+                \dot{x_{i}} &= \dfrac{1}{\tau_{x} (-x_{i} + c_0)}
     dfun dynamic equation
         .. math::
-            \dot{x_{i}} &= 1 / \tau_{x} (-x_{i} + c_0(i)) \\
-            \dot{\\theta_{i}} &= 1 / \tau_{\theta_{i}} (-\theta + c_1(i))
+            \dot{x_{i}} &= \dfrac{1}{\tau_{x} (-x_{i} + c_0(i))} \\
+            \dot{\theta_{i}} &= \dfrac{1}{\tau_{\theta_{i}} (-\theta + c_1(i))}
 
 
     .. figure :: img/Hopfield_01_mode_0_pplane.svg
@@ -161,7 +161,7 @@ class Hopfield(Model):
         respectively:
 
             .. math::
-                \dot{x_{i}} &= 1 / \tau_{x} (-x_{i} + c_0)
+                \dot{x_{i}} &= \dfrac{1}{\tau_{x} (-x_{i} + c_0)}
 
         """
         x = state_variables[0, :]

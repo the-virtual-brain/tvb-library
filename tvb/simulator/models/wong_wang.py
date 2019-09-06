@@ -64,9 +64,9 @@ class ReducedWongWang(ModelNumbaDfun):
     Equations taken from [DPA_2013]_ , page 11242
 
     .. math::
-                 x_k       &=   w\,J_N \, S_k + I_o + J_N \mathbf\Gamma(S_k, S_j, u_{kj}),\\
-                 H(x_k)    &=  \dfrac{ax_k - b}{1 - \exp(-d(ax_k -b))},\\
-                 \dot{S}_k &= -\dfrac{S_k}{\tau_s} + (1 - S_k) \, H(x_k) \, \gamma
+                 x_k       &=   w\,J_N \, S_k + I_o + J_N \mathbf\Gamma(S_k, S_j, u_{kj}) \\
+                 H(x_k)    &=  \dfrac{ax_k - b}{1 - \exp(-d(ax_k -b))} \\
+                 \dot{S}_k &= -\dfrac{S_k}{\tau_s} + (1 - S_k) \, H(x_k) \ \gamma
 
     """
     _ui_name = "Reduced Wong-Wang"
@@ -165,10 +165,10 @@ class ReducedWongWang(ModelNumbaDfun):
         r"""
         Equations taken from [DPA_2013]_ , page 11242
 
-        .. math::
-                 x_k       &=   w\,J_N \, S_k + I_o + J_N \mathbf\Gamma(S_k, S_j, u_{kj}),\\
-                 H(x_k)    &=  \dfrac{ax_k - b}{1 - \exp(-d(ax_k -b))},\\
-                 \dot{S}_k &= -\dfrac{S_k}{\tau_s} + (1 - S_k) \, H(x_k) \, \gamma
+    .. math::
+                 x_k       &=   w\,J_N \, S_k + I_o + J_N \mathbf\Gamma(S_k, S_j, u_{kj}) \\
+                 H(x_k)    &=  \dfrac{ax_k - b}{1 - \exp(-d(ax_k -b))} \\
+                 \dot{S}_k &= -\dfrac{S_k}{\tau_s} + (1 - S_k) \, H(x_k) \ \gamma
 
         """
         S   = state_variables[0, :]

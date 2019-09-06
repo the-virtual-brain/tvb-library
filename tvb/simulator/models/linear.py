@@ -33,8 +33,11 @@ Generic linear model.
 
 from .base import Model, LOG, numpy, basic, arrays
 
-
 class Linear(Model):
+    """
+    Generic linear model.
+    """
+
     _ui_name = "Linear model"
     ui_configurable_parameters = ['gamma']
 
@@ -64,6 +67,9 @@ class Linear(Model):
     cvar = numpy.array([0], dtype=numpy.int32)
 
     def dfun(self, state, coupling, local_coupling=0.0):
+        """
+        Generic linear model.
+        """
         x, = state
         c, = coupling
         dx = self.gamma * x + c + local_coupling * x
