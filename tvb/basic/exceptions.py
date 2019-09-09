@@ -50,17 +50,3 @@ class ValidationException(TVBException):
     Exception class for problems that occurs during MappedType 
     validation before storing it into DB.
     """
-
-# TODO These 2 should be removed after complete translation of tvb-framework to neotraits
-class MissingEntityException(TVBException):
-    """
-    Exception class used for cases when trying to load an entity
-    from database by id or GID and none found.
-    """
-
-
-class StorageException(TVBException):
-    """
-    Exception class used for cases when trying to load an entity
-    from database by id or GID and none found.
-    """

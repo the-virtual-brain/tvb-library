@@ -38,7 +38,6 @@ Filler analyzer: Takes a TimeSeries object and returns a Float.
 import cmath
 import numpy
 import tvb.analyzers.metrics_base as metrics_base
-from tvb.basic.filters.chain import FilterChain
 from tvb.basic.logger.builder import get_logger
 
 LOG = get_logger(__name__)
@@ -76,8 +75,9 @@ class KuramotoIndex(metrics_base.BaseTimeseriesMetricAlgorithm):
     analyzer.
     
     """
-    accept_filter = FilterChain(operations=["==", ">="], values=[4, 2],
-                                fields=[FilterChain.datatype + '._nr_dimensions', FilterChain.datatype + '._length_2d'])
+    accept_filter = None
+    #FilterChain(operations=["==", ">="], values=[4, 2],
+    #                            fields=[FilterChain.datatype + '._nr_dimensions', FilterChain.datatype + '._length_2d'])
 
 
     def evaluate(self):
