@@ -239,7 +239,7 @@ class Simulator(core.Type):
             for sv, sv_bounds in self.model.state_variable_constraint.items():
                 indices.append(self.model.state_variables.index(sv))
                 boundaries.append(sv_bounds)
-            sort_inds = numpy.sort(indices)
+            sort_inds = numpy.argsort(indices)
             self.integrator.constraint_state_variable_indices = numpy.array(indices)[sort_inds]
             self.integrator.constraint_state_variable_boundaries = numpy.array(boundaries)[sort_inds]
         else:
@@ -478,7 +478,7 @@ class Simulator(core.Type):
                     history = numpy.roll(history, shift, axis=0)
                 self.current_step += ic_shape[0] - 1
         # TODO: confirm that this is doing what I think it is doing and that this is where this line should be placed!
-        numpy.apply_along_axis(self.integrator.constrain_state, 0, history)
+        self.integrator.constrain_state(numpy.swapaxes(history, 0, 1))
         LOG.info('Final initial history shape is %r', history.shape)
         # create initial state from history
         self.current_state = history[self.current_step % self.horizon].copy()
