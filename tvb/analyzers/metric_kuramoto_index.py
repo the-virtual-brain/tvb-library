@@ -75,18 +75,11 @@ class KuramotoIndex(metrics_base.BaseTimeseriesMetricAlgorithm):
     analyzer.
     
     """
-    accept_filter = None
-    #FilterChain(operations=["==", ">="], values=[4, 2],
-    #                            fields=[FilterChain.datatype + '._nr_dimensions', FilterChain.datatype + '._length_2d'])
-
 
     def evaluate(self):
         """
         Kuramoto Synchronization Index
         """
-
-        cls_attr_name = self.__class__.__name__ + ".time_series"
-        # self.time_series.trait["data"].log_debug(owner=cls_attr_name)
 
         if self.time_series.data.shape[1] < 2:
             msg = " The number of state variables should be at least 2."

@@ -39,9 +39,7 @@ Filler analyzer: Takes a TimeSeries object and returns a Float.
 import tvb.analyzers.metrics_base as metrics_base
 from tvb.basic.logger.builder import get_logger
 
-
 LOG = get_logger(__name__)
-
 
 
 class VarianceNodeVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
@@ -63,16 +61,14 @@ class VarianceNodeVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
         """
         Compute the zero centered variance of node variances for the time_series.
         """
-        cls_attr_name = self.__class__.__name__ + ".time_series"
-        # self.time_series.trait["data"].log_debug(owner=cls_attr_name)
-        
+
         shape = self.time_series.data.shape
-        tpts  = shape[0]
+        tpts = shape[0]
 
         if self.start_point != 0.0:
             start_tpt = self.start_point / self.time_series.sample_period
             LOG.debug("Will discard: %s time points" % start_tpt)
-        else: 
+        else:
             start_tpt = 0
 
         if start_tpt > tpts:
@@ -83,13 +79,12 @@ class VarianceNodeVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
 
         start_tpt = int(start_tpt)
         zero_mean_data = (self.time_series.data[start_tpt:, :] - self.time_series.data[start_tpt:, :].mean(axis=0))
-        #reshape by concatenating the time-series of each var and modes for each node.
+        # reshape by concatenating the time-series of each var and modes for each node.
         zero_mean_data = zero_mean_data.transpose((0, 1, 3, 2))
         cat_tpts = zero_mean_data.shape[0] * shape[1] * shape[3]
         zero_mean_data = zero_mean_data.reshape((cat_tpts, shape[2]), order="F")
-        #Variance over time-points, state-variables, and modes for each node.
+        # Variance over time-points, state-variables, and modes for each node.
         node_variance = zero_mean_data.var(axis=0)
-        #Variance of that variance over nodes
+        # Variance of that variance over nodes
         result = node_variance.var()
         return result
-
