@@ -132,10 +132,10 @@ class TestIntegrators(BaseTestCase):
     def test_scipy_dopri5(self):
         self._scipy_scheme_tester('Dopri5')
 
-    def test_constrain(self):
+    def test_bound(self):
         vode = integrators.VODE(
-            constraint_state_variable_indices=numpy.r_[0, 1, 2, 3],
-            constraint_state_variable_values=numpy.array([[0.0, 1.0], [None, 1.0], [0.0, None], [None, None]])
+            bounded_state_variable_indices=numpy.r_[0, 1, 2, 3],
+            state_variable_boundaries=numpy.array([[0.0, 1.0], [None, 1.0], [0.0, None], [None, None]])
         )
         x = numpy.ones((5, 4, 2))
         x[:, 0, ] = -x[:, 0, ]
@@ -143,7 +143,7 @@ class TestIntegrators(BaseTestCase):
         x0 = numpy.array(x)
         for i in range(10):
             x = vode.scheme(x, self._dummy_dfun, 0.0, 0.0, 0.0)
-        for idx, val in zip(vode.constraint_state_variable_indices, vode.constraint_state_variable_indices):
+        for idx, val in zip(vode.bounded_state_variable_indices, vode.state_variable_boundaries):
             if idx == 0:
                 assert numpy.all(x[idx] >= val[0])
                 assert numpy.all(x[idx] <= val[1])

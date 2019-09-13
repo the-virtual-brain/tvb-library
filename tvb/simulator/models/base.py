@@ -60,7 +60,7 @@ class Model(core.Type):
     _nvar = None
     number_of_modes = 1
     cvar = None
-    state_variable_constraint = None
+    state_variable_boundaries = None
 
     def _build_observer(self):
         template = ("def observe(state):\n"
@@ -86,21 +86,21 @@ class Model(core.Type):
         super(Model, self).configure()
         self.update_derived_parameters()
         self._build_observer()
-        # Make sure that if there are any state variable constraints, ...
-        if isinstance(self.state_variable_constraint, dict):
-            for sv, constraint in self. state_variable_constraint.items():
+        # Make sure that if there are any state variable boundaries, ...
+        if isinstance(self.state_variable_boundaries, dict):
+            for sv, bounds in self. state_variable_boundaries.items():
                 try:
-                    # ...the constraints correspond to model's state variables,
+                    # ...the boundaries correspond to model's state variables,
                     self.state_variables.index(sv)
                 except:
                     # TODO: Add the correct type of error and error message
                     raise
                 # and for every two sided constraint, the left boundary is lower than the right one
-                if constraint[0] is not None and constraint[1] is not None:
-                    assert constraint[0] <= constraint[1]
-        elif self.state_variable_constraint is not None:
+                if bounds[0] is not None and bounds[1] is not None:
+                    assert bounds[0] <= bounds[1]
+        elif self.state_variable_boundaries is not None:
             # TODO: Add here a warning or, even, error?
-            self.state_variable_constraint = None
+            self.state_variable_boundaries = None
 
     @property
     def nvar(self):

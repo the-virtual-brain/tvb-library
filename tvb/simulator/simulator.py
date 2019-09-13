@@ -477,8 +477,8 @@ class Simulator(core.Type):
                     history[:ic_shape[0], :, :, :] = initial_conditions
                     history = numpy.roll(history, shift, axis=0)
                 self.current_step += ic_shape[0] - 1
-        if self.constraint_state_variable_boundaries is not None:
-            self.integrator.constrain_state(numpy.swapaxes(history, 0, 1))
+        if self.integrator.state_variable_boundaries is not None:
+            self.integrator.bound_state(numpy.swapaxes(history, 0, 1))
         LOG.info('Final initial history shape is %r', history.shape)
         # create initial state from history
         self.current_state = history[self.current_step % self.horizon].copy()
