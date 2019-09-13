@@ -37,13 +37,42 @@ a PrincipalComponents datatype.
 """
 
 import numpy
-import matplotlib.mlab as mlab
 import tvb.datatypes.time_series as time_series
 import tvb.datatypes.mode_decompositions as mode_decompositions
 from tvb.basic.neotraits.api import HasTraits, Attr, narray_describe
 from tvb.basic.logger.builder import get_logger
 
 LOG = get_logger(__name__)
+
+
+class PCA_mlab(object):
+    """
+    The code for this method has been taken and adapted from Matplotlib 2.1.0
+    """
+
+    def __init__(self, data):
+        n, m = data.shape
+        if n < m:
+            raise RuntimeError('we assume data in input is organized with '
+                               'numrows>numcols')
+
+        self.mu = data.mean(axis=0)
+        self.sigma = data.std(axis=0)
+
+        a = (data - self.mu)/self.sigma
+
+        U, s, Vh = numpy.linalg.svd(a, full_matrices=False)
+
+        self.Wt = Vh
+
+        Y = numpy.dot(Vh, a.T).T
+        self.Y = Y
+
+        self.s = s ** 2
+
+        vars = self.s / len(s)
+        self.fracs = vars / vars.sum()
+
 
 
 class PCA(HasTraits):
@@ -100,8 +129,10 @@ class PCA(HasTraits):
         for mode in range(ts_shape[3]):
             for var in range(ts_shape[1]):
                 data = self.time_series.data[:, var, :, mode]
-                data_pca = mlab.PCA(data)
-                fractions[:, var, mode] = data_pca.fracs
+
+                data_pca = PCA_mlab(data)
+                fractions[:, var, mode ] = data_pca.fracs
+
                 weights[:, :, var, mode] = data_pca.Wt
 
         LOG.debug("fractions")
@@ -110,9 +141,12 @@ class PCA(HasTraits):
         LOG.debug(narray_describe(weights))
 
         pca_result = mode_decompositions.PrincipalComponents(
-            source=self.time_series,
-            fractions=fractions,
-            weights=weights)
+            source = self.time_series,
+            fractions = fractions,
+            weights = weights,
+            norm_source = numpy.array([]),
+            component_time_series = numpy.array([]),
+            normalised_component_time_series = numpy.array([]))        
 
         return pca_result
 
