@@ -48,6 +48,7 @@ LOG = get_logger(__name__)
 class PCA_mlab(object):
     """
     The code for this method has been taken and adapted from Matplotlib 2.1.0
+    Aug 2019
     """
 
     def __init__(self, data):
@@ -59,7 +60,7 @@ class PCA_mlab(object):
         self.mu = data.mean(axis=0)
         self.sigma = data.std(axis=0)
 
-        a = (data - self.mu)/self.sigma
+        a = (data - self.mu) / self.sigma
 
         U, s, Vh = numpy.linalg.svd(a, full_matrices=False)
 
@@ -72,7 +73,6 @@ class PCA_mlab(object):
 
         vars = self.s / len(s)
         self.fracs = vars / vars.sum()
-
 
 
 class PCA(HasTraits):
@@ -131,7 +131,7 @@ class PCA(HasTraits):
                 data = self.time_series.data[:, var, :, mode]
 
                 data_pca = PCA_mlab(data)
-                fractions[:, var, mode ] = data_pca.fracs
+                fractions[:, var, mode] = data_pca.fracs
 
                 weights[:, :, var, mode] = data_pca.Wt
 
@@ -141,12 +141,12 @@ class PCA(HasTraits):
         LOG.debug(narray_describe(weights))
 
         pca_result = mode_decompositions.PrincipalComponents(
-            source = self.time_series,
-            fractions = fractions,
-            weights = weights,
-            norm_source = numpy.array([]),
-            component_time_series = numpy.array([]),
-            normalised_component_time_series = numpy.array([]))        
+            source=self.time_series,
+            fractions=fractions,
+            weights=weights,
+            norm_source=numpy.array([]),
+            component_time_series=numpy.array([]),
+            normalised_component_time_series=numpy.array([]))
 
         return pca_result
 
