@@ -37,15 +37,9 @@ from numba import guvectorize, float64
 @guvectorize([(float64[:],)*11], '(n),(m)' + ',()'*8 + '->(n)', nopython=True)
 def _numba_dfun(S, c, a, b, d, g, ts, w, j, io, dx):
     "Gufunc for reduced Wong-Wang model equations."
-
-    if S[0] < 0.0:
-        dx[0] = 0.0 - S[0]
-    elif S[0] > 1.0:
-        dx[0] = 1.0 - S[0]
-    else:
-        x = w[0]*j[0]*S[0] + io[0] + j[0]*c[0]
-        h = (a[0]*x - b[0]) / (1 - numpy.exp(-d[0]*(a[0]*x - b[0])))
-        dx[0] = - (S[0] / ts[0]) + (1.0 - S[0]) * h * g[0]
+    x = w[0]*j[0]*S[0] + io[0] + j[0]*c[0]
+    h = (a[0]*x - b[0]) / (1 - numpy.exp(-d[0]*(a[0]*x - b[0])))
+    dx[0] = - (S[0] / ts[0]) + (1.0 - S[0]) * h * g[0]
 
 
 class ReducedWongWang(ModelNumbaDfun):
@@ -144,13 +138,21 @@ class ReducedWongWang(ModelNumbaDfun):
         order=9
     )
 
+    # Used for phase-plane axis ranges and to bound random initial() conditions.
+    state_variable_boundaries = basic.Dict(
+        label="State Variable boundaries [lo, hi]",
+        default={"S": numpy.array([0.0, 1.0])},
+        doc="""The values for each state-variable should be set to encompass
+            the boundaries of the dynamic range of that state-variable. Set None for one-sided boundaries""",
+        order=10)
+
     variables_of_interest = basic.Enumerate(
         label="Variables watched by Monitors",
         options=["S"],
         default=["S"],
         select_multiple=True,
         doc="""default state variables to be monitored""",
-        order=10)
+        order=11)
 
     state_variables = ['S']
     _nvar = 1
@@ -172,8 +174,7 @@ class ReducedWongWang(ModelNumbaDfun):
 
         """
         S   = state_variables[0, :]
-        S[S<0] = 0.
-        S[S>1] = 1.
+
         c_0 = coupling[0, :]
 
 
