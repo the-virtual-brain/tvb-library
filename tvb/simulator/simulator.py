@@ -255,7 +255,8 @@ class Simulator(HasTraits):
             self.preconfigure()
         # Make sure spatialised model parameters have the right shape (number_of_nodes, 1)
         # todo: this exclusion list is fragile, consider excluding declarative attrs that are not arrays
-        excluded_params = ("state_variable_range", "variables_of_interest", "noise", "psi_table", "nerf_table", "gid")
+        excluded_params = ("state_variable_range", "state_variable_boundaries", "variables_of_interest",
+                           "noise", "psi_table", "nerf_table", "gid")
         spatial_reshape = self.model.spatial_param_reshape
         for param in type(self.model).declarative_attrs:
             if param in excluded_params:
@@ -729,7 +730,7 @@ class Simulator(HasTraits):
                     xl.append(x)
         elapsed_wall_time = time.time() - wall_time_start
         self.log.info("%.3f s elapsed, %.3fx real time", elapsed_wall_time,
-                 elapsed_wall_time * 1e3 / self.simulation_length)
+                      elapsed_wall_time * 1e3 / self.simulation_length)
         for i in range(len(ts)):
             ts[i] = numpy.array(ts[i])
             xs[i] = numpy.array(xs[i])
