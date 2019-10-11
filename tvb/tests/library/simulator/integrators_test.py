@@ -146,10 +146,9 @@ class TestIntegrators(BaseTestCase):
         x_bound = numpy.array(x)
         x_bound[[0, 1], 0, ] = 0.0
         x_bound[[0, 2], 1, ] = 1.0
-        for i in range(2):
-            x = vode_bound.scheme(x, self._dummy_dfun, 0.0, 0.0, 0.0)
-            x_bound = vode.scheme(x_bound, self._dummy_dfun, 0.0, 0.0, 0.0)
-            assert numpy.allclose(x, x_bound, atol=0.1*vode.dt)
+        x = vode_bound.scheme(x, self._dummy_dfun, 0.0, 0.0, 0.0)
+        x_bound = vode.scheme(x_bound, self._dummy_dfun, 0.0, 0.0, 0.0)
+        assert numpy.allclose(x, x_bound, atol=0.1*vode.dt)
 
     def test_clamp(self):
         vode = integrators.VODE(
