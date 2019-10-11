@@ -38,8 +38,6 @@ import sys
 from tvb.basic.config import stored
 from tvb.basic.config.environment import Environment
 from tvb.basic.config.settings import ClusterSettings, DBSettings, VersionSettings, WebSettings
-from tvb.basic.logger import builder
-from tvb.basic.logger.builder import LoggerBuilder
 
 
 class BaseSettingsProfile(object):
@@ -180,7 +178,8 @@ class LibrarySettingsProfile(BaseSettingsProfile):
         super(LibrarySettingsProfile, self).__init__(False)
 
     def initialize_profile(self):
-        builder.GLOBAL_LOGGER_BUILDER = LoggerBuilder('tvb.basic.logger')
+        from tvb.basic.logger import builder
+        builder.GLOBAL_LOGGER_BUILDER = builder.LoggerBuilder('tvb.basic.logger')
 
 
 class TestLibraryProfile(LibrarySettingsProfile):
