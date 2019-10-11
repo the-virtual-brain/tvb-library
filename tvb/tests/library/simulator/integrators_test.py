@@ -126,6 +126,30 @@ class TestIntegrators(BaseTestCase):
     def test_scipy_dopri5(self):
         self._scipy_scheme_tester('Dopri5')
 
+    def test_bound(self):
+        vode = integrators.VODE(
+            bounded_state_variable_indices=numpy.r_[0, 1, 2, 3],
+            state_variable_boundaries=numpy.array([[0.0, 1.0], [None, 1.0], [0.0, None], [None, None]])
+        )
+        x = numpy.ones((5, 4, 2))
+        x[:, 0, ] = -x[:, 0, ]
+        x[:, 1, ] = 2 * x[:, 1, ]
+        x0 = numpy.array(x)
+        for i in range(10):
+            x = vode.scheme(x, self._dummy_dfun, 0.0, 0.0, 0.0)
+        for idx, val in zip(vode.bounded_state_variable_indices, vode.state_variable_boundaries):
+            if idx == 0:
+                assert numpy.all(x[idx] >= val[0])
+                assert numpy.all(x[idx] <= val[1])
+            elif idx == 1:
+                assert numpy.all(x[idx] <= val[1])
+                assert numpy.allclose(x[idx, 0], x0[idx, 0])
+            elif idx == 2:
+                assert numpy.all(x[idx] >= val[0])
+                assert numpy.allclose(x[idx, 1], x0[idx, 1])
+            else:
+                assert numpy.allclose(x[idx], x0[idx])
+
     def test_clamp(self):
         vode = integrators.VODE(
             clamped_state_variable_indices=numpy.r_[0, 3],
