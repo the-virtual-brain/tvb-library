@@ -40,9 +40,6 @@ import numpy
 import tvb.datatypes.time_series as time_series
 import tvb.datatypes.mode_decompositions as mode_decompositions
 from tvb.basic.neotraits.api import HasTraits, Attr, narray_describe
-from tvb.basic.logger.builder import get_logger
-
-LOG = get_logger(__name__)
 
 
 class PCA_mlab(object):
@@ -112,15 +109,15 @@ class PCA(HasTraits):
         # Need more measurements than variables
         if ts_shape[0] < ts_shape[2]:
             msg = "PCA requires a longer timeseries (tpts > number of nodes)."
-            LOG.error(msg)
+            self.log.error(msg)
             raise Exception(msg)
 
         # (nodes, nodes, state-variables, modes)
         weights_shape = (ts_shape[2], ts_shape[2], ts_shape[1], ts_shape[3])
-        LOG.info("weights shape will be: %s" % str(weights_shape))
+        self.log.info("weights shape will be: %s" % str(weights_shape))
 
         fractions_shape = (ts_shape[2], ts_shape[1], ts_shape[3])
-        LOG.info("fractions shape will be: %s" % str(fractions_shape))
+        self.log.info("fractions shape will be: %s" % str(fractions_shape))
 
         weights = numpy.zeros(weights_shape)
         fractions = numpy.zeros(fractions_shape)
@@ -135,10 +132,10 @@ class PCA(HasTraits):
 
                 weights[:, :, var, mode] = data_pca.Wt
 
-        LOG.debug("fractions")
-        LOG.debug(narray_describe(fractions))
-        LOG.debug("weights")
-        LOG.debug(narray_describe(weights))
+        self.log.debug("fractions")
+        self.log.debug(narray_describe(fractions))
+        self.log.debug("weights")
+        self.log.debug(narray_describe(weights))
 
         pca_result = mode_decompositions.PrincipalComponents(
             source=self.time_series,

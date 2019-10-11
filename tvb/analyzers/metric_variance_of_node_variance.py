@@ -37,9 +37,6 @@ Filler analyzer: Takes a TimeSeries object and returns a Float.
 """
 
 import tvb.analyzers.metrics_base as metrics_base
-from tvb.basic.logger.builder import get_logger
-
-LOG = get_logger(__name__)
 
 
 class VarianceNodeVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
@@ -67,13 +64,13 @@ class VarianceNodeVariance(metrics_base.BaseTimeseriesMetricAlgorithm):
 
         if self.start_point != 0.0:
             start_tpt = self.start_point / self.time_series.sample_period
-            LOG.debug("Will discard: %s time points" % start_tpt)
+            self.log.debug("Will discard: %s time points" % start_tpt)
         else:
             start_tpt = 0
 
         if start_tpt > tpts:
-            LOG.warning("The time-series is shorter than the starting point")
-            LOG.debug("Will divide the time-series into %d segments." % self.segment)
+            self.log.warning("The time-series is shorter than the starting point")
+            self.log.debug("Will divide the time-series into %d segments." % self.segment)
             # Lazy strategy
             start_tpt = int((self.segment - 1) * (tpts // self.segment))
 

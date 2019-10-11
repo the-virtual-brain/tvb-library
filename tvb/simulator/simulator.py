@@ -43,18 +43,12 @@ import time
 import math
 import numpy
 import scipy.sparse
-
 from tvb.basic.profile import TvbProfile
 from tvb.datatypes import cortex, connectivity, patterns
 from tvb.simulator import models, integrators, monitors, coupling
-from .common import psutil, get_logger, numpy_add_at
+from .common import psutil, numpy_add_at
 from .history import SparseHistory
 from tvb.basic.neotraits.api import HasTraits, Attr, NArray, List, Float
-import sys
-if sys.version_info[0] == 3:
-    import typing
-
-LOG = get_logger(__name__)
 
 
 # TODO with refactor, this becomes more of a builder, since iterator will account for
@@ -215,13 +209,13 @@ class Simulator(HasTraits):
         # "Nodes" refers to either regions or vertices + non-cortical regions.
         if self.surface is None:
             self.number_of_nodes = self.connectivity.number_of_regions
-            LOG.info('Region simulation with %d ROI nodes', self.number_of_nodes)
+            self.log.info('Region simulation with %d ROI nodes', self.number_of_nodes)
         else:
             rm = self.surface.region_mapping
             unmapped = self.connectivity.unmapped_indices(rm)
             self._regmap = numpy.r_[rm, unmapped]
             self.number_of_nodes = self._regmap.shape[0]
-            LOG.info('Surface simulation with %d vertices + %d non-cortical, %d total nodes',
+            self.log.info('Surface simulation with %d vertices + %d non-cortical, %d total nodes',
                      rm.size, unmapped.size, self.number_of_nodes)
         self._guesstimate_memory_requirement()
 
@@ -286,9 +280,9 @@ class Simulator(HasTraits):
             if isinstance(self.integrator, integrators.IntegratorStochastic):
                 self.integrator.noise.random_stream.set_state(random_state)
                 msg = "random_state supplied with seed %s"
-                LOG.info(msg, self.integrator.noise.random_stream.get_state()[1][0])
+                self.log.info(msg, self.integrator.noise.random_stream.get_state()[1][0])
             else:
-                LOG.warn("random_state supplied for non-stochastic integration")
+                self.log.warn("random_state supplied for non-stochastic integration")
 
     def _prepare_local_coupling(self):
         if self.surface is None:
@@ -321,7 +315,7 @@ class Simulator(HasTraits):
             time = numpy.r_[0.0 : self.simulation_length : self.integrator.dt]
             self.stimulus.configure_time(time.reshape((1, -1)))
             stimulus = numpy.zeros((self.model.nvar, self.number_of_nodes, 1))
-            LOG.debug("stimulus shape is: %s", stimulus.shape)
+            self.log.debug("stimulus shape is: %s", stimulus.shape)
         return stimulus
 
     def _loop_compute_node_coupling(self, step):
@@ -411,14 +405,14 @@ class Simulator(HasTraits):
         # Default initial conditions
         if initial_conditions is None:
             n_time, n_svar, n_node, n_mode = self.good_history_shape
-            LOG.info('Preparing initial history of shape %r using model.initial()', self.good_history_shape)
+            self.log.info('Preparing initial history of shape %r using model.initial()', self.good_history_shape)
             if self.surface is not None:
                 n_node = self.number_of_nodes
             history = self.model.initial(self.integrator.dt, (n_time, n_svar, n_node, n_mode), rng)
         # ICs provided
         else:
             # history should be [timepoints, state_variables, nodes, modes]
-            LOG.info('Using provided initial history of shape %r', initial_conditions.shape)
+            self.log.info('Using provided initial history of shape %r', initial_conditions.shape)
             n_time, n_svar, n_node, n_mode = ic_shape = initial_conditions.shape
             nr = self.connectivity.number_of_regions
             if self.surface is not None and n_node == nr:
@@ -429,20 +423,20 @@ class Simulator(HasTraits):
                                  % (ic_shape[1:], self.good_history_shape[1:]))
             else:
                 if ic_shape[0] >= self.horizon:
-                    LOG.debug("Using last %d time-steps for history.", self.horizon)
+                    self.log.debug("Using last %d time-steps for history.", self.horizon)
                     history = initial_conditions[-self.horizon:, :, :, :].copy()
                 else:
-                    LOG.debug('Padding initial conditions with model.initial')
+                    self.log.debug('Padding initial conditions with model.initial')
                     history = self.model.initial(self.integrator.dt, self.good_history_shape, rng)
                     shift = self.current_step % self.horizon
                     history = numpy.roll(history, -shift, axis=0)
                     history[:ic_shape[0], :, :, :] = initial_conditions
                     history = numpy.roll(history, shift, axis=0)
                 self.current_step += ic_shape[0] - 1
-        LOG.info('Final initial history shape is %r', history.shape)
+        self.log.info('Final initial history shape is %r', history.shape)
         # create initial state from history
         self.current_state = history[self.current_step % self.horizon].copy()
-        LOG.debug('initial state has shape %r' % (self.current_state.shape, ))
+        self.log.debug('initial state has shape %r' % (self.current_state.shape, ))
         if self.surface is not None and history.shape[2] > self.connectivity.number_of_regions:
             n_reg = self.connectivity.number_of_regions
             (nt, ns, _, nm), ax = history.shape, (2, 0, 1, 3)
@@ -494,7 +488,7 @@ class Simulator(HasTraits):
         good_nsig_shape = (self.model.nvar, self.number_of_nodes,
                            self.model.number_of_modes)
         nsig = self.integrator.noise.nsig
-        LOG.debug("Given noise shape is %s", nsig.shape)
+        self.log.debug("Given noise shape is %s", nsig.shape)
         if nsig.shape in (good_nsig_shape, (1,)):
             return
         elif nsig.shape == (self.model.nvar, ):
@@ -505,9 +499,9 @@ class Simulator(HasTraits):
             nsig = nsig.reshape((self.model.nvar, self.number_of_nodes, 1))
         else:
             msg = "Bad Simulator.integrator.noise.nsig shape: %s"
-            LOG.error(msg % str(nsig.shape))
+            self.log.error(msg % str(nsig.shape))
 
-        LOG.debug("Corrected noise shape is %s", nsig.shape)
+        self.log.debug("Corrected noise shape is %s", nsig.shape)
         self.integrator.noise.nsig = nsig
 
     def _configure_monitors(self):
@@ -588,7 +582,7 @@ class Simulator(HasTraits):
                                                                self.connectivity.speed or 3.0) / self.integrator.dt,
                       self.model.nvar, number_of_nodes, 
                       self.model.number_of_modes)
-        LOG.debug("Estimated history shape is %r", hist_shape)
+        self.log.debug("Estimated history shape is %r", hist_shape)
 
         memreq = numpy.prod(hist_shape) * bits_64
         if self.surface:
@@ -611,7 +605,7 @@ class Simulator(HasTraits):
                     try:
                         memreq += number_of_nodes * monitor.sensors.number_of_sensors * bits_64  # projection_matrix
                     except AttributeError:
-                        LOG.debug("No sensors specified, guessing memory based on default EEG.")
+                        self.log.debug("No sensors specified, guessing memory based on default EEG.")
                         memreq += number_of_nodes * 62.0 * bits_64
 
             else:
@@ -627,11 +621,11 @@ class Simulator(HasTraits):
                 memreq += numpy.prod(interim_stock_shape) * bits_64
 
         if psutil and memreq > psutil.virtual_memory().total:
-            LOG.warning("There may be insufficient memory for this simulation.")
+            self.log.warning("There may be insufficient memory for this simulation.")
 
         self._memory_requirement_guess = magic_number * memreq
         msg = "Memory requirement estimate: simulation will need about %.1f MB"
-        LOG.info(msg, self._memory_requirement_guess / 2**20)
+        self.log.info(msg, self._memory_requirement_guess / 2**20)
 
     def _census_memory_requirement(self):
         """
@@ -662,12 +656,12 @@ class Simulator(HasTraits):
                 memreq += monitor._interim_stock.nbytes
 
         if psutil and memreq > psutil.virtual_memory().total:
-            LOG.warning("Memory estimate exceeds total available RAM.")
+            self.log.warning("Memory estimate exceeds total available RAM.")
 
         self._memory_requirement_census = magic_number * memreq
         # import pdb; pdb.set_trace()
         msg = "Memory requirement census: simulation will need about %.1f MB"
-        LOG.info(msg % (self._memory_requirement_census / 1048576.0))
+        self.log.info(msg % (self._memory_requirement_census / 1048576.0))
 
     def _guesstimate_runtime(self):
         """
@@ -683,7 +677,7 @@ class Simulator(HasTraits):
         self._runtime = (magic_number * self.number_of_nodes * self.model.nvar * self.model.number_of_modes *
                          self.simulation_length / self.integrator.dt)
         msg = "Simulation runtime should be about %0.3f seconds"
-        LOG.info(msg, self._runtime)
+        self.log.info(msg, self._runtime)
 
     def _calculate_storage_requirement(self):
         """
@@ -692,7 +686,7 @@ class Simulator(HasTraits):
         While this is only approximate, it is far more reliable/accurate than
         the memory and runtime guesstimates.
         """
-        LOG.info("Calculating storage requirement for ...")
+        self.log.info("Calculating storage requirement for ...")
         strgreq = 0
         for monitor in self.monitors:
             # Avoid division by zero for monitor not yet configured
@@ -701,7 +695,7 @@ class Simulator(HasTraits):
             strgreq += (TvbProfile.current.MAGIC_NUMBER * self.simulation_length *
                         self.number_of_nodes * self.model.nvar *
                         self.model.number_of_modes / current_period)
-        LOG.info("Calculated storage requirement for simulation: %d " % int(strgreq))
+        self.log.info("Calculated storage requirement for simulation: %d " % int(strgreq))
         self._storage_requirement = int(strgreq)
 
     def run(self, **kwds):
@@ -718,7 +712,7 @@ class Simulator(HasTraits):
                     tl.append(t)
                     xl.append(x)
         elapsed_wall_time = time.time() - wall_time_start
-        LOG.info("%.3f s elapsed, %.3fx real time", elapsed_wall_time,
+        self.log.info("%.3f s elapsed, %.3fx real time", elapsed_wall_time,
                  elapsed_wall_time * 1e3 / self.simulation_length)
         for i in range(len(ts)):
             ts[i] = numpy.array(ts[i])

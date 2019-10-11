@@ -37,10 +37,7 @@ The Temporal Correlation datatypes.
 """
 
 import tvb.datatypes.time_series as time_series
-from tvb.basic.logger.builder import get_logger
 from tvb.basic.neotraits.api import HasTraits, Attr, NArray, List, narray_summary_info
-
-LOG = get_logger(__name__)
 
 
 class CrossCorrelation(HasTraits):

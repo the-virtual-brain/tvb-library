@@ -36,12 +36,9 @@ Adapter that uses the traits module to generate interfaces for ... Analyzer.
 
 """
 
-from tvb.basic.logger.builder import get_logger
-
 import tvb.datatypes.time_series as time_series
 from tvb.basic.neotraits.api import HasTraits, Attr, NArray, List, Float, narray_summary_info
 
-LOG = get_logger(__name__)
 
 
 class Fcd(HasTraits):

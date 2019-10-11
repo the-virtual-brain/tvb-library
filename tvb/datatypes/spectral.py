@@ -36,11 +36,8 @@ The Spectral datatypes.
 
 """
 import numpy
-from tvb.basic.logger.builder import get_logger
 from tvb.basic.neotraits.api import HasTraits, Attr, NArray, Int, Float
 from tvb.datatypes import time_series
-
-LOG = get_logger(__name__)
 
 
 class FourierSpectrum(HasTraits):
@@ -109,7 +106,7 @@ class FourierSpectrum(HasTraits):
         if self._freq_step is None:
             self._freq_step = 1.0 / self.segment_length
             msg = "%s: Frequency step size is %s"
-            LOG.debug(msg % (str(self), str(self._freq_step)))
+            self.log.debug(msg % (str(self), str(self._freq_step)))
         return self._freq_step
 
     @property
@@ -118,7 +115,7 @@ class FourierSpectrum(HasTraits):
         if self._max_freq is None:
             self._max_freq = 0.5 / self.source.sample_period
             msg = "%s: Max frequency is %s"
-            LOG.debug(msg % (str(self), str(self._max_freq)))
+            self.log.debug(msg % (str(self), str(self._max_freq)))
         return self._max_freq
 
     @property
@@ -150,7 +147,6 @@ class FourierSpectrum(HasTraits):
         """ Normalised-average-power of the complex Fourier spectrum."""
         self.normalised_average_power = (self.average_power /
                                          numpy.sum(self.average_power, axis=0))
-
 
 
 class WaveletCoefficients(HasTraits):
@@ -192,7 +188,6 @@ class WaveletCoefficients(HasTraits):
     _frequency = None
     _time = None
 
-
     def summary_info(self):
         """
         Gather scientifically interesting summary information from an instance of this datatype.
@@ -208,7 +203,6 @@ class WaveletCoefficients(HasTraits):
             "Minimum frequency": self.frequencies[0],
             "Maximum frequency": self.frequencies[-1]
         }
-
 
     @property
     def frequency(self):
@@ -232,7 +226,6 @@ class WaveletCoefficients(HasTraits):
         self.power = numpy.abs(self.array_data) ** 2
 
 
-
 class CoherenceSpectrum(HasTraits):
     """
     Result of a NodeCoherence Analysis.
@@ -252,7 +245,6 @@ class CoherenceSpectrum(HasTraits):
         doc="""NOTE: must be a power of 2""")
 
     frequency = NArray(label="Frequency")
-
 
     def summary_info(self):
         """
@@ -337,7 +329,7 @@ class ComplexCoherenceSpectrum(HasTraits):
         if self._freq_step is None:
             self._freq_step = 1.0 / self.segment_length
             msg = "%s: Frequency step size is %s"
-            LOG.debug(msg % (str(self), str(self._freq_step)))
+            self.log.debug(msg % (str(self), str(self._freq_step)))
         return self._freq_step
 
     @property
@@ -346,7 +338,7 @@ class ComplexCoherenceSpectrum(HasTraits):
         if self._max_freq is None:
             self._max_freq = 0.5 / self.source.sample_period
             msg = "%s: Max frequency is %s"
-            LOG.debug(msg % (str(self), str(self._max_freq)))
+            self.log.debug(msg % (str(self), str(self._max_freq)))
         return self._max_freq
 
     @property
@@ -357,4 +349,3 @@ class ComplexCoherenceSpectrum(HasTraits):
                                            self.max_freq + self.freq_step,
                                            self.freq_step)
         return self._frequency
-

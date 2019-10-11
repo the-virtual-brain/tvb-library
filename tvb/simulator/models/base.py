@@ -30,17 +30,13 @@
 This module defines the common imports and abstract base class for model definitions.
 
 """
+import sys
 import abc
 import numpy
-from tvb.simulator.common import get_logger
 from tvb.basic.neotraits.api import HasTraits
-
-import sys
-
 if sys.version_info[0] == 3:
     import typing
 
-LOG = get_logger(__name__)
 
 
 class Model(HasTraits):
@@ -67,7 +63,7 @@ class Model(HasTraits):
             voi_names=','.join(self.variables_of_interest)
         )
         namespace = {'numpy': numpy}
-        LOG.debug('building observer with code:\n%s', code)
+        self.log.debug('building observer with code:\n%s', code)
         exec(code, namespace)
         self.observe = namespace['observe']
         self.observe.code = code

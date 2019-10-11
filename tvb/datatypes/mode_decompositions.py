@@ -37,12 +37,8 @@ The Mode Decomposition datatypes.
 """
 
 import numpy
-from tvb.basic.logger.builder import get_logger
 import tvb.datatypes.time_series as time_series
 from tvb.basic.neotraits.api import HasTraits, Attr, NArray, Int
-
-
-LOG = get_logger(__name__)
 
 
 class PrincipalComponents(HasTraits):
@@ -70,7 +66,6 @@ class PrincipalComponents(HasTraits):
 
     normalised_component_time_series = NArray(label="Normalised component time series")
 
-
     def summary_info(self):
         """
         Gather scientifically interesting summary information from an instance
@@ -81,7 +76,6 @@ class PrincipalComponents(HasTraits):
             "Source": self.source.title
         }
         return summary
-
 
     def compute_norm_source(self):
         """Normalised source time-series."""
