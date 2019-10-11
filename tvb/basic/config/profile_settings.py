@@ -177,10 +177,6 @@ class LibrarySettingsProfile(BaseSettingsProfile):
     def __init__(self):
         super(LibrarySettingsProfile, self).__init__(False)
 
-    def initialize_profile(self):
-        from tvb.basic.logger import builder
-        builder.GLOBAL_LOGGER_BUILDER = builder.LoggerBuilder('tvb.basic.logger')
-
 
 class TestLibraryProfile(LibrarySettingsProfile):
     """

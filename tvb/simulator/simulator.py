@@ -200,10 +200,10 @@ class Simulator(HasTraits):
         self.coupling.configure()
         self.model.configure()
         self.integrator.configure()
-        if isinstance(self.model.state_variable_constraint, dict):
+        if self.model.state_variable_boundaries is not None:
             indices = []
             boundaries = []
-            for sv, sv_bounds in self.model.state_variable_constraint.items():
+            for sv, sv_bounds in self.model.state_variable_boundaries.items():
                 indices.append(self.model.state_variables.index(sv))
                 boundaries.append(sv_bounds)
             sort_inds = numpy.argsort(indices)
