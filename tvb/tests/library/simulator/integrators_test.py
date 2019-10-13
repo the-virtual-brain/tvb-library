@@ -129,26 +129,20 @@ class TestIntegrators(BaseTestCase):
     def test_bound(self):
         vode = integrators.VODE(
             bounded_state_variable_indices=numpy.r_[0, 1, 2, 3],
-            state_variable_boundaries=numpy.array([[0.0, 1.0], [None, 1.0], [0.0, None], [None, None]], dtype=float)
+            state_variable_boundaries=None)
+        vode_bound = integrators.VODE(
+            bounded_state_variable_indices=numpy.r_[0, 1, 2, 3],
+            state_variable_boundaries=numpy.array([[0.0, 1.0], [None, 1.0], [0.0, None], [None, None]])
         )
-        x = numpy.ones((5, 4, 2))
+        x = 0.6 * numpy.ones((5, 4, 2))
         x[:, 0, ] = -x[:, 0, ]
         x[:, 1, ] = 2 * x[:, 1, ]
-        x0 = numpy.array(x)
-        for i in range(10):
-            x = vode.scheme(x, self._dummy_dfun, 0.0, 0.0, 0.0)
-        for idx, val in zip(vode.bounded_state_variable_indices, vode.state_variable_boundaries):
-            if idx == 0:
-                assert numpy.all(x[idx] >= val[0])
-                assert numpy.all(x[idx] <= val[1])
-            elif idx == 1:
-                assert numpy.all(x[idx] <= val[1])
-                assert numpy.allclose(x[idx, 0], x0[idx, 0], atol=0.2)
-            elif idx == 2:
-                assert numpy.all(x[idx] >= val[0])
-                assert numpy.allclose(x[idx, 1], x0[idx, 1], atol=0.3)
-            else:
-                assert numpy.all(numpy.isfinite(x[idx]))
+        x_bound = numpy.array(x)
+        x_bound[[0, 1], 0,] = 0.0
+        x_bound[[0, 2], 1,] = 1.0
+        x = vode_bound.scheme(x, self._dummy_dfun, 0.0, 0.0, 0.0)
+        x_bound = vode.scheme(x_bound, self._dummy_dfun, 0.0, 0.0, 0.0)
+        assert numpy.allclose(x, x_bound, atol=0.1 * vode.dt)
 
     def test_clamp(self):
         vode = integrators.VODE(
