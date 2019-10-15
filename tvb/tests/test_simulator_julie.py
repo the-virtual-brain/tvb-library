@@ -3,6 +3,7 @@ TvbProfile.set_profile(TvbProfile.LIBRARY_PROFILE)
 
 import inspect
 import numpy as np
+from matplotlib import pyplot
 
 from tvb.simulator.lab import *
 from tvb.simulator.simulator_julie import Simulator
@@ -18,13 +19,16 @@ if __name__ == "__main__":
     connectivity = connectivity.Connectivity.from_file(DEFAULT_CONNECTIVITY_ZIP)
     connectivity.configure()
 
-       # ----------------------2. Define a TVB simulator (model, integrator, monitors...)----------------------------------
+    # ----2. Define a TVB simulator (model, integrator, monitors...)--------------
 
-        # Create a TVB simulator and set all desired inputs
-        # (connectivity, model, surface, stimuli etc)
-        # We choose all defaults in this example
+    # Create a TVB simulator and set all desired inputs
+    # (connectivity, model, surface, stimuli etc)
+    # We choose all defaults in this example
     simulator = Simulator()
     simulator.model = ReducedWongWangExcInh()
+    simulator.model.G = np.array(0.1)
+    simulator.model.W_BG_e = np.array(0.01)
+    simulator.model.W_BG_i = np.array(0.5)
 
     # Synaptic gating state variables S_e, S_i need to be in the interval [0, 1]
     simulator.connectivity = connectivity
@@ -36,9 +40,15 @@ if __name__ == "__main__":
     # mon_eeg = EEG(period=simulator.integrator.dt)
     simulator.monitors = (mon_raw,)  # mon_bold, mon_eeg
 
-    Nt = 10
+    Nt = 10000
     simulator.source_eeg = np.random.normal(size=(Nt, connectivity.number_of_regions))
-
     simulator.configure()
 
-    simulator.run(simulation_length=Nt*simulator.integrator.dt)
+    output = simulator.run(simulation_length=Nt*simulator.integrator.dt)
+    time = output[0][0]
+    data = output[0][1]
+
+    pyplot.plot(time, data[:, 0, :].squeeze())
+    pyplot.show()
+
+    print('Success!')
