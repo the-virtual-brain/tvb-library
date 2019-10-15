@@ -44,20 +44,17 @@ will be consistent with Monitor periods corresponding to any of [4096, 2048, 102
 .. moduleauthor:: Noelia Montejo <Noelia@tvb.invalid>
 
 """
-
+import abc
 import functools
-import numpy
 import scipy.integrate
-from tvb.basic.traits import core, types_basic as basic
-from tvb.datatypes import arrays
 from . import noise
 from .common import get_logger, simple_gen_astr
-
+from tvb.basic.neotraits.api import HasTraits, Attr, NArray, Float
 
 LOG = get_logger(__name__)
 
 
-class Integrator(core.Type):
+class Integrator(HasTraits):
     """
     The Integrator class is a base class for the integration methods...
 
@@ -72,12 +69,11 @@ class Integrator(core.Type):
         40: 3381, 1989.
 
     """
-    _base_classes = ['Integrator', 'IntegratorStochastic', 'RungeKutta4thOrderDeterministic']
 
-    dt = basic.Float(
+    dt = Float(
         label="Integration-step size (ms)",
         default=0.01220703125, #0.015625,
-        #range = basic.Range(lo= 0.0048828125, hi=0.244140625, step= 0.1, base=2.)
+        #range = basic.Range(lo= 0.0048828125, hi=0.244140625, step= 0.1, base=2.)  mh: was commented
         required=True,
         doc="""The step size used by the integration routine in ms. This
         should be chosen to be small enough for the integration to be
@@ -86,29 +82,30 @@ class Integrator(core.Type):
         multiples of this value. The default value is set such that all built-in
         models are numerically stable with there default parameters and because
         it is consitent with Monitors using sample periods corresponding to
-        powers of 2 from 128 to 4096Hz.""")
+        powers of 2 from 128 to 4096Hz."""
+    )
 
-    bounded_state_variable_indices = arrays.IntegerArray(
+    bounded_state_variable_indices = NArray(
+        dtype=int,
         label="indices of the state variables to be bounded by the integrators "
               "within the boundaries in the boundaries' values array",
-        default=None,
-        order=-1)
+        required=False)
 
-    state_variable_boundaries = arrays.FloatArray(
+    state_variable_boundaries = NArray(
         label="The boundary values of the state variables",
-        default=None,
-        order=-1)
+        required=False)
 
-    clamped_state_variable_indices = arrays.IntegerArray(
+    clamped_state_variable_indices = NArray(
+        dtype=int,
         label="indices of the state variables to be clamped by the integrators to the values in the clamped_values array",
-        default=None,
-        order=-1)
+        required=False)
 
-    clamped_state_variable_values = arrays.FloatArray(
+    clamped_state_variable_values = NArray(
         label="The values of the state variables which are clamped ",
-        default=None,
-        order=-1)
+        required=False)
 
+
+    @abc.abstractmethod
     def scheme(self, X, dfun, coupling, local_coupling, stimulus):
         """
         The scheme of integrator should take a state and provide the next
@@ -116,8 +113,6 @@ class Integrator(core.Type):
         :math:`X` and provide an appropriate :math:`X + dX` (dfun in the code).
 
         """
-        msg = "Integrator is a base class; please use a suitable subclass."
-        raise NotImplementedError(msg)
 
     def bound_state(self, X):
         for sv_ind, sv_bounds in \
@@ -161,12 +156,13 @@ class IntegratorStochastic(Integrator):
 
     """
 
-    noise = noise.Noise(
+    noise = Attr(
+        field_type=noise.Noise,
         label = "Integration Noise",
-        default = noise.Additive,
+        default=noise.Additive(),
         required = True,
         doc = """The stochastic integrator's noise source. It incorporates its
-        own instance of Numpy's RandomState.""")
+        own instance of Numpy's RandomState.""")  # type: noise.Noise
 
     def __str__(self):
         return simple_gen_astr(self, 'dt noise')

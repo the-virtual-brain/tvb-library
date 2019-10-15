@@ -46,49 +46,49 @@ class TestSensors(BaseTestCase):
 
     def test_sensors(self):
 
-        dt = sensors.Sensors(load_default=True)
+        dt = sensors.Sensors.from_file()
         dt.configure()
 
-        summary_info = dt.summary_info
-        assert summary_info['Sensor type'] == ''
+        summary_info = dt.summary_info()
+        assert summary_info['Sensor type'] is None
         assert summary_info['Number of Sensors'] == 65
         assert not dt.has_orientation
         assert dt.labels.shape == (65,)
         assert dt.locations.shape == (65, 3)
         assert dt.number_of_sensors == 65
-        assert dt.orientations.shape == (0,)
-        assert dt.sensors_type == ''
+        assert dt.orientations is None
+        assert dt.sensors_type is None
 
         ## Mapping 62 sensors on a Skin surface should work
-        surf = SkinAir(load_default=True)
+        surf = SkinAir.from_file()
         surf.configure()
         mapping = dt.sensors_to_surface(surf)
         assert mapping.shape == (65, 3)
 
         ## Mapping on a surface with holes should fail
         dummy_surf = SkinAir()
-        dummy_surf.vertices = numpy.array(range(30)).reshape(10, 3).astype('f')
-        dummy_surf.triangles = numpy.array(range(9)).reshape(3, 3)
+        dummy_surf.vertices = numpy.array(list(range(30))).reshape(10, 3).astype('f')
+        dummy_surf.triangles = numpy.array(list(range(9))).reshape(3, 3)
         dummy_surf.configure()
         try:
             dt.sensors_to_surface(dummy_surf)
-            pytest.fail("Should have failed for this simple surface!")
+            self.fail("Should have failed for this simple surface!")
         except Exception:
             pass
 
     def test_sensorseeg(self):
-        dt = sensors.SensorsEEG(load_default=True)
+        dt = sensors.SensorsEEG.from_file()
         dt.configure()
         assert isinstance(dt, sensors.SensorsEEG)
         assert not dt.has_orientation
         assert dt.labels.shape == (65,)
         assert dt.locations.shape == (65, 3)
         assert dt.number_of_sensors == 65
-        assert dt.orientations.shape == (0,)
+        assert dt.orientations is None
         assert dt.sensors_type == EEG_POLYMORPHIC_IDENTITY
 
     def test_sensorsmeg(self):
-        dt = sensors.SensorsMEG(load_default=True)
+        dt = sensors.SensorsMEG.from_file()
         dt.configure()
         assert isinstance(dt, sensors.SensorsMEG)
         assert dt.has_orientation
@@ -99,12 +99,12 @@ class TestSensors(BaseTestCase):
         assert dt.sensors_type == MEG_POLYMORPHIC_IDENTITY
 
     def test_sensorsinternal(self):
-        dt = sensors.SensorsInternal(load_default=True)
+        dt = sensors.SensorsInternal.from_file()
         dt.configure()
         assert isinstance(dt, sensors.SensorsInternal)
         assert not dt.has_orientation
         assert dt.labels.shape == (103,)
         assert dt.locations.shape == (103, 3)
         assert dt.number_of_sensors == 103
-        assert dt.orientations.shape == (0,)
+        assert dt.orientations is None
         assert dt.sensors_type == INTERNAL_POLYMORPHIC_IDENTITY

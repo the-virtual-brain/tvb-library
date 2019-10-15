@@ -29,8 +29,7 @@
 #
 
 """
-The Mode Decomposition datatypes. This brings together the scientific and 
-framework methods that are associated with the Mode Decomposition datatypes.
+The Mode Decomposition datatypes.
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 .. moduleauthor:: Paula Sanz Leon <paula.sanz-leon@univ-amu.fr>
@@ -38,132 +37,51 @@ framework methods that are associated with the Mode Decomposition datatypes.
 """
 
 import numpy
-from tvb.basic.logger.builder import get_logger
-import tvb.basic.traits.core as core
-import tvb.basic.traits.types_basic as basic
-import tvb.datatypes.arrays as arrays
 import tvb.datatypes.time_series as time_series
-from tvb.basic.traits.types_mapped import MappedType
+from tvb.basic.neotraits.api import HasTraits, Attr, NArray, Int
 
 
-LOG = get_logger(__name__)
-
-
-class PrincipalComponents(MappedType):
+class PrincipalComponents(HasTraits):
     """
     Result of a Principal Component Analysis (PCA).
     """
 
-    source = time_series.TimeSeries(
+    source = Attr(
+        field_type=time_series.TimeSeries,
         label="Source time-series",
         doc="Links to the time-series on which the PCA is applied.")
 
-    weights = arrays.FloatArray(
+    weights = NArray(
         label="Principal vectors",
-        doc="""The vectors of the 'weights' with which each time-series is
-            represented in each component.""",
-        file_storage=core.FILE_STORAGE_EXPAND)
+        doc="""The vectors of the 'weights' with which each time-series is represented in each component.""")
 
-    fractions = arrays.FloatArray(
+    fractions = NArray(
         label="Fraction explained",
         doc="""A vector or collection of vectors representing the fraction of
-            the variance explained by each principal component.""",
-        file_storage=core.FILE_STORAGE_EXPAND)
+                the variance explained by each principal component.""")
 
-    norm_source = arrays.FloatArray(
-        label="Normalised source time series",
-        file_storage=core.FILE_STORAGE_EXPAND)
+    norm_source = NArray(label="Normalised source time series")
 
-    component_time_series = arrays.FloatArray(
-        label="Component time series",
-        file_storage=core.FILE_STORAGE_EXPAND)
+    component_time_series = NArray(label="Component time series")
 
-    normalised_component_time_series = arrays.FloatArray(
-        label="Normalised component time series",
-        file_storage=core.FILE_STORAGE_EXPAND)
+    normalised_component_time_series = NArray(label="Normalised component time series")
 
-
-    def write_data_slice(self, partial_result):
-        """
-        Append chunk.
-        """
-        self.store_data_chunk('weights', partial_result.weights, grow_dimension=2, close_file=False)
-
-        self.store_data_chunk('fractions', partial_result.fractions, grow_dimension=1, close_file=False)
-
-        partial_result.compute_norm_source()
-        self.store_data_chunk('norm_source', partial_result.norm_source, grow_dimension=1, close_file=False)
-
-        partial_result.compute_component_time_series()
-        self.store_data_chunk('component_time_series', partial_result.component_time_series,
-                              grow_dimension=1, close_file=False)
-
-        partial_result.compute_normalised_component_time_series()
-        self.store_data_chunk('normalised_component_time_series', partial_result.normalised_component_time_series,
-                              grow_dimension=1, close_file=False)
-
-    def read_fractions_data(self, from_comp, to_comp):
-        """
-        Return a list with fractions for components in interval from_comp, to_comp and in
-        addition have in position n the sum of the fractions for the rest of the components.
-        """
-        from_comp = int(from_comp)
-        to_comp = int(to_comp)
-        all_data = self.get_data('fractions').flat
-        sum_others = 0
-        for idx, val in enumerate(all_data):
-            if idx < from_comp or idx > to_comp:
-                sum_others += val
-        return numpy.array(all_data[from_comp:to_comp].tolist() + [sum_others])
-
-    def read_weights_data(self, from_comp, to_comp):
-        """
-        Return the weights data for the components in the interval [from_comp, to_comp].
-        """
-        from_comp = int(from_comp)
-        to_comp = int(to_comp)
-        data_slice = slice(from_comp, to_comp, None)
-        weights_shape = self.get_data_shape('weights')
-        weights_slice = [slice(size) for size in weights_shape]
-        weights_slice[0] = data_slice
-        weights_data = self.get_data('weights', tuple(weights_slice))
-        return weights_data.flatten()
-
-    def configure(self):
-        """
-        Invoke the compute methods for computable attributes that haven't been
-        set during initialization.
-        """
-        super(PrincipalComponents, self).configure()
-
-        if self.trait.use_storage is False and sum(self.get_data_shape('weights')) != 0:
-            if self.norm_source.size == 0:
-                self.compute_norm_source()
-
-            if self.component_time_series.size == 0:
-                self.compute_component_time_series()
-
-            if self.normalised_component_time_series.size == 0:
-                self.compute_normalised_component_time_series()
-
-    def _find_summary_info(self):
+    def summary_info(self):
         """
         Gather scientifically interesting summary information from an instance
         of this datatype.
         """
-        summary = {"Mode decomposition type": self.__class__.__name__}
-        summary["Source"] = self.source.title
-        # summary["Number of variables"] = self...
-        # summary["Number of mewasurements"] = self...
-        # summary["Number of components"] = self...
-        # summary["Number required for 95%"] = self...
+        summary = {
+            "Mode decomposition type": self.__class__.__name__,
+            "Source": self.source.title
+        }
         return summary
 
     def compute_norm_source(self):
         """Normalised source time-series."""
         self.norm_source = ((self.source.data - self.source.data.mean(axis=0)) /
                             self.source.data.std(axis=0))
-        self.trait["norm_source"].log_debug(owner=self.__class__.__name__)
+        # self.trait["norm_source"].log_debug(owner=self.__class__.__name__)
 
     # TODO: ??? Any value in making this a TimeSeries datatypes ???
     def compute_component_time_series(self):
@@ -178,7 +96,7 @@ class PrincipalComponents(MappedType):
                 component_ts[:, var, :, mode] = numpy.dot(w, ts.T).T
 
         self.component_time_series = component_ts
-        self.trait["component_time_series"].log_debug(owner=self.__class__.__name__)
+        # self.trait["component_time_series"].log_debug(owner=self.__class__.__name__)
 
     # TODO: ??? Any value in making this a TimeSeries datatypes ???
     def compute_normalised_component_time_series(self):
@@ -193,81 +111,42 @@ class PrincipalComponents(MappedType):
                 component_ts[:, var, :, mode] = numpy.dot(w, nts.T).T
 
         self.normalised_component_time_series = component_ts
-        self.trait["normalised_component_time_series"].log_debug(owner=self.__class__.__name__)
+        # self.trait["normalised_component_time_series"].log_debug(owner=self.__class__.__name__)
 
 
-class IndependentComponents(MappedType):
+class IndependentComponents(HasTraits):
     """
     Result of an Independent Component Analysis.
 
     """
-    source = time_series.TimeSeries(
+    source = Attr(
+        field_type=time_series.TimeSeries,
         label="Source time-series",
         doc="Links to the time-series on which the ICA is applied.")
 
-    mixing_matrix = arrays.FloatArray(
+    mixing_matrix = NArray(
         label="Mixing matrix - Spatial Maps",
+        required=False,
         doc="""The linear mixing matrix (Mixing matrix) """)
 
-    unmixing_matrix = arrays.FloatArray(
+    unmixing_matrix = NArray(
         label="Unmixing matrix - Spatial maps",
-        doc="""The estimated unmixing matrix used to obtain the unmixed
-            sources from the data""")
+        doc="""The estimated unmixing matrix used to obtain the unmixed sources from the data""")
 
-    prewhitening_matrix = arrays.FloatArray(
+    prewhitening_matrix = NArray(
         label="Pre-whitening matrix",
         doc=""" """)
 
-    n_components = basic.Integer(
+    n_components = Int(
         label="Number of independent components",
         doc=""" Observed data matrix is considered to be a linear combination
-        of :math:`n` non-Gaussian independent components""")
+            of :math:`n` non-Gaussian independent components""")
 
-    norm_source = arrays.FloatArray(
-        label="Normalised source time series. Zero centered and whitened.",
-        file_storage=core.FILE_STORAGE_EXPAND)
+    norm_source = NArray(label="Normalised source time series. Zero centered and whitened.")
 
-    component_time_series = arrays.FloatArray(
-        label="Component time series. Unmixed sources.",
-        file_storage=core.FILE_STORAGE_EXPAND)
+    component_time_series = NArray(label="Component time series. Unmixed sources.")
 
-    normalised_component_time_series = arrays.FloatArray(
-        label="Normalised component time series",
-        file_storage=core.FILE_STORAGE_EXPAND)
-
-
-    def write_data_slice(self, partial_result):
-        """
-        Append chunk.
-
-        """
-        self.store_data_chunk('unmixing_matrix', partial_result.unmixing_matrix, grow_dimension=2, close_file=False)
-        self.store_data_chunk('prewhitening_matrix', partial_result.prewhitening_matrix,
-                              grow_dimension=2, close_file=False)
-        partial_result.compute_norm_source()
-        self.store_data_chunk('norm_source', partial_result.norm_source, grow_dimension=1, close_file=False)
-        partial_result.compute_component_time_series()
-        self.store_data_chunk('component_time_series', partial_result.component_time_series,
-                              grow_dimension=1, close_file=False)
-        partial_result.compute_normalised_component_time_series()
-        self.store_data_chunk('normalised_component_time_series', partial_result.normalised_component_time_series,
-                              grow_dimension=1, close_file=False)
-        partial_result.compute_mixing_matrix()
-        self.store_data_chunk('mixing_matrix', partial_result.mixing_matrix, grow_dimension=2, close_file=False)
-
-    def configure(self):
-        """
-        Invoke the compute methods for computable attributes that haven't been
-        set during initialisation.
-        """
-        super(IndependentComponents, self).configure()
-        if self.trait.use_storage is False and sum(self.get_data_shape('unmixing_matrix')) != 0:
-            if self.norm_source.size == 0:
-                self.compute_norm_source()
-            if self.component_time_series.size == 0:
-                self.compute_component_time_series()
-            if self.normalised_component_time_series.size == 0:
-                self.compute_normalised_component_time_series()
+    normalised_component_time_series = NArray(label="Normalised component time series")
 
     def compute_norm_source(self):
         """Normalised source time-series."""
@@ -314,11 +193,12 @@ class IndependentComponents(MappedType):
                 mixing_matrix[:, :, var, mode] = numpy.array(numpy.dot(temp.T, (numpy.dot(temp, temp.T)).T))
         self.mixing_matrix = mixing_matrix
 
-    def _find_summary_info(self):
+    def summary_info(self):
         """
         Gather scientifically interesting summary information from an instance
         of this datatype.
         """
-        summary = {"Mode decomposition type": self.__class__.__name__}
-        summary["Source"] = self.source.title
-        return summary
+        return {
+            "Mode decomposition type": self.__class__.__name__,
+            "Source": self.source.title
+        }

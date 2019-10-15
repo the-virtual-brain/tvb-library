@@ -72,7 +72,7 @@ class CLModel(CLComponent):
         if hasattr(self, '_opencl_ordered_params'):
             if(DEBUG): print(self._opencl_ordered_params)
             for i, name in enumerate(self._opencl_ordered_params):
-                if(DEBUG): print(i, name)
+                if(DEBUG): print((i, name))
                 val = getattr(self, name)
 
                 if val.size == 1:

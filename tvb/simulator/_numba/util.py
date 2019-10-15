@@ -56,7 +56,7 @@ def cu_expr(expr, parameters, constants, return_fn=False):
             raise TypeError(msg)
         ns[name] = _cu_expr_type_map[value_type](value)
     template %= ', '.join(parameters), expr
-    exec template in ns
+    exec(template, ns)
     fn = ns['fn']
     cu_fn = numba.cuda.jit(device=True)(fn)
     if return_fn:

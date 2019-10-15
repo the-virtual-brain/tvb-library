@@ -30,8 +30,7 @@
 
 """
 
-The Equation datatypes. This brings together the scientific and framework 
-methods that are associated with the Equation datatypes.
+The Equation datatypes.
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 
@@ -39,61 +38,48 @@ methods that are associated with the Equation datatypes.
 import json
 import numpy
 import numexpr
-from tvb.basic.traits import core, parameters_factory, types_basic as basic
-from tvb.basic.logger.builder import get_logger
+from scipy.special import gamma as sp_gamma
+from tvb.basic.neotraits.api import HasTraits, Attr, Final
 
 
-LOG = get_logger(__name__)
 # In how many points should the equation be evaluated for the plot. Increasing this will
 # give smoother results at the cost of some performance
 DEFAULT_PLOT_GRANULARITY = 1024
 
 
-class Equation(basic.MapAsJson, core.Type):
-    "Base class for Equation data types."
+# class Equation(basic.MapAsJson, core.Type):
+# todo: handle the MapAsJson functionality
 
-    # data
+class Equation(HasTraits):
+    """Base class for Equation data types."""
 
-    _base_classes = ['Equation', 'FiniteSupportEquation', "DiscreteEquation",
-                     "TemporalApplicableEquation", "SpatialApplicableEquation", "HRFKernelEquation",
-                     # TODO: There should be a refactor of Coupling which may make these unnecessary
-                     'Coupling', 'CouplingData', 'CouplingScientific', 'CouplingFramework',
-                     'LinearCoupling', 'LinearCouplingData', 'LinearCouplingScientific', 'LinearCouplingFramework',
-                     'SigmoidalCoupling', 'SigmoidalCouplingData', 'SigmoidalCouplingScientific',
-                     'SigmoidalCouplingFramework']
-
-    equation = basic.String(
+    equation = Attr(
+        field_type=str,
         label="Equation as a string",
-        doc="""A latex representation of the equation, with the extra
-                escaping needed for interpretation via sphinx.""")
+        doc=""" the equation as it should be interpreted by numexpr""")
 
-    parameters = basic.Dict(
+    # todo: transform these parameters into plain declarative attrs
+    parameters = Attr(
+        field_type=dict,
         label="Parameters in a dictionary.",
-        default={},
+        default=lambda: {},
         doc="""Should be a list of the parameters and their meaning, Traits
                 should be able to take defaults and sensible ranges from any
                 traited information that was provided.""")
 
-    # sci
 
-    def _find_summary_info(self):
+    def summary_info(self):
         """
         Gather scientifically interesting summary information from an instance
         of this datatype.
         """
-        summary = {"Equation type": self.__class__.__name__,
-                   "equation": self.equation,
-                   "parameters": self.parameters}
-        return summary
+        return {
+            "Equation type": self.__class__.__name__,
+            "equation": self.equation,
+            "parameters": self.parameters
+        }
 
-    # ------------------------------ pattern -----------------------------------#
-    def _get_pattern(self):
-        """
-        Return a discrete representation of the equation.
-        """
-        return self._pattern
-
-    def _set_pattern(self, var):
+    def evaluate(self, var):
         """
         Generate a discrete representation of the equation for the space
         represented by ``var``.
@@ -103,12 +89,8 @@ class Equation(basic.MapAsJson, core.Type):
         `` space ``. ``var`` can be a single number, a numpy.ndarray or a
         ?scipy.sparse_matrix? TODO: think this last one is true, need to check
         as we need it for LocalConnectivity...
-
         """
-
-        self._pattern = numexpr.evaluate(self.equation, global_dict=self.parameters)
-
-    pattern = property(fget=_get_pattern, fset=_set_pattern)
+        return numexpr.evaluate(self.equation, global_dict=self.parameters)
 
     def get_series_data(self, min_range=0, max_range=100, step=None):
         """
@@ -121,9 +103,8 @@ class Equation(basic.MapAsJson, core.Type):
         var = numpy.arange(min_range, max_range+step, step)
         var = var[numpy.newaxis, :]
 
-        self.pattern = var
-        y = self.pattern
-        result = zip(var.flat, y.flat)
+        y = self.evaluate(var)
+        result = list(zip(var.flat, y.flat))
         return result, False
 
     @staticmethod
@@ -132,30 +113,32 @@ class Equation(basic.MapAsJson, core.Type):
         Builds from the given data dictionary the equation for the specified field name.
         The dictionary should have the data collapsed.
         """
-        if equation_field_name not in submitted_data_dict:
-            return None
-
-        eq_param_str = equation_field_name + '_parameters'
-        eq = submitted_data_dict.get(eq_param_str)
-
-        equation_parameters = {}
-        if eq:
-            if 'parameters' in eq:
-                equation_parameters = eq['parameters']
-            if 'parameters_parameters' in eq:
-                equation_parameters = eq['parameters_parameters']
-
-        for k in equation_parameters:
-            equation_parameters[k] = float(equation_parameters[k])
-
-        equation_type = submitted_data_dict[equation_field_name]
-        equation = parameters_factory.get_traited_instance_for_name(equation_type, Equation,
-                                                                    {'parameters': equation_parameters})
-        if alter_submitted_dictionary:
-            del submitted_data_dict[eq_param_str]
-            submitted_data_dict[equation_field_name] = equation
-
-        return equation
+        # todo : this is a type deserialization use case. not yet supported by neotraits
+        raise NotImplemented
+        # if equation_field_name not in submitted_data_dict:
+        #     return None
+        #
+        # eq_param_str = equation_field_name + '_parameters'
+        # eq = submitted_data_dict.get(eq_param_str)
+        #
+        # equation_parameters = {}
+        # if eq:
+        #     if 'parameters' in eq:
+        #         equation_parameters = eq['parameters']
+        #     if 'parameters_parameters' in eq:
+        #         equation_parameters = eq['parameters_parameters']
+        #
+        # for k in equation_parameters:
+        #     equation_parameters[k] = float(equation_parameters[k])
+        #
+        # equation_type = submitted_data_dict[equation_field_name]
+        # equation = parameters_factory.get_traited_instance_for_name(equation_type, Equation,
+        #                                                             {'parameters': equation_parameters})
+        # if alter_submitted_dictionary:
+        #     del submitted_data_dict[eq_param_str]
+        #     submitted_data_dict[equation_field_name] = equation
+        #
+        # return equation
 
     @staticmethod
     def to_json(entity):
@@ -197,7 +180,6 @@ class TemporalApplicableEquation(Equation):
     Abstract class introduced just for filtering what equations to be displayed in UI,
     for setting the temporal component in Stimulus on region and surface.
     """
-    pass
 
 
 class FiniteSupportEquation(TemporalApplicableEquation):
@@ -207,7 +189,6 @@ class FiniteSupportEquation(TemporalApplicableEquation):
     class, are . The main purpose of this class is to facilitate filtering in the UI,
     for patters on surface (stimuli surface and localConnectivity).
     """
-    pass
 
 
 class SpatialApplicableEquation(Equation):
@@ -215,7 +196,6 @@ class SpatialApplicableEquation(Equation):
     Abstract class introduced just for filtering what equations to be displayed in UI,
     for setting model parameters on the Surface level.
     """
-    pass
 
 
 class DiscreteEquation(FiniteSupportEquation):
@@ -224,10 +204,11 @@ class DiscreteEquation(FiniteSupportEquation):
     in the space is effectively just assigned a value.
 
     """
-    equation = basic.String(
+    equation = Attr(
+        field_type=str,
         label="Discrete Equation",
         default="var",
-        locked=True,
+        # locked=True,
         doc="""The equation defines a function of :math:`x`""")
 
 
@@ -236,16 +217,16 @@ class Linear(TemporalApplicableEquation):
     A linear equation.
 
     """
-    equation = basic.String(
+    equation = Final(
         label="Linear Equation",
         default="a * var + b",
-        locked=True,
+        # locked=True,
         doc=""":math:`result = a * x + b`""")
 
-    parameters = basic.Dict(
+    parameters = Attr(
+        field_type=dict,
         label="Linear Parameters",
-        default={"a": 1.0,
-                 "b": 0.0})
+        default=lambda: {"a": 1.0, "b": 0.0})
 
 
 class Gaussian(SpatialApplicableEquation, FiniteSupportEquation):
@@ -256,16 +237,17 @@ class Gaussian(SpatialApplicableEquation, FiniteSupportEquation):
 
     """
 
-    equation = basic.String(
+    equation = Final(
         label="Gaussian Equation",
         default="(amp * exp(-((var-midpoint)**2 / (2.0 * sigma**2))))+offset",
-        locked=True,
+        # locked=True,
         doc=""":math:`(amp \\exp\\left(-\\left(\\left(x-midpoint\\right)^2 /
         \\left(2.0 \\sigma^2\\right)\\right)\\right)) + offset`""")
 
-    parameters = basic.Dict(
+    parameters = Attr(
+        field_type=dict,
         label="Gaussian Parameters",
-        default={"amp": 1.0, "sigma": 1.0, "midpoint": 0.0, "offset": 0.0})
+        default=lambda: {"amp": 1.0, "sigma": 1.0, "midpoint": 0.0, "offset": 0.0})
 
 
 class DoubleGaussian(FiniteSupportEquation):
@@ -275,19 +257,20 @@ class DoubleGaussian(FiniteSupportEquation):
     """
     _ui_name = "Mexican-hat"
 
-    equation = basic.String(
+    equation = Final(
         label="Double Gaussian Equation",
         default="(amp_1 * exp(-((var-midpoint_1)**2 / (2.0 * sigma_1**2)))) - (amp_2 * exp(-((var-midpoint_2)**2 / (2.0 * sigma_2**2))))",
-        locked=True,
+        # locked=True,
         doc=""":math:`amp_1 \\exp\\left(-\\left((x-midpoint_1)^2 / \\left(2.0
         \\sigma_1^2\\right)\\right)\\right) -
         amp_2 \\exp\\left(-\\left((x-midpoint_2)^2 / \\left(2.0
         \\sigma_2^2\\right)\\right)\\right)`""")
 
-    parameters = basic.Dict(
+    parameters = Attr(
+        field_type=dict,
         label="Double Gaussian Parameters",
-        default={"amp_1": 0.5, "sigma_1": 20.0, "midpoint_1": 0.0,
-                 "amp_2": 1.0, "sigma_2": 10.0, "midpoint_2": 0.0})
+        default=lambda: {"amp_1": 0.5, "sigma_1": 20.0, "midpoint_1": 0.0,
+                         "amp_2": 1.0, "sigma_2": 10.0, "midpoint_2": 0.0})
 
 
 class Sigmoid(SpatialApplicableEquation, FiniteSupportEquation):
@@ -297,16 +280,16 @@ class Sigmoid(SpatialApplicableEquation, FiniteSupportEquation):
     when spatializing model parameters.
     """
 
-    equation = basic.String(
+    equation = Final(
         label="Sigmoid Equation",
         default="(amp / (1.0 + exp(-1.8137993642342178 * (radius-var)/sigma))) + offset",
-        locked=True,
         doc=""":math:`(amp / (1.0 + \\exp(-\\pi/\\sqrt(3.0)
             (radius-x)/\\sigma))) + offset`""")
 
-    parameters = basic.Dict(
+    parameters = Attr(
+        field_type=dict,
         label="Sigmoid Parameters",
-        default={"amp": 1.0, "radius": 5.0, "sigma": 1.0, "offset": 0.0}) #"pi": numpy.pi,
+        default=lambda: {"amp": 1.0, "radius": 5.0, "sigma": 1.0, "offset": 0.0}) #"pi": numpy.pi,
 
 
 class GeneralizedSigmoid(TemporalApplicableEquation):
@@ -314,16 +297,16 @@ class GeneralizedSigmoid(TemporalApplicableEquation):
     A General Sigmoid equation.
     """
 
-    equation = basic.String(
+    equation = Final(
         label="Generalized Sigmoid Equation",
         default="low + (high - low) / (1.0 + exp(-1.8137993642342178 * (var-midpoint)/sigma))",
-        locked=True,
         doc=""":math:`low + (high - low) / (1.0 + \\exp(-\\pi/\\sqrt(3.0)
             (x-midpoint)/\\sigma))`""")
 
-    parameters = basic.Dict(
+    parameters = Attr(
+        field_type=dict,
         label="Sigmoid Parameters",
-        default={"low": 0.0, "high": 1.0, "midpoint": 1.0, "sigma": 0.3}) #,
+        default=lambda: {"low": 0.0, "high": 1.0, "midpoint": 1.0, "sigma": 0.3}) #,
     #"pi": numpy.pi})
 
 
@@ -332,15 +315,15 @@ class Sinusoid(TemporalApplicableEquation):
     A Sinusoid equation.
     """
 
-    equation = basic.String(
+    equation = Final(
         label="Sinusoid Equation",
         default="amp * sin(6.283185307179586 * frequency * var)",
-        locked=True,
         doc=""":math:`amp \\sin(2.0 \\pi frequency x)` """)
 
-    parameters = basic.Dict(
+    parameters = Attr(
+        field_type=dict,
         label="Sinusoid Parameters",
-        default={"amp": 1.0, "frequency": 0.01}) #kHz #"pi": numpy.pi,
+        default=lambda: {"amp": 1.0, "frequency": 0.01}) #kHz #"pi": numpy.pi,
 
 
 class Cosine(TemporalApplicableEquation):
@@ -348,15 +331,15 @@ class Cosine(TemporalApplicableEquation):
     A Cosine equation.
     """
 
-    equation = basic.String(
+    equation = Final(
         label="Cosine Equation",
         default="amp * cos(6.283185307179586 * frequency * var)",
-        locked=True,
         doc=""":math:`amp \\cos(2.0 \\pi frequency x)` """)
 
-    parameters = basic.Dict(
+    parameters = Attr(
+        field_type=dict,
         label="Cosine Parameters",
-        default={"amp": 1.0, "frequency": 0.01}) #kHz #"pi": numpy.pi,
+        default=lambda: {"amp": 1.0, "frequency": 0.01}) #kHz #"pi": numpy.pi,
 
 
 class Alpha(TemporalApplicableEquation):
@@ -364,16 +347,16 @@ class Alpha(TemporalApplicableEquation):
     An Alpha function belonging to the Exponential function family.
     """
 
-    equation = basic.String(
+    equation = Final(
         label="Alpha Equation",
         default="where((var-onset) > 0, (alpha * beta) / (beta - alpha) * (exp(-alpha * (var-onset)) - exp(-beta * (var-onset))), 0.0 * var)",
-        locked=True,
         doc=""":math:`(\\alpha * \\beta) / (\\beta - \\alpha) *
             (\\exp(-\\alpha * (x-onset)) - \\exp(-\\beta * (x-onset)))` for :math:`(x-onset) > 0`""")
 
-    parameters = basic.Dict(
+    parameters = Attr(
+        field_type=dict,
         label="Alpha Parameters",
-        default={"onset": 0.5, "alpha": 13.0, "beta": 42.0})
+        default=lambda: {"onset": 0.5, "alpha": 13.0, "beta": 42.0})
 
 
 class PulseTrain(TemporalApplicableEquation):
@@ -389,10 +372,9 @@ class PulseTrain(TemporalApplicableEquation):
     * onset time    :
     """
 
-    equation = basic.String(
+    equation = Final(
         label="Pulse Train",
         default="where((var % T) < tau, amp, 0)",
-        locked=True,
         doc=""":math:`\\frac{\\tau}{T}
         +\\sum_{n=1}^{\\infty}\\frac{2}{n\\pi}
         \\sin\\left(\\frac{\\pi\\,n\\tau}{T}\\right)
@@ -403,17 +385,12 @@ class PulseTrain(TemporalApplicableEquation):
     # onset is in milliseconds
     # T and tau are in milliseconds as well
 
-    parameters = basic.Dict(
-        default={"T": 42.0, "tau": 13.0, "amp": 1.0, "onset": 30.0},
+    parameters = Attr(
+        field_type=dict,
+        default=lambda: {"T": 42.0, "tau": 13.0, "amp": 1.0, "onset": 30.0},
         label="Pulse Train Parameters")
 
-    def _get_pattern(self):
-        """
-        Return a discrete representation of the equation.
-        """
-        return self._pattern
-
-    def _set_pattern(self, var):
+    def evaluate(self, var):
         """
         Generate a discrete representation of the equation for the space
         represented by ``var``.
@@ -425,21 +402,19 @@ class PulseTrain(TemporalApplicableEquation):
         as we need it for LocalConnectivity...
 
         """
-
         # rolling in the deep ...
         onset = self.parameters["onset"]
         off = var < onset
         var = numpy.roll(var, off.sum() + 1)
         var[..., off] = 0.0
-        self._pattern = numexpr.evaluate(self.equation, global_dict=self.parameters)
-        self._pattern[..., off] = 0.0
+        _pattern = numexpr.evaluate(self.equation, global_dict=self.parameters)
+        _pattern[..., off] = 0.0
+        return _pattern
 
-    pattern = property(fget=_get_pattern, fset=_set_pattern)
 
 
 class HRFKernelEquation(Equation):
     "Base class for hemodynamic response functions."
-    pass
 
 
 class Gamma(HRFKernelEquation):
@@ -473,23 +448,17 @@ class Gamma(HRFKernelEquation):
     # time-series to the beginning of the gamma hrf.
     # delay cannot be negative or greater than the hrf duration.
 
-    equation = basic.String(
+    equation = Final(
         label="Gamma Equation",
         default="((var / tau) ** (n - 1) * exp(-(var / tau)) )/ (tau * factorial)",
-        locked=True,
         doc=""":math:`h(var) = \\frac{(\\frac{var}{\\tau})^{(n-1)}\\exp{-(\\frac{var}{\\tau})}}{\\tau(n-1)!}`.""")
 
-    parameters = basic.Dict(
+    parameters = Attr(
+        field_type=dict,
         label="Gamma Parameters",
-        default={"tau": 1.08, "n": 3.0, "factorial": 2.0, "a": 0.1})
+        default=lambda: {"tau": 1.08, "n": 3.0, "factorial": 2.0, "a": 0.1})
 
-    def _get_pattern(self):
-        """
-        Return a discrete representation of the equation.
-        """
-        return self._pattern
-
-    def _set_pattern(self, var):
+    def evaluate(self, var):
         """
         Generate a discrete representation of the equation for the space
         represented by ``var``.
@@ -505,12 +474,12 @@ class Gamma(HRFKernelEquation):
             product *= i + 1
 
         self.parameters["factorial"] = product
-        self._pattern = numexpr.evaluate(self.equation,
+        _pattern = numexpr.evaluate(self.equation,
                                          global_dict=self.parameters)
-        self._pattern /= max(self._pattern)
-        self._pattern *= self.parameters["a"]
+        _pattern /= max(_pattern)
+        _pattern *= self.parameters["a"]
+        return _pattern
 
-    pattern = property(fget=_get_pattern, fset=_set_pattern)
 
 
 class DoubleExponential(HRFKernelEquation):
@@ -538,39 +507,31 @@ class DoubleExponential(HRFKernelEquation):
 
     _ui_name = "HRF kernel: Difference of Exponentials"
 
-    equation = basic.String(
+    equation = Final(
         label="Double Exponential Equation",
         default="((amp_1 * exp(-var/tau_1) * sin(2.*pi*f_1*var)) - (amp_2 * exp(-var/ tau_2) * sin(2.*pi*f_2*var)))",
-        locked=True,
         doc=""":math:`h(var) = amp_1\\exp(\\frac{-var}{\tau_1})
         \\sin(2\\cdot\\pi f_1 \\cdot var) - amp_2\\cdot \\exp(-\\frac{var}
         {\\tau_2})*\\sin(2\\pi f_2 var)`.""")
 
-    parameters = basic.Dict(
+    parameters = Attr(
+        field_type=dict,
         label="Double Exponential Parameters",
-        default={"tau_1": 7.22, "f_1": 0.03, "amp_1": 0.1,
-                 "tau_2": 7.4, "f_2": 0.12, "amp_2": 0.1,
-                 "a": 0.1, "pi": numpy.pi})
+        default=lambda: {"tau_1": 7.22, "f_1": 0.03, "amp_1": 0.1,
+                         "tau_2": 7.4, "f_2": 0.12, "amp_2": 0.1,
+                         "a": 0.1, "pi": numpy.pi})
 
-    def _get_pattern(self):
-        """
-        Return a discrete representation of the equation.
-        """
-        return self._pattern
-
-    def _set_pattern(self, var):
+    def evaluate(self, var):
         """
         Generate a discrete representation of the equation for the space
         represented by ``var``.
-
         """
+        _pattern = numexpr.evaluate(self.equation, global_dict=self.parameters)
+        _pattern /= max(_pattern)
 
-        self._pattern = numexpr.evaluate(self.equation, global_dict=self.parameters)
-        self._pattern /= max(self._pattern)
+        _pattern *= self.parameters["a"]
+        return _pattern
 
-        self._pattern *= self.parameters["a"]
-
-    pattern = property(fget=_get_pattern, fset=_set_pattern)
 
 
 class FirstOrderVolterra(HRFKernelEquation):
@@ -597,10 +558,9 @@ class FirstOrderVolterra(HRFKernelEquation):
 
     _ui_name = "HRF kernel: Volterra Kernel"
 
-    equation = basic.String(
+    equation = Final(
         label="First Order Volterra Kernel",
         default="1/3. * exp(-0.5*(var / tau_s)) * (sin(sqrt(1./tau_f - 1./(4.*tau_s**2)) * var)) / (sqrt(1./tau_f - 1./(4.*tau_s**2)))",
-        locked=True,
         doc=""":math:`G(t - t^{\\prime}) =
              e^{\\frac{1}{2} \\left(\\frac{t - t^{\\prime}}{\\tau_s} \\right)}
              \\frac{\sin\\left((t - t^{\\prime})
@@ -609,9 +569,10 @@ class FirstOrderVolterra(HRFKernelEquation):
              \\; \\; \\; \\; \\; \\;  for \\; \\; \\; t \\geq t^{\\prime}
              = 0 \\; \\; \\; \\; \\; \\;  for \\; \\; \\;  t < t^{\\prime}`.""")
 
-    parameters = basic.Dict(
+    parameters = Attr(
+        field_type=dict,
         label="Mixture of Gammas Parameters",
-        default={"tau_s": 0.8, "tau_f": 0.4, "k_1": 5.6, "V_0": 0.02})
+        default=lambda: {"tau_s": 0.8, "tau_f": 0.4, "k_1": 5.6, "V_0": 0.02})
 
 
 class MixtureOfGammas(HRFKernelEquation):
@@ -663,37 +624,27 @@ class MixtureOfGammas(HRFKernelEquation):
 
     _ui_name = "HRF kernel: Mixture of Gammas"
 
-    equation = basic.String(
+    equation = Final(
         label="Mixture of Gammas",
         default="(l * var)**(a_1-1) * exp(-l*var) / gamma_a_1 - c * (l*var)**(a_2-1) * exp(-l*var) / gamma_a_2",
-        locked=True,
         doc=""":math:`\\frac{\\lambda \\,t^{a_{1} - 1} \\,\\, \\exp^{-\\lambda \\,t}}{\\Gamma(a_{1})}
         - 0.5 \\frac{\\lambda \\,t^{a_{2} - 1} \\,\\, \\exp^{-\\lambda \\,t}}{\\Gamma(a_{2})}`.""")
 
-    parameters = basic.Dict(
+    parameters = Attr(
+        field_type=dict,
         label="Double Exponential Parameters",
-        default={"a_1": 6.0, "a_2": 13.0, "l": 1.0, "c": 0.4, "gamma_a_1": 1.0, "gamma_a_2": 1.0})
+        default=lambda: {"a_1": 6.0, "a_2": 13.0, "l": 1.0, "c": 0.4, "gamma_a_1": 1.0, "gamma_a_2": 1.0})
 
-    def _get_pattern(self):
-        """
-        Return a discrete representation of the equation.
-        """
-        return self._pattern
-
-    def _set_pattern(self, var):
+    def evaluate(self, var):
         """
         Generate a discrete representation of the equation for the space
         represented by ``var``.
 
         .. note: numexpr doesn't support gamma function
-
         """
-
         # get gamma functions
-        from scipy.special import gamma as sp_gamma
         self.parameters["gamma_a_1"] = sp_gamma(self.parameters["a_1"])
         self.parameters["gamma_a_2"] = sp_gamma(self.parameters["a_2"])
 
-        self._pattern = numexpr.evaluate(self.equation, global_dict=self.parameters)
+        return numexpr.evaluate(self.equation, global_dict=self.parameters)
 
-    pattern = property(fget=_get_pattern, fset=_set_pattern)
