@@ -85,7 +85,7 @@ class Simulator(SimulatorTVB):
             # needs implementing by history + coupling?
             node_coupling = self._loop_compute_node_coupling(step)
             self._loop_update_stimulus(step, stimulus)
-            self.model.I_bg = self.source_eeg[step-1].flatten()
+            self.model.I_BG = self.source_eeg[step-1].flatten()
             state = self.integrator.scheme(state, self.model.dfun, node_coupling, local_coupling, stimulus)
             self._loop_update_history(step, n_reg, state)
             output = self._loop_monitor_output(step, state)
