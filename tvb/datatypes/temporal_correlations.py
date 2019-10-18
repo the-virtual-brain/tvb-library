@@ -30,72 +30,45 @@
 
 """
 
-The Temporal Correlation datatypes. This brings together the scientific and
-framework methods that are associated with the Temporal Correlation datatypes.
+The Temporal Correlation datatypes.
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 
 """
 
-import tvb.basic.traits.core as core
-import tvb.basic.traits.types_basic as basic
-import tvb.datatypes.arrays as arrays
 import tvb.datatypes.time_series as time_series
-from tvb.basic.logger.builder import get_logger
-from tvb.basic.traits.types_mapped import MappedType
-
-LOG = get_logger(__name__)
+from tvb.basic.neotraits.api import HasTraits, Attr, NArray, List, narray_summary_info
 
 
-class CrossCorrelation(MappedType):
+class CrossCorrelation(HasTraits):
     """
     Result of a CrossCorrelation Analysis.
     """
-    array_data = arrays.FloatArray(file_storage=core.FILE_STORAGE_EXPAND)
+    array_data = NArray()
 
-    source = time_series.TimeSeries(
+    source = Attr(
+        field_type=time_series.TimeSeries,
         label="Source time-series",
-        doc="""Links to the time-series on which the cross_correlation is applied.""")
+        doc="""Links to the time-series on which the cross_correlation is applied."""
+    )
 
-    time = arrays.FloatArray(label="Temporal Offsets")
+    time = NArray(label="Temporal Offsets", required=False)
 
-    labels_ordering = basic.List(
+    labels_ordering = List(
+        of=str,
         label="Dimension Names",
-        default=["Offsets", "Node", "Node", "State Variable", "Mode"],
-        doc="""List of strings representing names of each data dimension""")
+        default=("Offsets", "Node", "Node", "State Variable", "Mode"),
+        doc="""List of strings representing names of each data dimension"""
+    )
 
-    def configure(self):
-        """After populating few fields, compute the rest of the fields"""
-        # Do not call super, because that accesses data not-chunked
-        self.nr_dimensions = len(self.read_data_shape())
-        for i in range(self.nr_dimensions):
-            setattr(self, 'length_%dd' % (i + 1), int(self.read_data_shape()[i]))
-
-    def read_data_shape(self):
-        """
-        Expose shape read on field 'data'
-        """
-        return self.get_data_shape('array_data')
-
-    def read_data_slice(self, data_slice):
-        """
-        Expose chunked-data access.
-        """
-        return self.get_data('array_data', data_slice)
-
-    def write_data_slice(self, partial_result):
-        """
-        Append chunk.
-        """
-        self.store_data_chunk('array_data', partial_result.array_data, grow_dimension=3, close_file=False)
-
-    def _find_summary_info(self):
+    def summary_info(self):
         """
         Gather scientifically interesting summary information from an instance of this datatype.
         """
-        summary = {"Temporal correlation type": self.__class__.__name__,
-                   "Source": self.source.title,
-                   "Dimensions": self.labels_ordering}
-
-        summary.update(self.get_info_about_array('array_data'))
+        summary = {
+            "Temporal correlation type": self.__class__.__name__,
+            "Source": self.source.title,
+            "Dimensions": self.labels_ordering
+        }
+        summary.update(narray_summary_info(self.array_data))
         return summary

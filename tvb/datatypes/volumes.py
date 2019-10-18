@@ -29,33 +29,27 @@
 #
 
 """
-The Volume datatypes. This brings together the scientific and framework 
-methods that are associated with the volume datatypes.
+The Volume datatypes.
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 
 """
 
-from tvb.basic.logger.builder import get_logger
-from tvb.basic.traits import types_basic as basic, types_mapped
-from tvb.datatypes import arrays
+from tvb.basic.neotraits.api import HasTraits, Attr, NArray
 
 
-LOG = get_logger(__name__)
-
-
-class Volume(types_mapped.MappedType):
+class Volume(HasTraits):
     """
     Data defined on a regular grid in three dimensions.
-
     """
-    origin = arrays.PositionArray(label = "Volume origin coordinates")
-    voxel_size = arrays.FloatArray(label = "Voxel size") # need a triplet, xyz
-    voxel_unit = basic.String(label = "Voxel Measure Unit", default = "mm")
+    origin = NArray(label="Volume origin coordinates")
+    voxel_size = NArray(label="Voxel size")  # need a triplet, xyz
+    voxel_unit = Attr(str, label="Voxel Measure Unit", default="mm")
 
-    def _find_summary_info(self):
-        summary = {"Volume type": self.__class__.__name__,
-                   "Origin": self.origin,
-                   "Voxel size": self.voxel_size,
-                   "Units": self.voxel_unit}
-        return summary
+    def summary_info(self):
+        return {
+            "Volume type": self.__class__.__name__,
+            "Origin": self.origin,
+            "Voxel size": self.voxel_size,
+            "Units": self.voxel_unit
+        }
