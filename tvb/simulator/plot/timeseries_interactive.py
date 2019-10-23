@@ -61,9 +61,11 @@ Usage
 import numpy
 import pylab
 import matplotlib.widgets as widgets
+from matplotlib import rcParams
 from tvb.simulator.common import get_logger
 import tvb.datatypes.time_series as time_series_datatypes
 from tvb.basic.neotraits.api import HasTraits, Attr, Int
+from tvb.simulator.plot.utils.data_structures_utils import ensure_list, rotate_n_list_elements
 
 LOG = get_logger(__name__)
 # Define a colour theme... see: matplotlib.colors.cnames.keys()
@@ -174,7 +176,7 @@ class TimeSeriesInteractive(HasTraits):
         self.view_step = max(int(self.tpts / TIME_RESOLUTION), 1)
         self.time_view = list(range(0, self.tpts, self.view_step))
 
-    def show(self):
+    def show(self, block=True, **kwargs):
         """ Generate the interactive time-series figure. """
         time_series_type = self.time_series.__class__.__name__
         msg = "Generating an interactive time-series plot for %s"
@@ -204,7 +206,7 @@ class TimeSeriesInteractive(HasTraits):
         # Plot timeseries
         self.plot_time_series()
 
-        pylab.show()
+        pylab.show(block=block, **kwargs)
 
     # ------------------------------------------------------------------------##
     # ------------------ Functions for building the figure -------------------##
@@ -431,7 +433,7 @@ class TimeSeriesInteractive(HasTraits):
         self.ts_ax.clear()
         self.plot_time_series()
 
-    def plot_time_series(self):
+    def plot_time_series(self, **kwargs):
         """ Plot a view on the timeseries. """
         # Set title and axis labels
         # time_series_type = self.time_series.__class__.__name__
@@ -456,8 +458,41 @@ class TimeSeriesInteractive(HasTraits):
                          self.nsrs * [self.time[self.time_view[-1]]]],
                         numpy.vstack(2 * (offset,)), "0.85")
 
-        # Plot the timeseries
-        self.ts_view = self.ts_ax.plot(self.time[self.time_view],
+        # Determine colors and linestyles for each variable of the Timeseries
+        linestyle = ensure_list(kwargs.pop("linestyle", "-"))
+        colors = kwargs.pop("linestyle", None)
+        if colors is not None:
+            colors = ensure_list(colors)
+        if self.data.shape[1] > 1:
+            linestyle = rotate_n_list_elements(linestyle, self.data.shape[1])
+            if not isinstance(colors, list):
+                colors = (rcParams['axes.prop_cycle']).by_key()['color']
+            colors = rotate_n_list_elements(colors, self.data.shape[1])
+        else:
+            # If no color,
+            # or a color sequence is given in the input
+            # but there is only one variable to plot,
+            # choose the black color
+            if colors is None or len(colors) > 1:
+                colors = ["k"]
+            linestyle = linestyle[:1]
+
+        # Determine the alpha value depending on the number of modes/samples of the Timeseries
+        alpha = 1.0
+        if len(self.data.shape) > 3 and self.data.shape[3] > 1:
+            alpha /= self.data.shape[3]
+
+        # Plot the timeseries (per variable and sample)
+        if kwargs:
+            self.ts_view = []
+            for variable_value in range(self.data.shape[1]):
+                for sample_value in range(self.data.shape[3]):
+                    self.ts_view.append(self.ts_ax.plot(self.time[self.time_view],
+                                                        offset + self.data[self.time_view, variable_value, :, sample_value],
+                                                        alpha=alpha, color=colors[variable_value], linestyle=linestyle[variable_value],
+                                                        **kwargs))
+        else:
+            self.ts_view = self.ts_ax.plot(self.time[self.time_view],
                                        offset + self.data[self.time_view, 0, :, 0])
 
         self.hereiam[0].remove()
