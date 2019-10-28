@@ -446,7 +446,7 @@ class BasePlotter(object):
             self._check_show()
         return fig, ax
 
-    def tvb_plot(self, plot_fun_name, *args, **kwargs):
+    def plot(self, plot_fun_name, *args, **kwargs):
         import tvb.simulator.plot.tools as TVB_plot_tools
         getattr(TVB_plot_tools, plot_fun_name)(*args, **kwargs)
         fig = pyplot.gcf()

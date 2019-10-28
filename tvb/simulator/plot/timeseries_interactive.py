@@ -62,10 +62,10 @@ import numpy
 import pylab
 import matplotlib.widgets as widgets
 from matplotlib import rcParams
+from six import string_types
 from tvb.simulator.common import get_logger
 import tvb.datatypes.time_series as time_series_datatypes
 from tvb.basic.neotraits.api import HasTraits, Attr, Int
-from tvb.simulator.plot.utils.data_structures_utils import ensure_list, rotate_n_list_elements
 
 LOG = get_logger(__name__)
 # Define a colour theme... see: matplotlib.colors.cnames.keys()
@@ -207,6 +207,34 @@ class TimeSeriesInteractive(HasTraits):
         self.plot_time_series()
 
         pylab.show(block=block, **kwargs)
+
+    def ensure_list(self, arg):
+        if not (isinstance(arg, list)):
+            try:  # if iterable
+                if isinstance(arg, (string_types, dict)):
+                    arg = [arg]
+                elif hasattr(arg, "__iter__"):
+                    arg = list(arg)
+                else:  # if not iterable
+                    arg = [arg]
+            except:  # if not iterable
+                arg = [arg]
+        return arg
+
+    def rotate_n_list_elements(self, lst, n):
+        lst = self.ensure_list(lst)
+        n_lst = len(lst)
+        if n_lst != n and n_lst != 0:
+            if n_lst == 1:
+                lst *= n
+            elif n_lst > n:
+                lst = lst[:n]
+            else:
+                old_lst = list(lst)
+                while n_lst < n:
+                    lst += old_lst[0]
+                    old_lst = old_lst[1:] + old_lst[:1]
+        return lst
 
     # ------------------------------------------------------------------------##
     # ------------------ Functions for building the figure -------------------##
@@ -459,15 +487,15 @@ class TimeSeriesInteractive(HasTraits):
                         numpy.vstack(2 * (offset,)), "0.85")
 
         # Determine colors and linestyles for each variable of the Timeseries
-        linestyle = ensure_list(kwargs.pop("linestyle", "-"))
+        linestyle = self.ensure_list(kwargs.pop("linestyle", "-"))
         colors = kwargs.pop("linestyle", None)
         if colors is not None:
-            colors = ensure_list(colors)
+            colors = self.ensure_list(colors)
         if self.data.shape[1] > 1:
-            linestyle = rotate_n_list_elements(linestyle, self.data.shape[1])
+            linestyle = self.rotate_n_list_elements(linestyle, self.data.shape[1])
             if not isinstance(colors, list):
                 colors = (rcParams['axes.prop_cycle']).by_key()['color']
-            colors = rotate_n_list_elements(colors, self.data.shape[1])
+            colors = self.rotate_n_list_elements(colors, self.data.shape[1])
         else:
             # If no color,
             # or a color sequence is given in the input

@@ -11,7 +11,8 @@ class Plotter(object):
         self.config = config
 
     def tvb_plot(self, plot_fun_name, *args, **kwargs):
-        return BasePlotter(self.config).tvb_plot(plot_fun_name, *args, **kwargs)
+        return BasePlotter(self.config).\
+            plot(plot_fun_name, *args, **kwargs)
 
     def plot_head(self, head):
         return HeadPlotter(self.config).plot_head(head)
