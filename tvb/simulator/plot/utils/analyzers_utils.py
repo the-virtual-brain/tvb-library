@@ -9,38 +9,6 @@ from scipy.interpolate import interp1d, griddata
 # this factory makes use of the numpy array properties
 
 
-# Pointwise analyzers:
-
-def interval_scaling(x, min_targ=0.0, max_targ=1.0, min_orig=None, max_orig=None):
-    if min_orig is None:
-        min_orig = np.min(x, axis=0)
-    if max_orig is None:
-        max_orig = np.max(x, axis=0)
-    scale_factor = (max_targ - min_targ) / (max_orig - min_orig)
-    return min_targ + (x - min_orig) * scale_factor
-
-
-def abs_envelope(x):
-    x_mean = x.mean(axis=0) * np.ones(x.shape[1:])
-    # Mean center each signal
-    x -= x_mean
-    # Compute the absolute value and add back the mean
-    return np.abs(x) + x_mean
-
-
-def spectrogram_envelope(x, fs, lpf=None, hpf=None, nperseg=None):
-    envelope = []
-    for xx in x.T:
-        F, T, C = spectrogram(xx, fs, nperseg=nperseg)
-        fmask = np.ones(F.shape, 'bool')
-        if hpf:
-            fmask *= F > hpf
-        if lpf:
-            fmask *= F < lpf
-        envelope.append(C[fmask].sum(axis=0))
-    return np.array(envelope).T, T
-
-
 # Across points analyzers:
 
 # Univariate:
@@ -62,16 +30,6 @@ def _butterworth_bandpass(fs, mode, lowcut, highcut, order=3):
         freqs.append(highcut / nyq)  # normalize frequency
     b, a = butter(order, freqs, btype=mode)  # btype : {'lowpass', 'highpass', 'bandpass', 'bandstop}, optional
     return b, a
-
-
-def filter_data(data, fs, lowcut=None, highcut=None, mode='bandpass', order=3, axis=0):
-    # get filter coefficients
-    b, a = _butterworth_bandpass(fs, mode, lowcut, highcut, order)
-    # filter data
-    y = filtfilt(b, a, data, axis=axis)
-    # y = lfilter(b, a, data, axis=axis)
-    return y
-
 
 def spectral_analysis(x, fs, freq=None, method="periodogram", output="spectrum", nfft=None, window='hanning',
                       nperseg=256, detrend='constant', noverlap=None, f_low=10.0, log_scale=False):

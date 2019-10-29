@@ -2,6 +2,8 @@
 
 import os
 import numpy
+
+from tvb.basic.logger.builder import get_logger
 from tvb.simulator.plot.config import CONFIGURED
 
 import matplotlib
@@ -11,7 +13,6 @@ from matplotlib import pyplot
 pyplot.rcParams["font.size"] = CONFIGURED.figures.FONTSIZE
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from tvb.simulator.plot.utils.log_error_utils import initialize_logger, warning
 from tvb.simulator.plot.utils.data_structures_utils import ensure_list, generate_region_labels
 
 
@@ -19,7 +20,7 @@ class BasePlotter(object):
 
     def __init__(self, config=CONFIGURED):
         self.config = config
-        self.logger = initialize_logger(self.__class__.__name__, self.config.out.FOLDER_LOGS)
+        self.logger = get_logger(self.__class__.__name__)
         self.print_regions_indices = True
 
     def _check_show(self):
@@ -419,7 +420,7 @@ class BasePlotter(object):
         n_groups_names = len(group_names)
         if n_groups_names != n_groups:
             if n_groups_names != 0:
-                warning("Ignoring group_names because their number (" + str(n_groups_names) +
+                self.logger.warning("Ignoring group_names because their number (" + str(n_groups_names) +
                         ") is not equal to the number of groups (" + str(n_groups) + ")!")
             group_names = n_groups * [""]
         colorcycle = pyplot.rcParams['axes.prop_cycle'].by_key()['color']

@@ -5,24 +5,11 @@
 #
 
 import numpy as np
-from itertools import product
-from sklearn.cluster import AgglomerativeClustering
+from tvb.basic.logger.builder import get_logger
 from tvb.simulator.plot.config import CONFIGURED
-from tvb.simulator.plot.utils.log_error_utils import initialize_logger
 from tvb.simulator.plot.utils.data_structures_utils import is_integer
 
-logger = initialize_logger(__name__)
-
-
-def weighted_vector_sum(weights, vectors, normalize=True):
-    if isinstance(vectors, np.ndarray):
-        vectors = list(vectors.T)
-    if normalize:
-        weights /= np.sum(weights)
-    vector_sum = weights[0] * vectors[0]
-    for iv in range(1, len(weights)):
-        vector_sum += weights[iv] * vectors[iv]
-    return np.array(vector_sum)
+LOG = get_logger(__name__)
 
 
 def normalize_weights(weights, percentile=CONFIGURED.calcul.WEIGHTS_NORM_PERCENT, remove_diagonal=True, ceil=1.0):
@@ -48,23 +35,6 @@ def compute_in_degree(weights):
     return np.expand_dims(np.sum(weights, axis=1), 1).T
 
 
-def compute_gain_matrix(locations1, locations2, normalize=100.0, ceil=False):
-    n1 = locations1.shape[0]
-    n2 = locations2.shape[0]
-    projection = np.zeros((n1, n2))
-    dist = np.zeros((n1, n2))
-    for i1, i2 in product(list(range(n1)), list(range(n2))):
-        dist[i1, i2] = np.abs(np.sum((locations1[i1, :] - locations2[i2, :]) ** 2))
-        projection[i1, i2] = 1 / dist[i1, i2]
-    if normalize:
-        projection /= np.percentile(projection, normalize)
-    if ceil:
-        if ceil is True:
-            ceil = 1.0
-        projection[projection > ceil] = ceil
-    return projection
-
-
 def get_greater_values_array_inds(values, n_vals=1):
     return np.argsort(values)[::-1][:n_vals]
 
@@ -78,38 +48,9 @@ def select_greater_values_array_inds(values, threshold=None, percentile=None, nv
         if is_integer(nvals):
             return get_greater_values_array_inds(values, nvals)
         if verbose:
-            logger.warning("Switching to curve elbow point method since threshold=" + str(threshold))
+            LOG.warning("Switching to curve elbow point method since threshold=" + str(threshold))
         elbow_point = curve_elbow_point(values)
         return get_greater_values_array_inds(values, elbow_point)
-
-
-def select_greater_values_2d_array_inds(values, threshold=None, percentile=None, nvals=None, verbose=False):
-    return np.unravel_index(
-        select_greater_values_array_inds(values.flatten(), threshold, percentile, nvals, verbose), values.shape)
-
-
-def select_by_hierarchical_group_metric_clustering(distance, disconnectivity=np.array([]), metric=None,
-                                                   n_groups=10, members_per_group=1):
-    if disconnectivity.shape == distance.shape:
-        distance += disconnectivity * distance.max()
-
-    n_groups = np.minimum(np.maximum(n_groups, 3), n_groups // members_per_group)
-    clustering = AgglomerativeClustering(n_groups, affinity="precomputed", linkage="average")
-    clusters_labels = clustering.fit_predict(distance)
-    selection = []
-    for cluster_id in range(len(np.unique(clusters_labels))):
-        # For each cluster, select the first...
-        cluster_inds = np.where(clusters_labels == cluster_id)[0]
-        # ... at least members_per_group elements...
-        n_select = np.minimum(members_per_group, len(cluster_inds))
-        if metric is not None and len(metric) == distance.shape[0]:
-            # ...optionally according to some metric
-            inds_select = np.argsort(metric[cluster_inds])[-n_select:]
-        else:
-            # ...otherwise, randomly
-            inds_select = list(range(n_select))
-        selection.append(cluster_inds[inds_select])
-    return np.unique(np.hstack(selection)).tolist()
 
 
 def curve_elbow_point(vals, interactive=CONFIGURED.calcul.INTERACTIVE_ELBOW_POINT):
@@ -176,9 +117,9 @@ def curve_elbow_point(vals, interactive=CONFIGURED.calcul.INTERACTIVE_ELBOW_POIN
         click_point.event_loop()
         if click_point.x is not None:
             elbow = click_point.x
-            logger.info("\nmanual selection: " + str(elbow))
+            LOG.info("\nmanual selection: " + str(elbow))
         else:
-            logger.info("\nautomatic selection: " + str(elbow))
+            LOG.info("\nautomatic selection: " + str(elbow))
         return elbow
     else:
         return elbow
