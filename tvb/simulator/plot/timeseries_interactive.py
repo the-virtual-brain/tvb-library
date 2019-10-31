@@ -62,7 +62,6 @@ import numpy
 import pylab
 import matplotlib.widgets as widgets
 from matplotlib import rcParams
-from six import string_types
 from tvb.simulator.common import get_logger
 import tvb.datatypes.time_series as time_series_datatypes
 from tvb.basic.neotraits.api import HasTraits, Attr, Int
@@ -211,7 +210,7 @@ class TimeSeriesInteractive(HasTraits):
     def ensure_list(self, arg):
         if not (isinstance(arg, list)):
             try:  # if iterable
-                if isinstance(arg, (string_types, dict)):
+                if isinstance(arg, (str, dict)):
                     arg = [arg]
                 elif hasattr(arg, "__iter__"):
                     arg = list(arg)
