@@ -1,35 +1,16 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy.signal import butter, filtfilt, welch, periodogram, spectrogram
+from scipy.signal import welch, periodogram, spectrogram
 from scipy.interpolate import interp1d, griddata
+from tvb.simulator.plot.config import CONFIGURED
+from tvb.basic.logger.builder import get_logger
 
 
-# x is assumed to be data (real numbers) arranged along the first dimension of an ndarray
-# this factory makes use of the numpy array properties
+LOG = get_logger(__name__)
 
 
-# Across points analyzers:
-
-# Univariate:
-
-# Time domain:
-
-
-# Frequency domain:
-
-def _butterworth_bandpass(fs, mode, lowcut, highcut, order=3):
-    """
-    Build a diggital Butterworth filter
-    """
-    nyq = 0.5 * fs
-    freqs = []
-    if lowcut is not None:
-        freqs.append(lowcut / nyq)  # normalize frequency
-    if highcut is not None:
-        freqs.append(highcut / nyq)  # normalize frequency
-    b, a = butter(order, freqs, btype=mode)  # btype : {'lowpass', 'highpass', 'bandpass', 'bandstop}, optional
-    return b, a
+# Analyzers utils_pack:
 
 def spectral_analysis(x, fs, freq=None, method="periodogram", output="spectrum", nfft=None, window='hanning',
                       nperseg=256, detrend='constant', noverlap=None, f_low=10.0, log_scale=False):
@@ -96,3 +77,66 @@ def time_spectral_analysis(x, fs, freq=None, mode="psd", nfft=None, window='hann
         return stf, t, freq, psd
     else:
         return stf, t, freq
+
+
+# Data structures utils
+
+def isequal_string(a, b, case_sensitive=False):
+    if case_sensitive:
+        return a == b
+    else:
+        try:
+            return a.lower() == b.lower()
+        except AttributeError:
+            LOG.warning("Case sensitive comparison!")
+            return a == b
+
+
+def ensure_list(arg):
+    if not (isinstance(arg, list)):
+        try:  # if iterable
+            if isinstance(arg, (str, dict)):
+                arg = [arg]
+            elif hasattr(arg, "__iter__"):
+                arg = list(arg)
+            else:  # if not iterable
+                arg = [arg]
+        except:  # if not iterable
+            arg = [arg]
+    return arg
+
+
+def generate_region_labels(n_regions, labels=[], str=". ", numbering=True, numbers=[]):
+    if len(numbers) != n_regions:
+        numbers = list(range(n_regions))
+    if len(labels) == n_regions:
+        if numbering:
+            return np.array([str.join(["%d", "%s"]) % tuple(l) for l in zip(numbers, labels)])
+        else:
+            return np.array(labels)
+    else:
+        return np.array(["%d" % l for l in numbers])
+
+
+#Computational utils
+
+def compute_in_degree(weights):
+    return np.expand_dims(np.sum(weights, axis=1), 1).T
+
+def normalize_weights(weights, percentile=CONFIGURED.calcul.WEIGHTS_NORM_PERCENT, remove_diagonal=True, ceil=1.0):
+    # Create the normalized connectivity weights:
+    if len(weights) > 0:
+        normalized_w = np.array(weights)
+        if remove_diagonal:
+            # Remove diagonal elements
+            n_regions = normalized_w.shape[0]
+            normalized_w *= (1.0 - np.eye(n_regions))
+        # Normalize with the 95th percentile
+        normalized_w = np.array(normalized_w / np.percentile(normalized_w, percentile))
+        if ceil:
+            if ceil is True:
+                ceil = 1.0
+            normalized_w[normalized_w > ceil] = ceil
+        return normalized_w
+    else:
+        return np.array([])
