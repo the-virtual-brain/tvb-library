@@ -2,7 +2,7 @@
 
 from matplotlib import pyplot
 import numpy
-from tvb.simulator.plot.utils.computations_utils import compute_in_degree
+from tvb.simulator.plot.utils import compute_in_degree
 from tvb.simulator.plot.base_plotter import BasePlotter
 from tvb.datatypes.sensors import Sensors
 from tvb.datatypes.projections import ProjectionMatrix
@@ -57,19 +57,19 @@ class HeadPlotter(BasePlotter):
         self._check_show()
         return figure, ax, cax1
 
-    def plot_head(self, head, plot_stats=False, plot_sensors=True):
+    def plot_head(self, connectivity, sensors, plot_stats=False, plot_sensors=True):
         output = []
-        output.append(self._plot_connectivity(head.connectivity))
+        output.append(self._plot_connectivity(connectivity))
         if plot_stats:
-            output.append(self._plot_connectivity_stats(head.connectivity))
+            output.append(self._plot_connectivity_stats(connectivity))
         if plot_sensors:
             count = 1
-            for s_type, sensors_set in head.sensors.items():
+            for s_type, sensors_set in sensors.items():
                 for sensor, projection in sensors_set.items():
                     if isinstance(sensor, Sensors) and isinstance(projection, ProjectionMatrix):
                         count, figure, ax, cax = \
                             self._plot_sensors(sensor, projection.projection_data,
-                                               head.connectivity.region_labels, count)
+                                               connectivity.region_labels, count)
                         output.append((figure, ax, cax))
         return tuple(output)
 

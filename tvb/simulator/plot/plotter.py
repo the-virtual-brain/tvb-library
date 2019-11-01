@@ -14,8 +14,8 @@ class Plotter(object):
         return BasePlotter(self.config).\
             plot(plot_fun_name, *args, **kwargs)
 
-    def plot_head(self, head):
-        return HeadPlotter(self.config).plot_head(head)
+    def plot_head(self,  *args, **kwargs):
+        return HeadPlotter(self.config).plot_head(*args, **kwargs)
 
     def plot_tvb_connectivity(self, *args, **kwargs):
         return HeadPlotter(self.config).plot_tvb_connectivity(*args, **kwargs)
