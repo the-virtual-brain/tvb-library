@@ -5,9 +5,9 @@ import matplotlib
 from matplotlib import pyplot, gridspec
 from matplotlib.colors import Normalize
 import numpy
-from tvb_scripts.utils.data_structures_utils import ensure_list, isequal_string, generate_region_labels, ensure_string
+from tvb.simulator.plot.utils import ensure_list, isequal_string, generate_region_labels
 from tvb.basic.logger.builder import get_logger
-from tvb.simulator.plot.utils.analyzers_utils import time_spectral_analysis
+from tvb.simulator.plot.utils import time_spectral_analysis
 from tvb.simulator.plot.base_plotter import BasePlotter
 from tvb.datatypes.time_series import TimeSeries
 LOG = get_logger(__name__)
@@ -71,7 +71,7 @@ class TimeSeriesPlotter(BasePlotter):
 
     def _ts_plot(self, time, n_vars, nTS, n_times, time_unit, subplots, offset=0.0, data_lims=[]):
 
-        time_unit = ensure_string(time_unit)
+        time_unit = str(time_unit)
         data_fun = lambda data, time, icol: (data[icol], time, icol)
 
         def plot_ts(x, iTS, colors, labels):
@@ -450,7 +450,7 @@ class TimeSeriesPlotter(BasePlotter):
         time = assert_time(time, n_times, time_unit, self.logger)
         if not isinstance(time_unit, string_types):
             time_unit = list(time_unit)[0]
-        time_unit = ensure_string(time_unit)
+        time_unit = str(time_unit)
         if time_unit in ("ms", "msec"):
             fs = 1000.0
         else:

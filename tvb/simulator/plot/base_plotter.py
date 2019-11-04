@@ -13,7 +13,7 @@ from matplotlib import pyplot
 pyplot.rcParams["font.size"] = CONFIGURED.figures.FONTSIZE
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from tvb.simulator.plot.utils.data_structures_utils import ensure_list, generate_region_labels
+from tvb.simulator.plot.utils import ensure_list, generate_region_labels
 
 
 class BasePlotter(object):
