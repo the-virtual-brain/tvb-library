@@ -7,10 +7,10 @@ from tvb.basic.logger.builder import get_logger
 from tvb.simulator.plot.config import CONFIGURED
 
 import matplotlib
-matplotlib.use(CONFIGURED.figures.MATPLOTLIB_BACKEND)
+matplotlib.use(CONFIGURED.MATPLOTLIB_BACKEND)
 
 from matplotlib import pyplot
-pyplot.rcParams["font.size"] = CONFIGURED.figures.FONTSIZE
+pyplot.rcParams["font.size"] = CONFIGURED.FONTSIZE
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from tvb.simulator.plot.utils import ensure_list, generate_region_labels
@@ -24,7 +24,7 @@ class BasePlotter(object):
         self.print_regions_indices = True
 
     def _check_show(self):
-        if self.config.figures.SHOW_FLAG:
+        if self.config.SHOW_FLAG:
             # mp.use('TkAgg')
             pyplot.ion()
             pyplot.show()
@@ -43,10 +43,10 @@ class BasePlotter(object):
         return figure_name
 
     def _save_figure(self, fig, figure_name=None):
-        if self.config.figures.SAVE_FLAG:
+        if self.config.SAVE_FLAG:
             figure_name = self._figure_filename(fig, figure_name)
-            figure_name = figure_name[:numpy.min([100, len(figure_name)])] + '.' + self.config.figures.FIG_FORMAT
-            figure_dir = self.config.out.FOLDER_FIGURES
+            figure_name = figure_name[:numpy.min([100, len(figure_name)])] + '.' + self.config.FIG_FORMAT
+            figure_dir = self.config.FOLDER_FIGURES
             if not (os.path.isdir(figure_dir)):
                 os.mkdir(figure_dir)
             pyplot.savefig(os.path.join(figure_dir, figure_name))
@@ -230,7 +230,7 @@ class BasePlotter(object):
                         right_ax_focus_indices=[], description="", title="", figure_name=None,
                         figsize=None, **kwargs):
         if not isinstance(figsize, (tuple, list)):
-            figsize = self.config.figures.VERY_LARGE_SIZE
+            figsize = self.config.VERY_LARGE_SIZE
         fig = pyplot.figure(title, frameon=False, figsize=figsize)
         fig.suptitle(description)
         n_subplots = len(data_dict_list)
@@ -279,7 +279,7 @@ class BasePlotter(object):
     def plots(self, data_dict, shape=None, transpose=False, skip=0, xlabels={}, xscales={}, yscales={}, title='Plots',
               lgnd={}, figure_name=None, figsize=None):
         if not isinstance(figsize, (tuple, list)):
-            figsize = self.config.figures.VERY_LARGE_SIZE
+            figsize = self.config.VERY_LARGE_SIZE
         if shape is None:
             shape = (1, len(data_dict))
         fig, axes = pyplot.subplots(shape[0], shape[1], figsize=figsize)
@@ -311,7 +311,7 @@ class BasePlotter(object):
             return tuple(data)
 
         if not isinstance(figsize, (tuple, list)):
-            figsize = self.config.figures.VERY_LARGE_SIZE
+            figsize = self.config.VERY_LARGE_SIZE
 
         if subtitles is None:
             subtitles = keys
@@ -401,7 +401,7 @@ class BasePlotter(object):
 
         if fig is None:
             if not isinstance(figsize, (tuple, list)):
-                figsize = self.config.figures.VERY_LARGE_SIZE
+                figsize = self.config.VERY_LARGE_SIZE
             fig, ax = pyplot.subplots(1, 1, figsize=figsize)
             show_and_save = True
         else:

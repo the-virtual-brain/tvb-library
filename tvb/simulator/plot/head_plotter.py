@@ -14,7 +14,7 @@ class HeadPlotter(BasePlotter):
         super(HeadPlotter, self).__init__(config)
 
     def _plot_connectivity(self, connectivity, figure_name='Connectivity'):
-        pyplot.figure(figure_name + str(connectivity.number_of_regions), self.config.figures.VERY_LARGE_SIZE)
+        pyplot.figure(figure_name + str(connectivity.number_of_regions), self.config.VERY_LARGE_SIZE)
         axes = []
         axes.append(self.plot_regions2regions(connectivity.normalized_weights,
                                               connectivity.region_labels, 121, "normalised weights"))
@@ -26,7 +26,7 @@ class HeadPlotter(BasePlotter):
 
     def _plot_connectivity_stats(self, connectivity, figsize=None, figure_name='HeadStats '):
         if not isinstance(figsize, (list, tuple)):
-            figsize = self.config.figures.VERY_LARGE_SIZE
+            figsize = self.config.VERY_LARGE_SIZE
         pyplot.figure("Head stats " + str(connectivity.number_of_regions), figsize=figsize)
         areas_flag = len(connectivity.areas) == len(connectivity.region_labels)
         axes = []
@@ -48,7 +48,7 @@ class HeadPlotter(BasePlotter):
                          show_x_labels=True, show_y_labels=True, x_ticks=numpy.array([]), y_ticks=numpy.array([]),
                          figsize=None):
         if not isinstance(figsize, (list, tuple)):
-            figsize = self.config.figures.VERY_LARGE_SIZE
+            figsize = self.config.VERY_LARGE_SIZE
         if not (isinstance(figure, pyplot.Figure)):
             figure = pyplot.figure(title, figsize=figsize)
         ax, cax1 = self._plot_matrix(projection, sensors.labels, region_labels, 111, title,
@@ -99,7 +99,7 @@ class HeadPlotter(BasePlotter):
             weights_figure = None
         else:
             # weights matrix
-            weights_figure = pyplot.figure(num="Connectivity weights", figsize=self.config.figures.largest_size())
+            weights_figure = pyplot.figure(num="Connectivity weights", figsize=self.config.largest_size())
             weights_axes = weights_figure.gca()
             wimg = weights_axes.matshow(connectivity.weights[order_rows, order_columns])
             weights_figure.colorbar(wimg)
@@ -117,7 +117,7 @@ class HeadPlotter(BasePlotter):
 
         if plot_tracts:
             # tract lengths matrix
-            tracts_figure = pyplot.figure(num="Tracts' lengths", figsize=self.config.figures.largest_size())
+            tracts_figure = pyplot.figure(num="Tracts' lengths", figsize=self.config.largest_size())
             tracts_axes = tracts_figure.gca()
             timg = tracts_axes.matshow(connectivity.tract_lengths[order_rows, order_columns])
             tracts_axes.set_title("Tracts' lengths")

@@ -123,7 +123,7 @@ def generate_region_labels(n_regions, labels=[], str=". ", numbering=True, numbe
 def compute_in_degree(weights):
     return np.expand_dims(np.sum(weights, axis=1), 1).T
 
-def normalize_weights(weights, percentile=CONFIGURED.calcul.WEIGHTS_NORM_PERCENT, remove_diagonal=True, ceil=1.0):
+def normalize_weights(weights, percentile=CONFIGURED.WEIGHTS_NORM_PERCENT, remove_diagonal=True, ceil=1.0):
     # Create the normalized connectivity weights:
     if len(weights) > 0:
         normalized_w = np.array(weights)

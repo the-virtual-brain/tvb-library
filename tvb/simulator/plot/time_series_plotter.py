@@ -53,16 +53,16 @@ class TimeSeriesPlotter(BasePlotter):
         self.interactive_plotter = None
         self.print_ts_indices = self.print_regions_indices
         self.HighlightingDataCursor = lambda *args, **kwargs: None
-        if matplotlib.get_backend() in matplotlib.rcsetup.interactive_bk and self.config.figures.MOUSE_HOOVER:
+        if matplotlib.get_backend() in matplotlib.rcsetup.interactive_bk and self.config.MOUSE_HOOVER:
             try:
                 from mpldatacursor import HighlightingDataCursor
                 self.HighlightingDataCursor = HighlightingDataCursor
             except ImportError:
-                self.config.figures.MOUSE_HOOVER = False
+                self.config.MOUSE_HOOVER = False
                 # self.logger.warning("Importing mpldatacursor failed! No highlighting functionality in plots!")
         else:
             # self.logger.warning("Noninteractive matplotlib backend! No highlighting functionality in plots!")
-            self.config.figures.MOUSE_HOOVER = False
+            self.config.MOUSE_HOOVER = False
 
     @property
     def line_format(self):
@@ -226,7 +226,7 @@ class TimeSeriesPlotter(BasePlotter):
                 subtitles=[], labels=[], offset=0.5, time_unit="ms",
                 title='Time series', figure_name=None, figsize=None):
         if not isinstance(figsize, (list, tuple)):
-            figsize = self.config.figures.LARGE_SIZE
+            figsize = self.config.LARGE_SIZE
         if isinstance(data, dict):
             var_labels = data.keys()
             data = data.values()
@@ -330,7 +330,7 @@ class TimeSeriesPlotter(BasePlotter):
                 pyplot.gca().yaxis.set_ticklabels(yticklabels)
                 pyplot.gca().invert_yaxis()
 
-        if self.config.figures.MOUSE_HOOVER:
+        if self.config.MOUSE_HOOVER:
             for line in lines:
                 self.HighlightingDataCursor(line, formatter='{label}'.format, bbox=dict(fc='white'),
                                             arrowprops=dict(arrowstyle='simple', fc='white', alpha=0.5))
@@ -342,21 +342,21 @@ class TimeSeriesPlotter(BasePlotter):
     def plot_ts_raster(self, data, time, var_labels=[], time_unit="ms", special_idx=[],
                        title='Raster plot', subtitles=[], labels=[], offset=0.5, figure_name=None, figsize=None):
         if not isinstance(figsize, (list, tuple)):
-            figsize = self.config.figures.VERY_LARGE_SIZE
+            figsize = self.config.VERY_LARGE_SIZE
         return self.plot_ts(data, time, var_labels, "raster", None, special_idx, subtitles, labels, offset, time_unit,
                             title, figure_name, figsize)
 
     def plot_ts_trajectories(self, data, var_labels=[], subtitles=None, special_idx=[], labels=[],
                              title='State space trajectories', figure_name=None, figsize=None):
         if not isinstance(figsize, (list, tuple)):
-            figsize = self.config.figures.LARGE_SIZE
+            figsize = self.config.LARGE_SIZE
         return self.plot_ts(data, [], var_labels, "traj", subtitles, special_idx, labels=labels, title=title,
                             figure_name=figure_name, figsize=figsize)
 
     def plot_tvb_time_series(self, time_series, mode="ts", subplots=None, special_idx=[], subtitles=[],
                              offset=0.5, title=None, figure_name=None, figsize=None):
         if not isinstance(figsize, (list, tuple)):
-            figsize = self.config.figures.LARGE_SIZE
+            figsize = self.config.LARGE_SIZE
         if title is None:
             title = time_series.title
         variables_labels = time_series.labels_dimensions.get(time_series.labels_ordering[1], [])
@@ -441,7 +441,7 @@ class TimeSeriesPlotter(BasePlotter):
                                           freq=None, spectral_options={}, special_idx=[], labels=[],
                                           title='Spectral Analysis', figure_name=None, figsize=None):
         if not isinstance(figsize, (list, tuple)):
-            figsize = self.config.figures.VERY_LARGE_SIZE
+            figsize = self.config.VERY_LARGE_SIZE
         if len(data.shape) == 1:
             n_times = data.shape[0]
             nS = 1
@@ -491,7 +491,7 @@ class TimeSeriesPlotter(BasePlotter):
         min_val = numpy.min(stf.flatten())
         max_val = numpy.max(stf.flatten())
         if nS > 2:
-            figsize = self.config.figures.VERY_LARGE_SIZE
+            figsize = self.config.VERY_LARGE_SIZE
         if len(var_label):
             title += ": " % var_label
         fig = pyplot.figure(title, figsize=figsize)
