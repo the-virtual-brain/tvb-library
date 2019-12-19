@@ -28,67 +28,67 @@
 #
 #
 """
-The ProjectionMatrices DataTypes. This brings together the scientific and framework 
-methods that are associated with the surfaces data.
+The ProjectionMatrices DataTypes.
 
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
 """
 
 from tvb.basic.readers import try_get_absolute_path, FileReader
-import tvb.basic.traits.types_basic as basic
-import tvb.datatypes.arrays as arrays
 from tvb.datatypes import surfaces, sensors
-from tvb.basic.traits.types_mapped import MappedType
-
+from tvb.basic.neotraits.api import HasTraits, Attr, NArray
 
 EEG_POLYMORPHIC_IDENTITY = "projEEG"
 MEG_POLYMORPHIC_IDENTITY = "projMEG"
 SEEG_POLYMORPHIC_IDENTITY = "projSEEG"
 
 
-class ProjectionMatrix(MappedType):
+class ProjectionMatrix(HasTraits):
     """
     Base DataType for representing a ProjectionMatrix.
     The projection is between a source of type CorticalSurface and a set of Sensors.
     """
 
-    projection_type = basic.String
+    projection_type = Attr(field_type=str)
 
-    __mapper_args__ = {'polymorphic_on': 'projection_type'}
+    brain_skull = Attr(
+        field_type=surfaces.BrainSkull,
+        label="Brain Skull", default=None, required=False,
+        doc="""Boundary between skull and cortex domains.""")
 
-    brain_skull = surfaces.BrainSkull(label="Brain Skull", default=None, required=False,
-                                      doc="""Boundary between skull and cortex domains.""")
+    skull_skin = Attr(
+        field_type=surfaces.SkullSkin,
+        label="Skull Skin", default=None, required=False,
+        doc="""Boundary between skull and skin domains.""")
 
-    skull_skin = surfaces.SkullSkin(label="Skull Skin", default=None, required=False,
-                                    doc="""Boundary between skull and skin domains.""")
+    skin_air = Attr(
+        field_type=surfaces.SkinAir,
+        label="Skin Air", default=None, required=False,
+        doc="""Boundary between skin and air domains.""")
 
-    skin_air = surfaces.SkinAir(label="Skin Air", default=None, required=False,
-                                doc="""Boundary between skin and air domains.""")
+    conductances = Attr(
+        field_type=dict, label="Domain conductances", required=False,
+        default={'air': 0.0, 'skin': 1.0, 'skull': 0.01, 'brain': 1.0},
+        doc=""" A dictionary representing the conductances of ... """)
 
-    conductances = basic.Dict(label="Domain conductances", required=False,
-                              default={'air': 0.0, 'skin': 1.0, 'skull': 0.01, 'brain': 1.0},
-                              doc=""" A dictionary representing the conductances of ... """)
+    sources = Attr(
+        field_type=surfaces.CorticalSurface,
+        label="surface or region", default=None)
 
-    sources = surfaces.CorticalSurface(label="surface or region", default=None, required=True)
+    sensors = Attr(
+        field_type=sensors.Sensors,
+        label="Sensors", default=None, required=False,
+        doc=""" A set of sensors to compute projection matrix for them. """)
 
-    sensors = sensors.Sensors(label="Sensors", default=None, required=False,
-                              doc=""" A set of sensors to compute projection matrix for them. """)
-
-    projection_data = arrays.FloatArray(label="Projection Matrix Data", default=None, required=True)
-
+    projection_data = NArray(label="Projection Matrix Data", default=None, required=True)
 
     @property
     def shape(self):
         return self.projection_data.shape
 
-
     @classmethod
-    def from_file(cls, source_file, matlab_data_name=None, is_brainstorm=False, instance=None):
+    def from_file(cls, source_file, matlab_data_name=None, is_brainstorm=False):
 
-        if instance is None:
-            proj = cls()
-        else:
-            proj = instance
+        proj = cls()
 
         source_full_path = try_get_absolute_path("tvb_data.projectionMatrix", source_file)
         reader = FileReader(source_full_path)
@@ -104,19 +104,14 @@ class ProjectionSurfaceEEG(ProjectionMatrix):
     Specific projection, from a CorticalSurface to EEG sensors.
     """
 
-    __tablename__ = None
+    projection_type = Attr(field_type=str, default=EEG_POLYMORPHIC_IDENTITY)
 
-    __mapper_args__ = {'polymorphic_identity': EEG_POLYMORPHIC_IDENTITY}
-
-    projection_type = basic.String(default=EEG_POLYMORPHIC_IDENTITY)
-
-    sensors = sensors.SensorsEEG
+    sensors = Attr(field_type=sensors.SensorsEEG)
 
     @classmethod
     def from_file(cls, source_file='projection_eeg_65_surface_16k.npy', matlab_data_name="ProjectionMatrix",
-                  is_brainstorm=False, instance=None):
-        return ProjectionMatrix.from_file.im_func(cls, source_file, matlab_data_name, is_brainstorm,
-                                                  instance)
+                  is_brainstorm=False):
+        return ProjectionMatrix.from_file.__func__(cls, source_file, matlab_data_name, is_brainstorm)
 
 
 class ProjectionSurfaceMEG(ProjectionMatrix):
@@ -124,19 +119,13 @@ class ProjectionSurfaceMEG(ProjectionMatrix):
     Specific projection, from a CorticalSurface to MEG sensors.
     """
 
-    __tablename__ = None
+    projection_type = Attr(field_type=str, default=MEG_POLYMORPHIC_IDENTITY)
 
-    __mapper_args__ = {'polymorphic_identity': MEG_POLYMORPHIC_IDENTITY}
-
-    projection_type = basic.String(default=MEG_POLYMORPHIC_IDENTITY)
-
-    sensors = sensors.SensorsMEG
+    sensors = Attr(field_type=sensors.SensorsMEG)
 
     @classmethod
-    def from_file(cls, source_file='projection_meg_276_surface_16k.npy', matlab_data_name=None, is_brainstorm=False,
-                  instance=None):
-        return ProjectionMatrix.from_file.im_func(cls, source_file, matlab_data_name, is_brainstorm,
-                                                  instance)
+    def from_file(cls, source_file='projection_meg_276_surface_16k.npy', matlab_data_name=None, is_brainstorm=False):
+        return ProjectionMatrix.from_file.__func__(cls, source_file, matlab_data_name, is_brainstorm)
 
 
 class ProjectionSurfaceSEEG(ProjectionMatrix):
@@ -144,16 +133,10 @@ class ProjectionSurfaceSEEG(ProjectionMatrix):
     Specific projection, from a CorticalSurface to SEEG sensors.
     """
 
-    __tablename__ = None
+    projection_type = Attr(field_type=str, default=SEEG_POLYMORPHIC_IDENTITY)
 
-    __mapper_args__ = {'polymorphic_identity': SEEG_POLYMORPHIC_IDENTITY}
-
-    projection_type = basic.String(default=SEEG_POLYMORPHIC_IDENTITY)
-
-    sensors = sensors.SensorsInternal
+    sensors = Attr(field_type=sensors.SensorsInternal)
 
     @classmethod
-    def from_file(cls, source_file='projection_seeg_588_surface_16k.npy', matlab_data_name=None, is_brainstorm=False,
-                  instance=None):
-        return ProjectionMatrix.from_file.im_func(cls, source_file, matlab_data_name, is_brainstorm,
-                                                  instance)
+    def from_file(cls, source_file='projection_seeg_588_surface_16k.npy', matlab_data_name=None, is_brainstorm=False):
+        return ProjectionMatrix.from_file.__func__(cls, source_file, matlab_data_name, is_brainstorm)

@@ -78,7 +78,7 @@ class H5Reader(object):
         try:
             return self.read_field(field, log_exception=False)
         except ReaderException:
-            return numpy.array([])
+            return None
 
 
 
@@ -114,7 +114,7 @@ class FileReader(object):
             # Try to read Matlab format:
             return self._read_matlab(self.file_stream, matlab_data_name)
 
-        except Exception, e:
+        except Exception as e:
             msg = "Could not read from %s file \n %s" % (self.file_path, e)
             self.logger.exception(msg)
             raise ReaderException(msg)
@@ -181,7 +181,7 @@ class ZipReader(object):
             self.logger.warning("File %r not found in ZIP." % file_name)
             raise ReaderException("File %r not found in ZIP." % file_name)
 
-        zip_entry = self.zip_archive.open(matching_file_name, 'rU')
+        zip_entry = self.zip_archive.open(matching_file_name, 'r')
 
         if matching_file_name.endswith(".bz2"):
             temp_file = copy_zip_entry_into_temp(zip_entry, matching_file_name)
@@ -200,7 +200,7 @@ class ZipReader(object):
         try:
             return self.read_array_from_file(file_name, dtype, skip_rows, use_cols, matlab_data_name)
         except ReaderException:
-            return numpy.array([])
+            return numpy.array([], dtype=dtype)
 
 
 

@@ -44,131 +44,95 @@ import math
 import numpy
 import scipy.sparse
 from tvb.basic.profile import TvbProfile
-import tvb.basic.traits.core as core
-import tvb.basic.traits.types_basic as basic
-from tvb.basic.filters.chain import UIFilter, FilterChain
-
-from tvb.datatypes import cortex, connectivity, arrays, patterns
+from tvb.datatypes import cortex, connectivity, patterns
 from tvb.simulator import models, integrators, monitors, coupling
-
-from .common import psutil, get_logger, numpy_add_at
-from .history import SparseHistory, DenseHistory
-
-
-LOG = get_logger(__name__)
+from .common import psutil, numpy_add_at
+from .history import SparseHistory
+from tvb.basic.neotraits.api import HasTraits, Attr, NArray, List, Float
 
 
 # TODO with refactor, this becomes more of a builder, since iterator will account for
 # most of the runtime associated with a simulation.
-class Simulator(core.Type):
-    "A Simulator assembles components required to perform simulations."
+class Simulator(HasTraits):
+    """A Simulator assembles components required to perform simulations."""
 
-    connectivity = connectivity.Connectivity(
+    connectivity = Attr(
+        field_type=connectivity.Connectivity,
         label="Long-range connectivity",
         default=None,
-        order=1,
         required=True,
-        filters_ui=[UIFilter(linked_elem_name="region_mapping_data",
-                             linked_elem_field=FilterChain.datatype + "._connectivity",
-                             linked_elem_parent_name="surface",
-                             linked_elem_parent_option=None),
-                    UIFilter(linked_elem_name="region_mapping",
-                             linked_elem_field=FilterChain.datatype + "._connectivity",
-                             linked_elem_parent_name="monitors",
-                             linked_elem_parent_option="EEG"),
-                    UIFilter(linked_elem_name="region_mapping",
-                             linked_elem_field=FilterChain.datatype + "._connectivity",
-                             linked_elem_parent_name="monitors",
-                             linked_elem_parent_option="MEG"),
-                    UIFilter(linked_elem_name="region_mapping",
-                             linked_elem_field=FilterChain.datatype + "._connectivity",
-                             linked_elem_parent_name="monitors",
-                             linked_elem_parent_option="iEEG")],
         doc="""A tvb.datatypes.Connectivity object which contains the
-        structural long-range connectivity data (i.e., white-matter tracts). In
-        combination with the ``Long-range coupling function`` it defines the inter-regional
-        connections. These couplings undergo a time delay via signal propagation 
-        with a propagation speed of ``Conduction Speed``""")
+         structural long-range connectivity data (i.e., white-matter tracts). In
+         combination with the ``Long-range coupling function`` it defines the inter-regional
+         connections. These couplings undergo a time delay via signal propagation
+         with a propagation speed of ``Conduction Speed``""")
 
-    conduction_speed = basic.Float(
+    conduction_speed = Float(
         label="Conduction Speed",
         default=3.0,
-        order=2,
         required=False,
-        range=basic.Range(lo=0.01, hi=100.0, step=1.0),
+        # range=basic.Range(lo=0.01, hi=100.0, step=1.0),
         doc="""Conduction speed for ``Long-range connectivity`` (mm/ms)""")
 
-    coupling = coupling.Coupling(
+    coupling = Attr(
+        field_type=coupling.Coupling,
         label="Long-range coupling function",
         default=coupling.Linear(),
         required=True,
-        order=2,
         doc="""The coupling function is applied to the activity propagated
         between regions by the ``Long-range connectivity`` before it enters the local
         dynamic equations of the Model. Its primary purpose is to 'rescale' the
         incoming activity to a level appropriate to Model.""")
 
-    surface = cortex.Cortex(
+    surface = Attr(
+        field_type=cortex.Cortex,
         label="Cortical surface",
         default=None,
-        order=3,
         required=False,
-        filters_backend=FilterChain(fields=[FilterChain.datatype + '._valid_for_simulations'],
-                                    operations=["=="], values=[True]),
-        filters_ui=[UIFilter(linked_elem_name="projection_matrix_data",
-                             linked_elem_field=FilterChain.datatype + "._sources",
-                             linked_elem_parent_name="monitors",
-                             linked_elem_parent_option="EEG"),
-                    UIFilter(linked_elem_name="local_connectivity",
-                             linked_elem_field=FilterChain.datatype + "._surface",
-                             linked_elem_parent_name="surface",
-                             linked_elem_parent_option=None)],
         doc="""By default, a Cortex object which represents the
-        cortical surface defined by points in the 3D physical space and their 
-        neighborhood relationship. In the current TVB version, when setting up a 
-        surface-based simulation, the option to configure the spatial spread of 
+        cortical surface defined by points in the 3D physical space and their
+        neighborhood relationship. In the current TVB version, when setting up a
+        surface-based simulation, the option to configure the spatial spread of
         the ``Local Connectivity`` is available.""")
 
-    stimulus = patterns.SpatioTemporalPattern(
+    stimulus = Attr(
+        field_type=patterns.SpatioTemporalPattern,
         label="Spatiotemporal stimulus",
         default=None,
-        order=4,
         required=False,
         doc="""A ``Spatiotemporal stimulus`` can be defined at the region or surface level.
         It's composed of spatial and temporal components. For region defined stimuli
         the spatial component is just the strength with which the temporal
         component is applied to each region. For surface defined stimuli,  a
-        (spatial) function, with finite-support, is used to define the strength 
-        of the stimuli on the surface centred around one or more focal points. 
-        In the current version of TVB, stimuli are applied to the first state 
+        (spatial) function, with finite-support, is used to define the strength
+        of the stimuli on the surface centred around one or more focal points.
+        In the current version of TVB, stimuli are applied to the first state
         variable of the ``Local dynamic model``.""")
 
-    model = models.Model(
+    model = Attr(
+        field_type=models.Model,
         label="Local dynamic model",
-        default=models.Generic2dOscillator,
+        default=models.Generic2dOscillator(),
         required=True,
-        order=5,
         doc="""A tvb.simulator.Model object which describe the local dynamic
         equations, their parameters, and, to some extent, where connectivity
         (local and long-range) enters and which state-variables the Monitors
-        monitor. By default the 'Generic2dOscillator' model is used. Read the 
+        monitor. By default the 'Generic2dOscillator' model is used. Read the
         Scientific documentation to learn more about this model.""")
 
-    integrator = integrators.Integrator(
+    integrator = Attr(
+        field_type=integrators.Integrator,
         label="Integration scheme",
-        default=integrators.HeunDeterministic,
+        default=integrators.HeunDeterministic(),
         required=True,
-        order=6,
         doc="""A tvb.simulator.Integrator object which is
-            an integration scheme with supporting attributes such as 
-            integration step size and noise specification for stochastic 
-            methods. It is used to compute the time courses of the model state 
+            an integration scheme with supporting attributes such as
+            integration step size and noise specification for stochastic
+            methods. It is used to compute the time courses of the model state
             variables.""")
 
-    initial_conditions = arrays.FloatArray(
+    initial_conditions = NArray(
         label="Initial Conditions",
-        default=None,
-        order=-1,
         required=False,
         doc="""Initial conditions from which the simulation will begin. By
         default, random initial conditions are provided. Needs to be the same shape
@@ -178,12 +142,10 @@ class Simulator(core.Type):
         array will be padded with random values based on the 'state_variables_range'
         attribute.""")
 
-    monitors = monitors.Monitor(
+    monitors = List(
+        of=monitors.Monitor,
         label="Monitor(s)",
-        default=monitors.TemporalAverage,
-        required=True,
-        order=8,
-        select_multiple=True,
+        default=(monitors.TemporalAverage(),),
         doc="""A tvb.simulator.Monitor or a list of tvb.simulator.Monitor
         objects that 'know' how to record relevant data from the simulation. Two
         main types exist: 1) simple, spatial and temporal, reductions (subsets
@@ -192,18 +154,17 @@ class Simulator(core.Type):
         temporally downsampled from the raw integration rate to a sample rate of
         1024Hz.""")
 
-    simulation_length = basic.Float(
+    simulation_length = Float(
         label="Simulation Length (ms, s, m, h)",
         default=1000.0,  # ie 1 second
         required=True,
-        order=9,
         doc="""The length of a simulation (default in milliseconds).""")
 
-    history = None # type: SparseHistory
+    history = None  # type: SparseHistory
 
     @property
     def good_history_shape(self):
-        "Returns expected history shape."
+        """Returns expected history shape."""
         n_reg = self.connectivity.number_of_regions
         shape = self.horizon, len(self.model.state_variables), n_reg, self.model.number_of_modes
         return shape
@@ -223,8 +184,14 @@ class Simulator(core.Type):
     # 4) loop step
     # 5) estimations
 
+    @property
+    def is_surface_simulation(self):
+        if self.surface:
+            return True
+        return False
+
     def preconfigure(self):
-        "Configure just the basic fields, so that memory can be estimated."
+        """Configure just the basic fields, so that memory can be estimated."""
         self.connectivity.configure()
         if self.surface:
             self.surface.configure()
@@ -233,6 +200,18 @@ class Simulator(core.Type):
         self.coupling.configure()
         self.model.configure()
         self.integrator.configure()
+        if self.model.state_variable_boundaries is not None:
+            indices = []
+            boundaries = []
+            for sv, sv_bounds in self.model.state_variable_boundaries.items():
+                indices.append(self.model.state_variables.index(sv))
+                boundaries.append(sv_bounds)
+            sort_inds = numpy.argsort(indices)
+            self.integrator.bounded_state_variable_indices = numpy.array(indices)[sort_inds]
+            self.integrator.state_variable_boundaries = numpy.array(boundaries)[sort_inds]
+        else:
+            self.integrator.bounded_state_variable_indices = None
+            self.integrator.state_variable_boundaries = None
         # monitors needs to be a list or tuple, even if there is only one...
         if not isinstance(self.monitors, (list, tuple)):
             self.monitors = [self.monitors]
@@ -242,13 +221,13 @@ class Simulator(core.Type):
         # "Nodes" refers to either regions or vertices + non-cortical regions.
         if self.surface is None:
             self.number_of_nodes = self.connectivity.number_of_regions
-            LOG.info('Region simulation with %d ROI nodes', self.number_of_nodes)
+            self.log.info('Region simulation with %d ROI nodes', self.number_of_nodes)
         else:
             rm = self.surface.region_mapping
             unmapped = self.connectivity.unmapped_indices(rm)
             self._regmap = numpy.r_[rm, unmapped]
             self.number_of_nodes = self._regmap.shape[0]
-            LOG.info('Surface simulation with %d vertices + %d non-cortical, %d total nodes',
+            self.log.info('Surface simulation with %d vertices + %d non-cortical, %d total nodes',
                      rm.size, unmapped.size, self.number_of_nodes)
         self._guesstimate_memory_requirement()
 
@@ -275,9 +254,11 @@ class Simulator(core.Type):
             # When run from GUI, preconfigure is run separately, and we want to avoid running that part twice
             self.preconfigure()
         # Make sure spatialised model parameters have the right shape (number_of_nodes, 1)
-        excluded_params = ("state_variable_range", "variables_of_interest", "noise", "psi_table", "nerf_table")
+        # todo: this exclusion list is fragile, consider excluding declarative attrs that are not arrays
+        excluded_params = ("state_variable_range", "state_variable_boundaries", "variables_of_interest",
+                           "noise", "psi_table", "nerf_table", "gid")
         spatial_reshape = self.model.spatial_param_reshape
-        for param in self.model.trait.keys():
+        for param in type(self.model).declarative_attrs:
             if param in excluded_params:
                 continue
             # If it's a surface sim and model parameters were provided at the region level
@@ -312,9 +293,9 @@ class Simulator(core.Type):
             if isinstance(self.integrator, integrators.IntegratorStochastic):
                 self.integrator.noise.random_stream.set_state(random_state)
                 msg = "random_state supplied with seed %s"
-                LOG.info(msg, self.integrator.noise.random_stream.get_state()[1][0])
+                self.log.info(msg, self.integrator.noise.random_stream.get_state()[1][0])
             else:
-                LOG.warn("random_state supplied for non-stochastic integration")
+                self.log.warn("random_state supplied for non-stochastic integration")
 
     def _prepare_local_coupling(self):
         if self.surface is None:
@@ -347,25 +328,25 @@ class Simulator(core.Type):
             time = numpy.r_[0.0 : self.simulation_length : self.integrator.dt]
             self.stimulus.configure_time(time.reshape((1, -1)))
             stimulus = numpy.zeros((self.model.nvar, self.number_of_nodes, 1))
-            LOG.debug("stimulus shape is: %s", stimulus.shape)
+            self.log.debug("stimulus shape is: %s", stimulus.shape)
         return stimulus
 
     def _loop_compute_node_coupling(self, step):
-        "Compute delayed node coupling values."
+        """Compute delayed node coupling values."""
         coupling = self.coupling(step, self.history)
         if self.surface is not None:
             coupling = coupling[:, self._regmap]
         return coupling
 
     def _loop_update_stimulus(self, step, stimulus):
-        "Update stimulus values for current time step."
+        """Update stimulus values for current time step."""
         if self.stimulus is not None:
             # TODO stim_step != current step
             stim_step = step - (self.current_step + 1)
             stimulus[self.model.cvar, :, :] = self.stimulus(stim_step).reshape((1, -1, 1))
 
     def _loop_update_history(self, step, n_reg, state):
-        "Update history."
+        """Update history."""
         if self.surface is not None and state.shape[1] > self.connectivity.number_of_regions:
             region_state = numpy.zeros((n_reg, state.shape[0], state.shape[2]))         # temp (node, cvar, mode)
             numpy_add_at(region_state, self._regmap, state.transpose((1, 0, 2)))        # sum within region
@@ -392,7 +373,7 @@ class Simulator(core.Type):
 
         self.calls += 1
         if simulation_length is not None:
-            self.simulation_length = simulation_length
+            self.simulation_length = float(simulation_length)
 
         # intialization
         self._guesstimate_runtime()
@@ -405,7 +386,7 @@ class Simulator(core.Type):
 
         # integration loop
         n_steps = int(math.ceil(self.simulation_length / self.integrator.dt))
-        for step in range(self.current_step + 1, self.current_step + n_steps +1):
+        for step in range(self.current_step + 1, self.current_step + n_steps + 1):
             # needs implementing by hsitory + coupling?
             node_coupling = self._loop_compute_node_coupling(step)
             self._loop_update_stimulus(step, stimulus)
@@ -437,14 +418,14 @@ class Simulator(core.Type):
         # Default initial conditions
         if initial_conditions is None:
             n_time, n_svar, n_node, n_mode = self.good_history_shape
-            LOG.info('Preparing initial history of shape %r using model.initial()', self.good_history_shape)
+            self.log.info('Preparing initial history of shape %r using model.initial()', self.good_history_shape)
             if self.surface is not None:
                 n_node = self.number_of_nodes
             history = self.model.initial(self.integrator.dt, (n_time, n_svar, n_node, n_mode), rng)
         # ICs provided
         else:
             # history should be [timepoints, state_variables, nodes, modes]
-            LOG.info('Using provided initial history of shape %r', initial_conditions.shape)
+            self.log.info('Using provided initial history of shape %r', initial_conditions.shape)
             n_time, n_svar, n_node, n_mode = ic_shape = initial_conditions.shape
             nr = self.connectivity.number_of_regions
             if self.surface is not None and n_node == nr:
@@ -452,23 +433,27 @@ class Simulator(core.Type):
                 return self._configure_history(initial_conditions)
             elif ic_shape[1:] != self.good_history_shape[1:]:
                 raise ValueError("Incorrect history sample shape %s, expected %s"
-                                 % ic_shape[1:], self.good_history_shape[1:])
+                                 % (ic_shape[1:], self.good_history_shape[1:]))
             else:
                 if ic_shape[0] >= self.horizon:
-                    LOG.debug("Using last %d time-steps for history.", self.horizon)
+                    self.log.debug("Using last %d time-steps for history.", self.horizon)
                     history = initial_conditions[-self.horizon:, :, :, :].copy()
                 else:
-                    LOG.debug('Padding initial conditions with model.initial')
+                    self.log.debug('Padding initial conditions with model.initial')
                     history = self.model.initial(self.integrator.dt, self.good_history_shape, rng)
                     shift = self.current_step % self.horizon
                     history = numpy.roll(history, -shift, axis=0)
                     history[:ic_shape[0], :, :, :] = initial_conditions
                     history = numpy.roll(history, shift, axis=0)
                 self.current_step += ic_shape[0] - 1
-        LOG.info('Final initial history shape is %r', history.shape)
+
+        if self.integrator.state_variable_boundaries is not None:
+            self.integrator.bound_state(numpy.swapaxes(history, 0, 1))
+        self.log.info('Final initial history shape is %r', history.shape)
+
         # create initial state from history
         self.current_state = history[self.current_step % self.horizon].copy()
-        LOG.debug('initial state has shape %r' % (self.current_state.shape, ))
+        self.log.debug('initial state has shape %r' % (self.current_state.shape, ))
         if self.surface is not None and history.shape[2] > self.connectivity.number_of_regions:
             n_reg = self.connectivity.number_of_regions
             (nt, ns, _, nm), ax = history.shape, (2, 0, 1, 3)
@@ -520,7 +505,7 @@ class Simulator(core.Type):
         good_nsig_shape = (self.model.nvar, self.number_of_nodes,
                            self.model.number_of_modes)
         nsig = self.integrator.noise.nsig
-        LOG.debug("Given noise shape is %s", nsig.shape)
+        self.log.debug("Given noise shape is %s", nsig.shape)
         if nsig.shape in (good_nsig_shape, (1,)):
             return
         elif nsig.shape == (self.model.nvar, ):
@@ -531,9 +516,9 @@ class Simulator(core.Type):
             nsig = nsig.reshape((self.model.nvar, self.number_of_nodes, 1))
         else:
             msg = "Bad Simulator.integrator.noise.nsig shape: %s"
-            LOG.error(msg % str(nsig.shape))
+            self.log.error(msg % str(nsig.shape))
 
-        LOG.debug("Corrected noise shape is %s", nsig.shape)
+        self.log.debug("Corrected noise shape is %s", nsig.shape)
         self.integrator.noise.nsig = nsig
 
     def _configure_monitors(self):
@@ -607,21 +592,21 @@ class Simulator(core.Type):
         magic_number = 2.42  # Current guesstimate is low by about a factor of 2, seems safer to over estimate...
         bits_64 = 8.0  # Bytes
         bits_32 = 4.0  # Bytes
-        #NOTE: The speed hack for getting the first element of hist shape should
+        # NOTE: The speed hack for getting the first element of hist shape should
         #      partially resolves calling of this method with a non-configured
         #     connectivity, there remains the less common issue if no tract_lengths...
         hist_shape = (self.connectivity.tract_lengths.max() / (self.conduction_speed or
                                                                self.connectivity.speed or 3.0) / self.integrator.dt,
                       self.model.nvar, number_of_nodes, 
                       self.model.number_of_modes)
-        LOG.debug("Estimated history shape is %r", hist_shape)
+        self.log.debug("Estimated history shape is %r", hist_shape)
 
         memreq = numpy.prod(hist_shape) * bits_64
         if self.surface:
             memreq += self.surface.number_of_triangles * 3 * bits_32 * 2  # normals
             memreq += self.surface.number_of_vertices * 3 * bits_64 * 2   # normals
             memreq += number_of_nodes * number_of_regions * bits_64 * 4   # region_mapping, region_average, region_sum
-            #???memreq += self.surface.local_connectivity.matrix.nnz * 8
+            # ???memreq += self.surface.local_connectivity.matrix.nnz * 8
 
         if not hasattr(self.monitors, '__len__'):
             self.monitors = [self.monitors]
@@ -629,7 +614,7 @@ class Simulator(core.Type):
         for monitor in self.monitors:
             if not isinstance(monitor, monitors.Bold):
                 stock_shape = (monitor.period / self.integrator.dt, 
-                               self.model.variables_of_interest.shape[0], 
+                               len(self.model.variables_of_interest),
                                number_of_nodes,
                                self.model.number_of_modes)
                 memreq += numpy.prod(stock_shape) * bits_64
@@ -637,27 +622,27 @@ class Simulator(core.Type):
                     try:
                         memreq += number_of_nodes * monitor.sensors.number_of_sensors * bits_64  # projection_matrix
                     except AttributeError:
-                        LOG.debug("No sensors specified, guessing memory based on default EEG.")
+                        self.log.debug("No sensors specified, guessing memory based on default EEG.")
                         memreq += number_of_nodes * 62.0 * bits_64
 
             else:
                 stock_shape = (monitor.hrf_length * monitor._stock_sample_rate,
-                               self.model.variables_of_interest.shape[0],
+                               len(self.model.variables_of_interest),
                                number_of_nodes,
                                self.model.number_of_modes)
                 interim_stock_shape = (1.0 / (2.0 ** -2 * self.integrator.dt),
-                                       self.model.variables_of_interest.shape[0],
+                                       len(self.model.variables_of_interest),
                                        number_of_nodes,
                                        self.model.number_of_modes)
                 memreq += numpy.prod(stock_shape) * bits_64
                 memreq += numpy.prod(interim_stock_shape) * bits_64
 
         if psutil and memreq > psutil.virtual_memory().total:
-            LOG.warning("There may be insufficient memory for this simulation.")
+            self.log.warning("There may be insufficient memory for this simulation.")
 
         self._memory_requirement_guess = magic_number * memreq
         msg = "Memory requirement estimate: simulation will need about %.1f MB"
-        LOG.info(msg, self._memory_requirement_guess / 2**20)
+        self.log.info(msg, self._memory_requirement_guess / 2**20)
 
     def _census_memory_requirement(self):
         """
@@ -678,7 +663,6 @@ class Simulator(core.Type):
             memreq += self.surface.triangles.nbytes * 2
             memreq += self.surface.vertices.nbytes * 2
             memreq += self.surface.region_mapping.nbytes * self.number_of_nodes * 8. * 4  # region_average, region_sum
-            memreq += self.surface.eeg_projection.nbytes
             memreq += self.surface.local_connectivity.matrix.nnz * 8
         except AttributeError:
             pass
@@ -689,12 +673,12 @@ class Simulator(core.Type):
                 memreq += monitor._interim_stock.nbytes
 
         if psutil and memreq > psutil.virtual_memory().total:
-            LOG.warning("Memory estimate exceeds total available RAM.")
+            self.log.warning("Memory estimate exceeds total available RAM.")
 
         self._memory_requirement_census = magic_number * memreq
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         msg = "Memory requirement census: simulation will need about %.1f MB"
-        LOG.info(msg % (self._memory_requirement_census / 1048576.0))
+        self.log.info(msg % (self._memory_requirement_census / 1048576.0))
 
     def _guesstimate_runtime(self):
         """
@@ -710,7 +694,7 @@ class Simulator(core.Type):
         self._runtime = (magic_number * self.number_of_nodes * self.model.nvar * self.model.number_of_modes *
                          self.simulation_length / self.integrator.dt)
         msg = "Simulation runtime should be about %0.3f seconds"
-        LOG.info(msg, self._runtime)
+        self.log.info(msg, self._runtime)
 
     def _calculate_storage_requirement(self):
         """
@@ -719,7 +703,7 @@ class Simulator(core.Type):
         While this is only approximate, it is far more reliable/accurate than
         the memory and runtime guesstimates.
         """
-        LOG.info("Calculating storage requirement for ...")
+        self.log.info("Calculating storage requirement for ...")
         strgreq = 0
         for monitor in self.monitors:
             # Avoid division by zero for monitor not yet configured
@@ -728,11 +712,11 @@ class Simulator(core.Type):
             strgreq += (TvbProfile.current.MAGIC_NUMBER * self.simulation_length *
                         self.number_of_nodes * self.model.nvar *
                         self.model.number_of_modes / current_period)
-        LOG.info("Calculated storage requirement for simulation: %d " % int(strgreq))
+        self.log.info("Calculated storage requirement for simulation: %d " % int(strgreq))
         self._storage_requirement = int(strgreq)
 
     def run(self, **kwds):
-        "Convenience method to call the simulator with **kwds and collect output data."
+        """Convenience method to call the simulator with **kwds and collect output data."""
         ts, xs = [], []
         for _ in self.monitors:
             ts.append([])
@@ -745,8 +729,8 @@ class Simulator(core.Type):
                     tl.append(t)
                     xl.append(x)
         elapsed_wall_time = time.time() - wall_time_start
-        LOG.info("%.3f s elapsed, %.3fx real time", elapsed_wall_time,
-                 elapsed_wall_time * 1e3 / self.simulation_length)
+        self.log.info("%.3f s elapsed, %.3fx real time", elapsed_wall_time,
+                      elapsed_wall_time * 1e3 / self.simulation_length)
         for i in range(len(ts)):
             ts[i] = numpy.array(ts[i])
             xs[i] = numpy.array(xs[i])

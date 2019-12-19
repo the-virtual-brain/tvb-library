@@ -29,8 +29,7 @@
 #
 
 """
-The Sensors dataType. This brings together the scientific and framework 
-methods that are associated with the sensor dataTypes.
+The Sensors dataType.
 
 .. moduleauthor:: Stuart A. Knock <stuart.knock@gmail.com>
 .. moduleauthor:: Lia Domide <lia.domide@codemart.ro>
@@ -39,20 +38,15 @@ methods that are associated with the sensor dataTypes.
 """
 
 import numpy
-from tvb.datatypes import arrays
-from tvb.basic.logger.builder import get_logger
-from tvb.basic.traits import types_basic
-from tvb.basic.traits.types_mapped import MappedType
 from tvb.basic.readers import FileReader, try_get_absolute_path
-
-LOG = get_logger(__name__)
+from tvb.basic.neotraits.api import HasTraits, Attr, NArray, Int
 
 EEG_POLYMORPHIC_IDENTITY = "EEG"
 MEG_POLYMORPHIC_IDENTITY = "MEG"
 INTERNAL_POLYMORPHIC_IDENTITY = "Internal"
 
 
-class Sensors(MappedType):
+class Sensors(HasTraits):
     """
     Base Sensors class.
     All sensors have locations.
@@ -61,43 +55,35 @@ class Sensors(MappedType):
 
     _ui_name = "Unknown sensors"
 
-    sensors_type = types_basic.String
+    sensors_type = Attr(str, required=False)
 
-    __mapper_args__ = {'polymorphic_on': 'sensors_type'}
+    labels = NArray(dtype='U128', label="Sensor labels")
 
-    labels = arrays.StringArray(label="Sensor labels")
+    locations = NArray(label="Sensor locations")
 
-    locations = arrays.PositionArray(label="Sensor locations")
+    has_orientation = Attr(field_type=bool, default=False)
 
-    has_orientation = types_basic.Bool(default=False)
+    orientations = NArray(required=False)
 
-    orientations = arrays.OrientationArray(required=False)
-
-    number_of_sensors = types_basic.Integer(label="Number of sensors",
-                                            doc="""The number of sensors described by these Sensors.""")
+    number_of_sensors = Int(field_type=int, label="Number of sensors",
+                            doc="""The number of sensors described by these Sensors.""")
 
     # introduced to accommodate real sensors sets which have sensors
     # that should be zero during simulation i.e. ECG (heart), EOG,
     # reference gradiometers, etc.
-    usable = arrays.BoolArray(required=False, label="Usable sensors",
-                              doc="The sensors in set which are used for signal data.")
+    usable = NArray(dtype=bool, required=False, label="Usable sensors",
+                    doc="The sensors in set which are used for signal data.")
 
     @classmethod
-    def from_file(cls, source_file="eeg_brainstorm_65.txt", instance=None):
+    def from_file(cls, source_file="eeg_brainstorm_65.txt"):
 
-        if instance is None:
-            result = cls()
-        else:
-            result = instance
-
+        result = cls()
         source_full_path = try_get_absolute_path("tvb_data.sensors", source_file)
         reader = FileReader(source_full_path)
 
-        result.labels = reader.read_array(dtype="string", use_cols=(0,))
+        result.labels = reader.read_array(dtype=numpy.str, use_cols=(0,))
         result.locations = reader.read_array(use_cols=(1, 2, 3))
-
         return result
-
 
     def configure(self):
         """
@@ -105,18 +91,17 @@ class Sensors(MappedType):
         set during initialization.
         """
         super(Sensors, self).configure()
-        self.number_of_sensors = self.labels.shape[0]
+        self.number_of_sensors = int(self.labels.shape[0])
 
-
-    def _find_summary_info(self):
+    def summary_info(self):
         """
         Gather scientifically interesting summary information from an instance
         of this datatype.
         """
-        summary = {"Sensor type": self.sensors_type,
-                   "Number of Sensors": self.number_of_sensors}
-        return summary
-
+        return {
+            "Sensor type": self.sensors_type,
+            "Number of Sensors": self.number_of_sensors
+        }
 
     def sensors_to_surface(self, surface_to_map):
         """
@@ -179,8 +164,8 @@ class Sensors(MappedType):
 
             elif len(local_triangle_index) < 1:
                 # No triangle was found in proximity. Draw the sensor somehow in the surface extension area
-                LOG.warning("Could not find a proper position on the given surface for sensor %d:%s. "
-                            "with direction %s" % (k, self.labels[k], str(self.locations[k])))
+                self.log.warning("Could not find a proper position on the given surface for sensor %d:%s. "
+                                 "with direction %s" % (k, self.labels[k], str(self.locations[k])))
                 distances = (abs(tuv[:, 1] + tuv[:, 2]))
                 local_triangle_index = distances.argmin()
                 # Scale sensor unit vector by t so that it lies on the surface.
@@ -209,13 +194,9 @@ class SensorsEEG(Sensors):
     """
     _ui_name = "EEG Sensors"
 
-    __tablename__ = None
+    sensors_type = Attr(str, default=EEG_POLYMORPHIC_IDENTITY)
 
-    __mapper_args__ = {'polymorphic_identity': EEG_POLYMORPHIC_IDENTITY}
-
-    sensors_type = types_basic.String(default=EEG_POLYMORPHIC_IDENTITY)
-
-    has_orientation = types_basic.Bool(default=False, order=-1)
+    has_orientation = Attr(bool, default=False)
 
 
 class SensorsMEG(Sensors):
@@ -233,21 +214,16 @@ class SensorsMEG(Sensors):
     """
     _ui_name = "MEG sensors"
 
-    __tablename__ = None
+    sensors_type = Attr(str, default=MEG_POLYMORPHIC_IDENTITY)
 
-    __mapper_args__ = {'polymorphic_identity': MEG_POLYMORPHIC_IDENTITY}
+    orientations = NArray(label="Sensor orientations",
+                          doc="An array representing the orientation of the MEG SQUIDs")
 
-    sensors_type = types_basic.String(default=MEG_POLYMORPHIC_IDENTITY)
-
-    orientations = arrays.OrientationArray(label="Sensor orientations",
-                                           doc="An array representing the orientation of the MEG SQUIDs")
-
-    has_orientation = types_basic.Bool(default=True, order=-1)
-
+    has_orientation = Attr(field_type=bool, default=True)
 
     @classmethod
-    def from_file(cls, source_file="meg_151.txt.bz2", instance=None):
-        result = super(SensorsMEG, cls).from_file(source_file, instance)
+    def from_file(cls, source_file="meg_151.txt.bz2"):
+        result = super(SensorsMEG, cls).from_file(source_file)
 
         source_full_path = try_get_absolute_path("tvb_data.sensors", source_file)
         reader = FileReader(source_full_path)
@@ -262,13 +238,8 @@ class SensorsInternal(Sensors):
     """
     _ui_name = "Internal Sensors"
 
-    __tablename__ = None
-
-    __mapper_args__ = {'polymorphic_identity': INTERNAL_POLYMORPHIC_IDENTITY}
-
-    sensors_type = types_basic.String(default=INTERNAL_POLYMORPHIC_IDENTITY)
-
+    sensors_type = Attr(str, default=INTERNAL_POLYMORPHIC_IDENTITY)
 
     @classmethod
-    def from_file(cls, source_file="seeg_39.txt.bz2", instance=None):
-        return super(SensorsInternal, cls).from_file(source_file, instance)
+    def from_file(cls, source_file="seeg_39.txt.bz2"):
+        return super(SensorsInternal, cls).from_file(source_file)

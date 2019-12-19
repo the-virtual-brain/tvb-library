@@ -30,8 +30,7 @@
 
 """
 
-The LookUpTable datatype. This brings together the scientific and framework 
-methods that are associated with the precalculated look up tables.
+The LookUpTable datatype.
 
 .. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
 
@@ -39,54 +38,48 @@ methods that are associated with the precalculated look up tables.
 
 import numpy
 from tvb.basic.readers import try_get_absolute_path
-from tvb.datatypes import arrays
-from tvb.basic.traits import types_basic as basic, types_mapped
-from tvb.basic.logger.builder import get_logger
+from tvb.basic.neotraits.api import HasTraits, Attr, NArray, Int
 
 
-LOG = get_logger(__name__)
-
-
-class LookUpTable(types_mapped.MappedType):
+class LookUpTable(HasTraits):
     """
     Lookup Tables for storing pre-computed functions.
     Specific table subclasses are implemented below.
     """
 
-    _base_classes = ['LookUpTables']
-
-    equation = basic.String(
+    equation = Attr(
+        field_type=str,
         label="String representation of the precalculated function",
         doc="""A latex representation of the function whose values are stored
-            in the table, with the extra escaping needed for interpretation via sphinx.""")
+                in the table, with the extra escaping needed for interpretation via sphinx.""")
 
-    xmin = arrays.FloatArray(
+    xmin = NArray(
         label="x-min",
         doc="""Minimum value""")
 
-    xmax = arrays.FloatArray(
+    xmax = NArray(
         label="x-max",
         doc="""Maximum value""")
 
-    data = arrays.FloatArray(
+    data = NArray(
         label="data",
         doc="""Tabulated values""")
 
-    number_of_values = basic.Integer(
+    number_of_values = Int(
         label="Number of values",
         default=0,
         doc="""The number of values in the table """)
 
-    df = arrays.FloatArray(
+    df = NArray(
         label="df",
         doc=""".""")
 
-    dx = arrays.FloatArray(
+    dx = NArray(
         label="dx",
         default=numpy.array([]),
         doc="""Tabulation step""")
 
-    invdx = arrays.FloatArray(
+    invdx = NArray(
         label="invdx",
         default=numpy.array([]),
         doc=""".""")
@@ -115,13 +108,12 @@ class LookUpTable(types_mapped.MappedType):
         if self.dx.size == 0:
             self.compute_search_indices()
 
-    def _find_summary_info(self):
+    def summary_info(self):
         """
         Gather scientifically interesting summary information from an instance
         of this dataType, if any ...
         """
-        summary = {"Number of values": self.number_of_values}
-        return summary
+        return {"Number of values": self.number_of_values}
 
     def compute_search_indices(self):
         """
@@ -156,11 +148,10 @@ class PsiTable(LookUpTable):
     :math:`\\psi(\\nu)` as a function of the presynaptic rates :math:`\\nu`
 
     """
-    __tablename__ = None
 
     @staticmethod
-    def from_file(source_file="psi.npz", instance=None):
-        return LookUpTable.populate_table(instance or PsiTable(), source_file)
+    def from_file(source_file="psi.npz"):
+        return LookUpTable.populate_table(PsiTable(), source_file)
 
 
 class NerfTable(LookUpTable):
@@ -170,8 +161,7 @@ class NerfTable(LookUpTable):
     defining the statistical properties of the membrane potential in presence of synaptic inputs.
 
     """
-    __tablename__ = None
 
     @staticmethod
-    def from_file(source_file="nerf_int.npz", instance=None):
-        return LookUpTable.populate_table(instance or NerfTable(), source_file)
+    def from_file(source_file="nerf_int.npz"):
+        return LookUpTable.populate_table(NerfTable(), source_file)
