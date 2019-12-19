@@ -31,21 +31,18 @@ Models based on Wong-Wang's work.
 
 """
 
-from .base import ModelNumbaDfun, LOG, numpy, basic, arrays
+import numpy
+from .base import ModelNumbaDfun
 from numba import guvectorize, float64
+from tvb.basic.neotraits.api import NArray, Final, List, Range
+
 
 @guvectorize([(float64[:],)*11], '(n),(m)' + ',()'*8 + '->(n)', nopython=True)
 def _numba_dfun(S, c, a, b, d, g, ts, w, j, io, dx):
     "Gufunc for reduced Wong-Wang model equations."
-
-    if S[0] < 0.0:
-        dx[0] = 0.0 - S[0]
-    elif S[0] > 1.0:
-        dx[0] = 1.0 - S[0]
-    else:
-        x = w[0]*j[0]*S[0] + io[0] + j[0]*c[0]
-        h = (a[0]*x - b[0]) / (1 - numpy.exp(-d[0]*(a[0]*x - b[0])))
-        dx[0] = - (S[0] / ts[0]) + (1.0 - S[0]) * h * g[0]
+    x = w[0]*j[0]*S[0] + io[0] + j[0]*c[0]
+    h = (a[0]*x - b[0]) / (1 - numpy.exp(-d[0]*(a[0]*x - b[0])))
+    dx[0] = - (S[0] / ts[0]) + (1.0 - S[0]) * h * g[0]
 
 
 class ReducedWongWang(ModelNumbaDfun):
@@ -61,9 +58,6 @@ class ReducedWongWang(ModelNumbaDfun):
                   Neuroscience 32(27), 11239-11252, 2013.
 
 
-
-    .. automethod:: ReducedWongWang.__init__
-
     Equations taken from [DPA_2013]_ , page 11242
 
     .. math::
@@ -72,88 +66,80 @@ class ReducedWongWang(ModelNumbaDfun):
                  \dot{S}_k &= -\dfrac{S_k}{\tau_s} + (1 - S_k) \, H(x_k) \, \gamma
 
     """
-    _ui_name = "Reduced Wong-Wang"
-    ui_configurable_parameters = ['a', 'b', 'd', 'gamma', 'tau_s', 'w', 'J_N', 'I_o']
 
-    #Define traited attributes for this model, these represent possible kwargs.
-    a = arrays.FloatArray(
+    # Define traited attributes for this model, these represent possible kwargs.
+    a = NArray(
         label=":math:`a`",
         default=numpy.array([0.270, ]),
-        range=basic.Range(lo=0.0, hi=0.270, step=0.01),
-        doc="[n/C]. Input gain parameter, chosen to fit numerical solutions.",
-        order=1)
+        domain=Range(lo=0.0, hi=0.270, step=0.01),
+        doc="[n/C]. Input gain parameter, chosen to fit numerical solutions.")
 
-    b = arrays.FloatArray(
+    b = NArray(
         label=":math:`b`",
         default=numpy.array([0.108, ]),
-        range=basic.Range(lo=0.0, hi=1.0, step=0.01),
-        doc="[kHz]. Input shift parameter chosen to fit numerical solutions.",
-        order=2)
+        domain=Range(lo=0.0, hi=1.0, step=0.01),
+        doc="[kHz]. Input shift parameter chosen to fit numerical solutions.")
 
-    d = arrays.FloatArray(
+    d = NArray(
         label=":math:`d`",
         default=numpy.array([154., ]),
-        range=basic.Range(lo=0.0, hi=200.0, step=0.01),
-        doc="""[ms]. Parameter chosen to fit numerical solutions.""",
-        order=3)
+        domain=Range(lo=0.0, hi=200.0, step=0.01),
+        doc="""[ms]. Parameter chosen to fit numerical solutions.""")
 
-    gamma = arrays.FloatArray(
+    gamma = NArray(
         label=r":math:`\gamma`",
         default=numpy.array([0.641, ]),
-        range=basic.Range(lo=0.0, hi=1.0, step=0.01),
-        doc="""Kinetic parameter""",
-        order=4)
+        domain=Range(lo=0.0, hi=1.0, step=0.01),
+        doc="""Kinetic parameter""")
 
-    tau_s = arrays.FloatArray(
+    tau_s = NArray(
         label=r":math:`\tau_S`",
         default=numpy.array([100., ]),
-        range=basic.Range(lo=50.0, hi=150.0, step=1.0),
-        doc="""Kinetic parameter. NMDA decay time constant.""",
-        order=5)
+        domain=Range(lo=50.0, hi=150.0, step=1.0),
+        doc="""Kinetic parameter. NMDA decay time constant.""")
 
-    w = arrays.FloatArray(
+    w = NArray(
         label=r":math:`w`",
         default=numpy.array([0.6, ]),
-        range=basic.Range(lo=0.0, hi=1.0, step=0.01),
-        doc="""Excitatory recurrence""",
-        order=6)
+        domain=Range(lo=0.0, hi=1.0, step=0.01),
+        doc="""Excitatory recurrence""")
 
-    J_N = arrays.FloatArray(
+    J_N = NArray(
         label=r":math:`J_{N}`",
         default=numpy.array([0.2609, ]),
-        range=basic.Range(lo=0.2609, hi=0.5, step=0.001),
-        doc="""Excitatory recurrence""",
-        order=7)
+        domain=Range(lo=0.2609, hi=0.5, step=0.001),
+        doc="""Excitatory recurrence""")
 
-    I_o = arrays.FloatArray(
+    I_o = NArray(
         label=":math:`I_{o}`",
         default=numpy.array([0.33, ]),
-        range=basic.Range(lo=0.0, hi=1.0, step=0.01),
-        doc="""[nA] Effective external input""",
-        order=8)
+        domain=Range(lo=0.0, hi=1.0, step=0.01),
+        doc="""[nA] Effective external input""")
 
-    sigma_noise = arrays.FloatArray(
+    sigma_noise = NArray(
         label=r":math:`\sigma_{noise}`",
         default=numpy.array([0.000000001, ]),
-        range=basic.Range(lo=0.0, hi=0.005),
+        domain=Range(lo=0.0, hi=0.005, step=0.0001),
         doc="""[nA] Noise amplitude. Take this value into account for stochatic
-        integration schemes.""",
-        order=-1)
+        integration schemes.""")
 
-    state_variable_range = basic.Dict(
+    state_variable_range = Final(
         label="State variable ranges [lo, hi]",
         default={"S": numpy.array([0.0, 1.0])},
-        doc="Population firing rate",
-        order=9
-    )
+        doc="Population firing rate")
 
-    variables_of_interest = basic.Enumerate(
+    state_variable_boundaries = Final(
+        label="State Variable boundaries [lo, hi]",
+        default={"S": numpy.array([0.0, 1.0])},
+        doc="""The values for each state-variable should be set to encompass
+            the boundaries of the dynamic range of that state-variable. Set None for one-sided boundaries""")
+
+    variables_of_interest = List(
+        of=str,
         label="Variables watched by Monitors",
-        options=["S"],
-        default=["S"],
-        select_multiple=True,
-        doc="""default state variables to be monitored""",
-        order=10)
+        choices=("S",),
+        default=("S",),
+        doc="""default state variables to be monitored""")
 
     state_variables = ['S']
     _nvar = 1
@@ -175,8 +161,7 @@ class ReducedWongWang(ModelNumbaDfun):
 
         """
         S   = state_variables[0, :]
-        S[S<0] = 0.
-        S[S>1] = 1.
+
         c_0 = coupling[0, :]
 
 

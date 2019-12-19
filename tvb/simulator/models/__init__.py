@@ -29,8 +29,7 @@
 """
 A collection of neuronal dynamics models.
 
-Specific models inherit from the abstract class Model, which in turn inherits
-from the class Trait from the tvb.basic.traits module.
+Specific models inherit from the abstract class Model.
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 .. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
@@ -40,14 +39,16 @@ from the class Trait from the tvb.basic.traits module.
 """
 
 from .base import Model
-from .wilson_cowan import WilsonCowan
-from .stefanescu_jirsa import ReducedSetFitzHughNagumo, ReducedSetHindmarshRose
-from .jansen_rit import JansenRit, ZetterbergJansen
-from .oscillator import Generic2dOscillator, Kuramoto
-from .larter_breakspear import LarterBreakspear
-from .wong_wang import ReducedWongWang
-from .linear import Linear
-from .hopfield import Hopfield
-from .epileptor import Epileptor
+from .epileptor import Epileptor, Epileptor2D
+from .epileptor_rs import EpileptorRestingState
 from .epileptorcodim3 import EpileptorCodim3, EpileptorCodim3SlowMod
-from .Zerlaut import Zerlaut_adaptation_first_order, Zerlaut_adaptation_second_order
+from .hopfield import Hopfield
+from .jansen_rit import JansenRit, ZetterbergJansen
+from .larter_breakspear import LarterBreakspear
+from .linear import Linear
+from .oscillator import Generic2dOscillator, Kuramoto, SupHopf
+from .stefanescu_jirsa import ReducedSetFitzHughNagumo, ReducedSetHindmarshRose
+from .wilson_cowan import WilsonCowan
+from .wong_wang import ReducedWongWang
+from .wong_wang_exc_inh import ReducedWongWangExcInh
+from .zerlaut import ZerlautFirstOrder, ZerlautSecondOrder

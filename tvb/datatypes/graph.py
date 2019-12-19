@@ -30,101 +30,74 @@
 
 """
 
-The Graph datatypes. This brings together the scientific and framework methods
-that are associated with the Graph datatypes.
+The Graph datatypes.
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 .. moduleauthor:: Paula Sanz Leon <paula.sanz-leon@univ-amu.fr>
 
 """
-
-from tvb.basic.traits import core, types_basic as basic
-from tvb.basic.logger.builder import get_logger
-from tvb.datatypes import arrays, time_series, connectivity
-
-LOG = get_logger(__name__)
+import numpy
+from tvb.basic.neotraits.api import HasTraits, Attr, NArray, List, narray_summary_info
+from tvb.datatypes import time_series, connectivity
 
 
-class Covariance(arrays.MappedArray):
+class Covariance(HasTraits):
     """Covariance datatype."""
 
-    array_data = arrays.ComplexArray(file_storage=core.FILE_STORAGE_EXPAND)
+    array_data = NArray(dtype=numpy.complex128)
 
-    source = time_series.TimeSeries(
+    source = Attr(
+        field_type=time_series.TimeSeries,
         label="Source time-series",
         doc="Links to the time-series on which NodeCovariance is applied.")
 
-    __generate_table__ = True
-
-    def configure(self):
-        """After populating few fields, compute the rest of the fields"""
-        # Do not call super, because that accesses data not-chunked
-        self.nr_dimensions = len(self.read_data_shape())
-        for i in range(self.nr_dimensions):
-            setattr(self, 'length_%dd' % (i + 1), int(self.read_data_shape()[i]))
-
-    def write_data_slice(self, partial_result):
-        """
-        Append chunk.
-        """
-        self.store_data_chunk('array_data', partial_result, grow_dimension=2, close_file=False)
-
-    def _find_summary_info(self):
-        summary = {"Graph type": self.__class__.__name__,
-                   "Source": self.source.title}
-
-        summary.update(self.get_info_about_array('array_data'))
+    def summary_info(self):
+        summary = {
+            "Graph type": self.__class__.__name__,
+            "Source": self.source.title
+        }
+        summary.update(narray_summary_info(self.array_data))
         return summary
 
 
-class CorrelationCoefficients(arrays.MappedArray):
+class CorrelationCoefficients(HasTraits):
     """Correlation coefficients datatype."""
 
     # Extreme values for pearson Correlation Coefficients
     PEARSON_MIN = -1
     PEARSON_MAX = 1
 
-    array_data = arrays.FloatArray(file_storage=core.FILE_STORAGE_DEFAULT)
+    array_data = NArray()
 
-    source = time_series.TimeSeries(
+    source = Attr(
+        field_type=time_series.TimeSeries,
         label="Source time-series",
         doc="Links to the time-series on which Correlation (coefficients) is applied.")
 
-    labels_ordering = basic.List(
+    labels_ordering = List(
+        of=str,
         label="Dimension Names",
-        default=["Node", "Node", "State Variable", "Mode"],
+        default=("Node", "Node", "State Variable", "Mode"),
         doc="""List of strings representing names of each data dimension""")
 
-    __generate_table__ = True
-
-    def configure(self):
-        """After populating few fields, compute the rest of the fields"""
-        # Do not call super, because that accesses data not-chunked
-        self.nr_dimensions = len(self.read_data_shape())
-        for i in range(self.nr_dimensions):
-            setattr(self, 'length_%dd' % (i + 1), int(self.read_data_shape()[i]))
-
-    def _find_summary_info(self):
-        summary = {"Graph type": self.__class__.__name__,
-                   "Source": self.source.title,
-                   "Dimensions": self.labels_ordering}
-        summary.update(self.get_info_about_array('array_data'))
+    def summary_info(self):
+        summary = {
+            "Graph type": self.__class__.__name__,
+            "Source": self.source.title,
+            "Dimensions": self.labels_ordering
+        }
+        summary.update(narray_summary_info(self.array_data))
         return summary
 
-    def get_correlation_data(self, selected_state, selected_mode):
-        matrix_to_display = self.array_data[:, :, int(selected_state), int(selected_mode)]
-        return list(matrix_to_display.flat)
 
-
-class ConnectivityMeasure(arrays.MappedArray):
+class ConnectivityMeasure(HasTraits):
     """Measurement of based on a connectivity."""
 
-    connectivity = connectivity.Connectivity
+    array_data = NArray()
 
-    def _find_summary_info(self):
+    connectivity = Attr(field_type=connectivity.Connectivity)
+
+    def summary_info(self):
         summary = {"Graph type": self.__class__.__name__}
-        # summary["Source"] = self.connectivity.title
-        summary.update(self.get_info_about_array('array_data'))
+        summary.update(narray_summary_info(self.array_data))
         return summary
-
-    __generate_table__ = True

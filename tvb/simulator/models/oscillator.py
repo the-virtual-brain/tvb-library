@@ -31,10 +31,11 @@ Oscillator models.
 
 """
 
-from .base import Model, ModelNumbaDfun, LOG, numpy, basic, arrays
+from .base import Model, ModelNumbaDfun
 import numexpr
+import numpy
 from numba import guvectorize, float64
-
+from tvb.basic.neotraits.api import NArray, Final, List, Range
 
 
 class Generic2dOscillator(ModelNumbaDfun):
@@ -221,112 +222,92 @@ class Generic2dOscillator(ModelNumbaDfun):
         model for default parameters. The dynamical system has an equilibrium
         point.
 
-    .. #Currently there seems to be a clash between traits and autodoc, autodoc
-    .. #can't find the methods of the class, the class specific names below get
-    .. #us around this...
-    .. automethod:: Generic2dOscillator.__init__
     .. automethod:: Generic2dOscillator.dfun
 
     """
 
-    _ui_name = "Generic 2d Oscillator"
-    ui_configurable_parameters = ['tau', 'a', 'b', 'c', 'I', 'd', 'e', 'f', 'g', 'alpha', 'beta', 'gamma']
-
-    #Define traited attributes for this model, these represent possible kwargs.
-    tau = arrays.FloatArray(
+    # Define traited attributes for this model, these represent possible kwargs.
+    tau = NArray(
         label=r":math:`\tau`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=1.0, hi=5.0, step=0.01),
+        domain=Range(lo=1.0, hi=5.0, step=0.01),
         doc="""A time-scale hierarchy can be introduced for the state
         variables :math:`V` and :math:`W`. Default parameter is 1, which means
-        no time-scale hierarchy.""",
-        order=1)
+        no time-scale hierarchy.""")
 
-    I = arrays.FloatArray(
+    I = NArray(
         label=":math:`I_{ext}`",
         default=numpy.array([0.0]),
-        range=basic.Range(lo=-5.0, hi=5.0, step=0.01),
-        doc="""Baseline shift of the cubic nullcline""",
-        order=2)
+        domain=Range(lo=-5.0, hi=5.0, step=0.01),
+        doc="""Baseline shift of the cubic nullcline""")
 
-    a = arrays.FloatArray(
+    a = NArray(
         label=":math:`a`",
         default=numpy.array([-2.0]),
-        range=basic.Range(lo=-5.0, hi=5.0, step=0.01),
-        doc="""Vertical shift of the configurable nullcline""",
-        order=3)
+        domain=Range(lo=-5.0, hi=5.0, step=0.01),
+        doc="""Vertical shift of the configurable nullcline""")
 
-    b = arrays.FloatArray(
+    b = NArray(
         label=":math:`b`",
         default=numpy.array([-10.0]),
-        range=basic.Range(lo=-20.0, hi=15.0, step=0.01),
-        doc="""Linear slope of the configurable nullcline""",
-        order=4)
+        domain=Range(lo=-20.0, hi=15.0, step=0.01),
+        doc="""Linear slope of the configurable nullcline""")
 
-    c = arrays.FloatArray(
+    c = NArray(
         label=":math:`c`",
         default=numpy.array([0.0]),
-        range=basic.Range(lo=-10.0, hi=10.0, step=0.01),
-        doc="""Parabolic term of the configurable nullcline""",
-        order=5)
+        domain=Range(lo=-10.0, hi=10.0, step=0.01),
+        doc="""Parabolic term of the configurable nullcline""")
 
-    d = arrays.FloatArray(
+    d = NArray(
         label=":math:`d`",
         default=numpy.array([0.02]),
-        range=basic.Range(lo=0.0001, hi=1.0, step=0.0001),
+        domain=Range(lo=0.0001, hi=1.0, step=0.0001),
         doc="""Temporal scale factor. Warning: do not use it unless
-        you know what you are doing and know about time tides.""",
-        order=13)
+        you know what you are doing and know about time tides.""")
 
-    e = arrays.FloatArray(
+    e = NArray(
         label=":math:`e`",
         default=numpy.array([3.0]),
-        range=basic.Range(lo=-5.0, hi=5.0, step=0.0001),
-        doc="""Coefficient of the quadratic term of the cubic nullcline.""",
-        order=6)
+        domain=Range(lo=-5.0, hi=5.0, step=0.0001),
+        doc="""Coefficient of the quadratic term of the cubic nullcline.""")
 
-    f = arrays.FloatArray(
+    f = NArray(
         label=":math:`f`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=-5.0, hi=5.0, step=0.0001),
-        doc="""Coefficient of the cubic term of the cubic nullcline.""",
-        order=7)
+        domain=Range(lo=-5.0, hi=5.0, step=0.0001),
+        doc="""Coefficient of the cubic term of the cubic nullcline.""")
 
-    g = arrays.FloatArray(
+    g = NArray(
         label=":math:`g`",
         default=numpy.array([0.0]),
-        range=basic.Range(lo=-5.0, hi=5.0, step=0.5),
-        doc="""Coefficient of the linear term of the cubic nullcline.""",
-        order=8)
+        domain=Range(lo=-5.0, hi=5.0, step=0.5),
+        doc="""Coefficient of the linear term of the cubic nullcline.""")
 
-    alpha = arrays.FloatArray(
+    alpha = NArray(
         label=r":math:`\alpha`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=-5.0, hi=5.0, step=0.0001),
+        domain=Range(lo=-5.0, hi=5.0, step=0.0001),
         doc="""Constant parameter to scale the rate of feedback from the
-            slow variable to the fast variable.""",
-        order=9)
+            slow variable to the fast variable.""")
 
-    beta = arrays.FloatArray(
+    beta = NArray(
         label=r":math:`\beta`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=-5.0, hi=5.0, step=0.0001),
+        domain=Range(lo=-5.0, hi=5.0, step=0.0001),
         doc="""Constant parameter to scale the rate of feedback from the
-            slow variable to itself""",
-        order=10)
+            slow variable to itself""")
 
     # This parameter is basically a hack to avoid having a negative lower boundary in the global coupling strength.
-    gamma = arrays.FloatArray(
+    gamma = NArray(
         label=r":math:`\gamma`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=-1.0, hi=1.0, step=0.1),
+        domain=Range(lo=-1.0, hi=1.0, step=0.1),
         doc="""Constant parameter to reproduce FHN dynamics where
                excitatory input currents are negative.
-               It scales both I and the long range coupling term.""",
-        order=13)
+               It scales both I and the long range coupling term.""")
 
-    #Informational attribute, used for phase-plane and initial()
-    state_variable_range = basic.Dict(
+    state_variable_range = Final(
         label="State Variable ranges [lo, hi]",
         default={"V": numpy.array([-2.0, 4.0]),
                  "W": numpy.array([-6.0, 6.0])},
@@ -334,28 +315,16 @@ class Generic2dOscillator(ModelNumbaDfun):
             the expected dynamic range of that state-variable for the current
             parameters, it is used as a mechanism for bounding random initial
             conditions when the simulation isn't started from an explicit
-            history, it is also provides the default range of phase-plane plots.""",
-        order=11)
+            history, it is also provides the default range of phase-plane plots.""")
 
-    #    variables_of_interest = arrays.IntegerArray(
-    #        label = "Variables watched by Monitors.",
-    #        range = basic.Range(lo = 0.0, hi = 2.0, step = 1.0),
-    #        default = numpy.array([0], dtype=numpy.int32),
-    #        doc = """This represents the default state-variables of this Model to be
-    #        monitored. It can be overridden for each Monitor if desired. The
-    #        corresponding state-variable indices for this model are :math:`V = 0`
-    #        and :math:`W = 1`""",
-    #        order = 7)
-
-    variables_of_interest = basic.Enumerate(
+    variables_of_interest = List(
+        of=str,
         label="Variables or quantities available to Monitors",
-        options=["V", "W", "V + W", "V - W"],
-        default=["V", ],
-        select_multiple=True,
-        doc="The quantities of interest for monitoring for the generic 2D oscillator.",
-        order=12)
+        choices=("V", "W", "V + W", "V - W"),
+        default=("V", ),
+        doc="The quantities of interest for monitoring for the generic 2D oscillator.")
 
-    state_variables = ['V', 'W']
+    state_variables = ('V', 'W')
     _nvar = 2
     cvar = numpy.array([0], dtype=numpy.int32)
 
@@ -457,40 +426,31 @@ class Kuramoto(Model):
 
     """
 
-    _ui_name = "Kuramoto Oscillator"
-    ui_configurable_parameters = ['omega']
-
-    #Define traited attributes for this model, these represent possible kwargs.
-    omega = arrays.FloatArray(
+    # Define traited attributes for this model, these represent possible kwargs.
+    omega = NArray(
         label=r":math:`\omega`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=0.01, hi=200.0, step=0.1),
+        domain=Range(lo=0.01, hi=200.0, step=0.1),
         doc=""":math:`\omega` sets the base line frequency for the
-            Kuramoto oscillator in [rad/ms]""",
-        order=1)
+            Kuramoto oscillator in [rad/ms]""")
 
-    #Informational attribute, used for phase-plane and initial()
-    state_variable_range = basic.Dict(
+    state_variable_range = Final(
         label="State Variable ranges [lo, hi]",
-        default={"theta": numpy.array([0.0, numpy.pi * 2.0]),
-        },
+        default={"theta": numpy.array([0.0, numpy.pi * 2.0]), },
         doc="""The values for each state-variable should be set to encompass
             the expected dynamic range of that state-variable for the current
             parameters, it is used as a mechanism for bounding random initial
             conditions when the simulation isn't started from an explicit
-            history, it is also provides the default range of phase-plane plots.""",
-        order=6)
+            history, it is also provides the default range of phase-plane plots.""")
 
-    variables_of_interest = basic.Enumerate(
+    variables_of_interest = List(
         label="Variables watched by Monitors",
-        options=["theta"],
-        default=["theta"],
-        select_multiple=True,
+        choices=("theta",),
+        default=("theta",),
         doc="""This represents the default state-variables of this Model to be
                             monitored. It can be overridden for each Monitor if desired. The Kuramoto
                             model, however, only has one state variable with and index of 0, so it
-                            is not necessary to change the default here.""",
-        order=7)
+                            is not necessary to change the default here.""")
 
     state_variables = ['theta']
     _nvar = 1
@@ -532,7 +492,7 @@ class Kuramoto(Model):
         return self.derivative
 
 
-class supHopf(ModelNumbaDfun):
+class SupHopf(ModelNumbaDfun):
     r"""
     The supHopf model describes the normal form of a supercritical Hopf bifurcation in Cartesian coordinates.
     This normal form has a supercritical bifurcation at a=0 with a the bifurcation parameter in the model. So 
@@ -557,26 +517,20 @@ class supHopf(ModelNumbaDfun):
     where a is the local bifurcation parameter and omega the angular frequency.
     """
 
-    _ui_name = "supHopf"
-    ui_configurable_parameters = ['a', 'omega']
-
-    #supHopf's parameters.
-    a = arrays.FloatArray(
+    a = NArray(
         label=r":math:`a`",
         default=numpy.array([-0.5]),
-        range=basic.Range(lo=-10.0, hi=10.0, step=0.01),
-        doc="""Local bifurcation parameter.""",
-        order=1)
+        domain=Range(lo=-10.0, hi=10.0, step=0.01),
+        doc="""Local bifurcation parameter.""")
 
-    omega = arrays.FloatArray(
+    omega = NArray(
         label=r":math:`\omega`",
         default=numpy.array([1.]),
-        range=basic.Range(lo=0.05, hi=630.0, step=0.01),
-        doc="""Angular frequency.""",
-        order=2)
+        domain=Range(lo=0.05, hi=630.0, step=0.01),
+        doc="""Angular frequency.""")
 
     # Initialization.
-    state_variable_range = basic.Dict(
+    state_variable_range = Final(
         label="State Variable ranges [lo, hi]",
         default={"x": numpy.array([-5.0, 5.0]),
                  "y": numpy.array([-5.0, 5.0])},
@@ -584,16 +538,14 @@ class supHopf(ModelNumbaDfun):
                the expected dynamic range of that state-variable for the current
                parameters, it is used as a mechanism for bounding random initial
                conditions when the simulation isn't started from an explicit
-               history, it is also provides the default range of phase-plane plots.""",
-        order=3)
+               history, it is also provides the default range of phase-plane plots.""")
 
-    variables_of_interest = basic.Enumerate(
+    variables_of_interest = List(
+        of=str,
         label="Variables watched by Monitors",
-        options=["x", "y"],
-        default=["x"],
-        select_multiple=True,
-        doc="Quantities of supHopf available to monitor.",
-        order=4)
+        choices=("x", "y"),
+        default=("x",),
+        doc="Quantities of supHopf available to monitor.")
 
     state_variables = ["x", "y"]
     
@@ -630,6 +582,7 @@ class supHopf(ModelNumbaDfun):
         deriv = _numba_dfun_supHopf(x_, c_, self.a, self.omega, lc_0)
         
         return deriv.T[..., numpy.newaxis]
+
 
 @guvectorize([(float64[:],) * 6], '(n),(m)' + ',()' * 3 + '->(n)', nopython=True)
 def _numba_dfun_supHopf(y, c, a, omega, lc_0, ydot):

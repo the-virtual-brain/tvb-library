@@ -82,19 +82,12 @@ following:
 
 """
 import numpy
-
-import tvb.basic.traits.core as core
-import tvb.basic.traits.types_basic as basic
-import tvb.datatypes.arrays as arrays
-
-from tvb.simulator.common import get_logger
-LOG = get_logger(__name__)
-
+from tvb.basic.neotraits.api import HasTraits, NArray, Attr, Range
 from .history import SparseHistory
-from .common import astr, map_astr, simple_gen_astr
+from .common import simple_gen_astr
 
 
-class Coupling(core.Type):
+class Coupling(HasTraits):
     r"""
     The base class for Coupling functions.
 
@@ -123,15 +116,14 @@ class Coupling(core.Type):
     .. automethod:: PreSigmoidal.__call__
 
     """
-    _base_classes = ["Coupling", 'SparseCoupling']
 
     def __call__(self, step, history):
         g_ij = history.es_weights
         x_i, x_j = history.query(step)
-        x_i = x_i[numpy.newaxis].transpose((2, 1, 0, 3)) # (to, ncv, from, m)
+        x_i = x_i[numpy.newaxis].transpose((2, 1, 0, 3))  # (to, ncv, from, m)
         pre = self.pre(x_i, x_j)
-        sum = (g_ij * pre).sum(axis=2) # (to, ncv, m)
-        return self.post(sum).transpose((1, 0, 2)) # (ncv, to, m)
+        sum = (g_ij * pre).sum(axis=2)  # (to, ncv, m)
+        return self.post(sum).transpose((1, 0, 2))  # (ncv, to, m)
 
     def pre(self, x_i, x_j):
         return x_j
@@ -153,7 +145,7 @@ class SparseCoupling(Coupling):
             rows = numpy.r_[-1, nnz_row_el_idx]
             self._cached_lri, = numpy.argwhere(numpy.diff(rows)).T
             self._cached_nzr = numpy.unique(nnz_row_el_idx)
-            LOG.debug('lri.size %d nzr.size %d', self._cached_lri.size, self._cached_nzr.size)
+            self.log.debug('lri.size %d nzr.size %d', self._cached_lri.size, self._cached_nzr.size)
         return self._cached_lri, self._cached_nzr
 
     def __call__(self, step, history):
@@ -176,6 +168,7 @@ class SparseCoupling(Coupling):
         sum[:, nzr] = numpy.add.reduceat(weights_col * pre, lri, axis=1)
         return self.post(sum)
 
+
 class Linear(SparseCoupling):
     r"""
     Provides a linear coupling function of the following form
@@ -185,26 +178,25 @@ class Linear(SparseCoupling):
 
     """
 
-    a = arrays.FloatArray(
+    a = NArray(
         label=":math:`a`",
         default=numpy.array([0.00390625,]),
-        range=basic.Range(lo=0.0, hi=1.0, step=0.01),
+        domain=Range(lo=0.0, hi=1.0, step=0.01),
         doc="Rescales the connection strength while maintaining the ratio "
-            "between different values.",
-        order=1)
+            "between different values.")
 
-    b = arrays.FloatArray(
+    b = NArray(
         label=":math:`b`",
-        default=numpy.array([0.0,]),
+        default=numpy.array([0.0]),
         doc="Shifts the base of the connection strength while maintaining "
-            "the absolute difference between different values.",
-        order=2)
+            "the absolute difference between different values.")
 
     def post(self, gx):
         return self.a * gx + self.b
 
     def __str__(self):
         return simple_gen_astr(self, 'a b')
+
 
 class Scaling(SparseCoupling):
     r"""
@@ -215,12 +207,13 @@ class Scaling(SparseCoupling):
 
     """
 
-    a = basic.Float(
+    a = NArray(
         label="Scaling factor",
-        default=0.00390625,
-        range=basic.Range(lo=0.0, hi=1.0, step=0.01),
+        default=numpy.array([0.00390625]),
+        domain=Range(lo=0.0, hi=1.0, step=0.01),
         doc="Rescales the connection strength while maintaining "
-            "the ratio between different values.")
+            "the ratio between different values."
+    )
 
     def post(self, gx):
         return self.a * gx
@@ -241,33 +234,29 @@ class HyperbolicTangent(SparseCoupling):
 
     """
 
-    a = arrays.FloatArray(
+    a = NArray(
         label=":math:`a`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
-        doc="Minimum of the sigmoid function",
-        order=1)
+        domain=Range(lo=-1000.0, hi=1000.0, step=10.0),
+        doc="Minimum of the sigmoid function")
 
-    b = arrays.FloatArray(
+    b = NArray(
         label=":math:`b`",
         default=numpy.array([1.0]),
-        range=basic.Range(lo=-1.0, hi=1.0, step=10.0),
-        doc="Scaling factor for the variable",
-        order=2)
+        domain=Range(lo=-1.0, hi=1.0, step=10.0),
+        doc="Scaling factor for the variable")
 
-    midpoint = arrays.FloatArray(
+    midpoint = NArray(
         label="midpoint",
         default=numpy.array([0.0,]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
-        doc="Midpoint of the linear portion of the sigmoid",
-        order=3)
+        domain=Range(lo=-1000.0, hi=1000.0, step=10.0),
+        doc="Midpoint of the linear portion of the sigmoid")
 
-    sigma = arrays.FloatArray(
+    sigma = NArray(
         label=r":math:`\sigma`",
         default=numpy.array([1.0,]),
-        range=basic.Range(lo=0.01, hi=1000.0, step=10.0),
-        doc="Standard deviation of the coupling",
-        order=4)
+        domain=Range(lo=0.01, hi=1000.0, step=10.0),
+        doc="Standard deviation of the coupling")
 
     def pre(self, x_i, x_j):
         return self.a * (1 +  numpy.tanh((self.b * x_j - self.midpoint) / self.sigma))
@@ -290,40 +279,35 @@ class Sigmoidal(Coupling):
 
     """
 
-    cmin = arrays.FloatArray(
+    cmin = NArray(
         label=":math:`c_{min}`",
         default=numpy.array([-1.0,]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
-        doc="""Minimum of the sigmoid function""",
-        order=1)
+        domain=Range(lo=-1000.0, hi=1000.0, step=10.0),
+        doc="""Minimum of the sigmoid function""",)
 
-    cmax = arrays.FloatArray(
+    cmax = NArray(
         label=":math:`c_{max}`",
         default=numpy.array([1.0,]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
-        doc="""Maximum of the sigmoid function""",
-        order=2)
+        domain=Range(lo=-1000.0, hi=1000.0, step=10.0),
+        doc="""Maximum of the sigmoid function""",)
 
-    midpoint = arrays.FloatArray(
+    midpoint = NArray(
         label="midpoint",
         default=numpy.array([0.0,]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
-        doc="Midpoint of the linear portion of the sigmoid",
-        order=3)
+        domain=Range(lo=-1000.0, hi=1000.0, step=10.0),
+        doc="Midpoint of the linear portion of the sigmoid",)
 
-    a = arrays.FloatArray(
+    a = NArray(
         label=r":math:`a`",
         default=numpy.array([1.0,]),
-        range=basic.Range(lo=0.01, hi=1000.0, step=10.0),
-        doc="Scaling of sigmoidal",
-        order=4)
+        domain=Range(lo=0.01, hi=1000.0, step=10.0),
+        doc="Scaling of sigmoidal",)
 
-    sigma = arrays.FloatArray(
+    sigma = NArray(
         label=r":math:`\sigma`",
         default=numpy.array([230.0,]),
-        range=basic.Range(lo=0.01, hi=1000.0, step=10.0),
-        doc="Standard deviation of the sigmoidal",
-        order=5)
+        domain=Range(lo=0.01, hi=1000.0, step=10.0),
+        doc="Standard deviation of the sigmoidal",)
 
     def __str__(self):
         return simple_gen_astr(self, 'cmin cmax midpoint a sigma')
@@ -344,40 +328,35 @@ class SigmoidalJansenRit(Coupling):
 
     """
 
-    cmin = arrays.FloatArray(
+    cmin = NArray(
         label=":math:`c_{min}`",
         default=numpy.array([0.0,]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
-        doc="Minimum of the sigmoid function",
-        order=1)
+        domain=Range(lo=-1000.0, hi=1000.0, step=10.0),
+        doc="Minimum of the sigmoid function",)
 
-    cmax = arrays.FloatArray(
+    cmax = NArray(
         label=":math:`c_{max}`",
         default=numpy.array([2.0 * 0.0025,]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
-        doc="Maximum of the sigmoid function",
-        order=2)
+        domain=Range(lo=-1000.0, hi=1000.0, step=10.0),
+        doc="Maximum of the sigmoid function",)
 
-    midpoint = arrays.FloatArray(
+    midpoint = NArray(
         label="midpoint",
         default=numpy.array([6.0,]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=10.0),
-        doc="Midpoint of the linear portion of the sigmoid",
-        order=3)
+        domain=Range(lo=-1000.0, hi=1000.0, step=10.0),
+        doc="Midpoint of the linear portion of the sigmoid",)
 
-    r  = arrays.FloatArray(
+    r  = NArray(
         label=r":math:`r`",
         default=numpy.array([1.0,]),
-        range=basic.Range(lo=0.01, hi=1000.0, step=10.0),
-        doc="the steepness of the sigmoidal transformation",
-        order=4)
+        domain=Range(lo=0.01, hi=1000.0, step=10.0),
+        doc="the steepness of the sigmoidal transformation",)
 
-    a = arrays.FloatArray(
+    a = NArray(
         label=r":math:`a`",
         default=numpy.array([0.56,]),
-        range=basic.Range(lo=0.01, hi=1000.0, step=10.0),
-        doc="Scaling of the coupling term",
-        order=5)
+        domain=Range(lo=0.01, hi=1000.0, step=10.0),
+        doc="Scaling of the coupling term",)
 
     def __str__(self):
         return simple_gen_astr(self, 'cmin cmax midpoint a r')
@@ -403,52 +382,47 @@ class PreSigmoidal(Coupling):
 
     """
 
-    H = arrays.FloatArray(
+    H = NArray(
         label="H",
         default=numpy.array([0.5,]),
-        range=basic.Range(lo=-100.0, hi=100.0, step=1.0),
-        doc="Global Factor.",
-        order=1)
+        domain=Range(lo=-100.0, hi=100.0, step=1.0),
+        doc="Global Factor.",)
 
-    Q = arrays.FloatArray(
+    Q = NArray(
         label="Q",
         default=numpy.array([1.,]),
-        range=basic.Range(lo=-100.0, hi=100.0, step=1.0),
-        doc="Average.",
-        order=2)
+        domain=Range(lo=-100.0, hi=100.0, step=1.0),
+        doc="Average.",)
 
-    G = arrays.FloatArray(
+    G = NArray(
         label="G",
         default=numpy.array([60.,]),
-        range=basic.Range(lo=-1000.0, hi=1000.0, step=1.),
-        doc="Gain.",
-        order=3)
+        domain=Range(lo=-1000.0, hi=1000.0, step=1.),
+        doc="Gain.",)
 
-    P = arrays.FloatArray(
+    P = NArray(
         label="P",
         default=numpy.array([1.,]),
-        range=basic.Range(lo=-100.0, hi=100.0, step=0.01),
-        doc="Excitation-Inhibition ratio.",
-        order=4)
+        domain=Range(lo=-100.0, hi=100.0, step=0.01),
+        doc="Excitation-Inhibition ratio.",)
 
-    theta = arrays.FloatArray(
+    theta = NArray(
         label=":math:`\\theta`",
         default=numpy.array([0.5,]),
-        range=basic.Range(lo=-100.0, hi=100.0, step=0.01),
-        doc="Threshold.",
-        order=5)
+        domain=Range(lo=-100.0, hi=100.0, step=0.01),
+        doc="Threshold.",)
 
-    dynamic = basic.Bool(
+    dynamic = Attr(
+        field_type=bool,
         label="Dynamic",
         default=True,
-        doc="Use dynamic threshold (otherwise static).",
-        order=6)
+        doc="Use dynamic threshold (otherwise static).",)
 
-    globalT = basic.Bool(
+    globalT = Attr(
+        field_type=bool,
         label=":math:`global_{\\theta}`",
         default=False,
-        doc="Use global threshold (otherwise local).",
-        order=7)
+        doc="Use global threshold (otherwise local).",)
 
     def __str__(self):
         return simple_gen_astr(self, 'H Q G P theta dynamic globalT')
@@ -489,12 +463,11 @@ class Difference(SparseCoupling):
 
     """
 
-    a = arrays.FloatArray(
+    a = NArray(
         label=":math:`a`",
         default=numpy.array([0.1,]),
-        range=basic.Range(lo=0.0, hi=10., step=0.1),
-        doc="Rescales the connection strength.",
-        order=1)
+        domain=Range(lo=0.0, hi=10., step=0.1),
+        doc="Rescales the connection strength.",)
 
     def __str__(self):
         return simple_gen_astr(self, 'a')
@@ -514,14 +487,11 @@ class Kuramoto(SparseCoupling):
         a / N G_ij sin(x_j - x_i)
     
     """
-   
-
-    a = arrays.FloatArray(
+    a = NArray(
         label=":math:`a`",
         default=numpy.array([1.0,]),
-        range=basic.Range(lo=0.0, hi=1.0, step=0.01),
-        doc="Rescales the connection strength.",
-        order=1)
+        domain=Range(lo=0.0, hi=1.0, step=0.01),
+        doc="Rescales the connection strength.",)
 
     def __str__(self):
         return simple_gen_astr(self, 'a')

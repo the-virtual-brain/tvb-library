@@ -39,18 +39,12 @@ Compute cross coherence between all nodes in a time series.
 import numpy
 import matplotlib.mlab as mlab
 from matplotlib.pylab import detrend_linear
-#TODO: Currently built around the Simulator's 4D timeseries -- generalise...
 import tvb.datatypes.time_series as time_series
 import tvb.datatypes.spectral as spectral
-import tvb.basic.traits.core as core
-import tvb.basic.traits.types_basic as basic
-import tvb.basic.traits.util as util
-from tvb.basic.logger.builder import get_logger
+from tvb.basic.neotraits.api import HasTraits, Attr, Int, narray_describe
 
-LOG = get_logger(__name__)
 
-#TODO: Make an appropriate spectral datatype for the output
-#TODO: Should do this properly, ie not with mlab, returning both coherence and
+# TODO: Should do this properly, ie not with mlab, returning both coherence and
 #      the complex coherence spectra, then supporting magnitude squared
 #      coherence, etc in a similar fashion to the FourierSpectrum datatype...
 
@@ -78,7 +72,6 @@ def coherence_mlab(data, sample_rate, nfft=256):
     _, nsvar, nnode, nmode = data.shape
     # (frequency, nodes, nodes, state-variables, modes)
     coh_shape = nfft/2 + 1, nnode, nnode, nsvar, nmode
-    LOG.info("coh shape will be: %s" % (coh_shape, ))
     coh = numpy.zeros(coh_shape)
     for mode in range(nmode):
         for var in range(nsvar):
@@ -98,13 +91,13 @@ def coherence_mlab(data, sample_rate, nfft=256):
 def coherence(data, sample_rate, nfft=256, imag=False):
     "Vectorized coherence calculation by windowed FFT"
     nt, ns, nn, nm = data.shape
-    nwin = nt / nfft
+    nwin = nt // nfft
     if nwin < 1:
         raise ValueError(
             "Not enough time points ({0}) to compute an FFT, given a "
             "window size of nfft={1}.".format(nt, nfft))
     # ignore leftover data; need shape (nn, ... , nwin, nfft)
-    wins = data[:nwin * nfft]\
+    wins = data[:int(nwin * nfft)]\
         .copy()\
         .transpose((2, 1, 3, 0))\
         .reshape((nn, ns, nm, nwin, nfft))
@@ -122,15 +115,16 @@ def coherence(data, sample_rate, nfft=256, imag=False):
     return numpy.transpose(C[..., mask], (4, 0, 1, 2, 3)), fs[mask]
 
 
-class NodeCoherence(core.Type):
+class NodeCoherence(HasTraits):
     "Adapter for cross-coherence algorithm(s)"
 
-    time_series = time_series.TimeSeries(
+    time_series = Attr(
+        field_type=time_series.TimeSeries,
         label="Time Series",
         required=True,
         doc="""The timeseries to which the FFT is to be applied.""")
 
-    nfft = basic.Integer(
+    nfft = Int(
         label="Data-points per block",
         default=256,
         doc="""Should be a power of 2...""")
@@ -138,17 +132,19 @@ class NodeCoherence(core.Type):
     def evaluate(self):
         "Evaluate coherence on time series."
         cls_attr_name = self.__class__.__name__+".time_series"
-        self.time_series.trait["data"].log_debug(owner=cls_attr_name)
+        # self.time_series.trait["data"].log_debug(owner=cls_attr_name)
         srate = self.time_series.sample_rate
         coh, freq = coherence(self.time_series.data, srate, nfft=self.nfft)
-        util.log_debug_array(LOG, coh, "coherence")
-        util.log_debug_array(LOG, freq, "freq")
+        self.log.debug("coherence")
+        self.log.debug(narray_describe(coh))
+        self.log.debug("freq")
+        self.log.debug(narray_describe(freq))
+
         spec = spectral.CoherenceSpectrum(
             source=self.time_series,
             nfft=self.nfft,
             array_data=coh,
-            frequency=freq,
-            use_storage=False)
+            frequency=freq)
         return spec
 
     def result_shape(self, input_shape):
@@ -163,7 +159,7 @@ class NodeCoherence(core.Type):
         Returns the storage size in Bytes of the main result of NodeCoherence.
         """
         # TODO This depends on input array dtype!
-        result_size = numpy.sum(map(numpy.prod, self.result_shape(input_shape))) * 8.0 #Bytes
+        result_size = numpy.sum(list(map(numpy.prod, self.result_shape(input_shape)))) * 8.0 #Bytes
         return result_size
 
     def extended_result_size(self, input_shape):

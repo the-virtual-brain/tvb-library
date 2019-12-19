@@ -67,7 +67,7 @@ skip_if_no_numba = pytest.mark.skipif(not HAVE_NUMBA, reason="Numba unavailable"
 
 class CudaBaseCase(BaseTestCase):
 
-    def setUp(self): pass
+    def setup_method(self): pass
 
     # Implementations and tests written for a 1D block & 1D grid layout.
     # Results in 4 threads under simulator.
@@ -390,6 +390,5 @@ class TestSim(CudaBaseCase):
             cu_data[:, step_] = state[0, :, 0].T
             cu_coupling0[step_] = coupling0
 
-        # accept higher error because it accumulates over time
-        # TODO test error proportional to time
+        # Maybe accept higher error because it accumulates over time
         numpy.testing.assert_allclose(cu_data, py_data, 1e-2, 1e-2)

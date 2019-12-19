@@ -44,8 +44,6 @@ class TestModels(BaseTestCase):
     """
     Define test cases for models:
         - initialise each class
-        TODO - check default parameters (should correspond to those used in the original work with the aim to
-         reproduce at least one figure)
         - check that initial conditions are always in range
 
     """
@@ -110,7 +108,7 @@ class TestModels(BaseTestCase):
 
     def test_g2d_voi(self):
         model = models.Generic2dOscillator(
-            variables_of_interest=['W', 'W - V']
+            variables_of_interest=('W', 'V - W')
         )
         (V, W), (voi_W, voi_WmV) = self._validate_initialization(model, 2)
         numpy.testing.assert_allclose(voi_W, W)
@@ -173,3 +171,10 @@ class TestModels(BaseTestCase):
     def test_linear(self):
         model = models.Linear()
         self._validate_initialization(model, 1)
+
+    def test_ww(self):
+        model = models.ReducedWongWang()
+        self._validate_initialization(model, 1)
+
+        model = models.ReducedWongWangExcInh()
+        self._validate_initialization(model, 2)

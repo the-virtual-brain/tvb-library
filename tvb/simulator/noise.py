@@ -31,73 +31,22 @@
 """
 A collection of noise related classes and functions.
 
-Specific noises inherit from the abstract class Noise, with each instance having
-its own RandomStream attribute -- which is itself a Traited wrapper of Numpy's
-RandomState.
+Specific noises inherit from the abstract class Noise
 
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
 .. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
 .. moduleauthor:: Noelia Montejo <Noelia@tvb.invalid>
 
 """
-
+import abc
 import numpy
-from tvb.datatypes import arrays, equations
-from tvb.basic.traits import types_basic as basic, core
-from .common import get_logger, simple_gen_astr
+from tvb.datatypes import equations
+from .common import simple_gen_astr
+from tvb.basic.neotraits.api import HasTraits, Attr, NArray, Range, Int, Float
 
 
-LOG = get_logger(__name__)
 
-
-class RandomStream(core.Type):
-    """
-    This class provides the ability to create multiple random streams which can
-    be independently seeded or set to an explicit state.
-
-    """
-    _ui_name = "Random state"
-    wraps = numpy.random.RandomState
-    defaults = ((42,), {})  # for init wrapped value: wraps(*def[0], **def[1])
-
-    init_seed = basic.Integer(
-        label="A random seed",
-        default=42,
-        doc="""A random seed used to initialise the state of an instance of
-        numpy's RandomState.""")
-
-    def configure(self):
-        """
-        Run base classes configure to setup traited attributes, then initialise
-        the stream's state using ``init_seed``.
-        """
-        super(RandomStream, self).configure()
-        self.reset()
-
-    def __str__(self):
-        return simple_gen_astr(self, 'init_seed')
-
-    # TODO how does this method work?
-    def set_state(self, value):
-        """
-        Set the state of the random number stream based on a previously stored
-        state. This is to enable consistent noise state on continuation from a
-        previous simulation.
-
-        """
-        try:
-            numpy.random.RandomState.set_state(self, state=value)
-        except TypeError:
-            msg = "%s: bad state, see numpy.random.set_state"
-            LOG.error(msg % str(self))
-            raise msg
-
-    def reset(self):
-        """Reset the random stream to its initial state, using initial seed."""
-        numpy.random.RandomState.__init__(self.value, seed=self.init_seed)
-
-
-class Noise(core.Type):
+class Noise(HasTraits):
     """
     Defines a base class for noise. Specific noises are derived from this class
     for use in stochastic integrations.
@@ -128,30 +77,42 @@ class Noise(core.Type):
     .. automethod:: Noise.coloured
 
     """
-    _base_classes = ['Noise', 'MultiplicativeSimple']
 
     #NOTE: nsig is not declared here because we use this class directly as the
     #      inital conditions noise source, and in that use the job of nsig is
     #      filled by the state_variable_range attribute of the Model.
 
-    ntau = basic.Float(
+    ntau = Float(
         label=r":math:`\tau`",
         required=True,
-        default=0.0, range=basic.Range(lo=0.0, hi=20.0, step=1.0),
+        default=0.0,
+        # range=basic.Range(lo=0.0, hi=20.0, step=1.0), #mh todo  support domains for simple floats?
         doc="""The noise correlation time""")
 
-    random_stream = RandomStream(
-        label="Random Stream",
-        required=True,
-        doc="""An instance of numpy's RandomState associated with this
-        specific Noise object.""")
+    noise_seed = Int(
+        default=42,
+        doc="A random seed used to initialise the random_stream if it is missing."
+    )
 
-    dt = None
-    # For use if coloured
-    _E = None
-    _sqrt_1_E2 = None
-    _eta = None
-    _h = None
+    random_stream = Attr(
+        field_type=numpy.random.RandomState,
+        required=False,
+        label="Random Stream",
+        doc="An instance of numpy's RandomState associated with this"
+            "specific Noise object. Used when you need to resume a simulation from a state saved to disk"
+    )
+
+    def __init__(self, **kwargs):
+        super(Noise, self).__init__(**kwargs)
+        if self.random_stream is None:
+            self.random_stream = numpy.random.RandomState(self.noise_seed)
+
+        self.dt = None
+        # For use if coloured
+        self._E = None
+        self._sqrt_1_E2 = None
+        self._eta = None
+        self._h = None
 
     def configure(self):
         """
@@ -160,7 +121,8 @@ class Noise(core.Type):
 
         """
         super(Noise, self).configure()
-        self.random_stream.configure()
+        # XXX: reseeding here will destroy a maybe carefully set random_stream!
+        # self.random_stream.seed(self.noise_seed)
 
     def __str__(self):
         return simple_gen_astr(self, 'dt ntau')
@@ -168,7 +130,7 @@ class Noise(core.Type):
     def configure_white(self, dt, shape=None):
         """Set the time step (dt) of noise or integration time"""
         self.dt = dt
-        LOG.info('White noise configured with dt=%g', self.dt)
+        self.log.info('White noise configured with dt=%g', self.dt)
 
     def configure_coloured(self, dt, shape):
         r"""
@@ -210,7 +172,7 @@ class Noise(core.Type):
         self._sqrt_1_E2 = numpy.sqrt((1.0 - self._E ** 2))
         self._eta = self.random_stream.normal(size=shape)
         self._dt_sqrt_lambda = self.dt * numpy.sqrt(1.0 / self.ntau)
-        LOG.info('Colored noise configured with dt=%g E=%g sqrt_1_E2=%g eta=%g & dt_sqrt_lambda=%g',
+        self.log.info('Colored noise configured with dt=%g E=%g sqrt_1_E2=%g eta=%g & dt_sqrt_lambda=%g',
                   self.dt, self._E, self._sqrt_1_E2, self._eta, self._dt_sqrt_lambda)
 
     def generate(self, shape, lo=-1.0, hi=1.0):
@@ -232,6 +194,10 @@ class Noise(core.Type):
         noise = numpy.sqrt(self.dt) * self.random_stream.normal(size=shape)
         return noise
 
+    @abc.abstractmethod
+    def gfun(self, state_variables):
+        pass
+
 
 class Additive(Noise):
     """
@@ -240,16 +206,17 @@ class Additive(Noise):
 
     """
 
-    nsig = arrays.FloatArray(
-        configurable_noise=True,
+    nsig = NArray(
+        #  configurable_noise=True,  # TODO: deal with configurable_noise
         label=":math:`D`",
         required=True,
-        default=numpy.array([1.0]), range=basic.Range(lo=0.0, hi=10.0, step=0.1),
-        order=1,
+        default=numpy.array([1.0]),
+        domain=Range(lo=0.0, hi=10.0, step=0.1),
         doc="""The noise dispersion, it is the standard deviation of the
-        distribution from which the Gaussian random variates are drawn. NOTE:
-        Sensible values are typically ~<< 1% of the dynamic range of a Model's
-        state variables.""")
+            distribution from which the Gaussian random variates are drawn. NOTE:
+            Sensible values are typically ~<< 1% of the dynamic range of a Model's
+            state variables."""
+    )
 
     def gfun(self, state_variables):
         r"""
@@ -279,18 +246,20 @@ class Multiplicative(Noise):
 
     """
 
-    nsig = arrays.FloatArray(
-        configurable_noise=True,
+    nsig = NArray(
+        # configurable_noise=True,
         label=":math:`D`",
         required=True,
-        default=numpy.array([1.0, ]), range=basic.Range(lo=0.0, hi=10.0, step=0.1),
-        order=1,
+        default=numpy.array([1.0, ]),
+        domain=Range(lo=0.0, hi=10.0, step=0.1),
         doc="""The noise dispersion, it is the standard deviation of the
-        distribution from which the Gaussian random variates are drawn. NOTE:
-        Sensible values are typically ~<< 1% of the dynamic range of a Model's
-        state variables.""")
+            distribution from which the Gaussian random variates are drawn. NOTE:
+            Sensible values are typically ~<< 1% of the dynamic range of a Model's
+            state variables."""
+    )
 
-    b = equations.TemporalApplicableEquation(
+    b = Attr(
+        field_type=equations.TemporalApplicableEquation,
         label=":math:`b`",
         default=equations.Linear(parameters={"a": 1.0, "b": 0.0}),
         doc="""A function evaluated on the state-variables, the result of which enters as the diffusion coefficient.""")
@@ -304,6 +273,5 @@ class Multiplicative(Noise):
         Equation 4.6, page 119.
 
         """
-        self.b.pattern = state_variables
-        g_x = numpy.sqrt(2.0 * self.nsig) * self.b.pattern
+        g_x = numpy.sqrt(2.0 * self.nsig) * self.b.evaluate(state_variables)
         return g_x
