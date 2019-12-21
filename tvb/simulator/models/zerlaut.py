@@ -7,7 +7,7 @@ import scipy.special as sp_spec
 from tvb.basic.neotraits.api import NArray, Range, Final, List
 from numba import jit
 
-class Zerlaut_adaptation_first_order(Model):
+class ZerlautAdaptationFirstOrder(Model):
     r"""
     **References**:
     .. [ZD_2018]  Zerlaut, Y., Chemla, S., Chavane, F. et al. *Modeling mesoscopic cortical dynamics using a mean-field
@@ -316,9 +316,9 @@ class Zerlaut_adaptation_first_order(Model):
     # Used for phase-plane axis ranges and to bound random initial() conditions.
     state_variable_range = Final(
         label="State Variable ranges [lo, hi]",
-        default={"E": numpy.array([0.0, 0.0]),  # actually the 100Hz should be replaced by 1/T_refrac
-                 "I": numpy.array([0.0, 0.0]),
-                 "W_e": numpy.array([0.0,0.0]),
+        default={"E": numpy.array([250.e-3, 0.0]),  # actually the 100Hz should be replaced by 1/T_refrac
+                 "I": numpy.array([250.e-3, 0.0]),
+                 "W_e": numpy.array([200.0,0.0]),
                  "W_i": numpy.array([0.0,0.0]),
                      },
         doc="""The values for each state-variable should be set to encompass
@@ -342,6 +342,12 @@ class Zerlaut_adaptation_first_order(Model):
                corresponding state-variable indices for this model are :math:`E = 0`,
                :math:`I = 1` and :math:`W = 2`."""
         )
+    state_variable_boundaries = Final(
+        label="Firing rate of population is always positive",
+        default={"E": numpy.array([0.0, None]),
+                 "I": numpy.array([0.0, None])},
+        doc="""The values for each state-variable should be set to encompass
+            the boundaries of the dynamic range of that state-variable. Set None for one-sided boundaries""")
 
     state_variables = 'E I W_e W_i'.split()
     _nvar = 4
@@ -536,7 +542,7 @@ class Zerlaut_adaptation_first_order(Model):
         return sp_spec.erfc((Vthre-muV) / (numpy.sqrt(2)*sigmaV)) / (2*Tv)
 
 
-class Zerlaut_adaptation_second_order(Zerlaut_adaptation_first_order):
+class ZerlautAdaptationSecondOrder(ZerlautAdaptationFirstOrder):
     r"""
     **References**:
     .. [ZD_2018]  Zerlaut, Y., Chemla, S., Chavane, F. et al. *Modeling mesoscopic cortical dynamics using a mean-field
@@ -592,12 +598,12 @@ class Zerlaut_adaptation_second_order(Zerlaut_adaptation_first_order):
     #  Used for phase-plane axis ranges and to bound random initial() conditions.
     state_variable_range = Final(
         label="State Variable ranges [lo, hi]",
-        default={"E": numpy.array([0.0, 0.0]), # actually the 100Hz should be replaced by 1/T_refrac
-                 "I": numpy.array([0.0, 0.0]),
-                 "C_ee": numpy.array([0.0, 0.0]),  # variance is positive or null
-                 "C_ei": numpy.array([0.0, 0.0]),  # the co-variance is in [-c_ee*c_ii,c_ee*c_ii]
-                 "C_ii": numpy.array([0.0, 0.0]),  # variance is positive or null
-                 "W_e":numpy.array([0.0, 0.0]),
+        default={"E": numpy.array([250.e-3, 0.0]), # actually the 100Hz should be replaced by 1/T_refrac
+                 "I": numpy.array([250.e-3, 0.0]),
+                 "C_ee": numpy.array([0.5e-3, 0.0e-3]),  # variance is positive or null
+                 "C_ei": numpy.array([0.5e-3, -0.5e-3]),  # the co-variance is in [-c_ee*c_ii,c_ee*c_ii]
+                 "C_ii": numpy.array([0.5e-3, 0.0e-3]),  # variance is positive or null
+                 "W_e":numpy.array([200.0, 0.0]),
                  "W_i":numpy.array([0.0, 0.0]),
                  },
         doc="""The values for each state-variable should be set to encompass
