@@ -34,13 +34,10 @@ import sys
 import abc
 import numpy
 from tvb.basic.neotraits.api import HasTraits
-if sys.version_info[0] == 3:
-    import typing
-
-import sys
-
-if sys.version_info[0] == 3:
-    import typing
+if sys.version_info >= (3,5):
+    from typing import Tuple
+else:
+    from typing_extensions import Tuple
 
 
 class Model(HasTraits):
@@ -49,9 +46,9 @@ class Model(HasTraits):
 
     """
 
-    state_variables = ()  # type: typing.Tuple[str]
+    state_variables = Tuple[str]
     variables_of_interest = ()
-    _nvar = None   # todo make this a prop len(state_variables)
+    _nvar = len(state_variables)
     number_of_modes = 1
     cvar = None
     state_variable_boundaries = None
